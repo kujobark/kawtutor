@@ -1,186 +1,235 @@
-import OpenAI from "openai";
-import { SAFETY_RESPONSES } from "../lib/safetyResponses.js";
-import { classifyMessage } from "../lib/safetyCheck.js";
-
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-// ---- CORS CONFIG ----
-const ALLOWED_ORIGIN = "*";
-function setCors(res) {
-  res.setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-}
+import { NextResponse } from "next/server";
 
 /**
- * Framing Routine + Socratic Guardrails (Demo)
- * Goals (tight + UI-friendly):
- * - QUESTIONS ONLY (no explaining, no answering)
- * - EXACTLY 1 question per turn
- * - Strong priority on Key Topic → Is About before anything else
+ * Kaw Companion — Frame-Driven Socratic Tutor (API)
+ * Key upgrades:
+ * - 3-part sufficiency check for "Key Topic → is about"
+ * - prevents looping on Key Topic
+ * - JSON-only responses for Wix
  */
-const SYSTEM_PROMPT_FRAMING = `
-You are Kaw Companion, a Socratic tutor for grades 4–12 using the Framing Routine.
 
-NON-NEGOTIABLE RULES (always):
-- Use QUESTIONS ONLY. Do not explain. Do not lecture. Do not summarize.
-- Never give direct answers, solutions, or “the correct response.”
-- Never confirm correctness (no “Correct,” “That’s right,” etc.).
-- Ask EXACTLY 1 question per turn (no more).
-- Keep responses short and consistent.
+type Stage = "FOCUS_TOPIC" | "MAIN_IDEAS" | "DETAILS" | "SO_WHAT" | "NEXT";
 
-FRAMING ROUTINE SEQUENCE (must follow):
-1) Key Topic (2–5 words: the focus)
-2) Is About (one short phrase: what the topic is about)
-3) Main Ideas (1–3 important ideas)
-4) Essential Details (evidence/examples for each main idea)
-5) So What? (why it matters / significance)
+type KawRequest = {
+  stage: Stage;
 
-ANCHOR RULE:
-- If Key Topic is not clear, ask ONLY for Key Topic.
-- If Key Topic is clear but Is About is not clear, ask ONLY for Is About.
-- Do not ask “meaning/definition” questions before Key Topic + Is About are captured.
+  // Student text from Wix
+  student_last: string;
 
-REDIRECT RULE:
-If the student asks for an answer or you feel pulled into explaining, redirect to the next Frame step with ONE question.
+  // Optional, maintained client-side (Wix) and sent each turn
+  known?: {
+    keyTopic?: string | null;
+    isAbout?: string | null;
+    reaskCounts?: Record<string, number>; // e.g. { focus: 1 }
+  };
 
-TONE:
-Calm, teacher-like, encouraging, neutral toward correctness.
+  // Optional: what class/content area (helps examples stay relevant)
+  context?: {
+    subject?: string; // "Civics", "ELA", "Biology"
+    grade?: string;
+  };
+};
 
-OUTPUT FORMAT:
-Return only the single question. No headings. No bullets.
-`.trim();
+type KawResponse = {
+  next_stage: Stage;
+  assistant_message: string;
+  frames: string[];
+  quick_choices: string[];
+  field_updates: Record<string, any>;
+  needs: string[];
+};
 
-// ---- Hard caps (tuneable) ----
-const MAX_MODEL_TOKENS = 120;  // shorter responses = UI stability
-const MAX_CHARS = 420;         // hard cap for transcript container stability
-const MAX_QUESTIONS = 1;       // enforce exactly 1 question
+const MAX_REASK = 2;
 
-function countQuestions(text) {
-  return (text.match(/\?/g) || []).length;
+/** --- 1) Instructional sufficiency check (3-part) --- */
+function sufficiencyCheck(keyTopic?: string | null, isAbout?: string | null) {
+  const kt = (keyTopic ?? "").trim();
+  const ia = (isAbout ?? "").trim();
+
+  const hasClearLabel =
+    kt.length >= 3 &&
+    kt.length <= 80 &&
+    !/^(topic|stuff|things|history|government|science|math)$/i.test(kt);
+
+  const hasMeaningfulDirection =
+    ia.length >= 8 &&
+    ia.length <= 220 &&
+    !/^(it is about|about|this is about)?\s*(stuff|things|a topic|government|history|science)\.?$/i.test(
+      ia
+    );
+
+  const canLeadToMainIdeas =
+    // simple heuristic: contains a relationship/process cue or a describable angle
+    /(because|so that|so|how|why|to|caused by|leads to|results in|changed|influenced|prevents|helps|shows|explains|compares|contrasts)/i.test(
+      ia
+    ) || ia.split(" ").length >= 8;
+
+  const instructionallySufficient = hasClearLabel && hasMeaningfulDirection && canLeadToMainIdeas;
+
+  return {
+    instructionallySufficient,
+    hasClearLabel,
+    hasMeaningfulDirection,
+    canLeadToMainIdeas,
+  };
 }
 
-// crude “lecture-y” detectors (seatbelt triggers)
-function looksLikeExplanation(text) {
-  const t = (text || "").toLowerCase().trim();
-  const badStarts = [
-    "in summary",
-    "to summarize",
-    "here's",
-    "this means",
-    "the answer is",
-    "overall,",
-    "for example,",
-  ];
-  const hasBadStart = badStarts.some((s) => t.startsWith(s));
-  const tooManySentences = (text.match(/[.!]/g) || []).length >= 2; // keep VERY short
-  const hasColonList = text.includes(":") && (text.match(/\n/g) || []).length >= 1;
-  return hasBadStart || tooManySentences || hasColonList;
+/** --- 2) Very light safety gate to avoid confusing model pauses --- */
+function quickSafetyGate(text: string) {
+  const t = (text || "").toLowerCase();
+  const selfHarm = /(kill myself|suicide|self harm|hurt myself)/i.test(t);
+  const threat = /(shoot up|bomb|kill them|stab them)/i.test(t);
+  const minorSex = /(child porn|underage sex|minor nude)/i.test(t);
+  const block = selfHarm || threat || minorSex;
+  return { block, reason: selfHarm ? "self_harm" : threat ? "threat" : minorSex ? "minor_sex" : null };
 }
 
-function enforceHardCap(text) {
-  let out = (text || "").trim();
-
-  // Strip any accidental “labels”
-  out = out.replace(/^(kaw companion|tutor|assistant)\s*:\s*/i, "").trim();
-
-  // Enforce question count by truncation (keep ONLY the first question)
-  if (countQuestions(out) > MAX_QUESTIONS) {
-    const firstQ = out.indexOf("?");
-    out = firstQ >= 0 ? out.slice(0, firstQ + 1).trim() : out.trim();
-  }
-
-  // Enforce character cap
-  if (out.length > MAX_CHARS) out = out.slice(0, MAX_CHARS).trim();
-
-  // Must contain a question mark (questions-only)
-  if (!out.includes("?")) {
-    out = "What is your Key Topic (2–5 words)?";
-  }
-
-  // Must end with a single question mark
-  const lastQ = out.lastIndexOf("?");
-  if (lastQ !== out.length - 1) out = out.slice(0, lastQ + 1).trim();
-
-  return out;
+/** --- 3) Helper: increment reask count safely --- */
+function bumpReask(known: KawRequest["known"], key: string) {
+  const counts = { ...(known?.reaskCounts ?? {}) };
+  counts[key] = (counts[key] ?? 0) + 1;
+  return counts;
 }
 
-function socraticFailSafe(original, studentMessage) {
-  const cleaned = (original || "").trim();
-
-  // Seatbelt triggers: too long, too lecture-y, or not exactly 1 question
-  const triggers =
-    cleaned.length > MAX_CHARS ||
-    looksLikeExplanation(cleaned) ||
-    countQuestions(cleaned) !== 1;
-
-  if (!triggers) return enforceHardCap(cleaned);
-
-  // Strong reset: always return to Key Topic first
-  const msg = (studentMessage || "").trim();
-  const vague = msg.length < 20;
-
-  const fallback = vague
-    ? "What is your Key Topic (2–5 words)?"
-    : "What is your Key Topic (2–5 words) based on what you just wrote?";
-
-  return enforceHardCap(fallback);
+/** --- 4) OpenAI call (fill in with your existing client) ---
+ * IMPORTANT: Replace this stub with your actual call.
+ * The rest of the logic works regardless of Responses API / Chat Completions.
+ */
+async function callModel(_payload: any): Promise<KawResponse> {
+  // TODO: Replace with your OpenAI call.
+  // Must return KawResponse JSON.
+  return {
+    next_stage: "FOCUS_TOPIC",
+    assistant_message: "Model not wired yet.",
+    frames: [],
+    quick_choices: [],
+    field_updates: {},
+    needs: ["keyTopic", "isAbout"],
+  };
 }
 
-export default async function handler(req, res) {
-  setCors(res);
+/** --- 5) System prompt & schema constraint --- */
+const SYSTEM_PROMPT = `
+You are Kaw Companion, a frame-driven Socratic tutor.
+Goal: help students complete the Framing Routine. You are NOT grading; you are like a teacher circulating.
+Key rule: Advance once the student's Key Topic → "is about" statement is instructionally sufficient.
+Instructional sufficiency = (1) clear label, (2) meaningful direction, (3) can lead to main ideas.
+Ask ONE question per turn. Always provide 2–4 sentence frames and 3 quick choices.
+Never loop on the same question more than twice. If stuck, scaffold in smaller parts.
+Return ONLY valid JSON matching the response schema.
+`;
 
-  if (req.method === "OPTIONS") return res.status(200).end();
-  if (req.method !== "POST") return res.status(405).json({ error: "Method Not Allowed" });
+export async function POST(req: Request) {
+  const body = (await req.json()) as KawRequest;
 
-  try {
-    const { message = "" } = req.body || {};
-    const trimmed = String(message).trim();
-
-    if (!trimmed) {
-      return res.status(400).json({ error: "Missing 'message' in request body" });
-    }
-
-    // ---- Safety check (Step 8 lives here via these imports) ----
-    const safety = await classifyMessage(trimmed);
-    if (safety?.flagged) {
-      return res.status(200).json({
-        reply:
-          SAFETY_RESPONSES[safety.category] ||
-          "Let’s pause for a moment and try approaching this in a different way.",
-        flagged: true,
-        flagCategory: safety.category || "unknown",
-        severity: safety.severity || "low",
-        safetyMode: true,
-      });
-    }
-
-    // ---- OpenAI call ----
-    const completion = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      temperature: 0.3,
-      max_tokens: MAX_MODEL_TOKENS,
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT_FRAMING },
-        { role: "user", content: trimmed },
+  const safe = quickSafetyGate(body.student_last || "");
+  if (safe.block) {
+    const resp: KawResponse = {
+      next_stage: body.stage,
+      assistant_message:
+        "I can’t help with that directly. If you’re in danger or thinking about harming yourself or someone else, please contact a trusted adult right now or call local emergency services. If you want, tell me the school-safe assignment you’re working on and I’ll help with the writing.",
+      frames: [
+        "I’m working on ______ and I need help with ______.",
+        "A safer way to phrase my idea for class is ______."
       ],
-    });
-
-    const raw =
-      completion?.choices?.[0]?.message?.content?.trim() ||
-      "What is your Key Topic (2–5 words)?";
-
-    const reply = socraticFailSafe(raw, trimmed);
-
-    return res.status(200).json({
-      reply,
-      flagged: false,
-      flagCategory: "",
-      severity: "",
-      safetyMode: false,
-    });
-  } catch (err) {
-    console.error("Tutor API error:", err);
-    return res.status(500).json({ error: "Server error", details: err?.message || String(err) });
+      quick_choices: ["Switch topic", "Return to assignment", "Get help resources"],
+      field_updates: {},
+      needs: []
+    };
+    return NextResponse.json(resp);
   }
+
+  // Pull known fields from client
+  const known = body.known ?? {};
+  const keyTopic = known.keyTopic ?? null;
+  const isAbout = known.isAbout ?? null;
+
+  // If we are in the focus step, apply sufficiency logic server-side
+  if (body.stage === "FOCUS_TOPIC") {
+    const check = sufficiencyCheck(keyTopic, isAbout);
+
+    // ✅ If sufficient → advance immediately (don’t over-polish)
+    if (check.instructionallySufficient) {
+      const resp: KawResponse = {
+        next_stage: "MAIN_IDEAS",
+        assistant_message:
+          "Nice — that Key Topic → “is about” statement is clear enough to move forward. Now, what are 2–3 main ideas someone needs to understand to explain your topic?",
+        frames: [
+          "One main idea is ______.",
+          "Another main idea is ______.",
+          "A third main idea is ______."
+        ],
+        quick_choices: ["I have 2 main ideas", "I have 3 main ideas", "I’m not sure yet"],
+        field_updates: { focus_ready: true },
+        needs: ["mainIdeas"]
+      };
+      return NextResponse.json(resp);
+    }
+
+    // 🔴 If not sufficient, scaffold WITHOUT looping endlessly
+    const reaskCounts = bumpReask(known, "focus");
+    const reasks = reaskCounts["focus"];
+
+    // Case C: student stuck / missing pieces — split the move
+    if (!check.hasClearLabel) {
+      const resp: KawResponse = {
+        next_stage: "FOCUS_TOPIC",
+        assistant_message:
+          reasks <= MAX_REASK
+            ? "No worries — first just name your **Key Topic** (the title). What’s your topic called?"
+            : "Let’s pick a clear Key Topic title so we can move forward. Which one fits best?",
+        frames: [
+          "My Key Topic is ______.",
+          "The topic/title is ______."
+        ],
+        quick_choices: [
+          "Three Branches of Government",
+          "Checks and Balances",
+          "Separation of Powers"
+        ],
+        field_updates: { reaskCounts },
+        needs: ["keyTopic"]
+      };
+      return NextResponse.json(resp);
+    }
+
+    // Has label, but “is about” is weak → prompt the “is about” sentence
+    if (!check.hasMeaningfulDirection || !check.canLeadToMainIdeas) {
+      const resp: KawResponse = {
+        next_stage: "FOCUS_TOPIC",
+        assistant_message:
+          reasks <= MAX_REASK
+            ? `Great — your Key Topic is **${keyTopic}**. Now finish this: **“${keyTopic} is about…”**`
+            : `You’ve got the Key Topic. Let’s lock in a workable “is about” so we can move on. Pick one to start, then you can tweak it.`,
+        frames: [
+          `${keyTopic} is about how ______.`,
+          `${keyTopic} is about why ______ happens.`,
+          `${keyTopic} is about the relationship between ______ and ______.`
+        ],
+        quick_choices: [
+          "…how power is divided to prevent abuse",
+          "…how each branch checks the others",
+          "…why balance of power matters"
+        ],
+        field_updates: { reaskCounts },
+        needs: ["isAbout"]
+      };
+      return NextResponse.json(resp);
+    }
+  }
+
+  // For other stages, hand off to model (once you wire it)
+  // (Still keep your routine constraints in the prompt/payload.)
+  const modelPayload = {
+    system: SYSTEM_PROMPT,
+    input: {
+      stage: body.stage,
+      student_last: body.student_last,
+      known,
+      context: body.context ?? {}
+    }
+  };
+
+  const modelResp = await callModel(modelPayload);
+  return NextResponse.json(modelResp);
 }
