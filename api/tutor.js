@@ -14,43 +14,47 @@ function setCors(res) {
 
 /**
  * Framing Routine + Socratic Guardrails (Demo)
- * - Questions only
- * - One step at a time (1–2 questions max)
- * - Never provide answers or explanations
- * - Always anchor to the Frame structure:
- *   Key Topic → Is About → Main Ideas → Essential Details → So What?
+ * Goals (tight + UI-friendly):
+ * - QUESTIONS ONLY (no explaining, no answering)
+ * - EXACTLY 1 question per turn
+ * - Strong priority on Key Topic → Is About before anything else
  */
 const SYSTEM_PROMPT_FRAMING = `
 You are Kaw Companion, a Socratic tutor for grades 4–12 using the Framing Routine.
 
 NON-NEGOTIABLE RULES (always):
-- Use QUESTIONS ONLY. Do not explain. Do not lecture. Do not summarize content for the student.
+- Use QUESTIONS ONLY. Do not explain. Do not lecture. Do not summarize.
 - Never give direct answers, solutions, or “the correct response.”
 - Never confirm correctness (no “Correct,” “That’s right,” etc.).
-- Ask 1–2 questions per turn (max).
+- Ask EXACTLY 1 question per turn (no more).
 - Keep responses short and consistent.
 
-FRAME ANCHOR (always guide thinking through this structure):
-1) Key Topic (name the focus)
-2) Is About (one short phrase describing what the topic is about)
-3) Main Idea(s) (1–3 important ideas)
-4) Essential Details (details/evidence supporting each main idea)
+FRAMING ROUTINE SEQUENCE (must follow):
+1) Key Topic (2–5 words: the focus)
+2) Is About (one short phrase: what the topic is about)
+3) Main Ideas (1–3 important ideas)
+4) Essential Details (evidence/examples for each main idea)
 5) So What? (why it matters / significance)
 
+ANCHOR RULE:
+- If Key Topic is not clear, ask ONLY for Key Topic.
+- If Key Topic is clear but Is About is not clear, ask ONLY for Is About.
+- Do not ask “meaning/definition” questions before Key Topic + Is About are captured.
+
 REDIRECT RULE:
-If the student asks for an answer or you feel pulled into explaining, redirect back into the Frame with 1–2 questions.
+If the student asks for an answer or you feel pulled into explaining, redirect to the next Frame step with ONE question.
 
 TONE:
 Calm, teacher-like, encouraging, neutral toward correctness.
 
 OUTPUT FORMAT:
-Return only the questions (no headings, no bullets unless the student already used them).
+Return only the single question. No headings. No bullets.
 `.trim();
 
 // ---- Hard caps (tuneable) ----
-const MAX_MODEL_TOKENS = 180;      // keeps responses short
-const MAX_CHARS = 650;             // hard cap in characters for UI stability
-const MAX_QUESTIONS = 2;           // enforce 1–2 questions
+const MAX_MODEL_TOKENS = 120;  // shorter responses = UI stability
+const MAX_CHARS = 420;         // hard cap for transcript container stability
+const MAX_QUESTIONS = 1;       // enforce exactly 1 question
 
 function countQuestions(text) {
   return (text.match(/\?/g) || []).length;
@@ -58,10 +62,18 @@ function countQuestions(text) {
 
 // crude “lecture-y” detectors (seatbelt triggers)
 function looksLikeExplanation(text) {
-  const t = text.toLowerCase();
-  const badStarts = ["in summary", "to summarize", "here's", "this means", "the answer is", "overall,"];
-  const hasBadStart = badStarts.some((s) => t.trim().startsWith(s));
-  const tooManySentences = (text.match(/[.!]/g) || []).length >= 3; // tends to be paragraph-y
+  const t = (text || "").toLowerCase().trim();
+  const badStarts = [
+    "in summary",
+    "to summarize",
+    "here's",
+    "this means",
+    "the answer is",
+    "overall,",
+    "for example,",
+  ];
+  const hasBadStart = badStarts.some((s) => t.startsWith(s));
+  const tooManySentences = (text.match(/[.!]/g) || []).length >= 2; // keep VERY short
   const hasColonList = text.includes(":") && (text.match(/\n/g) || []).length >= 1;
   return hasBadStart || tooManySentences || hasColonList;
 }
@@ -72,53 +84,45 @@ function enforceHardCap(text) {
   // Strip any accidental “labels”
   out = out.replace(/^(kaw companion|tutor|assistant)\s*:\s*/i, "").trim();
 
-  // Enforce question count by truncation
+  // Enforce question count by truncation (keep ONLY the first question)
   if (countQuestions(out) > MAX_QUESTIONS) {
-    // keep only up to the 2nd question mark
-    let qCount = 0;
-    let cutIndex = out.length;
-    for (let i = 0; i < out.length; i++) {
-      if (out[i] === "?") {
-        qCount++;
-        if (qCount === MAX_QUESTIONS) {
-          cutIndex = i + 1;
-          break;
-        }
-      }
-    }
-    out = out.slice(0, cutIndex).trim();
+    const firstQ = out.indexOf("?");
+    out = firstQ >= 0 ? out.slice(0, firstQ + 1).trim() : out.trim();
   }
 
   // Enforce character cap
   if (out.length > MAX_CHARS) out = out.slice(0, MAX_CHARS).trim();
 
-  // Must end with a question mark (questions-only)
+  // Must contain a question mark (questions-only)
   if (!out.includes("?")) {
-    out = "Which part of the Frame are you working on right now (Key Topic, Is About, Main Ideas, Essential Details, or So What?)?";
+    out = "What is your Key Topic (2–5 words)?";
   }
+
+  // Must end with a single question mark
+  const lastQ = out.lastIndexOf("?");
+  if (lastQ !== out.length - 1) out = out.slice(0, lastQ + 1).trim();
 
   return out;
 }
 
 function socraticFailSafe(original, studentMessage) {
-  // If reply is too long or explanation-y, replace with a Frame-based redirect
   const cleaned = (original || "").trim();
+
+  // Seatbelt triggers: too long, too lecture-y, or not exactly 1 question
   const triggers =
     cleaned.length > MAX_CHARS ||
     looksLikeExplanation(cleaned) ||
-    countQuestions(cleaned) === 0 ||
-    countQuestions(cleaned) > MAX_QUESTIONS;
+    countQuestions(cleaned) !== 1;
 
   if (!triggers) return enforceHardCap(cleaned);
 
-  // Fail-safe prompts: 1–2 questions, Frame-anchored, no content giving
-  // Slightly adapt based on whether student message is vague
+  // Strong reset: always return to Key Topic first
   const msg = (studentMessage || "").trim();
   const vague = msg.length < 20;
 
   const fallback = vague
-    ? "What’s the Key Topic you’re working on right now? What does the task say you need to produce or turn in at the end?"
-    : "Which part of the Frame are you working on right now (Key Topic, Is About, Main Ideas, Essential Details, or So What?)? What is your next best guess for that box?";
+    ? "What is your Key Topic (2–5 words)?"
+    : "What is your Key Topic (2–5 words) based on what you just wrote?";
 
   return enforceHardCap(fallback);
 }
@@ -137,7 +141,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Missing 'message' in request body" });
     }
 
-    // ---- Safety check ----
+    // ---- Safety check (Step 8 lives here via these imports) ----
     const safety = await classifyMessage(trimmed);
     if (safety?.flagged) {
       return res.status(200).json({
@@ -164,7 +168,7 @@ export default async function handler(req, res) {
 
     const raw =
       completion?.choices?.[0]?.message?.content?.trim() ||
-      "Which part of the Frame are you working on right now?";
+      "What is your Key Topic (2–5 words)?";
 
     const reply = socraticFailSafe(raw, trimmed);
 
