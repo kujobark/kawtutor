@@ -105,7 +105,7 @@ function enforceHardCap(text) {
   return out;
 }
 
-function socraticFailSafe(original, studentMessage) {
+function socraticFailSafe(original, studentMessage, routedQuestion) {
   const cleaned = (original || "").trim();
 
   // Seatbelt triggers: too long, too lecture-y, or not exactly 1 question
@@ -116,16 +116,93 @@ function socraticFailSafe(original, studentMessage) {
 
   if (!triggers) return enforceHardCap(cleaned);
 
-  // Strong reset: always return to Key Topic first
-  const msg = (studentMessage || "").trim();
-  const vague = msg.length < 20;
+// Strong reset: return to the ROUTED next step (not always Key Topic)
+const fallback = (routedQuestion || "What is your Key Topic (2–5 words)?").trim();
+return enforceHardCap(fallback);
 
-  const fallback = vague
-    ? "What is your Key Topic (2–5 words)?"
-    : "What is your Key Topic (2–5 words) based on what you just wrote?";
 
-  return enforceHardCap(fallback);
+// ---------- Frame parsing + instructional sufficiency (Key Topic → is about) ----------
+
+function cleanText(s) {
+  return String(s || "").replace(/\s+/g, " ").trim();
 }
+
+// Parse a student attempt like: "X is about Y"
+function parseKeyTopicIsAbout(message) {
+  const t = cleanText(message);
+
+  // Try explicit "is about"
+  const m = t.match(/^(.*?)\s+is about\s+(.+?)(?:[.?!]|$)/i);
+  if (m) {
+    return { keyTopic: cleanText(m[1]), isAbout: cleanText(m[2]) };
+  }
+
+  return { keyTopic: null, isAbout: null };
+}
+
+function isClearKeyTopicLabel(label) {
+  const kt = cleanText(label);
+  if (kt.length < 3 || kt.length > 80) return false;
+
+  // too generic
+  if (/^(topic|stuff|things|history|government|science|math)$/i.test(kt)) return false;
+
+  // if it's a full sentence, it's not a "title"
+  if (kt.split(" ").length > 10) return false;
+
+  return true;
+}
+
+function hasMeaningfulIsAbout(isAbout) {
+  const ia = cleanText(isAbout);
+  if (ia.length < 8 || ia.length > 220) return false;
+
+  // too vague
+  if (/^(stuff|things|a topic|government|history|science)\b/i.test(ia)) return false;
+
+  return true;
+}
+
+function canLeadToMainIdeas(isAbout) {
+  const ia = cleanText(isAbout);
+
+  // relationship/process cues
+  if (/(because|so that|so|how|why|caused by|leads to|results in|changed|influenced|prevents|helps|shows|explains|compares|contrasts)/i.test(ia)) {
+    return true;
+  }
+
+  // or simply specific enough length
+  return ia.split(" ").length >= 8;
+}
+
+function instructionalSufficiency(keyTopic, isAbout) {
+  const hasLabel = isClearKeyTopicLabel(keyTopic);
+  const hasDir = hasMeaningfulIsAbout(isAbout);
+  const leads = canLeadToMainIdeas(isAbout);
+  return { sufficient: hasLabel && hasDir && leads, hasLabel, hasDir, leads };
+}
+
+/**
+ * Decide the best next ONE question (routine-faithful, no looping)
+ * - If student already gives sufficient "X is about Y" → ask Main Ideas next.
+ * - If not, split: ask title first, then is about.
+ */
+function nextFrameQuestion(studentMessage) {
+  const { keyTopic, isAbout } = parseKeyTopicIsAbout(studentMessage);
+  const check = instructionalSufficiency(keyTopic, isAbout);
+
+  if (check.sufficient) {
+    return "What are 1–3 Main Ideas that explain your topic?";
+  }
+
+  if (!check.hasLabel) {
+    return "What is your Key Topic (just the title, 2–5 words)?";
+  }
+
+  // Has label but needs a stronger "is about"
+  return `Great — now finish this: “${keyTopic} is about ___” (one short phrase).`;
+}
+
 
 export default async function handler(req, res) {
   setCors(res);
@@ -136,6 +213,8 @@ export default async function handler(req, res) {
   try {
     const { message = "" } = req.body || {};
     const trimmed = String(message).trim();
+    const routedQuestion = nextFrameQuestion(trimmed);
+
 
     if (!trimmed) {
       return res.status(400).json({ error: "Missing 'message' in request body" });
@@ -147,7 +226,7 @@ export default async function handler(req, res) {
       return res.status(200).json({
         reply:
           SAFETY_RESPONSES[safety.category] ||
-          "Let’s pause for a moment and try approaching this in a different way.",
+  "Let’s zoom back to your Frame. What is your Key Topic (2–5 words)?",
         flagged: true,
         flagCategory: safety.category || "unknown",
         severity: safety.severity || "low",
@@ -160,17 +239,21 @@ export default async function handler(req, res) {
       model: "gpt-4o-mini",
       temperature: 0.3,
       max_tokens: MAX_MODEL_TOKENS,
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT_FRAMING },
-        { role: "user", content: trimmed },
-      ],
-    });
+     messages: [
+  { role: "system", content: SYSTEM_PROMPT_FRAMING },
+  {
+    role: "user",
+    content:
+      `Student said: ${trimmed}\n\n` +
+      `Ask EXACTLY this next step as ONE question:\n${routedQuestion}`
+  }
+],
 
     const raw =
       completion?.choices?.[0]?.message?.content?.trim() ||
       "What is your Key Topic (2–5 words)?";
 
-    const reply = socraticFailSafe(raw, trimmed);
+const reply = socraticFailSafe(raw, trimmed, routedQuestion);
 
     return res.status(200).json({
       reply,
@@ -184,5 +267,6 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Server error", details: err?.message || String(err) });
   }
 }
+
 
 
