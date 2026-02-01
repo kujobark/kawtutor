@@ -193,8 +193,29 @@ function instructionalSufficiency(keyTopic, isAbout) {
  * - If student already gives sufficient "X is about Y" → ask Main Ideas next.
  * - If not, split: ask title first, then is about scaffold.
  */
+
+function looksLikeMainIdeaAttempt(text) {
+  const t = cleanText(text).toLowerCase();
+
+  // common student signals they are writing a main idea
+  return (
+    t.includes("main idea") ||
+    t.startsWith("my first") ||
+    t.startsWith("first") ||
+    t.startsWith("my second") ||
+    t.startsWith("second") ||
+    t.startsWith("one reason") ||
+    t.startsWith("another reason") ||
+    t.startsWith("another main idea")
+  );
+}
+
 function nextFrameQuestion(studentMessage) {
-  const { keyTopic, isAbout } = parseKeyTopicIsAbout(studentMessage);
+  const msg = cleanText(studentMessage);
+    if (looksLikeMainIdeaAttempt(msg)) {
+return "What Essential Details (facts, examples, or evidence) support that Main Idea?";
+  }
+const { keyTopic, isAbout } = parseKeyTopicIsAbout(msg);
   const check = instructionalSufficiency(keyTopic, isAbout);
 
   if (check.sufficient) {
@@ -278,3 +299,4 @@ export default async function handler(req, res) {
     });
   }
 }
+
