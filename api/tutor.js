@@ -210,8 +210,26 @@ function looksLikeMainIdeaAttempt(text) {
   );
 }
 
+function looksStuck(text) {
+  const t = cleanText(text).toLowerCase();
+  return (
+    t === "i am not sure" ||
+    t === "not sure" ||
+    t === "idk" ||
+    t === "i don't know" ||
+    t === "dont know" ||
+    t === "i'm confused" ||
+    t === "confused" ||
+    t === "help" ||
+    t.length <= 6
+  );
+}
+
 function nextFrameQuestion(studentMessage) {
   const msg = cleanText(studentMessage);
+    if (looksStuck(msg)) {
+    return "What is the name of the text, lesson, or topic you’re working on (2–5 words)?";
+  }
     if (looksLikeMainIdeaAttempt(msg)) {
 return "What Essential Details (facts, examples, or evidence) support that Main Idea?";
   }
@@ -299,4 +317,5 @@ export default async function handler(req, res) {
     });
   }
 }
+
 
