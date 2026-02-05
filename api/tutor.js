@@ -118,7 +118,9 @@ function socraticFailSafe(original, routedQuestion) {
 
   if (!triggers) return enforceHardCap(cleaned);
 
-  const fallback = (routedQuestion || "What is your Key Topic (just the title, 2–5 words)?").trim();
+  const fallback = (
+    routedQuestion || "What is your Key Topic (just the title, 2–5 words)?"
+  ).trim();
   return enforceHardCap(fallback);
 }
 
@@ -129,11 +131,31 @@ function cleanText(s) {
   return String(s || "").replace(/\s+/g, " ").trim();
 }
 
+// Safely read framing fields (supports a couple common shapes)
+function getFramingKeyTopic(framing) {
+  return (
+    framing?.keyTopic ??
+    framing?.key_topic ??
+    framing?.frame?.keyTopic ??
+    framing?.frame?.key_topic ??
+    ""
+  );
+}
+
+function getFramingIsAbout(framing) {
+  return (
+    framing?.isAbout ??
+    framing?.is_about ??
+    framing?.frame?.isAbout ??
+    framing?.frame?.is_about ??
+    ""
+  );
+}
+
 // Parse a student attempt like: "X is about Y"
 function parseKeyTopicIsAbout(message) {
   const t = cleanText(message);
 
-  // explicit "is about"
   const m = t.match(/^(.*?)\s+is about\s+(.+?)(?:[.?!]|$)/i);
   if (m) {
     return { keyTopic: cleanText(m[1]), isAbout: cleanText(m[2]) };
@@ -146,10 +168,9 @@ function isClearKeyTopicLabel(label) {
   const kt = cleanText(label);
   if (kt.length < 3 || kt.length > 80) return false;
 
-  // too generic (tweak list anytime)
-  if (/^(topic|stuff|things|history|government|science|math|literature)$/i.test(kt)) return false;
+  if (/^(topic|stuff|things|history|government|science|math|literature)$/i.test(kt))
+    return false;
 
-  // not a title if it's a full sentence
   if (kt.split(" ").length > 10) return false;
 
   return true;
@@ -159,7 +180,6 @@ function hasMeaningfulIsAbout(isAbout) {
   const ia = cleanText(isAbout);
   if (ia.length < 8 || ia.length > 220) return false;
 
-  // too vague
   if (/^(stuff|things|a topic|government|history|science)\b/i.test(ia)) return false;
 
   return true;
@@ -168,7 +188,6 @@ function hasMeaningfulIsAbout(isAbout) {
 function canLeadToMainIdeas(isAbout) {
   const ia = cleanText(isAbout);
 
-  // relationship/process cues
   if (
     /(because|so that|how|why|caused by|leads to|results in|changed|influenced|prevents|helps|shows|explains|compares|contrasts)/i.test(
       ia
@@ -177,7 +196,6 @@ function canLeadToMainIdeas(isAbout) {
     return true;
   }
 
-  // or simply specific enough length
   return ia.split(" ").length >= 8;
 }
 
@@ -188,16 +206,8 @@ function instructionalSufficiency(keyTopic, isAbout) {
   return { sufficient: hasLabel && hasDir && leads, hasLabel, hasDir, leads };
 }
 
-/**
- * Decide the best next ONE question (routine-faithful, no looping)
- * - If student already gives sufficient "X is about Y" → ask Main Ideas next.
- * - If not, split: ask title first, then is about scaffold.
- */
-
 function looksLikeMainIdeaAttempt(text) {
   const t = cleanText(text).toLowerCase();
-
-  // common student signals they are writing a main idea
   return (
     t.includes("main idea") ||
     t.startsWith("my first") ||
@@ -214,37 +224,72 @@ function looksStuck(text) {
   const t = cleanText(text).toLowerCase();
   return (
     t === "i am not sure" ||
+    t === "im not sure" ||
     t === "not sure" ||
     t === "idk" ||
     t === "i don't know" ||
     t === "dont know" ||
     t === "i'm confused" ||
+    t === "im confused" ||
     t === "confused" ||
     t === "help" ||
     t.length <= 6
   );
 }
 
-function nextFrameQuestion(studentMessage) {
+/**
+ * Decide the best next ONE question (routine-faithful, no looping)
+ * - Uses framing state to avoid "jumping backwards" when student is stuck.
+ */
+function nextFrameQuestion(studentMessage, framing = {}, step = "") {
   const msg = cleanText(studentMessage);
-    if (looksStuck(msg)) {
-    return "What is the name of the text, lesson, or topic you’re working on (2–5 words)?";
+
+  const framedKeyTopic = getFramingKeyTopic(framing);
+  const framedIsAbout = getFramingIsAbout(framing);
+
+  const hasKeyTopic = isClearKeyTopicLabel(framedKeyTopic);
+  const hasIsAbout = hasMeaningfulIsAbout(framedIsAbout);
+
+  // If student is stuck: scaffold within current progress (DO NOT reset)
+  if (looksStuck(msg)) {
+    if (hasKeyTopic && hasIsAbout) {
+      // Stay on MAIN IDEAS (scaffold concrete entry point)
+      return "Name one character, scene, or moment that best shows your topic (2–5 words).";
+    }
+    if (hasKeyTopic && !hasIsAbout) {
+      // Stay on IS ABOUT
+      return `Finish this: “${cleanText(framedKeyTopic)} is about ___” (one short phrase).`;
+    }
+    // We truly need Key Topic
+    return "What is your Key Topic (just the title, 2–5 words)?";
   }
-    if (looksLikeMainIdeaAttempt(msg)) {
-return "What Essential Details (facts, examples, or evidence) support that Main Idea?";
+
+  // If they look like they are writing main ideas, push to details next
+  if (looksLikeMainIdeaAttempt(msg)) {
+    return "What Essential Details (facts, examples, or evidence) support that Main Idea?";
   }
-const { keyTopic, isAbout } = parseKeyTopicIsAbout(msg);
+
+  // If they typed an explicit "X is about Y", use it
+  const { keyTopic, isAbout } = parseKeyTopicIsAbout(msg);
   const check = instructionalSufficiency(keyTopic, isAbout);
 
   if (check.sufficient) {
     return "What are 1–3 Main Ideas that explain your topic?";
   }
 
-  if (!check.hasLabel) {
+  // If we already captured Key Topic/Is About in framing, move forward
+  if (hasKeyTopic && hasIsAbout) {
+    return "What are 1–3 Main Ideas that explain your topic?";
+  }
+
+  // If their message doesn't contain a usable label, ask for Key Topic
+  if (!check.hasLabel && !hasKeyTopic) {
     return "What is your Key Topic (just the title, 2–5 words)?";
   }
 
-  return `Great — now finish this: “${keyTopic} is about ___” (one short phrase).`;
+  // If we have (or inferred) a key topic but not is-about, ask for is-about
+  const usableKeyTopic = check.hasLabel ? keyTopic : framedKeyTopic;
+  return `Great — now finish this: “${cleanText(usableKeyTopic)} is about ___” (one short phrase).`;
 }
 
 export default async function handler(req, res) {
@@ -254,19 +299,18 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method Not Allowed" });
 
   try {
-    const { message = "" } = req.body || {};
+    const { message = "", framing = {}, step = "" } = req.body || {};
     const trimmed = String(message).trim();
 
     if (!trimmed) {
       return res.status(400).json({ error: "Missing 'message' in request body" });
     }
 
-    const routedQuestion = nextFrameQuestion(trimmed);
+    const routedQuestion = nextFrameQuestion(trimmed, framing, step);
 
     // ---- Safety check ----
     const safety = await classifyMessage(trimmed);
     if (safety?.flagged) {
-      // IMPORTANT: No “pause” framing; route back into the routine
       const safeReply =
         SAFETY_RESPONSES[safety.category] ||
         "Let’s zoom back to your Frame. What is your Key Topic (just the title, 2–5 words)?";
@@ -317,5 +361,3 @@ export default async function handler(req, res) {
     });
   }
 }
-
-
