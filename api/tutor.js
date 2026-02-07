@@ -15,15 +15,13 @@ function setCors(res) {
 /**
  * Kaw Companion — Framing Routine Socratic Tutor (API)
  * Goals:
- * - Support students with the Frame routine (Key Topic → Is About → Main Ideas → Essential Details → So What?)
+ * - Support students with the Frame routine:
+ *   Key Topic → Is About → Main Ideas (1–3) → Essential Details → So What
  * - Ask EXACTLY 1 question per turn
  * - Never lecture / never provide answers
  *
- * KEY FIXES:
- * - Accept a `stepHint` from the frontend (what the bot asked last)
- * - Interpret normal student wording in context (no need to say "One Main Idea...")
- * - Add So What handling so we don't repeat the Main Idea problem at the end of the routine
- * - FIX #3 (robustness): if stepHint is wrong, still advance based on what the student typed
+ * CORE FIX:
+ * - Uses framing.mainIdeas from the frontend to drive a collection loop.
  */
 const SYSTEM_PROMPT_FRAMING = `
 You are Kaw Companion, a Socratic tutor for grades 4–12 using the Framing Routine.
@@ -136,7 +134,7 @@ function cleanText(s) {
   return String(s || "").replace(/\s+/g, " ").trim();
 }
 
-// Safely read framing fields (supports a couple common shapes)
+// Safely read framing fields
 function getFramingKeyTopic(framing) {
   return (
     framing?.keyTopic ??
@@ -157,6 +155,16 @@ function getFramingIsAbout(framing) {
   );
 }
 
+function getFramingMainIdeas(framing) {
+  return (
+    framing?.mainIdeas ??
+    framing?.main_ideas ??
+    framing?.frame?.mainIdeas ??
+    framing?.frame?.main_ideas ??
+    []
+  );
+}
+
 // Parse a student attempt like: "X is about Y"
 function parseKeyTopicIsAbout(message) {
   const t = cleanText(message);
@@ -168,8 +176,7 @@ function parseKeyTopicIsAbout(message) {
 function isClearKeyTopicLabel(label) {
   const kt = cleanText(label);
   if (kt.length < 3 || kt.length > 80) return false;
-  if (/^(topic|stuff|things|history|government|science|math|literature)$/i.test(kt))
-    return false;
+  if (/^(topic|stuff|things|history|government|science|math|literature)$/i.test(kt)) return false;
   if (kt.split(" ").length > 10) return false;
   return true;
 }
@@ -183,11 +190,7 @@ function hasMeaningfulIsAbout(isAbout) {
 
 function canLeadToMainIdeas(isAbout) {
   const ia = cleanText(isAbout);
-  if (
-    /(because|so that|how|why|caused by|leads to|results in|changed|influenced|prevents|helps|shows|explains|compares|contrasts)/i.test(
-      ia
-    )
-  ) {
+  if (/(because|so that|how|why|caused by|leads to|results in|changed|influenced|prevents|helps|shows|explains|compares|contrasts)/i.test(ia)) {
     return true;
   }
   return ia.split(" ").length >= 6;
@@ -222,60 +225,68 @@ function looksLikeMetaRepeat(text) {
   return /^(i already|i just|i said|i told you|i shared)/i.test(t);
 }
 
+function isDoneToken(text) {
+  const t = cleanText(text).toLowerCase();
+  return (
+    t === "done" ||
+    t === "finished" ||
+    t === "that's it" ||
+    t === "thats it" ||
+    t === "no" ||
+    t === "nope"
+  );
+}
+
 /**
- * Recognize “main idea-ish” student text without requiring “One Main Idea…”
- * Intentionally permissive.
+ * Main Idea detection: accept short noun-phrases + simple event phrases.
+ * Examples it should accept:
+ * - "Castro comes to power"
+ * - "Bay of Pigs invasion"
+ * - "Nuclear standoff"
  */
 function looksLikeMainIdeaAttempt(text) {
-  const t = cleanText(text).toLowerCase();
+  const raw = cleanText(text);
+  const t = raw.toLowerCase();
   if (!t) return false;
+  if (looksStuck(raw) || looksLikeMetaRepeat(raw) || isDoneToken(raw)) return false;
 
   // Explicit labels
-  if (t.includes("main idea") || t.includes("main point") || t.includes("reason")) return true;
+  if (t.includes("main idea") || t.includes("main point") || t.includes("big idea")) return true;
 
-  // List-ish
-  if (
-    t.startsWith("first") ||
-    t.startsWith("second") ||
-    t.startsWith("another") ||
-    t.startsWith("also") ||
-    t.startsWith("one") ||
-    t.startsWith("my first") ||
-    t.startsWith("my second")
-  ) {
-    return true;
+  // List-ish starters
+  if (/^(first|second|third|another|also|one|my first|my second|next)\b/i.test(raw)) return true;
+
+  // Short, content-y noun phrase (2–10 words)
+  const words = raw.split(/\s+/).filter(Boolean);
+  if (words.length >= 2 && words.length <= 10) {
+    const hasContent = words.some((w) => w.length >= 4);
+    if (hasContent) return true;
   }
 
-  // Claim-ish
-  const hasVerb = /\b(is|are|was|were|shows|show|reveals|suggests|means|represents|highlights)\b/i.test(
-    t
-  );
-  const longEnough = t.split(" ").length >= 3; // loosened for short MI like "Bay of Pigs invasion"
-  return hasVerb || longEnough;
+  // Claim-ish sentence fallback
+  const hasVerb = /\b(is|are|was|were|shows|show|reveals|suggests|means|represents|highlights|causes|leads)\b/i.test(t);
+  return hasVerb && words.length >= 5;
 }
 
 /**
- * Recognize “detail-ish” student text (examples, events, quotes, actions)
+ * Detail-ish detection (still permissive)
  */
 function looksLikeDetailAttempt(text) {
-  const t = cleanText(text);
-  if (!t) return false;
+  const raw = cleanText(text);
+  if (!raw) return false;
 
-  if (/[“”"]/.test(t)) return true;
-  if (/\bpage\s*\d+\b/i.test(t)) return true;
+  if (/[“”"]/.test(raw)) return true;
+  if (/\bpage\s*\d+\b/i.test(raw)) return true;
 
-  const hasPastVerb = /\b(said|says|did|does|happens|happened|goes|went|kills|killed|tells|told|invaded|invasion|blocked|blockade|launched)\b/i.test(
-    t.toLowerCase()
-  );
-  const longEnough = t.split(" ").length >= 4;
-  return hasPastVerb || longEnough;
+  const t = raw.toLowerCase();
+  const hasSpecificVerb = /\b(said|says|did|does|happens|happened|went|told|invaded|launched|blocked|announced|ordered)\b/i.test(t);
+  const words = raw.split(/\s+/).filter(Boolean);
+  return hasSpecificVerb || words.length >= 8;
 }
 
 /**
- * Decide the best next ONE question (routine-faithful, minimal looping)
- *
- * stepHint expected values (from frontend lastBotIntent):
- * - "keyTopic" | "isAbout" | "mainIdeas" | "details" | "soWhat" | ""
+ * Decide the best next ONE question
+ * stepHint expected: "keyTopic" | "isAbout" | "mainIdeas" | "details" | "soWhat" | ""
  */
 function nextFrameQuestion(studentMessage, framing = {}, stepHint = "") {
   const msg = cleanText(studentMessage);
@@ -286,10 +297,16 @@ function nextFrameQuestion(studentMessage, framing = {}, stepHint = "") {
   const hasKeyTopic = isClearKeyTopicLabel(framedKeyTopic);
   const hasIsAbout = hasMeaningfulIsAbout(framedIsAbout);
 
+  // Main idea collection from frontend
+  const rawIdeas = Array.isArray(getFramingMainIdeas(framing)) ? getFramingMainIdeas(framing) : [];
+  const mainIdeas = rawIdeas
+    .map((x) => cleanText(x))
+    .filter((x) => x && !isDoneToken(x));
+
   // 0) If student is stuck: scaffold within current progress (DO NOT reset)
   if (looksStuck(msg)) {
     if (hasKeyTopic && hasIsAbout) {
-      return "What is one Main Idea that supports your “is about” statement? (One short phrase.)";
+      return "What is one Main Idea (one of the big boxes under your “is about” statement)?";
     }
     if (hasKeyTopic && !hasIsAbout) {
       return `Finish this: “${cleanText(framedKeyTopic)} is about ___” (one short phrase).`;
@@ -297,7 +314,7 @@ function nextFrameQuestion(studentMessage, framing = {}, stepHint = "") {
     return "What is your Key Topic (just the title, 2–5 words)?";
   }
 
-  // 1) Context-aware routing by what we asked last
+  // 1) If last question was Key Topic
   if (stepHint === "keyTopic") {
     if (isClearKeyTopicLabel(msg)) {
       return `Great — now finish this: “${msg} is about ___” (one short phrase).`;
@@ -305,46 +322,65 @@ function nextFrameQuestion(studentMessage, framing = {}, stepHint = "") {
     return "What is your Key Topic (just the title, 2–5 words)?";
   }
 
-  /**
-   * FIX #3:
-   * If stepHint says "isAbout" but the student actually typed a Main Idea or a Detail,
-   * DO NOT loop. Advance to the next logical step.
-   */
+  // 2) If last question was Is About
   if (stepHint === "isAbout") {
-    // If they jumped ahead and gave a Main Idea, move to details.
+    // If they jumped ahead with a main idea, treat it as main idea behavior
     if (looksLikeMainIdeaAttempt(msg)) {
-      return "What Essential Details (facts, examples, or evidence) support that Main Idea?";
+      // If frontend also captured it, we can keep collecting
+      if (mainIdeas.length >= 1 && mainIdeas.length < 3) {
+        return "Do you want to add another Main Idea, or type “done” to move to Essential Details?";
+      }
+      const first = cleanText(mainIdeas[0] || msg);
+      return `What Essential Detail (fact/event/example) supports this Main Idea: “${first}”?`;
     }
 
-    // If they jumped even further and gave a detail, move to so-what.
+    // If they jumped to a detail, push to So What
     if (looksLikeDetailAttempt(msg)) {
       return "So what? Finish this: “This detail matters because ___.”";
     }
 
-    // Otherwise: treat as an Is About attempt and move forward.
+    // Otherwise, check if their reply is a plausible "is about" phrase
     const looksLikeIsAbout =
       msg.toLowerCase().includes("is about") ||
       (msg.split(" ").length >= 4 && msg.split(" ").length <= 16);
 
-    if (looksLikeIsAbout) {
-      return "What are 1–3 Main Ideas that explain your topic?";
-    }
+    if (looksLikeIsAbout) return "What are 1–3 Main Ideas that explain your topic?";
 
-    // If it doesn't look like Is About, re-prompt using the key topic if we have it.
     if (hasKeyTopic) {
       return `Finish this: “${cleanText(framedKeyTopic)} is about ___” (one short phrase).`;
     }
-
     return "What is your Key Topic (just the title, 2–5 words)?";
   }
 
+  // 3) Main Ideas collection loop (CORE)
   if (stepHint === "mainIdeas") {
-    if (looksLikeMetaRepeat(msg)) {
-      return "Restate your Main Idea as one short phrase (start with the person, issue, or event).";
+    // If student typed done, move to details for Main Idea #1
+    if (isDoneToken(msg)) {
+      const first = cleanText(mainIdeas[0] || "");
+      return first
+        ? `What Essential Detail (fact/event/example) supports this Main Idea: “${first}”?`
+        : "What is one Main Idea that explains your topic?";
     }
-    return "What Essential Details (facts, examples, or evidence) support that Main Idea?";
+
+    // If we have fewer than 1 usable ideas, get the first
+    if (mainIdeas.length < 1) {
+      return "What is one Main Idea (one important idea) that explains your topic?";
+    }
+
+    // If we have 1–2 ideas, ask if they want another OR move on
+    if (mainIdeas.length === 1) {
+      return "Do you want to add a second Main Idea, or type “done” to move to Essential Details?";
+    }
+    if (mainIdeas.length === 2) {
+      return "Do you want to add a third Main Idea, or type “done” to move to Essential Details?";
+    }
+
+    // If we have 3+ ideas, move to details for idea #1
+    const first = cleanText(mainIdeas[0] || "");
+    return `What Essential Detail (fact/event/example) supports this Main Idea: “${first}”?`;
   }
 
+  // 4) Essential Details step
   if (stepHint === "details") {
     if (looksLikeMetaRepeat(msg)) {
       return "Name one specific moment, action, or quote that proves it (2–10 words).";
@@ -352,9 +388,10 @@ function nextFrameQuestion(studentMessage, framing = {}, stepHint = "") {
     return "So what? Finish this: “This detail matters because ___.”";
   }
 
+  // 5) So What step
   if (stepHint === "soWhat") {
     if (looksLikeMetaRepeat(msg)) {
-      return "Say why your topic matters in real life (start with: “This matters because ___.”).";
+      return "Finish this: “This matters because ___.”";
     }
     if (msg.split(" ").length < 6) {
       return "Finish this: “This matters because ___.”";
@@ -362,16 +399,16 @@ function nextFrameQuestion(studentMessage, framing = {}, stepHint = "") {
     return "Who is most affected by this idea, and how? (one sentence)";
   }
 
-  // 2) If they typed an explicit "X is about Y", use it
+  // --- Fallback routing if stepHint is missing ---
   const { keyTopic, isAbout } = parseKeyTopicIsAbout(msg);
   const check = instructionalSufficiency(keyTopic, isAbout);
 
   if (check.sufficient) return "What are 1–3 Main Ideas that explain your topic?";
 
-  // 3) If we already captured Key Topic/Is About in framing, move forward
   if (hasKeyTopic && hasIsAbout) {
     if (looksLikeMainIdeaAttempt(msg)) {
-      return "What Essential Details (facts, examples, or evidence) support that Main Idea?";
+      // Treat as first main idea if they’re already there
+      return "Do you want to add another Main Idea, or type “done” to move to Essential Details?";
     }
     if (looksLikeDetailAttempt(msg)) {
       return "So what? Finish this: “This detail matters because ___.”";
@@ -379,12 +416,8 @@ function nextFrameQuestion(studentMessage, framing = {}, stepHint = "") {
     return "What are 1–3 Main Ideas that explain your topic?";
   }
 
-  // 4) If their message doesn't contain a usable label, ask for Key Topic
-  if (!check.hasLabel && !hasKeyTopic) {
-    return "What is your Key Topic (just the title, 2–5 words)?";
-  }
+  if (!check.hasLabel && !hasKeyTopic) return "What is your Key Topic (just the title, 2–5 words)?";
 
-  // 5) Otherwise ask for is-about
   const usableKeyTopic = check.hasLabel ? keyTopic : framedKeyTopic;
   return `Great — now finish this: “${cleanText(usableKeyTopic)} is about ___” (one short phrase).`;
 }
