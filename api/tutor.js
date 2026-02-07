@@ -306,9 +306,22 @@ function nextFrameQuestion(studentMessage, framing = {}, stepHint = "") {
   }
 
   if (stepHint === "isAbout") {
-    // Treat most replies as an Is About attempt and move forward
+  // If they gave a short phrase (or wrote "is about"), accept and move on.
+  const looksLikeIsAbout =
+    msg.toLowerCase().includes("is about") ||
+    (msg.split(" ").length >= 4 && msg.split(" ").length <= 16);
+
+  if (looksLikeIsAbout) {
     return "What are 1–3 Main Ideas that explain your topic?";
   }
+
+  // Otherwise, re-prompt clearly using the key topic we already have.
+  if (hasKeyTopic) {
+    return `Finish this: “${cleanText(framedKeyTopic)} is about ___” (one short phrase).`;
+  }
+
+  return "What is your Key Topic (just the title, 2–5 words)?";
+}
 
   if (stepHint === "mainIdeas") {
     if (looksLikeMetaRepeat(msg)) {
@@ -435,3 +448,4 @@ export default async function handler(req, res) {
     });
   }
 }
+
