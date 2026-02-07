@@ -277,7 +277,6 @@ function computeCurrentMainIdeaIndex(mainIdeas, detailsObj) {
 function getDetailsForIndex(detailsObj, idx) {
   const key = String(idx);
   const arr = Array.isArray(detailsObj[key]) ? detailsObj[key] : [];
-  // Clean + remove empty/meta
   return arr.map(cleanText).filter(Boolean);
 }
 
@@ -300,11 +299,9 @@ function nextFrameQuestion(studentMessage, framing = {}, stepHint = "") {
   // ------------------
   if (looksStuck(msg)) {
     if (hasKeyTopic && hasIsAbout) {
-      // Keep them in the productive next step: Main Ideas
       if (mainIdeas.length < 1) return "What is one Main Idea that helps explain your topic?";
       if (mainIdeas.length < 2) return "What is another Main Idea that supports your topic?";
       if (mainIdeas.length < 3) return "Is there another important Main Idea that helps explain your topic?";
-      // If main ideas are set, move to details
       const first = cleanText(mainIdeas[0] || "");
       return first
         ? `Your first Main Idea was “${first}.” What are 2–3 Essential Details that support this idea?`
@@ -317,10 +314,9 @@ function nextFrameQuestion(studentMessage, framing = {}, stepHint = "") {
   }
 
   // ------------------
-  // 1) Honor stepHint when present (frontend tells us what Kaw last asked)
+  // 1) Honor stepHint when present
   // ------------------
   if (stepHint === "keyTopic") {
-    // If they respond with a usable key topic, move to Is About
     if (isClearKeyTopicLabel(msg)) {
       return `Finish this sentence: “${msg} is about ___.”`;
     }
@@ -328,7 +324,6 @@ function nextFrameQuestion(studentMessage, framing = {}, stepHint = "") {
   }
 
   if (stepHint === "isAbout") {
-    // We assume their reply is an attempt; move to Main Ideas
     return "What is one Main Idea that helps explain your topic?";
   }
 
@@ -336,7 +331,6 @@ function nextFrameQuestion(studentMessage, framing = {}, stepHint = "") {
   // 2) MAIN IDEAS (2 required, 3 optional) — teacher controlled
   // ------------------
   if (stepHint === "mainIdeas") {
-    // If we still don't have thesis anchored, force anchor
     if (!hasKeyTopic) return "What is your Key Topic? (2–5 words.)";
     if (!hasIsAbout) return `Finish this sentence: “${keyTopic} is about ___.”`;
 
@@ -350,7 +344,6 @@ function nextFrameQuestion(studentMessage, framing = {}, stepHint = "") {
 
     // After 2 ideas: sufficiency check
     if (mainIdeas.length === 2) {
-      // If student replies “no” to a prior sufficiency check, move on
       if (isNegativeResponse(msg)) {
         const first = cleanText(mainIdeas[0] || "");
         return `Your first Main Idea was “${first}.” What are 2–3 Essential Details that support this idea?`;
@@ -381,9 +374,7 @@ function nextFrameQuestion(studentMessage, framing = {}, stepHint = "") {
     const currentIdea = cleanText(mainIdeas[currentIdx] || "");
     const currentDetails = getDetailsForIndex(detailsObj, currentIdx);
 
-    // If they say “no” to a detail sufficiency check, move to next main idea (or So What)
     if (isNegativeResponse(msg)) {
-      // Find next idea with <2 details
       let nextIdx = -1;
       for (let i = currentIdx + 1; i < mainIdeas.length; i++) {
         const arr = getDetailsForIndex(detailsObj, i);
@@ -395,26 +386,21 @@ function nextFrameQuestion(studentMessage, framing = {}, stepHint = "") {
         return `Your next Main Idea was “${nextIdea}.” What are 2–3 Essential Details that support this idea?`;
       }
 
-      // If all main ideas have enough details, go to So What
       return "So what? What’s important to understand about this topic?";
     }
 
-    // If we have 0 details stored yet for this main idea, ask entry prompt (anchored)
     if (currentDetails.length < 1) {
       return `Your ${currentIdx === 0 ? "first" : currentIdx === 1 ? "next" : "last"} Main Idea was “${currentIdea}.” What are 2–3 Essential Details that support this idea?`;
     }
 
-    // After 1 detail
     if (currentDetails.length === 1) {
       return "What is another Essential Detail that helps prove this idea?";
     }
 
-    // After 2 details: sufficiency check
     if (currentDetails.length === 2) {
       return "Is there another important detail that strengthens this idea?";
     }
 
-    // After 3+ details: final check (then likely move on on “no”)
     if (currentDetails.length >= 3) {
       return "Is there anything else essential we need to understand about this idea?";
     }
@@ -424,7 +410,6 @@ function nextFrameQuestion(studentMessage, framing = {}, stepHint = "") {
   // 4) SO WHAT — explicit
   // ------------------
   if (stepHint === "soWhat") {
-    // If they give something tiny/vague, tighten without supplying content
     if (msg.split(" ").length < 6) {
       return "So what? What’s important to understand about this topic?";
     }
@@ -440,17 +425,14 @@ function nextFrameQuestion(studentMessage, framing = {}, stepHint = "") {
     if (check.sufficient) return "What is one Main Idea that helps explain your topic?";
   }
 
-  // If we already have thesis, go to main ideas
   if (hasKeyTopic && hasIsAbout) {
     if (mainIdeas.length < 1) return "What is one Main Idea that helps explain your topic?";
     if (mainIdeas.length < 2) return "What is another Main Idea that supports your topic?";
-    // Default: start details for first main idea
     const first = cleanText(mainIdeas[0] || "");
     if (first) return `Your first Main Idea was “${first}.” What are 2–3 Essential Details that support this idea?`;
     return "What is one Main Idea that helps explain your topic?";
   }
 
-  // Anchor missing pieces
   if (!hasKeyTopic) return "What is your Key Topic? (2–5 words.)";
   return `Finish this sentence: “${keyTopic} is about ___.”`;
 }
@@ -490,7 +472,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // ---- OpenAI call (tone + one-question enforcement, but we give it the exact question) ----
+    // ---- OpenAI call (tone + one-question enforcement; we provide the exact question) ----
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
       temperature: 0.3,
