@@ -447,14 +447,22 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method Not Allowed" });
 
   try {
-    const { message = "", framing = {}, stepHint = "" } = req.body || {};
-    const trimmed = String(message).trim();
+   const { message = "", framing = {}, stepHint = "" } = req.body || {};
+const trimmed = String(message).trim();
+
+// DEBUG: log exactly what the frontend sent
+console.log("=== INCOMING REQUEST BODY ===");
+console.log(JSON.stringify(req.body, null, 2));
 
     if (!trimmed) {
       return res.status(400).json({ error: "Missing 'message' in request body" });
     }
 
     const routedQuestion = nextFrameQuestion(trimmed, framing, stepHint);
+console.log("=== ROUTING INPUTS ===");
+console.log(JSON.stringify({ trimmed, framing, stepHint }, null, 2));
+console.log("=== ROUTED QUESTION ===");
+console.log(routedQuestion);
 
     // ---- Safety check ----
     const safety = await classifyMessage(trimmed);
@@ -487,6 +495,9 @@ export default async function handler(req, res) {
         },
       ],
     });
+    // DEBUG: log raw model output
+console.log("=== RAW MODEL RESPONSE ===");
+console.log(JSON.stringify(completion.choices[0].message, null, 2));
 
     const raw =
       completion?.choices?.[0]?.message?.content?.trim() ||
@@ -509,3 +520,4 @@ export default async function handler(req, res) {
     });
   }
 }
+
