@@ -59,6 +59,17 @@ If a student response belongs to a DIFFERENT framing step
 do NOT change steps or re-anchor the frame.
 Instead, restate the CURRENT step and ask again with clarification.
 
+SYNTHESIZE-AND-ADVANCE RULE:
+When a student provides a valid idea that is incomplete,
+briefly rephrase it into precise academic language
+by embedding the rephrased idea into the next single question within the routine.
+
+TOPIC LOCK RULE (critical):
+Once Key Topic and Is About are complete,
+the Key Topic is LOCKED.
+Never ask for or revisit Key Topic or Is About again,
+even if a student response is incorrect or off-topic.
+
 FRAMING ROUTINE SEQUENCE (must follow):
 1) Key Topic (2–5 words: the focus/title)
 2) Is About (one short phrase that explains what the Key Topic focuses on)
@@ -539,6 +550,7 @@ console.log(JSON.stringify(completion.choices[0].message, null, 2));
     });
   }
 }
+
 
 
 
