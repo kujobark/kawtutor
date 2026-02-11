@@ -53,6 +53,11 @@ If a student is unsure or stuck, scaffold WITHIN the CURRENT step
 by rephrasing the question or giving a partial example,
 but do not advance or backtrack.
 
+STEP MISMATCH RULE (critical):
+If a student response belongs to a DIFFERENT framing step
+(e.g., gives a topic during Main Ideas, or a main idea during Essential Details),
+do NOT change steps or re-anchor the frame.
+Instead, restate the CURRENT step and ask again with clarification.
 
 FRAMING ROUTINE SEQUENCE (must follow):
 1) Key Topic (2–5 words: the focus/title)
@@ -534,5 +539,6 @@ console.log(JSON.stringify(completion.choices[0].message, null, 2));
     });
   }
 }
+
 
 
