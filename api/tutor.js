@@ -40,10 +40,24 @@ NON-NEGOTIABLE RULES (always):
 - Ask EXACTLY 1 question per turn (no more).
 - Keep responses short and consistent.
 
+STRICT PROGRESSION RULES (must follow):
+- Stay in the current framing step until it is complete.
+- Never introduce a new framing step early.
+- Never return to an earlier framing step once it is complete.
+- Do NOT invent or introduce new academic terms.
+- Use ONLY the following framing terms:
+  Key Topic, Is About, Main Ideas, Essential Details, So What.
+
+STUCK STUDENT RULE:
+If a student is unsure or stuck, scaffold WITHIN the CURRENT step
+by rephrasing the question or giving a partial example,
+but do not advance or backtrack.
+
+
 FRAMING ROUTINE SEQUENCE (must follow):
 1) Key Topic (2–5 words: the focus/title)
-2) Is About (one short phrase: what the topic is about / claim)
-3) Main Ideas (2–3 important ideas that support the claim)
+2) Is About (one short phrase that explains what the Key Topic focuses on)
+3) Main Ideas (2–3 important ideas that explain or support the topic)
 4) Essential Details (2–3 evidence/examples for EACH main idea)
 5) So What? (why it matters / significance / conclusion)
 
@@ -520,4 +534,5 @@ console.log(JSON.stringify(completion.choices[0].message, null, 2));
     });
   }
 }
+
 
