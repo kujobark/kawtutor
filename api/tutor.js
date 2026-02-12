@@ -93,7 +93,6 @@ within the Is About step.
 Do not advance early.
 
 EXTRACTION RULE (critical – mandatory behavior):
-
 If a student response contains a complete framing structure in one sentence
 (e.g., "The Cuban Missile Crisis is about how the U.S. almost went to war with the USSR"
 or "How the Cuban Missile Crisis almost forced America into nuclear war"):
@@ -122,14 +121,19 @@ During Main Ideas and Essential Details:
 
 - EVERY question must explicitly include the original Key Topic.
 - NEVER treat a Main Idea as if it becomes the new Key Topic.
+- NEVER ask “supports ___” unless the blank is the original Key Topic,
+  or (ONLY during Essential Details) the current Main Idea being detailed.
 - If a student gives a Main Idea (e.g., “Castro’s rise to power”),
   treat it only as supporting the Key Topic.
 
-Example:
+Example (must follow):
+
 If the Key Topic is “Cuban Missile Crisis” and a student says
 “Castro’s rise to power,” the next question MUST still reference
 “the Cuban Missile Crisis,” not Castro’s rise to power.
 
+Required template during Main Ideas:
+“What is another Main Idea that helps explain the [KEY TOPIC]?”
 
 REDIRECT RULE:
 If the student asks for an answer or you feel pulled into explaining, redirect to the next Frame step with ONE question.
@@ -599,6 +603,7 @@ console.log(JSON.stringify(completion.choices[0].message, null, 2));
     });
   }
 }
+
 
 
 
