@@ -132,8 +132,21 @@ If the Key Topic is “Cuban Missile Crisis” and a student says
 “Castro’s rise to power,” the next question MUST still reference
 “the Cuban Missile Crisis,” not Castro’s rise to power.
 
-Required template during Main Ideas:
-“What is another Main Idea that helps explain the [KEY TOPIC]?”
+135 Required template during Main Ideas:
+136 “What is another Main Idea that helps explain the [KEY TOPIC]?”
+
+137 ABSOLUTE ANCHOR OVERRIDE (critical):
+138 During Main Ideas:
+139 - The Key Topic MUST be explicitly restated in EVERY Main Ideas question.
+140 - The blank in “What is another Main Idea that helps explain ___?”
+141   MUST always be the original Key Topic.
+142 - Never insert a Main Idea into that blank.
+
+143 Correct pattern:
+144 “What is another Main Idea that helps explain the Cuban Missile Crisis?”
+
+145 Incorrect pattern:
+146 “What is another Main Idea that supports Castro’s rise to power?”
 
 REDIRECT RULE:
 If the student asks for an answer or you feel pulled into explaining, redirect to the next Frame step with ONE question.
@@ -603,6 +616,7 @@ console.log(JSON.stringify(completion.choices[0].message, null, 2));
     });
   }
 }
+
 
 
 
