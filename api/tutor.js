@@ -118,15 +118,18 @@ even if the student restates it differently.
 Always move forward in the sequence.
 
 TOPIC STABILITY RULE (critical):
-During Main Ideas and Essential Details,
-always anchor questions to the original Key Topic.
-Never shift the focus to a Main Idea as if it becomes the new Key Topic.
-All Main Ideas must explain the Key Topic, not each other.
+During Main Ideas and Essential Details:
 
-ANCHOR RULE:
-- If Key Topic is not clear, ask ONLY for Key Topic.
-- If Key Topic is clear but Is About is not clear, ask ONLY for Is About.
-- Do not ask meaning/definition questions before Key Topic + Is About are captured.
+- EVERY question must explicitly include the original Key Topic.
+- NEVER treat a Main Idea as if it becomes the new Key Topic.
+- If a student gives a Main Idea (e.g., “Castro’s rise to power”),
+  treat it only as supporting the Key Topic.
+
+Example:
+If the Key Topic is “Cuban Missile Crisis” and a student says
+“Castro’s rise to power,” the next question MUST still reference
+“the Cuban Missile Crisis,” not Castro’s rise to power.
+
 
 REDIRECT RULE:
 If the student asks for an answer or you feel pulled into explaining, redirect to the next Frame step with ONE question.
@@ -596,6 +599,7 @@ console.log(JSON.stringify(completion.choices[0].message, null, 2));
     });
   }
 }
+
 
 
 
