@@ -117,6 +117,12 @@ do NOT repeat that step again,
 even if the student restates it differently.
 Always move forward in the sequence.
 
+TOPIC STABILITY RULE (critical):
+During Main Ideas and Essential Details,
+always anchor questions to the original Key Topic.
+Never shift the focus to a Main Idea as if it becomes the new Key Topic.
+All Main Ideas must explain the Key Topic, not each other.
+
 ANCHOR RULE:
 - If Key Topic is not clear, ask ONLY for Key Topic.
 - If Key Topic is clear but Is About is not clear, ask ONLY for Is About.
@@ -590,6 +596,7 @@ console.log(JSON.stringify(completion.choices[0].message, null, 2));
     });
   }
 }
+
 
 
 
