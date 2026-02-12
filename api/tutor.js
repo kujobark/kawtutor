@@ -226,16 +226,40 @@ function getFramingDetails(framing) {
   return v && typeof v === "object" && !Array.isArray(v) ? v : {};
 }
 
+// ✅ NEW: reject “my assignment” / “assignment” / “my topic” etc as Key Topic
+function isGenericKeyTopic(kt) {
+  const t = cleanText(kt).toLowerCase();
+  return (
+    t === "my assignment" ||
+    t === "assignment" ||
+    t === "my topic" ||
+    t === "topic" ||
+    t === "my essay" ||
+    t === "essay" ||
+    t === "my paper" ||
+    t === "paper" ||
+    t === "my writing" ||
+    t === "writing"
+  );
+}
+
 function parseKeyTopicIsAbout(message) {
   const t = cleanText(message);
   const m = t.match(/^(.*?)\s+is about\s+(.+?)(?:[.?!]|$)/i);
-  if (m) return { keyTopic: cleanText(m[1]), isAbout: cleanText(m[2]) };
+  if (m) {
+    const keyTopic = cleanText(m[1]);
+    const isAbout = cleanText(m[2]);
+    // ✅ NEW: if “my assignment is about …” don’t treat “my assignment” as Key Topic
+    if (!keyTopic || isGenericKeyTopic(keyTopic)) return { keyTopic: null, isAbout: null };
+    return { keyTopic, isAbout };
+  }
   return { keyTopic: null, isAbout: null };
 }
 
 function isClearKeyTopicLabel(label) {
   const kt = cleanText(label);
   if (kt.length < 3 || kt.length > 80) return false;
+  if (isGenericKeyTopic(kt)) return false; // ✅ NEW
   if (/^(topic|stuff|things|history|government|science|math|literature)$/i.test(kt)) return false;
   if (kt.split(" ").length > 10) return false;
   return true;
@@ -479,9 +503,6 @@ export default async function handler(req, res) {
       severity: "",
       safetyMode: false,
     });
-
-    // If you want to re-enable OpenAI later, we can add a feature flag and only
-    // use it for light rewrites while still enforcing exact anchoring.
   } catch (err) {
     console.error("Tutor API error:", err);
     return res.status(500).json({
