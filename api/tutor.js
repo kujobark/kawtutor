@@ -395,13 +395,13 @@ function nextFrameQuestion(studentMessage, framing = {}, stepHint = "") {
   // ------------------
   if (looksStuck(msg)) {
     if (hasKeyTopic && hasIsAbout) {
-      if (mainIdeas.length < 1) return "What is one Main Idea that helps explain your topic?";
-      if (mainIdeas.length < 2) return "What is another Main Idea that supports your topic?";
-      if (mainIdeas.length < 3) return "Is there another important Main Idea that helps explain your topic?";
+      if (mainIdeas.length < 1) return `What is one Main Idea that helps explain the ${keyTopic}?`;
+      if (mainIdeas.length < 2) return `What is another Main Idea that helps explain the ${keyTopic}?`;
+      if (mainIdeas.length < 3) return `Is there another important Main Idea that helps explain the ${keyTopic}?`;
       const first = cleanText(mainIdeas[0] || "");
       return first
         ? `Your first Main Idea was “${first}.” What are 2–3 Essential Details that support this idea?`
-        : "What is one Main Idea that helps explain your topic?";
+        : `What is one Main Idea that helps explain the ${keyTopic}?`;
     }
     if (hasKeyTopic && !hasIsAbout) {
       return `Finish this sentence: “${keyTopic} is about ___.”`;
@@ -420,6 +420,8 @@ function nextFrameQuestion(studentMessage, framing = {}, stepHint = "") {
   }
 
   if (stepHint === "isAbout") {
+    // Topic lock is assumed at this point; Main Ideas must stay anchored to Key Topic.
+    if (hasKeyTopic) return `What is one Main Idea that helps explain the ${keyTopic}?`;
     return "What is one Main Idea that helps explain your topic?";
   }
 
@@ -431,11 +433,11 @@ function nextFrameQuestion(studentMessage, framing = {}, stepHint = "") {
     if (!hasIsAbout) return `Finish this sentence: “${keyTopic} is about ___.”`;
 
     if (mainIdeas.length < 1) {
-      return "What is one Main Idea that helps explain your topic?";
+      return `What is one Main Idea that helps explain the ${keyTopic}?`;
     }
 
     if (mainIdeas.length < 2) {
-      return "What is another Main Idea that supports your topic?";
+      return `What is another Main Idea that helps explain the ${keyTopic}?`;
     }
 
     // After 2 ideas: sufficiency check
@@ -444,7 +446,7 @@ function nextFrameQuestion(studentMessage, framing = {}, stepHint = "") {
         const first = cleanText(mainIdeas[0] || "");
         return `Your first Main Idea was “${first}.” What are 2–3 Essential Details that support this idea?`;
       }
-      return "Is there another important Main Idea that helps explain your topic?";
+      return `Is there another important Main Idea that helps explain the ${keyTopic}?`;
     }
 
     // After 3 ideas: sufficiency check, then move on if “no”
@@ -453,7 +455,7 @@ function nextFrameQuestion(studentMessage, framing = {}, stepHint = "") {
         const first = cleanText(mainIdeas[0] || "");
         return `Your first Main Idea was “${first}.” What are 2–3 Essential Details that support this idea?`;
       }
-      return "Is there one more important idea needed to fully explain your topic?";
+      return `Is there one more important idea needed to fully explain the ${keyTopic}?`;
     }
   }
 
@@ -463,7 +465,8 @@ function nextFrameQuestion(studentMessage, framing = {}, stepHint = "") {
   if (stepHint === "details") {
     // Ensure we have at least 2 main ideas before details
     if (mainIdeas.length < 2) {
-      return "What is another Main Idea that supports your topic?";
+      if (hasKeyTopic) return `What is another Main Idea that helps explain the ${keyTopic}?`;
+      return "What is another Main Idea that helps explain your topic?";
     }
 
     const currentIdx = computeCurrentMainIdeaIndex(mainIdeas, detailsObj);
@@ -518,15 +521,18 @@ function nextFrameQuestion(studentMessage, framing = {}, stepHint = "") {
   const parsed = parseKeyTopicIsAbout(msg);
   if (parsed.keyTopic && parsed.isAbout) {
     const check = instructionalSufficiency(parsed.keyTopic, parsed.isAbout);
-    if (check.sufficient) return "What is one Main Idea that helps explain your topic?";
+    if (check.sufficient) {
+      // If we extracted a full structure from one sentence, we still ask for Main Ideas (anchored to *topic*).
+      return "What is one Main Idea that helps explain your topic?";
+    }
   }
 
   if (hasKeyTopic && hasIsAbout) {
-    if (mainIdeas.length < 1) return "What is one Main Idea that helps explain your topic?";
-    if (mainIdeas.length < 2) return "What is another Main Idea that supports your topic?";
+    if (mainIdeas.length < 1) return `What is one Main Idea that helps explain the ${keyTopic}?`;
+    if (mainIdeas.length < 2) return `What is another Main Idea that helps explain the ${keyTopic}?`;
     const first = cleanText(mainIdeas[0] || "");
     if (first) return `Your first Main Idea was “${first}.” What are 2–3 Essential Details that support this idea?`;
-    return "What is one Main Idea that helps explain your topic?";
+    return `What is one Main Idea that helps explain the ${keyTopic}?`;
   }
 
   if (!hasKeyTopic) return "What is your Key Topic? (2–5 words.)";
@@ -543,22 +549,22 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method Not Allowed" });
 
   try {
-   const { message = "", framing = {}, stepHint = "" } = req.body || {};
-const trimmed = String(message).trim();
+    const { message = "", framing = {}, stepHint = "" } = req.body || {};
+    const trimmed = String(message).trim();
 
-// DEBUG: log exactly what the frontend sent
-console.log("=== INCOMING REQUEST BODY ===");
-console.log(JSON.stringify(req.body, null, 2));
+    // DEBUG: log exactly what the frontend sent
+    console.log("=== INCOMING REQUEST BODY ===");
+    console.log(JSON.stringify(req.body, null, 2));
 
     if (!trimmed) {
       return res.status(400).json({ error: "Missing 'message' in request body" });
     }
 
     const routedQuestion = nextFrameQuestion(trimmed, framing, stepHint);
-console.log("=== ROUTING INPUTS ===");
-console.log(JSON.stringify({ trimmed, framing, stepHint }, null, 2));
-console.log("=== ROUTED QUESTION ===");
-console.log(routedQuestion);
+    console.log("=== ROUTING INPUTS ===");
+    console.log(JSON.stringify({ trimmed, framing, stepHint }, null, 2));
+    console.log("=== ROUTED QUESTION ===");
+    console.log(routedQuestion);
 
     // ---- Safety check ----
     const safety = await classifyMessage(trimmed);
@@ -591,9 +597,10 @@ console.log(routedQuestion);
         },
       ],
     });
+
     // DEBUG: log raw model output
-console.log("=== RAW MODEL RESPONSE ===");
-console.log(JSON.stringify(completion.choices[0].message, null, 2));
+    console.log("=== RAW MODEL RESPONSE ===");
+    console.log(JSON.stringify(completion.choices[0].message, null, 2));
 
     const raw =
       completion?.choices?.[0]?.message?.content?.trim() ||
@@ -616,13 +623,3 @@ console.log(JSON.stringify(completion.choices[0].message, null, 2));
     });
   }
 }
-
-
-
-
-
-
-
-
-
-
