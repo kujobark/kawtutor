@@ -139,11 +139,7 @@ function getFramingMainIdeas(framing) {
   );
 }
 function getFramingDetails(framing) {
-  return (
-    framing?.details ??
-    framing?.frame?.details ??
-    {}
-  );
+  return framing?.details ?? framing?.frame?.details ?? {};
 }
 function getFramingDetailsIndex(framing) {
   return (
@@ -164,7 +160,8 @@ function getFramingSoWhat(framing) {
   );
 }
 
-const GENERIC_LEFT_SIDES = new Set([
+// Treat these as INVALID Key Topics if they slip into Wix memory
+const GENERIC_KEY_TOPICS = new Set([
   "my assignment",
   "the assignment",
   "my essay",
@@ -175,25 +172,23 @@ const GENERIC_LEFT_SIDES = new Set([
   "this paragraph",
   "my topic",
   "the topic",
+  "topic",
+  "key topic",
   "it",
   "this",
   "that",
-  "key topic",
-  "topic",
 ]);
 
-function looksGenericKeyTopic(left) {
-  const l = cleanText(left).toLowerCase();
-  if (!l) return true;
-  if (GENERIC_LEFT_SIDES.has(l)) return true;
-  // also block "my ____" patterns
-  if (l.startsWith("my ")) return true;
-  if (l.startsWith("this ")) return true;
-  if (l.startsWith("the ")) return false; // "the Cuban Missile Crisis" is fine
+function isBadKeyTopic(keyTopic) {
+  const kt = cleanText(keyTopic).toLowerCase();
+  if (!kt) return true;
+  if (GENERIC_KEY_TOPICS.has(kt)) return true;
+  if (kt.startsWith("my ")) return true;
+  if (kt === "my assignment") return true;
   return false;
 }
 
-// Parse "X is about Y" from a student message
+// Parse "X is about Y" from student message
 function parseKeyTopicIsAbout(text) {
   const t = cleanText(text);
   const m = t.match(/^(.*?)\s+is\s+about\s+(.+?)(?:[.?!]|$)/i);
@@ -202,13 +197,10 @@ function parseKeyTopicIsAbout(text) {
   const left = cleanText(m[1]);
   const right = cleanText(m[2]);
 
-  // basic sanity
   if (!left || !right) return null;
+  if (isBadKeyTopic(left)) return null;
 
-  // avoid junk like "My assignment is about ..."
-  if (looksGenericKeyTopic(left)) return null;
-
-  // keep Key Topic short-ish (2–8 words is realistic)
+  // keep key topic reasonably short
   const wordCount = left.split(" ").filter(Boolean).length;
   if (wordCount < 1 || wordCount > 10) return null;
 
@@ -222,7 +214,7 @@ function nextFrameQuestion(studentMessage, framing, stepHint = "") {
   const msg = cleanText(studentMessage);
 
   // read current state
-  const keyTopic = cleanText(getFramingKeyTopic(framing));
+  let keyTopic = cleanText(getFramingKeyTopic(framing));
   const isAbout = cleanText(getFramingIsAbout(framing));
   const mainIdeas = Array.isArray(getFramingMainIdeas(framing))
     ? getFramingMainIdeas(framing).map(cleanText).filter(Boolean)
@@ -231,23 +223,27 @@ function nextFrameQuestion(studentMessage, framing, stepHint = "") {
   const detailsIndex = Number(getFramingDetailsIndex(framing) || 0);
   const soWhat = cleanText(getFramingSoWhat(framing));
 
-  // EXTRACTION RULE safety net (server-side)
+  // If Wix accidentally stored a generic Key Topic, treat it as missing
+  if (isBadKeyTopic(keyTopic)) keyTopic = "";
+
+  // EXTRACTION safety net (server-side)
   const parsed = parseKeyTopicIsAbout(msg);
 
   // 1) Key Topic missing
   if (!keyTopic) {
-    // If student gave full "X is about Y", move forward (don’t loop)
+    // If the student gave a full "X is about Y", the NEXT move is:
+    // ask them to confirm the Key Topic (2–5 words) so Wix stores it cleanly.
     if (parsed?.keyTopic) {
-      return `What is your Is About statement for "${parsed.keyTopic}"?`;
+      return `What is your Key Topic? (2–5 words: "${parsed.keyTopic}")`;
     }
-    return "What is your Key Topic?";
+    return "What is your Key Topic? (2–5 words)";
   }
 
   // 2) Is About missing
   if (!isAbout) {
-    // If student gave full "X is about Y", move forward (don’t loop)
+    // If the student typed "X is about Y" and we already have a good keyTopic,
+    // move forward instead of looping.
     if (parsed?.keyTopic && parsed?.isAbout) {
-      // Key Topic exists; if parsed keyTopic conflicts, ignore the conflict and proceed
       return `What is one Main Idea that helps explain the ${keyTopic}?`;
     }
     return `Finish this sentence: "${keyTopic} is about ____."`;
@@ -258,30 +254,27 @@ function nextFrameQuestion(studentMessage, framing, stepHint = "") {
     if (mainIdeas.length === 0) {
       return `What is one Main Idea that helps explain the ${keyTopic}?`;
     }
-    // REQUIRED template during Main Ideas (prevents "supports X" drift)
     return `What is another Main Idea that helps explain the ${keyTopic}?`;
   }
 
-  // Optional 3rd main idea (if not already 3)
-  // Only ask for a third if the client explicitly signaled it, otherwise proceed to details.
-  // (This keeps demos predictable.)
+  // Optional 3rd main idea (only if the client explicitly signals it)
   if (mainIdeas.length === 2 && stepHint === "mainIdeas") {
     return `Do you have one more Main Idea that helps explain the ${keyTopic}?`;
   }
 
-  // 4) Essential Details for each main idea (2–3 each)
-  // We only ever reference the ORIGINAL Key Topic + the CURRENT Main Idea
+  // 4) Essential Details (2–3 each), anchored to ORIGINAL keyTopic
   const idx = Math.max(0, Math.min(detailsIndex, mainIdeas.length - 1));
   const currentMainIdea = mainIdeas[idx] || mainIdeas[0];
 
   const bucket = details?.[String(idx)] || details?.[idx] || [];
   const detailCount = Array.isArray(bucket) ? bucket.filter(Boolean).length : 0;
 
+  // Ask for 1st/2nd details for the current main idea
   if (detailCount < 2) {
     return `What is one Essential Detail that supports the Main Idea "${currentMainIdea}" about the ${keyTopic}?`;
   }
 
-  // if they’ve got 2+ details for this main idea and there are more main ideas to cover
+  // If we have 2+ details for current idea and there are more ideas, move to next idea’s details
   if (idx < mainIdeas.length - 1) {
     const nextIdea = mainIdeas[idx + 1];
     return `What is one Essential Detail that supports the Main Idea "${nextIdea}" about the ${keyTopic}?`;
@@ -292,7 +285,7 @@ function nextFrameQuestion(studentMessage, framing, stepHint = "") {
     return `So what? Why does the ${keyTopic} matter?`;
   }
 
-  // If everything is filled, keep it on So What refinement (still one question)
+  // If all filled, keep on So What refinement
   return `What is one way you could make your So What for the ${keyTopic} more specific?`;
 }
 
@@ -303,14 +296,17 @@ export default async function handler(req, res) {
   setCors(res);
 
   if (req.method === "OPTIONS") return res.status(200).end();
-  if (req.method !== "POST") return res.status(405).json({ error: "Method Not Allowed" });
+  if (req.method !== "POST")
+    return res.status(405).json({ error: "Method Not Allowed" });
 
   try {
     const { message = "", framing = {}, stepHint = "" } = req.body || {};
     const trimmed = cleanText(message);
 
     if (!trimmed) {
-      return res.status(400).json({ error: "Missing 'message' in request body" });
+      return res
+        .status(400)
+        .json({ error: "Missing 'message' in request body" });
     }
 
     // ---- Safety check ----
@@ -322,13 +318,9 @@ export default async function handler(req, res) {
       return res.status(200).json({ reply: clampQuestion(safeReply) });
     }
 
-    // ---- Deterministic next question (no model rewrite) ----
+    // ---- Deterministic next question ----
     const routedQuestion = nextFrameQuestion(trimmed, framing, stepHint);
-
-    // Keep output compliant
-    const reply = clampQuestion(routedQuestion);
-
-    return res.status(200).json({ reply });
+    return res.status(200).json({ reply: clampQuestion(routedQuestion) });
   } catch (err) {
     console.error("Tutor handler error:", err);
     return res.status(500).json({ error: "Internal Server Error" });
