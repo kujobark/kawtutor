@@ -15,19 +15,9 @@ function setCors(res) {
 /**
  * Kaw Companion — Framing Routine Socratic Tutor (API)
  *
- * PEDAGOGY (locked):
- * - Ask EXACTLY 1 question per turn
- * - No lecturing, no answers, no correctness confirmation
- * - Teacher controls transitions (no “type done”, no “do you want to move on”)
- *
- * ROUTINE:
- * 1) Key Topic
- * 2) Is About (thesis/topic sentence)
- * 3) Main Ideas (2 required, 3 optional)
- *    - After 2: sufficiency check
- *    - After 3: sufficiency check, then move on on “no”
- * 4) Essential Details (2–3 per Main Idea, nested)
- * 5) So What? (explicit)
+ * DEMO-SAFE MODE (important):
+ * - We still compute the next question with the router.
+ * - We DO NOT let the model rewrite the question (prevents drifting / backtracking / term invention).
  */
 
 const SYSTEM_PROMPT_FRAMING = `
@@ -132,21 +122,21 @@ If the Key Topic is “Cuban Missile Crisis” and a student says
 “Castro’s rise to power,” the next question MUST still reference
 “the Cuban Missile Crisis,” not Castro’s rise to power.
 
-135 Required template during Main Ideas:
-136 “What is another Main Idea that helps explain the [KEY TOPIC]?”
+Required template during Main Ideas:
+“What is another Main Idea that helps explain the [KEY TOPIC]?”
 
-137 ABSOLUTE ANCHOR OVERRIDE (critical):
-138 During Main Ideas:
-139 - The Key Topic MUST be explicitly restated in EVERY Main Ideas question.
-140 - The blank in “What is another Main Idea that helps explain ___?”
-141   MUST always be the original Key Topic.
-142 - Never insert a Main Idea into that blank.
+ABSOLUTE ANCHOR OVERRIDE (critical):
+During Main Ideas:
+- The Key Topic MUST be explicitly restated in EVERY Main Ideas question.
+- The blank in “What is another Main Idea that helps explain ___?”
+  MUST always be the original Key Topic.
+- Never insert a Main Idea into that blank.
 
-143 Correct pattern:
-144 “What is another Main Idea that helps explain the Cuban Missile Crisis?”
+Correct pattern:
+“What is another Main Idea that helps explain the Cuban Missile Crisis?”
 
-145 Incorrect pattern:
-146 “What is another Main Idea that supports Castro’s rise to power?”
+Incorrect pattern:
+“What is another Main Idea that supports Castro’s rise to power?”
 
 REDIRECT RULE:
 If the student asks for an answer or you feel pulled into explaining, redirect to the next Frame step with ONE question.
@@ -165,23 +155,6 @@ const MAX_QUESTIONS = 1;
 // --------------------------
 function countQuestions(text) {
   return (text.match(/\?/g) || []).length;
-}
-
-function looksLikeExplanation(text) {
-  const t = (text || "").toLowerCase().trim();
-  const badStarts = [
-    "in summary",
-    "to summarize",
-    "here's",
-    "this means",
-    "the answer is",
-    "overall,",
-    "for example,",
-  ];
-  const hasBadStart = badStarts.some((s) => t.startsWith(s));
-  const tooManySentences = (text.match(/[.!]/g) || []).length >= 2;
-  const hasColonList = text.includes(":") && (text.match(/\n/g) || []).length >= 1;
-  return hasBadStart || tooManySentences || hasColonList;
 }
 
 function enforceHardCap(text) {
@@ -204,19 +177,6 @@ function enforceHardCap(text) {
   if (lastQ !== out.length - 1) out = out.slice(0, lastQ + 1).trim();
 
   return out;
-}
-
-function socraticFailSafe(original, routedQuestion) {
-  const cleaned = (original || "").trim();
-  const triggers =
-    cleaned.length > MAX_CHARS ||
-    looksLikeExplanation(cleaned) ||
-    countQuestions(cleaned) !== 1;
-
-  if (!triggers) return enforceHardCap(cleaned);
-
-  const fallback = (routedQuestion || "What is your Key Topic? (2–5 words.)").trim();
-  return enforceHardCap(fallback);
 }
 
 // -----------------------------------------------
@@ -256,11 +216,6 @@ function getFramingMainIdeas(framing) {
   return Array.isArray(v) ? v : [];
 }
 
-/**
- * details shape expected:
- * details: { "0": ["detail1","detail2"], "1": ["detail1"], ... }
- * (keys can also be numeric)
- */
 function getFramingDetails(framing) {
   const v =
     framing?.details ??
@@ -293,21 +248,6 @@ function hasMeaningfulIsAbout(isAbout) {
   return true;
 }
 
-function canLeadToMainIdeas(isAbout) {
-  const ia = cleanText(isAbout);
-  if (/(because|so that|how|why|caused by|leads to|results in|changed|influenced|prevents|helps|shows|explains|compares|contrasts)/i.test(ia)) {
-    return true;
-  }
-  return ia.split(" ").length >= 6;
-}
-
-function instructionalSufficiency(keyTopic, isAbout) {
-  const hasLabel = isClearKeyTopicLabel(keyTopic);
-  const hasDir = hasMeaningfulIsAbout(isAbout);
-  const leads = canLeadToMainIdeas(isAbout);
-  return { sufficient: hasLabel && hasDir && leads, hasLabel, hasDir, leads };
-}
-
 function looksStuck(text) {
   const t = cleanText(text).toLowerCase();
   return (
@@ -325,12 +265,6 @@ function looksStuck(text) {
   );
 }
 
-function looksLikeMetaRepeat(text) {
-  const t = cleanText(text).toLowerCase();
-  return /^(i already|i just|i said|i told you|i shared)/i.test(t);
-}
-
-// Student saying “no / i don’t think so / that’s it” etc.
 function isNegativeResponse(text) {
   const t = cleanText(text).toLowerCase();
   return (
@@ -350,15 +284,6 @@ function isNegativeResponse(text) {
   );
 }
 
-// --- Discipline-aware prompts WITHOUT supplying content ---
-function promptForSpecificDetail() {
-  return "What specific event, action, or fact shows this idea is true?";
-}
-
-/**
- * Determine which Main Idea we should collect details for next.
- * We prefer the earliest Main Idea that has <2 details collected.
- */
 function computeCurrentMainIdeaIndex(mainIdeas, detailsObj) {
   const n = mainIdeas.length;
   for (let i = 0; i < n; i++) {
@@ -366,7 +291,6 @@ function computeCurrentMainIdeaIndex(mainIdeas, detailsObj) {
     const arr = Array.isArray(detailsObj[key]) ? detailsObj[key] : [];
     if (arr.length < 2) return i;
   }
-  // If all have 2+ details, return last index (or 0)
   return Math.max(0, n - 1);
 }
 
@@ -390,9 +314,7 @@ function nextFrameQuestion(studentMessage, framing = {}, stepHint = "") {
   const mainIdeas = getFramingMainIdeas(framing).map(cleanText).filter(Boolean);
   const detailsObj = getFramingDetails(framing);
 
-  // ------------------
-  // 0) Stuck handling (never reset progress)
-  // ------------------
+  // 0) Stuck handling
   if (looksStuck(msg)) {
     if (hasKeyTopic && hasIsAbout) {
       if (mainIdeas.length < 1) return `What is one Main Idea that helps explain the ${keyTopic}?`;
@@ -403,44 +325,29 @@ function nextFrameQuestion(studentMessage, framing = {}, stepHint = "") {
         ? `Your first Main Idea was “${first}.” What are 2–3 Essential Details that support this idea?`
         : `What is one Main Idea that helps explain the ${keyTopic}?`;
     }
-    if (hasKeyTopic && !hasIsAbout) {
-      return `Finish this sentence: “${keyTopic} is about ___.”`;
-    }
+    if (hasKeyTopic && !hasIsAbout) return `Finish this sentence: “${keyTopic} is about ___.”`;
     return "What is your Key Topic? (2–5 words.)";
   }
 
-  // ------------------
-  // 1) Honor stepHint when present
-  // ------------------
+  // 1) Honor stepHint
   if (stepHint === "keyTopic") {
-    if (isClearKeyTopicLabel(msg)) {
-      return `Finish this sentence: “${msg} is about ___.”`;
-    }
+    if (isClearKeyTopicLabel(msg)) return `Finish this sentence: “${msg} is about ___.”`;
     return "What is your Key Topic? (2–5 words.)";
   }
 
   if (stepHint === "isAbout") {
-    // Topic lock is assumed at this point; Main Ideas must stay anchored to Key Topic.
     if (hasKeyTopic) return `What is one Main Idea that helps explain the ${keyTopic}?`;
     return "What is one Main Idea that helps explain your topic?";
   }
 
-  // ------------------
-  // 2) MAIN IDEAS (2 required, 3 optional) — teacher controlled
-  // ------------------
+  // 2) MAIN IDEAS
   if (stepHint === "mainIdeas") {
     if (!hasKeyTopic) return "What is your Key Topic? (2–5 words.)";
     if (!hasIsAbout) return `Finish this sentence: “${keyTopic} is about ___.”`;
 
-    if (mainIdeas.length < 1) {
-      return `What is one Main Idea that helps explain the ${keyTopic}?`;
-    }
+    if (mainIdeas.length < 1) return `What is one Main Idea that helps explain the ${keyTopic}?`;
+    if (mainIdeas.length < 2) return `What is another Main Idea that helps explain the ${keyTopic}?`;
 
-    if (mainIdeas.length < 2) {
-      return `What is another Main Idea that helps explain the ${keyTopic}?`;
-    }
-
-    // After 2 ideas: sufficiency check
     if (mainIdeas.length === 2) {
       if (isNegativeResponse(msg)) {
         const first = cleanText(mainIdeas[0] || "");
@@ -449,7 +356,6 @@ function nextFrameQuestion(studentMessage, framing = {}, stepHint = "") {
       return `Is there another important Main Idea that helps explain the ${keyTopic}?`;
     }
 
-    // After 3 ideas: sufficiency check, then move on if “no”
     if (mainIdeas.length >= 3) {
       if (isNegativeResponse(msg) || mainIdeas.length > 3) {
         const first = cleanText(mainIdeas[0] || "");
@@ -459,11 +365,8 @@ function nextFrameQuestion(studentMessage, framing = {}, stepHint = "") {
     }
   }
 
-  // ------------------
-  // 3) ESSENTIAL DETAILS — nested per Main Idea (2–3 per)
-  // ------------------
+  // 3) ESSENTIAL DETAILS
   if (stepHint === "details") {
-    // Ensure we have at least 2 main ideas before details
     if (mainIdeas.length < 2) {
       if (hasKeyTopic) return `What is another Main Idea that helps explain the ${keyTopic}?`;
       return "What is another Main Idea that helps explain your topic?";
@@ -479,51 +382,32 @@ function nextFrameQuestion(studentMessage, framing = {}, stepHint = "") {
         const arr = getDetailsForIndex(detailsObj, i);
         if (arr.length < 2) { nextIdx = i; break; }
       }
-
       if (nextIdx >= 0) {
         const nextIdea = cleanText(mainIdeas[nextIdx] || "");
         return `Your next Main Idea was “${nextIdea}.” What are 2–3 Essential Details that support this idea?`;
       }
-
       return "So what? What’s important to understand about this topic?";
     }
 
     if (currentDetails.length < 1) {
       return `Your ${currentIdx === 0 ? "first" : currentIdx === 1 ? "next" : "last"} Main Idea was “${currentIdea}.” What are 2–3 Essential Details that support this idea?`;
     }
-
-    if (currentDetails.length === 1) {
-      return "What is another Essential Detail that helps prove this idea?";
-    }
-
-    if (currentDetails.length === 2) {
-      return "Is there another important detail that strengthens this idea?";
-    }
-
-    if (currentDetails.length >= 3) {
-      return "Is there anything else essential we need to understand about this idea?";
-    }
+    if (currentDetails.length === 1) return "What is another Essential Detail that helps prove this idea?";
+    if (currentDetails.length === 2) return "Is there another important detail that strengthens this idea?";
+    return "Is there anything else essential we need to understand about this idea?";
   }
 
-  // ------------------
-  // 4) SO WHAT — explicit
-  // ------------------
+  // 4) SO WHAT
   if (stepHint === "soWhat") {
-    if (msg.split(" ").length < 6) {
-      return "So what? What’s important to understand about this topic?";
-    }
+    if (msg.split(" ").length < 6) return "So what? What’s important to understand about this topic?";
     return "Why does this matter beyond this assignment?";
   }
 
-  // ------------------
-  // 5) Fallback: route based on sufficiency
-  // ------------------
+  // 5) Fallback: extraction + sufficiency
   const parsed = parseKeyTopicIsAbout(msg);
   if (parsed.keyTopic && parsed.isAbout) {
-    const check = instructionalSufficiency(parsed.keyTopic, parsed.isAbout);
-    if (check.sufficient) {
-      // If we extracted a full structure from one sentence, we still ask for Main Ideas (anchored to *topic*).
-      return "What is one Main Idea that helps explain your topic?";
+    if (isClearKeyTopicLabel(parsed.keyTopic) && hasMeaningfulIsAbout(parsed.isAbout)) {
+      return `What is one Main Idea that helps explain the ${parsed.keyTopic}?`;
     }
   }
 
@@ -556,9 +440,7 @@ export default async function handler(req, res) {
     console.log("=== INCOMING REQUEST BODY ===");
     console.log(JSON.stringify(req.body, null, 2));
 
-    if (!trimmed) {
-      return res.status(400).json({ error: "Missing 'message' in request body" });
-    }
+    if (!trimmed) return res.status(400).json({ error: "Missing 'message' in request body" });
 
     const routedQuestion = nextFrameQuestion(trimmed, framing, stepHint);
     console.log("=== ROUTING INPUTS ===");
@@ -582,39 +464,24 @@ export default async function handler(req, res) {
       });
     }
 
-    // ---- OpenAI call (tone + one-question enforcement; we provide the exact question) ----
-    const completion = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      temperature: 0.3,
-      max_tokens: MAX_MODEL_TOKENS,
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT_FRAMING },
-        {
-          role: "user",
-          content:
-            `Student said: ${trimmed}\n\n` +
-            `Ask EXACTLY this next step as ONE question:\n${routedQuestion}`,
-        },
-      ],
-    });
-
-    // DEBUG: log raw model output
-    console.log("=== RAW MODEL RESPONSE ===");
-    console.log(JSON.stringify(completion.choices[0].message, null, 2));
-
-    const raw =
-      completion?.choices?.[0]?.message?.content?.trim() ||
-      routedQuestion;
-
-    const reply = socraticFailSafe(raw, routedQuestion);
-
+    /**
+     * DEMO-SAFE MODE:
+     * Return the routed question directly (prevents the model from drifting into:
+     * - “supports Castro…” phrasing
+     * - asking Key Topic again
+     * - inventing “claim” step
+     * - backtracking / skipping
+     */
     return res.status(200).json({
-      reply,
+      reply: enforceHardCap(routedQuestion),
       flagged: false,
       flagCategory: "",
       severity: "",
       safetyMode: false,
     });
+
+    // If you want to re-enable OpenAI later, we can add a feature flag and only
+    // use it for light rewrites while still enforcing exact anchoring.
   } catch (err) {
     console.error("Tutor API error:", err);
     return res.status(500).json({
