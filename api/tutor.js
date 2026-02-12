@@ -77,6 +77,33 @@ FRAMING ROUTINE SEQUENCE (must follow):
 4) Essential Details (2–3 evidence/examples for EACH main idea)
 5) So What? (why it matters / significance / conclusion)
 
+KEY TOPIC COMPLETION RULE:
+A Key Topic is complete only if it is 2–5 words
+and clearly names the focus of the assignment.
+Once complete, move to the Is About step.
+Do not ask for Key Topic again.
+
+IS ABOUT COMPLETION RULE:
+An Is About statement is complete only if it:
+- Forms a clear, complete idea
+- Explains what the Key Topic focuses on
+- Can logically lead to 2–3 Main Ideas.
+If incomplete or vague, ask a clarifying question
+within the Is About step.
+Do not advance early.
+
+EXTRACTION RULE (critical):
+If a student response contains BOTH the Key Topic and the Is About
+(e.g., "The Cuban Missile Crisis is about..."),
+extract both elements immediately.
+Do NOT ask again for Key Topic or Is About.
+
+NO REPEAT RULE (critical):
+Once a framing step is complete,
+do NOT repeat that step again,
+even if the student restates it differently.
+Always move forward in the sequence.
+
 ANCHOR RULE:
 - If Key Topic is not clear, ask ONLY for Key Topic.
 - If Key Topic is clear but Is About is not clear, ask ONLY for Is About.
@@ -550,6 +577,7 @@ console.log(JSON.stringify(completion.choices[0].message, null, 2));
     });
   }
 }
+
 
 
 
