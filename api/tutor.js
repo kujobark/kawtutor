@@ -92,11 +92,24 @@ If incomplete or vague, ask a clarifying question
 within the Is About step.
 Do not advance early.
 
-EXTRACTION RULE (critical):
-If a student response contains BOTH the Key Topic and the Is About
-(e.g., "The Cuban Missile Crisis is about..."),
-extract both elements immediately.
-Do NOT ask again for Key Topic or Is About.
+EXTRACTION RULE (critical – mandatory behavior):
+
+If a student response contains a complete framing structure in one sentence
+(e.g., "The Cuban Missile Crisis is about how the U.S. almost went to war with the USSR"
+or "How the Cuban Missile Crisis almost forced America into nuclear war"):
+
+1. Silently extract:
+   - Key Topic
+   - Is About
+
+2. Treat BOTH as complete.
+
+3. Do NOT ask again for Key Topic or Is About.
+
+4. Immediately advance to the next required framing step in the sequence.
+
+If the student response is unclear, incomplete, or missing one element,
+ask ONLY for the missing element.
 
 NO REPEAT RULE (critical):
 Once a framing step is complete,
@@ -577,6 +590,7 @@ console.log(JSON.stringify(completion.choices[0].message, null, 2));
     });
   }
 }
+
 
 
 
