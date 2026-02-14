@@ -34,8 +34,8 @@ function clampQuestion(q) {
 }
 
 const GENERIC_KEY_TOPICS = new Set([
-  "my assignment","the assignment","my essay","this essay","my paper","this paper",
-  "my paragraph","this paragraph","my topic","the topic","topic","key topic","it","this","that",
+  "my assignment", "the assignment", "my essay", "this essay", "my paper", "this paper",
+  "my paragraph", "this paragraph", "my topic", "the topic", "topic", "key topic", "it", "this", "that",
 ]);
 
 function isBadKeyTopic(keyTopic) {
@@ -82,21 +82,68 @@ function isNegative(text) {
   );
 }
 
+function isAffirmative(text) {
+  const t = cleanText(text).toLowerCase();
+  return (
+    t === "yes" ||
+    t === "y" ||
+    t === "yeah" ||
+    t === "yep" ||
+    t === "correct" ||
+    t === "that's right" ||
+    t === "thats right" ||
+    t === "right" ||
+    t === "looks good" ||
+    t === "good"
+  );
+}
+
 // ------------------------------
-// Normalize incoming state (supports old framing payload too)
+// Draft Is About from intake (fidelity-first but low friction)
+// ------------------------------
+function deriveIsAboutCandidate(intakeAbout, keyTopic) {
+  const raw = cleanText(intakeAbout);
+  if (!raw) return "";
+
+  // If intake already has "X is about Y", extract Y
+  const parsed = parseKeyTopicIsAbout(raw);
+  if (parsed?.isAbout) return cleanText(parsed.isAbout);
+
+  // Otherwise, use the intake sentence as the draft (trim punctuation)
+  let cand = raw.replace(/[.?!]\s*$/, "").trim();
+
+  // If they started with key topic, lightly remove it
+  const kt = cleanText(keyTopic);
+  if (kt) {
+    const re = new RegExp("^" + kt.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\s*[:\\-–—]?\\s*", "i");
+    cand = cand.replace(re, "").trim();
+  }
+
+  return cand;
+}
+
+// ------------------------------
+// Normalize incoming state
 // ------------------------------
 function normalizeIncomingState(body) {
   const incoming = body?.state ?? body?.framing ?? {};
 
-  const keyTopic = cleanText(incoming?.keyTopic ?? incoming?.key_topic ?? "");
-  const isAbout = cleanText(incoming?.isAbout ?? incoming?.is_about ?? "");
-  const mainIdeasRaw = incoming?.mainIdeas ?? incoming?.main_ideas ?? [];
+  const keyTopic = cleanText(incoming?.frame?.keyTopic ?? incoming?.keyTopic ?? incoming?.key_topic ?? "");
+  const isAbout = cleanText(incoming?.frame?.isAbout ?? incoming?.isAbout ?? incoming?.is_about ?? "");
+  const mainIdeasRaw = incoming?.frame?.mainIdeas ?? incoming?.mainIdeas ?? incoming?.main_ideas ?? [];
   const mainIdeas = Array.isArray(mainIdeasRaw)
     ? mainIdeasRaw.map(cleanText).filter(Boolean)
     : [];
-  const details = incoming?.details && typeof incoming.details === "object" ? incoming.details : {};
+  const details = (incoming?.frame?.details ?? incoming?.details) && typeof (incoming?.frame?.details ?? incoming?.details) === "object"
+    ? (incoming?.frame?.details ?? incoming?.details)
+    : {};
   const detailsIndex = Number(incoming?.detailsIndex ?? incoming?.details_index ?? 0) || 0;
-  const soWhat = cleanText(incoming?.soWhat ?? incoming?.so_what ?? "");
+  const soWhat = cleanText(incoming?.frame?.soWhat ?? incoming?.soWhat ?? incoming?.so_what ?? "");
+
+  const askedForThirdMainIdea = Boolean(incoming?.askedForThirdMainIdea ?? false);
+
+  // pending confirm objects (for stop-check logic)
+  const pending = incoming?.pending && typeof incoming.pending === "object" ? incoming.pending : null;
 
   return {
     frame: {
@@ -107,7 +154,8 @@ function normalizeIncomingState(body) {
       soWhat
     },
     detailsIndex: detailsIndex < 0 ? 0 : detailsIndex,
-    askedForThirdMainIdea: Boolean(incoming?.askedForThirdMainIdea ?? false)
+    askedForThirdMainIdea,
+    pending
   };
 }
 
@@ -117,6 +165,23 @@ function normalizeIncomingState(body) {
 function updateStateFromStudent(state, message) {
   const msg = cleanText(message);
   const s = structuredClone(state);
+
+  // 0) Handle pending confirm steps first
+  if (s.pending?.type === "confirmIsAbout" && !s.frame.isAbout) {
+    if (isAffirmative(msg)) {
+      s.frame.isAbout = cleanText(s.pending.candidate || "");
+    } else {
+      // anything else becomes the revised Is About (unless they just typed "revise")
+      const lowered = msg.toLowerCase();
+      if (lowered === "revise" || lowered === "change") {
+        // keep pending; they didn't give a revision yet
+        return s;
+      }
+      s.frame.isAbout = msg;
+    }
+    s.pending = null;
+    return s;
+  }
 
   // Extraction rule (server-side)
   const parsed = parseKeyTopicIsAbout(msg);
@@ -139,7 +204,7 @@ function updateStateFromStudent(state, message) {
     return s;
   }
 
-  // If we asked once for 3rd main idea and student answers:
+  // Optional 3rd main idea if we asked once
   if (s.frame.mainIdeas.length === 2 && s.askedForThirdMainIdea) {
     if (!isNegative(msg)) {
       s.frame.mainIdeas = [...s.frame.mainIdeas, msg].slice(0, 3);
@@ -185,8 +250,13 @@ function computeNextQuestion(state) {
   // 1) Key Topic
   if (!keyTopic) return "What is your Key Topic? (2–5 words)";
 
-  // 2) Is About
-  if (!isAbout) return `Finish this sentence: "${keyTopic} is about ____."`;
+  // 2) Is About (STOP-CHECK confirmation if pending)
+  if (!isAbout) {
+    if (state.pending?.type === "confirmIsAbout" && state.pending?.candidate) {
+      return `To clarify, is your Is About: "${cleanText(state.pending.candidate)}"? (yes / revise)`;
+    }
+    return `Finish this sentence: "${keyTopic} is about ____."`;
+  }
 
   // 3) Main Ideas
   if (mainIdeas.length < 2) {
@@ -247,7 +317,7 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method Not Allowed" });
 
   try {
-    const { message = "" } = req.body || {};
+    const { message = "", intake = {} } = req.body || {};
     const trimmed = cleanText(message);
     if (!trimmed) return res.status(400).json({ error: "Missing 'message' in request body" });
 
@@ -257,12 +327,23 @@ export default async function handler(req, res) {
       const safeReply =
         SAFETY_RESPONSES[safety.category] ||
         "Let’s zoom back to your Frame. What is your Key Topic? (2–5 words.)";
-      return res.status(200).json({ reply: clampQuestion(safeReply), state: normalizeIncomingState(req.body || {}) });
+      return res.status(200).json({
+        reply: clampQuestion(safeReply),
+        state: normalizeIncomingState(req.body || {})
+      });
     }
 
-    // ---- SSOT: normalize → update → route ----
+    // ---- SSOT: normalize → update → (maybe set pending) → route ----
     let state = normalizeIncomingState(req.body || {});
     state = updateStateFromStudent(state, trimmed);
+
+    // If Is About is still missing, create a draft from intake and ask confirm/revise
+    if (!state.frame.isAbout && !state.pending) {
+      const candidate = deriveIsAboutCandidate(intake?.about, state.frame.keyTopic);
+      if (candidate) {
+        state.pending = { type: "confirmIsAbout", candidate };
+      }
+    }
 
     // If we are about to ask for optional 3rd main idea, set the one-time flag now
     const nextQ = computeNextQuestion(state);
