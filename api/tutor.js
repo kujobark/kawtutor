@@ -191,6 +191,9 @@ function updateStateFromStudent(state, message) {
     if (!s.frame.keyTopic) s.frame.keyTopic = parsed.keyTopic;
     if (!s.frame.isAbout) s.frame.isAbout = parsed.isAbout;
   }
+  // ✅ If this message was used to set keyTopic/isAbout via "X is about Y",
+// do NOT also treat it as a Main Idea.
+if (parsed) return s;
 
   // ✅ FIX #1: If we are collecting Key Topic and the student gives a plain phrase,
   // accept it (2–5 words) even if they did NOT type “X is about Y”.
@@ -317,4 +320,5 @@ return res.status(200).json({ reply, state });
     });
   }
 }
+
 
