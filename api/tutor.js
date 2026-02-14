@@ -83,7 +83,8 @@ function defaultState() {
       keyTopic: "",
       isAbout: "",
       mainIdeas: [],
-      details: {},
+      // ✅ CHANGED: details are now index-based buckets: details[0] is for mainIdeas[0], etc.
+      details: [],
       soWhat: ""
     },
     pending: null
@@ -95,10 +96,31 @@ function normalizeIncomingState(raw) {
   const base = defaultState();
 
   const frame = s.frame && typeof s.frame === "object" ? s.frame : {};
+
   base.frame.keyTopic = cleanText(frame.keyTopic || s.keyTopic || "");
   base.frame.isAbout = cleanText(frame.isAbout || s.isAbout || "");
-  base.frame.mainIdeas = Array.isArray(frame.mainIdeas) ? frame.mainIdeas.map(cleanText).filter(Boolean) : [];
-  base.frame.details = frame.details && typeof frame.details === "object" ? frame.details : {};
+
+  // mainIdeas first (we use it to migrate details if needed)
+  base.frame.mainIdeas = Array.isArray(frame.mainIdeas)
+    ? frame.mainIdeas.map(cleanText).filter(Boolean)
+    : [];
+
+  // ✅ details normalization + migration
+  // - If details is already an array, keep it.
+  // - If details is an object keyed by main idea strings (old behavior), migrate into array buckets by index.
+  if (Array.isArray(frame.details)) {
+    base.frame.details = frame.details
+      .map((bucket) => (Array.isArray(bucket) ? bucket.map(cleanText).filter(Boolean) : []));
+  } else if (frame.details && typeof frame.details === "object") {
+    const obj = frame.details;
+    base.frame.details = base.frame.mainIdeas.map((mi) => {
+      const bucket = obj[mi];
+      return Array.isArray(bucket) ? bucket.map(cleanText).filter(Boolean) : [];
+    });
+  } else {
+    base.frame.details = [];
+  }
+
   base.frame.soWhat = cleanText(frame.soWhat || s.soWhat || "");
 
   base.pending = s.pending && typeof s.pending === "object" ? s.pending : null;
@@ -122,9 +144,10 @@ function computeNextQuestion(state) {
     return `What is one Main Idea that helps explain ${s.frame.keyTopic}?`;
   }
 
-  // Details: collect 2 details per main idea
-  for (const mi of s.frame.mainIdeas) {
-    const arr = Array.isArray(s.frame.details[mi]) ? s.frame.details[mi] : [];
+  // ✅ Details: collect 2 details per main idea (INDEX-BASED)
+  for (let i = 0; i < s.frame.mainIdeas.length; i++) {
+    const mi = s.frame.mainIdeas[i];
+    const arr = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
     if (arr.length < 2) {
       return `Give one Essential Detail (fact/example) that supports this Main Idea: "${mi}".`;
     }
@@ -141,6 +164,9 @@ function computeNextQuestion(state) {
 function updateStateFromStudent(state, message) {
   const msg = cleanText(message);
   const s = structuredClone(state);
+
+  // Ensure details is array buckets (defensive)
+  if (!Array.isArray(s.frame.details)) s.frame.details = [];
 
   // 0) Handle pending confirm steps first
   if (s.pending?.type === "confirmIsAbout" && !s.frame.isAbout) {
@@ -179,7 +205,6 @@ function updateStateFromStudent(state, message) {
   if (!s.frame.keyTopic) return s;
 
   // ✅ FIX #2: If we are collecting “Is About”, accept a plain sentence/phrase.
-  // (The bot prompt already frames what kind of response is needed.)
   if (!s.frame.isAbout) {
     const lowered = msg.toLowerCase();
     if (lowered !== "revise" && lowered !== "change") {
@@ -196,12 +221,12 @@ function updateStateFromStudent(state, message) {
     return s;
   }
 
-  // Details collection: 2 per main idea
-  for (const mi of s.frame.mainIdeas) {
-    const arr = Array.isArray(s.frame.details[mi]) ? s.frame.details[mi] : [];
+  // ✅ Details collection: 2 per main idea (INDEX-BASED)
+  for (let i = 0; i < s.frame.mainIdeas.length; i++) {
+    const arr = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
     if (arr.length < 2) {
       if (!isNegative(msg)) {
-        s.frame.details[mi] = [...arr, msg];
+        s.frame.details[i] = [...arr, msg];
       }
       return s;
     }
