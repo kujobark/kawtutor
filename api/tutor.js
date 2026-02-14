@@ -140,9 +140,11 @@ function computeNextQuestion(state) {
     return `Finish this sentence: "${s.frame.keyTopic} is about ____."`;
   }
 
-  if (s.frame.mainIdeas.length < 2) {
-    return `What is one Main Idea that helps explain ${s.frame.keyTopic}?`;
-  }
+if (s.frame.mainIdeas.length < 2) {
+  return s.frame.mainIdeas.length === 0
+    ? `What is one Main Idea that helps explain ${s.frame.keyTopic}?`
+    : `What is another Main Idea that helps explain ${s.frame.keyTopic}?`;
+}
 
   // ✅ Details: collect 2 details per main idea (INDEX-BASED)
   for (let i = 0; i < s.frame.mainIdeas.length; i++) {
@@ -320,5 +322,6 @@ return res.status(200).json({ reply, state });
     });
   }
 }
+
 
 
