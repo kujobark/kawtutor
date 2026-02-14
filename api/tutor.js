@@ -12,30 +12,39 @@ function setCors(res) {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 }
 
-/**
- * Kaw Companion — Vercel SSOT (Single Source of Truth)
- * Vercel owns: state + progression + routing
- * Wix owns: UI only
- */
-
-const MAX_CHARS = 420;
-
+// ---- UTIL ----
 function cleanText(s) {
-  return String(s || "").replace(/\s+/g, " ").trim();
+  return (s || "").toString().trim().replace(/\s+/g, " ");
+}
+function isNegative(s) {
+  const t = cleanText(s).toLowerCase();
+  return t === "no" || t === "nope" || t === "nah" || t === "n/a" || t === "none";
+}
+function isAffirmative(s) {
+  const t = cleanText(s).toLowerCase();
+  return t === "yes" || t === "y" || t === "yeah" || t === "yep" || t === "sure" || t === "correct";
 }
 
-function clampQuestion(q) {
-  let out = cleanText(q);
-  if (out.length > MAX_CHARS) out = out.slice(0, MAX_CHARS).trim();
-  if (!out.endsWith("?")) out = out.replace(/[.!\s]*$/, "") + "?";
-  const lastQ = out.lastIndexOf("?");
-  if (lastQ !== out.length - 1) out = out.slice(0, lastQ + 1).trim();
+// Keep reply as a SINGLE question
+function enforceSingleQuestion(text) {
+  let out = (text || "").toString().trim();
+  if (!out) return "Can you say more?";
+  // Keep only up to first question mark
+  const q = out.indexOf("?");
+  if (q >= 0) out = out.slice(0, q + 1).trim();
+  // If no question mark, turn final punctuation into a question mark
+  if (!out.includes("?")) {
+    if (!out.endsWith("?")) out = out.replace(/[.!\s]*$/, "") + "?";
+    const lastQ = out.lastIndexOf("?");
+    if (lastQ !== out.length - 1) out = out.slice(0, lastQ + 1).trim();
+  }
   return out;
 }
 
 const GENERIC_KEY_TOPICS = new Set([
   "my assignment", "the assignment", "my essay", "this essay", "my paper", "this paper",
-  "my paragraph", "this paragraph", "my topic", "the topic", "topic", "key topic", "it", "this", "that",
+  "my paragraph", "this paragraph", "my topic", "the topic", "topic", "key topic", "it",
+  "this", "that"
 ]);
 
 function isBadKeyTopic(keyTopic) {
@@ -46,122 +55,89 @@ function isBadKeyTopic(keyTopic) {
   return false;
 }
 
-function parseKeyTopicIsAbout(text) {
-  const t = cleanText(text);
-  const m = t.match(/^(.*?)\s+is\s+about\s+(.+?)(?:[.?!]|$)/i);
-  if (!m) return null;
+// Parse pattern: "X is about Y"
+function parseKeyTopicIsAbout(msg) {
+  const m = cleanText(msg);
+  // Basic “is about” split
+  const idx = m.toLowerCase().indexOf(" is about ");
+  if (idx < 0) return null;
 
-  const left = cleanText(m[1]);
-  const right = cleanText(m[2]);
+  const keyTopic = cleanText(m.slice(0, idx));
+  const isAbout = cleanText(m.slice(idx + " is about ".length));
 
-  if (!left || !right) return null;
-  if (isBadKeyTopic(left)) return null;
+  if (!keyTopic || !isAbout) return null;
+  if (isBadKeyTopic(keyTopic)) return null;
 
-  const wc = left.split(" ").filter(Boolean).length;
-  if (wc < 1 || wc > 10) return null;
+  // Key topic should be short (2–5 words)
+  const wc = keyTopic.split(/\s+/).filter(Boolean).length;
+  if (wc < 2 || wc > 5) return null;
 
-  return { keyTopic: left, isAbout: right };
+  return { keyTopic, isAbout };
 }
 
-function isNegative(text) {
-  const t = cleanText(text).toLowerCase();
-  return (
-    t === "no" ||
-    t === "nope" ||
-    t === "nah" ||
-    t.includes("not really") ||
-    t.includes("i don't think so") ||
-    t.includes("dont think so") ||
-    t.includes("i can't") ||
-    t.includes("cant") ||
-    t.includes("that's it") ||
-    t.includes("thats it") ||
-    t.includes("i'm done") ||
-    t.includes("im done") ||
-    t.includes("no more")
-  );
-}
-
-function isAffirmative(text) {
-  const t = cleanText(text).toLowerCase();
-  return (
-    t === "yes" ||
-    t === "y" ||
-    t === "yeah" ||
-    t === "yep" ||
-    t === "correct" ||
-    t === "that's right" ||
-    t === "thats right" ||
-    t === "right" ||
-    t === "looks good" ||
-    t === "good"
-  );
-}
-
-// ------------------------------
-// Draft Is About from intake (fidelity-first but low friction)
-// ------------------------------
-function deriveIsAboutCandidate(intakeAbout, keyTopic) {
-  const raw = cleanText(intakeAbout);
-  if (!raw) return "";
-
-  // If intake already has "X is about Y", extract Y
-  const parsed = parseKeyTopicIsAbout(raw);
-  if (parsed?.isAbout) return cleanText(parsed.isAbout);
-
-  // Otherwise, use the intake sentence as the draft (trim punctuation)
-  let cand = raw.replace(/[.?!]\s*$/, "").trim();
-
-  // If they started with key topic, lightly remove it
-  const kt = cleanText(keyTopic);
-  if (kt) {
-    const re = new RegExp("^" + kt.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\s*[:\\-–—]?\\s*", "i");
-    cand = cand.replace(re, "").trim();
-  }
-
-  return cand;
-}
-
-// ------------------------------
-// Normalize incoming state
-// ------------------------------
-function normalizeIncomingState(body) {
-  const incoming = body?.state ?? body?.framing ?? {};
-
-  const keyTopic = cleanText(incoming?.frame?.keyTopic ?? incoming?.keyTopic ?? incoming?.key_topic ?? "");
-  const isAbout = cleanText(incoming?.frame?.isAbout ?? incoming?.isAbout ?? incoming?.is_about ?? "");
-  const mainIdeasRaw = incoming?.frame?.mainIdeas ?? incoming?.mainIdeas ?? incoming?.main_ideas ?? [];
-  const mainIdeas = Array.isArray(mainIdeasRaw)
-    ? mainIdeasRaw.map(cleanText).filter(Boolean)
-    : [];
-  const details = (incoming?.frame?.details ?? incoming?.details) && typeof (incoming?.frame?.details ?? incoming?.details) === "object"
-    ? (incoming?.frame?.details ?? incoming?.details)
-    : {};
-  const detailsIndex = Number(incoming?.detailsIndex ?? incoming?.details_index ?? 0) || 0;
-  const soWhat = cleanText(incoming?.frame?.soWhat ?? incoming?.soWhat ?? incoming?.so_what ?? "");
-
-  const askedForThirdMainIdea = Boolean(incoming?.askedForThirdMainIdea ?? false);
-
-  // pending confirm objects (for stop-check logic)
-  const pending = incoming?.pending && typeof incoming.pending === "object" ? incoming.pending : null;
-
+// ---- STATE ----
+function defaultState() {
   return {
+    version: 1,
     frame: {
-      keyTopic: isBadKeyTopic(keyTopic) ? "" : keyTopic,
-      isAbout,
-      mainIdeas,
-      details,
-      soWhat
+      keyTopic: "",
+      isAbout: "",
+      mainIdeas: [],
+      details: {},
+      soWhat: ""
     },
-    detailsIndex: detailsIndex < 0 ? 0 : detailsIndex,
-    askedForThirdMainIdea,
-    pending
+    pending: null
   };
 }
 
-// ------------------------------
-// Vercel-owned state update
-// ------------------------------
+function normalizeIncomingState(raw) {
+  const s = raw && typeof raw === "object" ? raw : {};
+  const base = defaultState();
+
+  const frame = s.frame && typeof s.frame === "object" ? s.frame : {};
+  base.frame.keyTopic = cleanText(frame.keyTopic || s.keyTopic || "");
+  base.frame.isAbout = cleanText(frame.isAbout || s.isAbout || "");
+  base.frame.mainIdeas = Array.isArray(frame.mainIdeas) ? frame.mainIdeas.map(cleanText).filter(Boolean) : [];
+  base.frame.details = frame.details && typeof frame.details === "object" ? frame.details : {};
+  base.frame.soWhat = cleanText(frame.soWhat || s.soWhat || "");
+
+  base.pending = s.pending && typeof s.pending === "object" ? s.pending : null;
+
+  return base;
+}
+
+// ---- PROGRESSION ----
+function computeNextQuestion(state) {
+  const s = state;
+
+  if (!s.frame.keyTopic) {
+    return "What is your Key Topic? (2–5 words)";
+  }
+
+  if (!s.frame.isAbout) {
+    return `Finish this sentence: "${s.frame.keyTopic} is about ____."`;
+  }
+
+  if (s.frame.mainIdeas.length < 2) {
+    return `What is one Main Idea that helps explain ${s.frame.keyTopic}?`;
+  }
+
+  // Details: collect 2 details per main idea
+  for (const mi of s.frame.mainIdeas) {
+    const arr = Array.isArray(s.frame.details[mi]) ? s.frame.details[mi] : [];
+    if (arr.length < 2) {
+      return `Give one Essential Detail (fact/example) that supports this Main Idea: "${mi}".`;
+    }
+  }
+
+  if (!s.frame.soWhat) {
+    return `So what? Why does "${s.frame.keyTopic}" matter? (1–2 sentences)`;
+  }
+
+  return `Want to refine anything (Key Topic, Is About, Main Ideas, Details, or So What)?`;
+}
+
+// ---- STATE UPDATE (SSOT) ----
 function updateStateFromStudent(state, message) {
   const msg = cleanText(message);
   const s = structuredClone(state);
@@ -190,173 +166,143 @@ function updateStateFromStudent(state, message) {
     if (!s.frame.isAbout) s.frame.isAbout = parsed.isAbout;
   }
 
+  // ✅ FIX #1: If we are collecting Key Topic and the student gives a plain phrase,
+  // accept it (2–5 words) even if they did NOT type “X is about Y”.
+  if (!s.frame.keyTopic) {
+    const wc = msg.split(/\s+/).filter(Boolean).length;
+    if (!isBadKeyTopic(msg) && wc >= 2 && wc <= 5) {
+      s.frame.keyTopic = msg;
+    }
+  }
+
   // If key topic missing, nothing else to store
   if (!s.frame.keyTopic) return s;
 
-  // If isAbout missing, nothing else to store yet
-  if (!s.frame.isAbout) return s;
+  // ✅ FIX #2: If we are collecting “Is About”, accept a plain sentence/phrase.
+  // (The bot prompt already frames what kind of response is needed.)
+  if (!s.frame.isAbout) {
+    const lowered = msg.toLowerCase();
+    if (lowered !== "revise" && lowered !== "change") {
+      s.frame.isAbout = msg;
+    }
+    return s;
+  }
 
   // Main Ideas collection (need 2, allow 3)
   if (s.frame.mainIdeas.length < 2) {
     if (!isNegative(msg)) {
-      s.frame.mainIdeas = [...s.frame.mainIdeas, msg].slice(0, 3);
+      s.frame.mainIdeas.push(msg);
     }
     return s;
   }
 
-  // Optional 3rd main idea if we asked once
-  if (s.frame.mainIdeas.length === 2 && s.askedForThirdMainIdea) {
+  // Details collection: 2 per main idea
+  for (const mi of s.frame.mainIdeas) {
+    const arr = Array.isArray(s.frame.details[mi]) ? s.frame.details[mi] : [];
+    if (arr.length < 2) {
+      if (!isNegative(msg)) {
+        s.frame.details[mi] = [...arr, msg];
+      }
+      return s;
+    }
+  }
+
+  // So What
+  if (!s.frame.soWhat) {
     if (!isNegative(msg)) {
-      s.frame.mainIdeas = [...s.frame.mainIdeas, msg].slice(0, 3);
+      s.frame.soWhat = msg;
     }
     return s;
   }
 
-  // Essential Details collection
-  const idx = Math.max(0, Math.min(Number(s.detailsIndex || 0), s.frame.mainIdeas.length - 1));
-  const key = String(idx);
-  const bucket = Array.isArray(s.frame.details?.[key]) ? s.frame.details[key] : [];
-
-  // If student says "no" while giving details: advance to next main idea
-  if (isNegative(msg)) {
-    const nextIdx = idx + 1;
-    if (s.frame.mainIdeas[nextIdx]) s.detailsIndex = nextIdx;
-    return s;
-  }
-
-  // Store detail (cap at 3)
-  const nextBucket = [...bucket, msg].filter(Boolean).slice(0, 3);
-  s.frame.details = { ...(s.frame.details || {}), [key]: nextBucket };
-
-  // Auto-advance only after 3 details
-  if (nextBucket.length >= 3) {
-    const nextIdx = idx + 1;
-    if (s.frame.mainIdeas[nextIdx]) s.detailsIndex = nextIdx;
-  }
-
+  // If complete and they respond, don’t mutate further unless you later add refinement flows.
   return s;
 }
 
-// ------------------------------
-// Deterministic next question (progression)
-// ------------------------------
-function computeNextQuestion(state) {
-  const keyTopic = cleanText(state.frame.keyTopic);
-  const isAbout = cleanText(state.frame.isAbout);
-  const mainIdeas = Array.isArray(state.frame.mainIdeas) ? state.frame.mainIdeas.map(cleanText).filter(Boolean) : [];
-  const details = state.frame.details || {};
-  const soWhat = cleanText(state.frame.soWhat);
+// ---- PROMPT BUILD ----
+function buildSystemPrompt(state, intake) {
+  const s = state;
 
-  // 1) Key Topic
-  if (!keyTopic) return "What is your Key Topic? (2–5 words)";
+  const intakeBlock =
+    intake && typeof intake === "object"
+      ? `\nINTAKE (optional metadata):\n- subject: ${cleanText(intake.subject)}\n- task: ${cleanText(intake.task)}\n- hardest: ${cleanText(intake.hardest)}\n- about: ${cleanText(intake.about)}\n`
+      : "";
 
-  // 2) Is About (STOP-CHECK confirmation if pending)
-  if (!isAbout) {
-    if (state.pending?.type === "confirmIsAbout" && state.pending?.candidate) {
-      return `To clarify, is your Is About: "${cleanText(state.pending.candidate)}"? (yes / revise)`;
-    }
-    return `Finish this sentence: "${keyTopic} is about ____."`;
-  }
+  return `
+You are Kaw Companion, a Socratic tutor that guides a student through a framing routine.
+Rules:
+- Ask EXACTLY ONE question per reply.
+- Be brief, direct, student-friendly.
+- Do not provide the full answer; ask the next best question.
+- Stay aligned to the framing progression: Key Topic -> Is About -> Main Ideas -> Essential Details -> So What.
 
-  // 3) Main Ideas
-  if (mainIdeas.length < 2) {
-    return mainIdeas.length === 0
-      ? `What is one Main Idea that helps explain the ${keyTopic}?`
-      : `What is another Main Idea that helps explain the ${keyTopic}?`;
-  }
-
-  // Determine detail counts for first two ideas (min 2 each)
-  const c0 = Array.isArray(details["0"]) ? details["0"].filter(Boolean).length : 0;
-  const c1 = Array.isArray(details["1"]) ? details["1"].filter(Boolean).length : 0;
-  const firstTwoComplete = c0 >= 2 && c1 >= 2;
-
-  // Ask ONCE for optional 3rd main idea ONLY after the first two ideas have 2+ details
-  if (mainIdeas.length === 2 && firstTwoComplete && !state.askedForThirdMainIdea) {
-    return `Do you have one more Main Idea that helps explain the ${keyTopic}?`;
-  }
-
-  // Details phase: ask 2–3 per main idea, then So What
-  const idx = Math.max(0, Math.min(Number(state.detailsIndex || 0), mainIdeas.length - 1));
-  const currentIdea = mainIdeas[idx];
-  const bucket = Array.isArray(details[String(idx)]) ? details[String(idx)] : [];
-  const count = bucket.filter(Boolean).length;
-
-  // If all ideas have at least 2 details, go So What
-  const allIdeasHave2 = mainIdeas.every((_, i) => {
-    const b = Array.isArray(details[String(i)]) ? details[String(i)] : [];
-    return b.filter(Boolean).length >= 2;
-  });
-  if (allIdeasHave2) {
-    if (!soWhat) return `So what? Why does the ${keyTopic} matter?`;
-    return `What is one way you could make your So What for the ${keyTopic} more specific?`;
-  }
-
-  // Otherwise, collect details for current idea
-  if (count < 2) {
-    return `What is one Essential Detail that supports the Main Idea "${currentIdea}" about the ${keyTopic}?`;
-  }
-
-  // If they have 2 details, offer a 3rd or "no" to move on
-  if (count === 2) {
-    return `What is one more Essential Detail that supports the Main Idea "${currentIdea}" about the ${keyTopic}? (or say "no")`;
-  }
-
-  // count >= 3: move to next idea’s details
-  const nextIdx = Math.min(idx + 1, mainIdeas.length - 1);
-  const nextIdea = mainIdeas[nextIdx];
-  return `What is one Essential Detail that supports the Main Idea "${nextIdea}" about the ${keyTopic}?`;
+Current state:
+- keyTopic: ${cleanText(s.frame.keyTopic)}
+- isAbout: ${cleanText(s.frame.isAbout)}
+- mainIdeas: ${(s.frame.mainIdeas || []).map((x) => `• ${cleanText(x)}`).join("\n")}
+- soWhat: ${cleanText(s.frame.soWhat)}
+${intakeBlock}
+`.trim();
 }
 
-// -----------------------------------------------
-// Handler
-// -----------------------------------------------
+// ---- HANDLER ----
 export default async function handler(req, res) {
   setCors(res);
 
-  if (req.method === "OPTIONS") return res.status(200).end();
-  if (req.method !== "POST") return res.status(405).json({ error: "Method Not Allowed" });
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
 
   try {
-    const { message = "", intake = {} } = req.body || {};
-    const trimmed = cleanText(message);
-    if (!trimmed) return res.status(400).json({ error: "Missing 'message' in request body" });
+    const body = req.body && typeof req.body === "object" ? req.body : {};
+    const message = cleanText(body.message || "");
+    const intake = body.intake && typeof body.intake === "object" ? body.intake : null;
 
-    // ---- Safety check ----
-    const safety = await classifyMessage(trimmed);
-    if (safety?.flagged) {
-      const safeReply =
-        SAFETY_RESPONSES[safety.category] ||
-        "Let’s zoom back to your Frame. What is your Key Topic? (2–5 words.)";
-      return res.status(200).json({
-        reply: clampQuestion(safeReply),
-        state: normalizeIncomingState(req.body || {})
-      });
+    // Incoming state (SSOT roundtrip)
+    const incoming = normalizeIncomingState(body.state || body.vercelState || body.framing || {});
+    let state = incoming;
+
+    // Safety
+    const safety = await classifyMessage(message);
+    if (safety?.blocked) {
+      const reply = SAFETY_RESPONSES[safety.category] || SAFETY_RESPONSES.default;
+      return res.status(200).json({ reply: enforceSingleQuestion(reply), state });
     }
 
-    // ---- SSOT: normalize → update → (maybe set pending) → route ----
-    let state = normalizeIncomingState(req.body || {});
-    state = updateStateFromStudent(state, trimmed);
-
-    // If Is About is still missing, create a draft from intake and ask confirm/revise
-    if (!state.frame.isAbout && !state.pending) {
-      const candidate = deriveIsAboutCandidate(intake?.about, state.frame.keyTopic);
-      if (candidate) {
-        state.pending = { type: "confirmIsAbout", candidate };
-      }
+    // Update state based on student message
+    if (message) {
+      state = updateStateFromStudent(state, message);
     }
 
-    // If we are about to ask for optional 3rd main idea, set the one-time flag now
+    // Compute next single question
     const nextQ = computeNextQuestion(state);
-    if (nextQ.toLowerCase().startsWith("do you have one more main idea") && !state.askedForThirdMainIdea) {
-      state.askedForThirdMainIdea = true;
-    }
 
-    return res.status(200).json({
-      reply: clampQuestion(nextQ),
-      state
+    // Use model to polish ONLY if needed (still must be single question)
+    const system = buildSystemPrompt(state, intake);
+    const user = `Student said: "${message}". Next question should be: ${nextQ}`;
+
+    const completion = await client.chat.completions.create({
+      model: "gpt-4.1-mini",
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: user }
+      ],
+      temperature: 0.2
     });
+
+    const raw = completion?.choices?.[0]?.message?.content || nextQ;
+    const reply = enforceSingleQuestion(raw || nextQ);
+
+    return res.status(200).json({ reply, state });
   } catch (err) {
-    console.error("Tutor handler error:", err);
-    return res.status(500).json({ error: "Internal Server Error" });
+    console.error("Tutor API error:", err);
+    return res.status(200).json({
+      reply: "Hmm — I had trouble processing that. Can you try again?",
+      state: normalizeIncomingState({})
+    });
   }
 }
