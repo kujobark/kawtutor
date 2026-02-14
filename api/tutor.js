@@ -306,23 +306,9 @@ export default async function handler(req, res) {
     // Compute next single question
     const nextQ = computeNextQuestion(state);
 
-    // Use model to polish ONLY if needed (still must be single question)
-    const system = buildSystemPrompt(state, intake);
-    const user = `Student said: "${message}". Next question should be: ${nextQ}`;
-
-    const completion = await client.chat.completions.create({
-      model: "gpt-4.1-mini",
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: user }
-      ],
-      temperature: 0.2
-    });
-
-    const raw = completion?.choices?.[0]?.message?.content || nextQ;
-    const reply = enforceSingleQuestion(raw || nextQ);
-
-    return res.status(200).json({ reply, state });
+const reply = enforceSingleQuestion(nextQ);
+return res.status(200).json({ reply, state });
+    
   } catch (err) {
     console.error("Tutor API error:", err);
     return res.status(200).json({
@@ -331,3 +317,4 @@ export default async function handler(req, res) {
     });
   }
 }
+
