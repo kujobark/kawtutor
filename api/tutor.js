@@ -332,8 +332,8 @@ export default async function handler(req, res) {
   try {
     const body = req.body && typeof req.body === "object" ? req.body : {};
     const message = cleanText(body.message || "");
-    const intake = body.intake && typeof intake === "object" ? body.intake : (body.intake && typeof body.intake === "object" ? body.intake : null);
-
+const intake = body.intake && typeof body.intake === "object" ? body.intake : null;
+    
     // Incoming state (SSOT roundtrip)
     const incoming = normalizeIncomingState(body.state || body.vercelState || body.framing || {});
     let state = incoming;
@@ -363,3 +363,4 @@ export default async function handler(req, res) {
     });
   }
 }
+
