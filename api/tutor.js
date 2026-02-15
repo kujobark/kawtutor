@@ -58,7 +58,6 @@ function isBadKeyTopic(keyTopic) {
 // Parse pattern: "X is about Y"
 function parseKeyTopicIsAbout(msg) {
   const m = cleanText(msg);
-  // Basic “is about” split
   const idx = m.toLowerCase().indexOf(" is about ");
   if (idx < 0) return null;
 
@@ -83,7 +82,7 @@ function defaultState() {
       keyTopic: "",
       isAbout: "",
       mainIdeas: [],
-      // ✅ CHANGED: details are now index-based buckets: details[0] is for mainIdeas[0], etc.
+      // ✅ index-based buckets: details[0] supports mainIdeas[0], etc.
       details: [],
       soWhat: ""
     },
@@ -100,17 +99,15 @@ function normalizeIncomingState(raw) {
   base.frame.keyTopic = cleanText(frame.keyTopic || s.keyTopic || "");
   base.frame.isAbout = cleanText(frame.isAbout || s.isAbout || "");
 
-  // mainIdeas first (we use it to migrate details if needed)
   base.frame.mainIdeas = Array.isArray(frame.mainIdeas)
     ? frame.mainIdeas.map(cleanText).filter(Boolean)
     : [];
 
-  // ✅ details normalization + migration
-  // - If details is already an array, keep it.
-  // - If details is an object keyed by main idea strings (old behavior), migrate into array buckets by index.
+  // details normalization + migration
   if (Array.isArray(frame.details)) {
-    base.frame.details = frame.details
-      .map((bucket) => (Array.isArray(bucket) ? bucket.map(cleanText).filter(Boolean) : []));
+    base.frame.details = frame.details.map((bucket) =>
+      Array.isArray(bucket) ? bucket.map(cleanText).filter(Boolean) : []
+    );
   } else if (frame.details && typeof frame.details === "object") {
     const obj = frame.details;
     base.frame.details = base.frame.mainIdeas.map((mi) => {
@@ -131,19 +128,21 @@ function normalizeIncomingState(raw) {
 // ---- PROGRESSION ----
 function computeNextQuestion(state) {
   const s = state;
-    // 🔒 Is About confirmation checkpoint (Phase 2)
+
+  // 🔒 Is About confirmation checkpoint (Phase 2)
   if (s.pending?.type === "confirmIsAbout") {
     return `"${s.frame.keyTopic}" is about "${s.frame.isAbout}". Is that correct, or would you like to revise it?`;
   }
-  // 🧠 After Main Idea #2, offer an optional 3rd
-if (s.pending?.type === "offerThirdMainIdea") {
-  return "Do you have a third Main Idea? (yes/no)";
-}
 
-// 🧠 If they said yes, collect the 3rd main idea
-if (s.pending?.type === "collectThirdMainIdea") {
-  return `What is your third Main Idea that helps explain ${s.frame.keyTopic}?`;
-}
+  // 🧠 After Main Idea #2, offer an optional 3rd
+  if (s.pending?.type === "offerThirdMainIdea") {
+    return "Do you have a third Main Idea? (yes/no)";
+  }
+
+  // 🧠 If they said yes, collect the 3rd main idea
+  if (s.pending?.type === "collectThirdMainIdea") {
+    return `What is your third Main Idea that helps explain ${s.frame.keyTopic}?`;
+  }
 
   if (!s.frame.keyTopic) {
     return "What is your Key Topic? (2–5 words)";
@@ -153,11 +152,11 @@ if (s.pending?.type === "collectThirdMainIdea") {
     return `Finish this sentence: "${s.frame.keyTopic} is about ____."`;
   }
 
-if (s.frame.mainIdeas.length < 2) {
-  return s.frame.mainIdeas.length === 0
-    ? `What is your first Main Idea that helps explain ${s.frame.keyTopic}?`
-    : `What is your second Main Idea that helps explain ${s.frame.keyTopic}?`;
-}
+  if (s.frame.mainIdeas.length < 2) {
+    return s.frame.mainIdeas.length === 0
+      ? `What is your first Main Idea that helps explain ${s.frame.keyTopic}?`
+      : `What is your second Main Idea that helps explain ${s.frame.keyTopic}?`;
+  }
 
   // ✅ Details: collect 2 details per main idea (INDEX-BASED)
   for (let i = 0; i < s.frame.mainIdeas.length; i++) {
@@ -183,35 +182,58 @@ function updateStateFromStudent(state, message) {
   // Ensure details is array buckets (defensive)
   if (!Array.isArray(s.frame.details)) s.frame.details = [];
 
- // 0) Handle pending confirm steps first
-if (s.pending?.type === "confirmIsAbout") {
-  const normalized = msg.toLowerCase().trim();
+  // 0) Handle pending confirm steps first
+  if (s.pending?.type === "confirmIsAbout") {
+    const normalized = msg.toLowerCase().trim();
 
-  // Pure confirmation only (yes / yep / yeah / y)
-  if (isAffirmative(normalized) && normalized.length <= 5) {
+    // Pure confirmation only (yes / yep / yeah / y)
+    if (isAffirmative(normalized) && normalized.length <= 5) {
+      s.pending = null;
+      return s;
+    }
+
+    // Otherwise treat message as revised Is About
+    s.frame.isAbout = msg;
     s.pending = null;
     return s;
   }
 
-  // Otherwise treat message as revised Is About
-  s.frame.isAbout = msg;
-  s.pending = null;
-  return s;
-}
+  // 0b) After Main Idea #2, offer optional 3rd (yes/no)
+  if (s.pending?.type === "offerThirdMainIdea") {
+    const normalized = msg.toLowerCase().trim();
+
+    // Pure yes only → collect third main idea next
+    if (isAffirmative(normalized) && normalized.length <= 5) {
+      s.pending = { type: "collectThirdMainIdea" };
+      return s;
+    }
+
+    // Otherwise treat as "no" and proceed to details
+    s.pending = null;
+    return s;
+  }
+
+  // 0c) Collect the 3rd Main Idea
+  if (s.pending?.type === "collectThirdMainIdea") {
+    if (!isNegative(msg)) {
+      s.frame.mainIdeas.push(msg);
+    }
+    s.pending = null;
+    return s;
+  }
 
   // Extraction rule (server-side)
- const parsed = parseKeyTopicIsAbout(msg);
-if (parsed) {
-  if (!s.frame.keyTopic) s.frame.keyTopic = parsed.keyTopic;
-  if (!s.frame.isAbout) s.frame.isAbout = parsed.isAbout;
+  const parsed = parseKeyTopicIsAbout(msg);
+  if (parsed) {
+    if (!s.frame.keyTopic) s.frame.keyTopic = parsed.keyTopic;
+    if (!s.frame.isAbout) s.frame.isAbout = parsed.isAbout;
 
-  // 🔒 Trigger confirmation checkpoint
-  s.pending = { type: "confirmIsAbout" };
-  return s;
-}
+    // 🔒 Trigger confirmation checkpoint
+    s.pending = { type: "confirmIsAbout" };
+    return s;
+  }
 
-  // ✅ FIX #1: If we are collecting Key Topic and the student gives a plain phrase,
-  // accept it (2–5 words) even if they did NOT type “X is about Y”.
+  // ✅ FIX #1: accept plain Key Topic (2–5 words)
   if (!s.frame.keyTopic) {
     const wc = msg.split(/\s+/).filter(Boolean).length;
     if (!isBadKeyTopic(msg) && wc >= 2 && wc <= 5) {
@@ -222,22 +244,27 @@ if (parsed) {
   // If key topic missing, nothing else to store
   if (!s.frame.keyTopic) return s;
 
-  // ✅ FIX #2: If we are collecting “Is About”, accept a plain sentence/phrase.
+  // ✅ FIX #2: If collecting “Is About”, accept plain sentence/phrase and confirm it
   if (!s.frame.isAbout) {
-  const lowered = msg.toLowerCase().trim();
-  if (lowered !== "revise" && lowered !== "change") {
-    s.frame.isAbout = msg;
+    const lowered = msg.toLowerCase().trim();
+    if (lowered !== "revise" && lowered !== "change") {
+      s.frame.isAbout = msg;
 
-    // 🔒 Trigger confirmation checkpoint
-    s.pending = { type: "confirmIsAbout" };
+      // 🔒 Trigger confirmation checkpoint
+      s.pending = { type: "confirmIsAbout" };
+    }
+    return s;
   }
-  return s;
-}
 
-  // Main Ideas collection (need 2, allow 3)
+  // Main Ideas collection (need 2, then offer optional 3rd)
   if (s.frame.mainIdeas.length < 2) {
     if (!isNegative(msg)) {
       s.frame.mainIdeas.push(msg);
+
+      // ✅ After the 2nd Main Idea, ask if they have a 3rd
+      if (s.frame.mainIdeas.length === 2) {
+        s.pending = { type: "offerThirdMainIdea" };
+      }
     }
     return s;
   }
@@ -261,11 +288,10 @@ if (parsed) {
     return s;
   }
 
-  // If complete and they respond, don’t mutate further unless you later add refinement flows.
   return s;
 }
 
-// ---- PROMPT BUILD ----
+// ---- PROMPT BUILD (kept for future; deterministic flow currently ignores model rewrite) ----
 function buildSystemPrompt(state, intake) {
   const s = state;
 
@@ -306,7 +332,7 @@ export default async function handler(req, res) {
   try {
     const body = req.body && typeof req.body === "object" ? req.body : {};
     const message = cleanText(body.message || "");
-    const intake = body.intake && typeof body.intake === "object" ? body.intake : null;
+    const intake = body.intake && typeof intake === "object" ? body.intake : (body.intake && typeof body.intake === "object" ? body.intake : null);
 
     // Incoming state (SSOT roundtrip)
     const incoming = normalizeIncomingState(body.state || body.vercelState || body.framing || {});
@@ -324,12 +350,11 @@ export default async function handler(req, res) {
       state = updateStateFromStudent(state, message);
     }
 
-    // Compute next single question
+    // Deterministic next question (SSOT)
     const nextQ = computeNextQuestion(state);
+    const reply = enforceSingleQuestion(nextQ);
 
-const reply = enforceSingleQuestion(nextQ);
-return res.status(200).json({ reply, state });
-    
+    return res.status(200).json({ reply, state });
   } catch (err) {
     console.error("Tutor API error:", err);
     return res.status(200).json({
@@ -338,9 +363,3 @@ return res.status(200).json({ reply, state });
     });
   }
 }
-
-
-
-
-
-
