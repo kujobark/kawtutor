@@ -134,6 +134,12 @@ function computeNextQuestion(state) {
     return `"${s.frame.keyTopic}" is about "${s.frame.isAbout}". Is that correct, or would you like to revise it?`;
   }
 
+  // 🔒 Main Ideas confirmation checkpoint (Phase 2)
+  if (s.pending?.type === "confirmMainIdeas") {
+    const lines = (s.frame.mainIdeas || []).map((mi, i) => `${i + 1}) ${mi}`).join("\n");
+    return `You have identified the following Main Ideas:\n${lines}\nIs that correct, or would you like to revise one?`;
+  }
+
   // 🧠 After Main Idea #2, offer an optional 3rd
   if (s.pending?.type === "offerThirdMainIdea") {
     return "Do you have a third Main Idea? (yes/no)";
@@ -186,7 +192,7 @@ function updateStateFromStudent(state, message) {
   if (s.pending?.type === "confirmIsAbout") {
     const normalized = msg.toLowerCase().trim();
 
-    // Pure confirmation only (yes / yep / yeah / y)
+    // Pure confirmation only
     if (isAffirmative(normalized) && normalized.length <= 5) {
       s.pending = null;
       return s;
@@ -195,6 +201,20 @@ function updateStateFromStudent(state, message) {
     // Otherwise treat message as revised Is About
     s.frame.isAbout = msg;
     s.pending = null;
+    return s;
+  }
+
+  // 0a) Handle Main Ideas confirmation checkpoint
+  if (s.pending?.type === "confirmMainIdeas") {
+    const normalized = msg.toLowerCase().trim();
+
+    // Pure confirmation only
+    if (isAffirmative(normalized) && normalized.length <= 5) {
+      s.pending = null;
+      return s;
+    }
+
+    // For now: hold at checkpoint (revision routing later)
     return s;
   }
 
@@ -208,8 +228,8 @@ function updateStateFromStudent(state, message) {
       return s;
     }
 
-    // Otherwise treat as "no" and proceed to details
-    s.pending = null;
+    // Otherwise treat as "no" and proceed to confirm main ideas
+    s.pending = { type: "confirmMainIdeas" };
     return s;
   }
 
@@ -218,7 +238,8 @@ function updateStateFromStudent(state, message) {
     if (!isNegative(msg)) {
       s.frame.mainIdeas.push(msg);
     }
-    s.pending = null;
+    // After MI #3, confirm the full main ideas set
+    s.pending = { type: "confirmMainIdeas" };
     return s;
   }
 
@@ -332,8 +353,8 @@ export default async function handler(req, res) {
   try {
     const body = req.body && typeof req.body === "object" ? req.body : {};
     const message = cleanText(body.message || "");
-const intake = body.intake && typeof body.intake === "object" ? body.intake : null;
-    
+    const intake = body.intake && typeof body.intake === "object" ? body.intake : null;
+
     // Incoming state (SSOT roundtrip)
     const incoming = normalizeIncomingState(body.state || body.vercelState || body.framing || {});
     let state = incoming;
@@ -363,4 +384,3 @@ const intake = body.intake && typeof body.intake === "object" ? body.intake : nu
     });
   }
 }
-
