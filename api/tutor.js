@@ -170,32 +170,32 @@ function updateStateFromStudent(state, message) {
   // Ensure details is array buckets (defensive)
   if (!Array.isArray(s.frame.details)) s.frame.details = [];
 
-  // 0) Handle pending confirm steps first
-  if (s.pending?.type === "confirmIsAbout" && !s.frame.isAbout) {
-    if (isAffirmative(msg)) {
-      s.frame.isAbout = cleanText(s.pending.candidate || "");
-    } else {
-      // anything else becomes the revised Is About (unless they just typed "revise")
-      const lowered = msg.toLowerCase();
-      if (lowered === "revise" || lowered === "change") {
-        // keep pending; they didn't give a revision yet
-        return s;
-      }
-      s.frame.isAbout = msg;
-    }
+ // 0) Handle pending confirm steps first
+if (s.pending?.type === "confirmIsAbout") {
+  const normalized = msg.toLowerCase().trim();
+
+  // Pure confirmation only (yes / yep / yeah / y)
+  if (isAffirmative(normalized) && normalized.length <= 5) {
     s.pending = null;
     return s;
   }
 
+  // Otherwise treat message as revised Is About
+  s.frame.isAbout = msg;
+  s.pending = null;
+  return s;
+}
+
   // Extraction rule (server-side)
-  const parsed = parseKeyTopicIsAbout(msg);
-  if (parsed) {
-    if (!s.frame.keyTopic) s.frame.keyTopic = parsed.keyTopic;
-    if (!s.frame.isAbout) s.frame.isAbout = parsed.isAbout;
-  }
-  // ✅ If this message was used to set keyTopic/isAbout via "X is about Y",
-// do NOT also treat it as a Main Idea.
-if (parsed) return s;
+ const parsed = parseKeyTopicIsAbout(msg);
+if (parsed) {
+  if (!s.frame.keyTopic) s.frame.keyTopic = parsed.keyTopic;
+  if (!s.frame.isAbout) s.frame.isAbout = parsed.isAbout;
+
+  // 🔒 Trigger confirmation checkpoint
+  s.pending = { type: "confirmIsAbout" };
+  return s;
+}
 
   // ✅ FIX #1: If we are collecting Key Topic and the student gives a plain phrase,
   // accept it (2–5 words) even if they did NOT type “X is about Y”.
@@ -211,12 +211,15 @@ if (parsed) return s;
 
   // ✅ FIX #2: If we are collecting “Is About”, accept a plain sentence/phrase.
   if (!s.frame.isAbout) {
-    const lowered = msg.toLowerCase();
-    if (lowered !== "revise" && lowered !== "change") {
-      s.frame.isAbout = msg;
-    }
-    return s;
+  const lowered = msg.toLowerCase().trim();
+  if (lowered !== "revise" && lowered !== "change") {
+    s.frame.isAbout = msg;
+
+    // 🔒 Trigger confirmation checkpoint
+    s.pending = { type: "confirmIsAbout" };
   }
+  return s;
+}
 
   // Main Ideas collection (need 2, allow 3)
   if (s.frame.mainIdeas.length < 2) {
@@ -322,6 +325,7 @@ return res.status(200).json({ reply, state });
     });
   }
 }
+
 
 
 
