@@ -131,6 +131,10 @@ function normalizeIncomingState(raw) {
 // ---- PROGRESSION ----
 function computeNextQuestion(state) {
   const s = state;
+    // 🔒 Is About confirmation checkpoint (Phase 2)
+  if (s.pending?.type === "confirmIsAbout") {
+    return `"${s.frame.keyTopic}" is about "${s.frame.isAbout}". Is that correct, or would you like to revise it?`;
+  }
 
   if (!s.frame.keyTopic) {
     return "What is your Key Topic? (2–5 words)";
@@ -325,6 +329,7 @@ return res.status(200).json({ reply, state });
     });
   }
 }
+
 
 
 
