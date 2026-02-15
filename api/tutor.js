@@ -135,6 +135,15 @@ function computeNextQuestion(state) {
   if (s.pending?.type === "confirmIsAbout") {
     return `"${s.frame.keyTopic}" is about "${s.frame.isAbout}". Is that correct, or would you like to revise it?`;
   }
+  // 🧠 After Main Idea #2, offer an optional 3rd
+if (s.pending?.type === "offerThirdMainIdea") {
+  return "Do you have a third Main Idea? (yes/no)";
+}
+
+// 🧠 If they said yes, collect the 3rd main idea
+if (s.pending?.type === "collectThirdMainIdea") {
+  return `What is your third Main Idea that helps explain ${s.frame.keyTopic}?`;
+}
 
   if (!s.frame.keyTopic) {
     return "What is your Key Topic? (2–5 words)";
@@ -146,8 +155,8 @@ function computeNextQuestion(state) {
 
 if (s.frame.mainIdeas.length < 2) {
   return s.frame.mainIdeas.length === 0
-    ? `What is one Main Idea that helps explain ${s.frame.keyTopic}?`
-    : `What is another Main Idea that helps explain ${s.frame.keyTopic}?`;
+    ? `What is your first Main Idea that helps explain ${s.frame.keyTopic}?`
+    : `What is your second Main Idea that helps explain ${s.frame.keyTopic}?`;
 }
 
   // ✅ Details: collect 2 details per main idea (INDEX-BASED)
@@ -329,6 +338,7 @@ return res.status(200).json({ reply, state });
     });
   }
 }
+
 
 
 
