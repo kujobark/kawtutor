@@ -200,7 +200,7 @@ function computeNextQuestion(state) {
     return `For this Main Idea: "${mi}", do you have a third Supporting Detail? (yes/no)`;
   }
 
-  // 🧠 Collect the 3rd supporting detail for a specific main idea
+  // 🧠 Collect optional 3rd supporting detail for a specific main idea
   if (s.pending?.type === "collectThirdDetail") {
     const i = Number(s.pending.index);
     const mi = s.frame.mainIdeas?.[i] || "";
@@ -214,6 +214,16 @@ function computeNextQuestion(state) {
     const arr = Array.isArray(s.frame.details?.[i]) ? s.frame.details[i] : [];
     const lines = arr.map((d, k) => `${k + 1}) ${d}`).join("\n");
     return `For this Main Idea: "${mi}", you identified the following Supporting Details:\n${lines}\nIs that correct, or would you like to revise one?`;
+  }
+
+  // 🧠 Offer optional extra So What sentence
+  if (s.pending?.type === "offerMoreSoWhat") {
+    return `Do you want to add one more sentence to your So What? (yes/no)`;
+  }
+
+  // 🧠 Collect optional extra So What sentence
+  if (s.pending?.type === "collectMoreSoWhat") {
+    return `Add one more sentence to your So What:`;
   }
 
   // 🔒 So What confirmation checkpoint
@@ -364,6 +374,30 @@ function updateStateFromStudent(state, message) {
     return s;
   }
 
+  // offerMoreSoWhat
+  if (s.pending?.type === "offerMoreSoWhat") {
+    const normalized = msg.toLowerCase().trim();
+
+    if (isAffirmative(normalized)) {
+      s.pending = { type: "collectMoreSoWhat" };
+      return s;
+    }
+
+    // No → confirm So What next
+    s.pending = { type: "confirmSoWhat" };
+    return s;
+  }
+
+  // collectMoreSoWhat
+  if (s.pending?.type === "collectMoreSoWhat") {
+    if (!isNegative(msg)) {
+      // Append to existing soWhat (keep as one string)
+      s.frame.soWhat = cleanText(`${s.frame.soWhat} ${msg}`);
+    }
+    s.pending = { type: "confirmSoWhat" };
+    return s;
+  }
+
   // confirmSoWhat
   if (s.pending?.type === "confirmSoWhat") {
     const normalized = msg.toLowerCase().trim();
@@ -442,11 +476,11 @@ function updateStateFromStudent(state, message) {
     }
   }
 
-  // 6) So What capture + checkpoint
+  // 6) So What capture + offer optional extra sentence
   if (!s.frame.soWhat) {
     if (!isNegative(msg)) {
       s.frame.soWhat = msg;
-      s.pending = { type: "confirmSoWhat" };
+      s.pending = { type: "offerMoreSoWhat" };
     }
     return s;
   }
