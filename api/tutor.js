@@ -162,9 +162,6 @@ function getMainIdeaIndexNeedingDetails(state) {
     const arr = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
     // we will collect at least 2; up to 3
     if (arr.length < 2) return i;
-    // if arr.length === 2, we might still be waiting on optional third or confirmation pending
-    // but those are handled via pending states
-    // so if we got here, details for this MI are at least 2.
   }
   return -1;
 }
@@ -240,7 +237,6 @@ function computeNextQuestion(state) {
   }
 
   // Details per main idea (granular: first/second)
-  // Find the first main idea that still needs details.
   for (let i = 0; i < s.frame.mainIdeas.length; i++) {
     const mi = s.frame.mainIdeas[i];
     const arr = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
@@ -277,7 +273,7 @@ function updateStateFromStudent(state, message) {
   if (s.pending?.type === "confirmIsAbout") {
     const normalized = msg.toLowerCase().trim();
 
-    if (isAffirmative(normalized) && normalized.length <= 5) {
+    if (isAffirmative(normalized)) {
       s.pending = null;
       return s;
     }
@@ -292,7 +288,7 @@ function updateStateFromStudent(state, message) {
   if (s.pending?.type === "confirmMainIdeas") {
     const normalized = msg.toLowerCase().trim();
 
-    if (isAffirmative(normalized) && normalized.length <= 5) {
+    if (isAffirmative(normalized)) {
       s.pending = null;
       return s;
     }
@@ -305,7 +301,7 @@ function updateStateFromStudent(state, message) {
   if (s.pending?.type === "offerThirdMainIdea") {
     const normalized = msg.toLowerCase().trim();
 
-    if (isAffirmative(normalized) && normalized.length <= 5) {
+    if (isAffirmative(normalized)) {
       s.pending = { type: "collectThirdMainIdea" };
       return s;
     }
@@ -333,7 +329,7 @@ function updateStateFromStudent(state, message) {
     const normalized = msg.toLowerCase().trim();
     const idx = Number(s.pending.index);
 
-    if (isAffirmative(normalized) && normalized.length <= 5) {
+    if (isAffirmative(normalized)) {
       s.pending = { type: "collectThirdDetail", index: idx };
       return s;
     }
@@ -359,7 +355,7 @@ function updateStateFromStudent(state, message) {
   if (s.pending?.type === "confirmDetails") {
     const normalized = msg.toLowerCase().trim();
 
-    if (isAffirmative(normalized) && normalized.length <= 5) {
+    if (isAffirmative(normalized)) {
       s.pending = null;
       return s;
     }
@@ -372,7 +368,7 @@ function updateStateFromStudent(state, message) {
   if (s.pending?.type === "confirmSoWhat") {
     const normalized = msg.toLowerCase().trim();
 
-    if (isAffirmative(normalized) && normalized.length <= 5) {
+    if (isAffirmative(normalized)) {
       s.pending = null;
       return s;
     }
@@ -429,7 +425,6 @@ function updateStateFromStudent(state, message) {
   }
 
   // 5) Details capture (per main idea: 2 required, optional 3rd + confirm)
-  // Find the first main idea that is still collecting details (< 2)
   for (let i = 0; i < s.frame.mainIdeas.length; i++) {
     const arr = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
     if (arr.length < 2) {
