@@ -22,29 +22,55 @@ function isNegative(s) {
 }
 function isAffirmative(s) {
   const t = cleanText(s).toLowerCase();
-  return t === "yes" || t === "y" || t === "yeah" || t === "yep" || t === "sure" || t === "correct";
+  return (
+    t === "yes" ||
+    t === "y" ||
+    t === "yeah" ||
+    t === "yep" ||
+    t === "sure" ||
+    t === "correct" ||
+    t === "ok" ||
+    t === "okay"
+  );
 }
 
-// Keep reply as a SINGLE question
+// Keep reply as a SINGLE question (but preserve helpful guidance like "(yes/no)")
 function enforceSingleQuestion(text) {
   let out = (text || "").toString().trim();
   if (!out) return "Can you say more?";
-  // Keep only up to first question mark
-  const q = out.indexOf("?");
-  if (q >= 0) out = out.slice(0, q + 1).trim();
-  // If no question mark, turn final punctuation into a question mark
-  if (!out.includes("?")) {
-    if (!out.endsWith("?")) out = out.replace(/[.!\s]*$/, "") + "?";
-    const lastQ = out.lastIndexOf("?");
-    if (lastQ !== out.length - 1) out = out.slice(0, lastQ + 1).trim();
+
+  const firstQ = out.indexOf("?");
+  const lastQ = out.lastIndexOf("?");
+
+  // If there are multiple question marks, keep only the first question.
+  if (firstQ >= 0 && lastQ !== firstQ) {
+    out = out.slice(0, firstQ + 1).trim();
   }
+
+  // If no question mark exists, turn it into a question.
+  if (!out.includes("?")) {
+    out = out.replace(/[.!\s]*$/, "") + "?";
+  }
+
   return out;
 }
 
 const GENERIC_KEY_TOPICS = new Set([
-  "my assignment", "the assignment", "my essay", "this essay", "my paper", "this paper",
-  "my paragraph", "this paragraph", "my topic", "the topic", "topic", "key topic", "it",
-  "this", "that"
+  "my assignment",
+  "the assignment",
+  "my essay",
+  "this essay",
+  "my paper",
+  "this paper",
+  "my paragraph",
+  "this paragraph",
+  "my topic",
+  "the topic",
+  "topic",
+  "key topic",
+  "it",
+  "this",
+  "that",
 ]);
 
 function isBadKeyTopic(keyTopic) {
@@ -82,11 +108,11 @@ function defaultState() {
       keyTopic: "",
       isAbout: "",
       mainIdeas: [],
-      // ✅ index-based buckets: details[0] supports mainIdeas[0], etc.
+      // index-based buckets: details[0] supports mainIdeas[0], etc.
       details: [],
-      soWhat: ""
+      soWhat: "",
     },
-    pending: null
+    pending: null,
   };
 }
 
@@ -119,37 +145,86 @@ function normalizeIncomingState(raw) {
   }
 
   base.frame.soWhat = cleanText(frame.soWhat || s.soWhat || "");
-
   base.pending = s.pending && typeof s.pending === "object" ? s.pending : null;
 
+  // Defensive: ensure buckets exist for each main idea
+  for (let i = 0; i < base.frame.mainIdeas.length; i++) {
+    if (!Array.isArray(base.frame.details[i])) base.frame.details[i] = [];
+  }
+
   return base;
+}
+
+function getMainIdeaIndexNeedingDetails(state) {
+  const s = state;
+  const mis = s.frame.mainIdeas || [];
+  for (let i = 0; i < mis.length; i++) {
+    const arr = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
+    // we will collect at least 2; up to 3
+    if (arr.length < 2) return i;
+    // if arr.length === 2, we might still be waiting on optional third or confirmation pending
+    // but those are handled via pending states
+    // so if we got here, details for this MI are at least 2.
+  }
+  return -1;
 }
 
 // ---- PROGRESSION ----
 function computeNextQuestion(state) {
   const s = state;
 
-  // 🔒 Is About confirmation checkpoint (Phase 2)
+  // 🔒 Is About confirmation checkpoint
   if (s.pending?.type === "confirmIsAbout") {
     return `"${s.frame.keyTopic}" is about "${s.frame.isAbout}". Is that correct, or would you like to revise it?`;
   }
 
-  // 🔒 Main Ideas confirmation checkpoint (Phase 2)
+  // 🔒 Main Ideas confirmation checkpoint
   if (s.pending?.type === "confirmMainIdeas") {
-    const lines = (s.frame.mainIdeas || []).map((mi, i) => `${i + 1}) ${mi}`).join("\n");
+    const lines = (s.frame.mainIdeas || [])
+      .map((mi, i) => `${i + 1}) ${mi}`)
+      .join("\n");
     return `You have identified the following Main Ideas:\n${lines}\nIs that correct, or would you like to revise one?`;
   }
 
-  // 🧠 After Main Idea #2, offer an optional 3rd
+  // 🧠 Offer optional 3rd main idea
   if (s.pending?.type === "offerThirdMainIdea") {
     return "Do you have a third Main Idea? (yes/no)";
   }
 
-  // 🧠 If they said yes, collect the 3rd main idea
+  // 🧠 Collect the 3rd main idea
   if (s.pending?.type === "collectThirdMainIdea") {
     return `What is your third Main Idea that helps explain ${s.frame.keyTopic}?`;
   }
 
+  // 🧠 Offer optional 3rd supporting detail for a specific main idea
+  if (s.pending?.type === "offerThirdDetail") {
+    const i = Number(s.pending.index);
+    const mi = s.frame.mainIdeas?.[i] || "";
+    return `For this Main Idea: "${mi}", do you have a third Supporting Detail? (yes/no)`;
+  }
+
+  // 🧠 Collect the 3rd supporting detail for a specific main idea
+  if (s.pending?.type === "collectThirdDetail") {
+    const i = Number(s.pending.index);
+    const mi = s.frame.mainIdeas?.[i] || "";
+    return `What is your third Supporting Detail for this Main Idea: "${mi}"?`;
+  }
+
+  // 🔒 Details confirmation checkpoint for a specific main idea
+  if (s.pending?.type === "confirmDetails") {
+    const i = Number(s.pending.index);
+    const mi = s.frame.mainIdeas?.[i] || "";
+    const arr = Array.isArray(s.frame.details?.[i]) ? s.frame.details[i] : [];
+    const lines = arr.map((d, k) => `${k + 1}) ${d}`).join("\n");
+    return `For this Main Idea: "${mi}", you identified the following Supporting Details:\n${lines}\nIs that correct, or would you like to revise one?`;
+  }
+
+  // 🔒 So What confirmation checkpoint
+  if (s.pending?.type === "confirmSoWhat") {
+    return `Your So What is: "${s.frame.soWhat}". Is that correct, or would you like to revise it?`;
+  }
+
+  // Base progression
   if (!s.frame.keyTopic) {
     return "What is your Key Topic? (2–5 words)";
   }
@@ -164,12 +239,15 @@ function computeNextQuestion(state) {
       : `What is your second Main Idea that helps explain ${s.frame.keyTopic}?`;
   }
 
-  // ✅ Details: collect 2 details per main idea (INDEX-BASED)
+  // Details per main idea (granular: first/second)
+  // Find the first main idea that still needs details.
   for (let i = 0; i < s.frame.mainIdeas.length; i++) {
     const mi = s.frame.mainIdeas[i];
     const arr = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
     if (arr.length < 2) {
-      return `Give one Essential Detail (fact/example) that supports this Main Idea: "${mi}".`;
+      return arr.length === 0
+        ? `What is your first Supporting Detail for this Main Idea: "${mi}"?`
+        : `What is your second Supporting Detail for this Main Idea: "${mi}"?`;
     }
   }
 
@@ -185,76 +263,137 @@ function updateStateFromStudent(state, message) {
   const msg = cleanText(message);
   const s = structuredClone(state);
 
-  // Ensure details is array buckets (defensive)
   if (!Array.isArray(s.frame.details)) s.frame.details = [];
+  if (!Array.isArray(s.frame.mainIdeas)) s.frame.mainIdeas = [];
 
-  // 0) Handle pending confirm steps first
+  // Ensure buckets exist
+  for (let i = 0; i < s.frame.mainIdeas.length; i++) {
+    if (!Array.isArray(s.frame.details[i])) s.frame.details[i] = [];
+  }
+
+  // 0) Pending handlers first
+
+  // confirmIsAbout
   if (s.pending?.type === "confirmIsAbout") {
     const normalized = msg.toLowerCase().trim();
 
-    // Pure confirmation only
     if (isAffirmative(normalized) && normalized.length <= 5) {
       s.pending = null;
       return s;
     }
 
-    // Otherwise treat message as revised Is About
+    // anything else is treated as revised Is About
     s.frame.isAbout = msg;
     s.pending = null;
     return s;
   }
 
-  // 0a) Handle Main Ideas confirmation checkpoint
+  // confirmMainIdeas
   if (s.pending?.type === "confirmMainIdeas") {
     const normalized = msg.toLowerCase().trim();
 
-    // Pure confirmation only
     if (isAffirmative(normalized) && normalized.length <= 5) {
       s.pending = null;
       return s;
     }
 
-    // For now: hold at checkpoint (revision routing later)
+    // Hold here for now (revision routing later)
     return s;
   }
 
-  // 0b) After Main Idea #2, offer optional 3rd (yes/no)
+  // offerThirdMainIdea
   if (s.pending?.type === "offerThirdMainIdea") {
     const normalized = msg.toLowerCase().trim();
 
-    // Pure yes only → collect third main idea next
     if (isAffirmative(normalized) && normalized.length <= 5) {
       s.pending = { type: "collectThirdMainIdea" };
       return s;
     }
 
-    // Otherwise treat as "no" and proceed to confirm main ideas
+    // No → confirm main ideas next
     s.pending = { type: "confirmMainIdeas" };
     return s;
   }
 
-  // 0c) Collect the 3rd Main Idea
+  // collectThirdMainIdea
   if (s.pending?.type === "collectThirdMainIdea") {
     if (!isNegative(msg)) {
       s.frame.mainIdeas.push(msg);
+      if (!Array.isArray(s.frame.details[s.frame.mainIdeas.length - 1])) {
+        s.frame.details[s.frame.mainIdeas.length - 1] = [];
+      }
     }
-    // After MI #3, confirm the full main ideas set
+    // After MI #3, confirm main ideas
     s.pending = { type: "confirmMainIdeas" };
     return s;
   }
 
-  // Extraction rule (server-side)
+  // offerThirdDetail
+  if (s.pending?.type === "offerThirdDetail") {
+    const normalized = msg.toLowerCase().trim();
+    const idx = Number(s.pending.index);
+
+    if (isAffirmative(normalized) && normalized.length <= 5) {
+      s.pending = { type: "collectThirdDetail", index: idx };
+      return s;
+    }
+
+    // No → confirm details for this main idea
+    s.pending = { type: "confirmDetails", index: idx };
+    return s;
+  }
+
+  // collectThirdDetail
+  if (s.pending?.type === "collectThirdDetail") {
+    const idx = Number(s.pending.index);
+    if (!Array.isArray(s.frame.details[idx])) s.frame.details[idx] = [];
+    if (!isNegative(msg)) {
+      s.frame.details[idx] = [...s.frame.details[idx], msg];
+    }
+    // After collecting third, confirm details for this main idea
+    s.pending = { type: "confirmDetails", index: idx };
+    return s;
+  }
+
+  // confirmDetails
+  if (s.pending?.type === "confirmDetails") {
+    const normalized = msg.toLowerCase().trim();
+
+    if (isAffirmative(normalized) && normalized.length <= 5) {
+      s.pending = null;
+      return s;
+    }
+
+    // Hold here for now (revision routing later)
+    return s;
+  }
+
+  // confirmSoWhat
+  if (s.pending?.type === "confirmSoWhat") {
+    const normalized = msg.toLowerCase().trim();
+
+    if (isAffirmative(normalized) && normalized.length <= 5) {
+      s.pending = null;
+      return s;
+    }
+
+    // otherwise treat as revised So What
+    s.frame.soWhat = msg;
+    s.pending = null;
+    return s;
+  }
+
+  // 1) Extraction rule: "X is about Y"
   const parsed = parseKeyTopicIsAbout(msg);
   if (parsed) {
     if (!s.frame.keyTopic) s.frame.keyTopic = parsed.keyTopic;
     if (!s.frame.isAbout) s.frame.isAbout = parsed.isAbout;
 
-    // 🔒 Trigger confirmation checkpoint
     s.pending = { type: "confirmIsAbout" };
     return s;
   }
 
-  // ✅ FIX #1: accept plain Key Topic (2–5 words)
+  // 2) Key Topic capture (plain 2–5 words)
   if (!s.frame.keyTopic) {
     const wc = msg.split(/\s+/).filter(Boolean).length;
     if (!isBadKeyTopic(msg) && wc >= 2 && wc <= 5) {
@@ -262,27 +401,26 @@ function updateStateFromStudent(state, message) {
     }
   }
 
-  // If key topic missing, nothing else to store
   if (!s.frame.keyTopic) return s;
 
-  // ✅ FIX #2: If collecting “Is About”, accept plain sentence/phrase and confirm it
+  // 3) Is About capture (plain sentence/phrase) + checkpoint
   if (!s.frame.isAbout) {
     const lowered = msg.toLowerCase().trim();
     if (lowered !== "revise" && lowered !== "change") {
       s.frame.isAbout = msg;
-
-      // 🔒 Trigger confirmation checkpoint
       s.pending = { type: "confirmIsAbout" };
     }
     return s;
   }
 
-  // Main Ideas collection (need 2, then offer optional 3rd)
+  // 4) Main Ideas capture (need 2 then offer optional 3rd)
   if (s.frame.mainIdeas.length < 2) {
     if (!isNegative(msg)) {
       s.frame.mainIdeas.push(msg);
+      if (!Array.isArray(s.frame.details[s.frame.mainIdeas.length - 1])) {
+        s.frame.details[s.frame.mainIdeas.length - 1] = [];
+      }
 
-      // ✅ After the 2nd Main Idea, ask if they have a 3rd
       if (s.frame.mainIdeas.length === 2) {
         s.pending = { type: "offerThirdMainIdea" };
       }
@@ -290,21 +428,30 @@ function updateStateFromStudent(state, message) {
     return s;
   }
 
-  // ✅ Details collection: 2 per main idea (INDEX-BASED)
+  // 5) Details capture (per main idea: 2 required, optional 3rd + confirm)
+  // Find the first main idea that is still collecting details (< 2)
   for (let i = 0; i < s.frame.mainIdeas.length; i++) {
     const arr = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
     if (arr.length < 2) {
       if (!isNegative(msg)) {
         s.frame.details[i] = [...arr, msg];
       }
+
+      // After we just collected the 2nd detail, offer optional 3rd
+      const updated = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
+      if (updated.length === 2) {
+        s.pending = { type: "offerThirdDetail", index: i };
+      }
+
       return s;
     }
   }
 
-  // So What
+  // 6) So What capture + checkpoint
   if (!s.frame.soWhat) {
     if (!isNegative(msg)) {
       s.frame.soWhat = msg;
+      s.pending = { type: "confirmSoWhat" };
     }
     return s;
   }
@@ -327,7 +474,7 @@ Rules:
 - Ask EXACTLY ONE question per reply.
 - Be brief, direct, student-friendly.
 - Do not provide the full answer; ask the next best question.
-- Stay aligned to the framing progression: Key Topic -> Is About -> Main Ideas -> Essential Details -> So What.
+- Stay aligned to the framing progression: Key Topic -> Is About -> Main Ideas -> Supporting Details -> So What.
 
 Current state:
 - keyTopic: ${cleanText(s.frame.keyTopic)}
@@ -380,7 +527,7 @@ export default async function handler(req, res) {
     console.error("Tutor API error:", err);
     return res.status(200).json({
       reply: "Hmm — I had trouble processing that. Can you try again?",
-      state: normalizeIncomingState({})
+      state: normalizeIncomingState({}),
     });
   }
 }
