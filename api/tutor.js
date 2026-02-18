@@ -225,6 +225,93 @@ Rules:
 }
 
 // ---------------------
+// STUCK SUPPORT (SSOT)
+// ---------------------
+function isStuckMessage(text) {
+  const t = cleanText(text).toLowerCase();
+  if (!t) return false;
+
+  // Keep it short so we don’t mis-fire on real answers
+  const wc = t.split(/\s+/).filter(Boolean).length;
+  if (wc > 14) return false;
+
+  const patterns = [
+    "i don't know", "i dont know", "idk", "dont know",
+    "i'm confused", "im confused", "confused",
+    "i don't get it", "i dont get it", "dont get it",
+    "help", "can you help", "stuck", "not sure", "i forgot",
+    "i can't", "i cant", "no idea"
+  ];
+
+  return patterns.some((p) => t.includes(p));
+}
+
+function getStage(state) {
+  const f = state.frame;
+
+  if (!f.keyTopic) return "keyTopic";
+  if (!f.isAbout) return "isAbout";
+  if ((f.mainIdeas || []).length < 2) return "mainIdeas";
+
+  // details stage: find first main idea needing details (2 required)
+  for (let i = 0; i < (f.mainIdeas || []).length; i++) {
+    const arr = Array.isArray(f.details?.[i]) ? f.details[i] : [];
+    if (arr.length < 2) return `details:${i}`;
+  }
+
+  if (!f.soWhat) return "soWhat";
+  return "refine";
+}
+
+function buildMiniQuestion(state) {
+  const stage = getStage(state);
+
+  if (stage === "keyTopic") {
+    return "If you had to title this assignment in 4 words, what would the title be?";
+  }
+
+  if (stage === "isAbout") {
+    return "In one rough sentence, what is the main point you think you’re supposed to explain?";
+  }
+
+  if (stage === "mainIdeas") {
+    return `What is one reason, part, or cause related to "${state.frame.keyTopic}"? (Rough is fine.)`;
+  }
+
+  if (stage.startsWith("details:")) {
+    const idx = Number(stage.split(":")[1]);
+    const mi = state.frame.mainIdeas?.[idx] || "this Main Idea";
+    return `What is one specific example from your text/notes that connects to: "${mi}"?`;
+  }
+
+  if (stage === "soWhat") {
+    return `Who is affected by "${state.frame.keyTopic}", and why should they care?`;
+  }
+
+  // refine
+  return "What part feels easiest to improve right now: Key Topic, Is About, Main Ideas, Details, or So What?";
+}
+
+function normalizeStuckChoice(msg) {
+  const t = cleanText(msg).toLowerCase();
+  if (!t) return null;
+
+  // direct numbers
+  if (t === "1" || t.startsWith("1 ")) return "1";
+  if (t === "2" || t.startsWith("2 ")) return "2";
+  if (t === "3" || t.startsWith("3 ")) return "3";
+  if (t === "4" || t.startsWith("4 ")) return "4";
+
+  // keyword matches
+  if (t.includes("direction") || t.includes("prompt")) return "1";
+  if (t.includes("re-read") || t.includes("reread") || t.includes("notes") || t.includes("text")) return "2";
+  if (t.includes("smaller") || t.includes("small") || t.includes("mini")) return "3";
+  if (t.includes("skip") || t.includes("later") || t.includes("come back")) return "4";
+
+  return null;
+}
+
+// ---------------------
 // STATE
 // ---------------------
 function defaultState() {
@@ -252,6 +339,7 @@ function defaultState() {
       exportOffered: false,
       exportChoice: null, // "frame"|"transcript"|"both"
     },
+    skips: [], // optional: [{ stage, at }]
   };
 }
 
@@ -314,6 +402,13 @@ function normalizeIncomingState(raw) {
   const flags = s.flags && typeof s.flags === "object" ? s.flags : {};
   base.flags.exportOffered = !!flags.exportOffered;
   base.flags.exportChoice = flags.exportChoice || null;
+
+  // Skips
+  if (Array.isArray(s.skips)) {
+    base.skips = s.skips
+      .map((x) => ({ stage: cleanText(x?.stage || ""), at: Number(x?.at || 0) }))
+      .filter((x) => x.stage);
+  }
 
   // Defensive: ensure buckets exist for each main idea
   for (let i = 0; i < base.frame.mainIdeas.length; i++) {
@@ -417,6 +512,34 @@ function computeNextQuestion(state) {
     return `I notice you’re writing in ${candName}. Would you like to continue in ${candNative}? (yes/no)`;
   }
 
+  // 🧩 STUCK: menu + reask + mini + skip
+  if (s.pending?.type === "stuckMenu") {
+    return (
+      "Sounds like you’re stuck. Want a quick help move?\n" +
+      "1) Check directions\n" +
+      "2) Re-read source/notes\n" +
+      "3) I’ll ask a smaller question for this step\n" +
+      "4) Skip for now and come back\n" +
+      "Which one? (1–4)"
+    );
+  }
+
+  if (s.pending?.type === "stuckReask") {
+    const tip =
+      s.pending.mode === "directions"
+        ? "Quick reset: re-read the prompt and underline the verb (explain/argue/compare)."
+        : "Quick reset: skim your notes/text and pick one phrase that feels important.";
+    return `${tip} Then answer: ${s.pending.resumeQuestion}`;
+  }
+
+  if (s.pending?.type === "stuckMini") {
+    return s.pending.miniQuestion || buildMiniQuestion(s);
+  }
+
+  if (s.pending?.type === "stuckSkip") {
+    return "Got it — we’ll come back to this. Want to try the next step now? (yes/no)";
+  }
+
   // 🔒 Is About confirmation checkpoint
   if (s.pending?.type === "confirmIsAbout") {
     return `"${s.frame.keyTopic}" is about "${s.frame.isAbout}". Is that correct, or would you like to revise it?`;
@@ -516,13 +639,6 @@ function computeNextQuestion(state) {
     return `So what? Why does "${s.frame.keyTopic}" matter? (1–2 sentences)`;
   }
 
-  // If frame is complete, offer export once (then fall through)
-  if (isFrameComplete(s) && !s.flags.exportOffered) {
-    // We can't mutate here (computeNextQuestion is pure), so we rely on updateStateFromStudent
-    // to set pending=offerExport after confirmSoWhat completes.
-    return "Want to refine anything (Key Topic, Is About, Main Ideas, Details, or So What)?";
-  }
-
   return "Want to refine anything (Key Topic, Is About, Main Ideas, Details, or So What)?";
 }
 
@@ -579,6 +695,127 @@ function updateStateFromStudent(state, message) {
     }
 
     // If they answered in their language, hold (handler will do LLM yes/no in the main handler)
+    return s;
+  }
+
+  // 🧩 STUCK MENU
+  if (s.pending?.type === "stuckMenu") {
+    const choice = normalizeStuckChoice(msg);
+    if (!choice) return s;
+
+    if (choice === "1") {
+      s.pending = { type: "stuckReask", mode: "directions", resumeQuestion: s.pending.resumeQuestion || computeNextQuestion(s) };
+      return s;
+    }
+    if (choice === "2") {
+      s.pending = { type: "stuckReask", mode: "reread", resumeQuestion: s.pending.resumeQuestion || computeNextQuestion(s) };
+      return s;
+    }
+    if (choice === "3") {
+      s.pending = {
+        type: "stuckMini",
+        stage: s.pending.stage,
+        miniQuestion: s.pending.miniQuestion || buildMiniQuestion(s),
+        resumeQuestion: s.pending.resumeQuestion || computeNextQuestion(s),
+      };
+      return s;
+    }
+    if (choice === "4") {
+      if (!Array.isArray(s.skips)) s.skips = [];
+      s.skips.push({ stage: s.pending.stage || getStage(s), at: Date.now() });
+      s.pending = { type: "stuckSkip", resumeQuestion: s.pending.resumeQuestion || computeNextQuestion(s) };
+      return s;
+    }
+
+    return s;
+  }
+
+  // stuckReask: clear pending and treat this message as the actual answer
+  if (s.pending?.type === "stuckReask") {
+    s.pending = null;
+    // fall through to normal processing
+  }
+
+  // stuckSkip: yes -> clear and move on; no -> go back to menu
+  if (s.pending?.type === "stuckSkip") {
+    const low = msg.toLowerCase().trim();
+    if (isAffirmative(low)) {
+      s.pending = null;
+      return s;
+    }
+    s.pending = {
+      type: "stuckMenu",
+      stage: getStage(s),
+      resumeQuestion: s.pending.resumeQuestion || computeNextQuestion(s),
+      miniQuestion: buildMiniQuestion(s),
+    };
+    return s;
+  }
+
+  // stuckMini: apply answer into the current stage if possible, then resume
+  if (s.pending?.type === "stuckMini") {
+    const stage = s.pending.stage || getStage(s);
+
+    if (stage === "keyTopic") {
+      const wc = msg.split(/\s+/).filter(Boolean).length;
+      if (!s.frame.keyTopic && !isBadKeyTopic(msg) && wc >= 2 && wc <= 5) {
+        s.frame.keyTopic = msg;
+      }
+      s.pending = null;
+      return s;
+    }
+
+    if (stage === "isAbout") {
+      if (!s.frame.isAbout) {
+        s.frame.isAbout = msg;
+        s.pending = { type: "confirmIsAbout" };
+        return s;
+      }
+      s.pending = null;
+      return s;
+    }
+
+    if (stage === "mainIdeas") {
+      if (s.frame.mainIdeas.length < 2 && !isNegative(msg)) {
+        s.frame.mainIdeas.push(msg);
+        if (!Array.isArray(s.frame.details[s.frame.mainIdeas.length - 1])) {
+          s.frame.details[s.frame.mainIdeas.length - 1] = [];
+        }
+        if (s.frame.mainIdeas.length === 2) {
+          s.pending = { type: "offerThirdMainIdea" };
+          return s;
+        }
+      }
+      s.pending = null;
+      return s;
+    }
+
+    if (stage.startsWith("details:")) {
+      const idx = Number(stage.split(":")[1]);
+      const arr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
+      if (arr.length < 2 && !isNegative(msg)) {
+        s.frame.details[idx] = [...arr, msg];
+        if (s.frame.details[idx].length === 2) {
+          s.pending = { type: "offerThirdDetail", index: idx };
+          return s;
+        }
+      }
+      s.pending = null;
+      return s;
+    }
+
+    if (stage === "soWhat") {
+      if (!s.frame.soWhat && !isNegative(msg)) {
+        s.frame.soWhat = msg;
+        s.pending = { type: "offerMoreSoWhat" };
+        return s;
+      }
+      s.pending = null;
+      return s;
+    }
+
+    // refine: just clear and resume
+    s.pending = null;
     return s;
   }
 
@@ -903,6 +1140,49 @@ export default async function handler(req, res) {
 
       state = proceedState;
     } else if (message) {
+      // 🧩 STUCK DETECTOR (global interrupt) — do not interrupt language switch flow
+      const pendingType = state.pending?.type || null;
+      const inProtectedPending =
+        pendingType === "confirmLanguageSwitch" ||
+        pendingType === "stuckMenu" ||
+        pendingType === "stuckReask" ||
+        pendingType === "stuckMini" ||
+        pendingType === "stuckSkip";
+
+      if (!inProtectedPending && isStuckMessage(message)) {
+        const stage = getStage(state);
+        const resumeQuestion = enforceSingleQuestion(computeNextQuestion(state));
+
+        state.pending = {
+          type: "stuckMenu",
+          stage,
+          resumeQuestion,
+          miniQuestion: buildMiniQuestion(state),
+        };
+
+        let reply = enforceSingleQuestion(computeNextQuestion(state));
+
+        // Respect language if locked
+        if (state.settings.languageLocked && state.settings.language !== "en") {
+          reply = await translateQuestionViaLLM(reply, state.settings.languageName || "the target language");
+        }
+
+        appendTurn(state, "Student", message);
+        appendTurn(state, "Kaw", reply);
+
+        // exports
+        if (isFrameComplete(state)) {
+          const frameText = buildFrameText(state);
+          const transcriptText = buildTranscriptText(state);
+          const html = buildExportHtml(state);
+          state.exports = { frameText, transcriptText, html };
+        } else {
+          state.exports = null;
+        }
+
+        return res.status(200).json({ reply, state });
+      }
+
       // Normal state update
       state = updateStateFromStudent(state, message);
     }
@@ -930,9 +1210,6 @@ export default async function handler(req, res) {
     } else {
       state.exports = null;
     }
-
-    // 7) If exportChoice is set, you can optionally trim exports based on selection (UI can also do this)
-    // We keep all three payloads available; Wix can decide what to show/download.
 
     return res.status(200).json({ reply, state });
   } catch (err) {
