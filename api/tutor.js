@@ -512,15 +512,20 @@ function computeNextQuestion(state) {
     return `I notice you’re writing in ${candName}. Would you like to continue in ${candNative}? (yes/no)`;
   }
 
-  // 🧩 STUCK: menu + reask + mini + skip
+  // 🧩 STUCK (Option B): confirm -> menu -> next action
+  if (s.pending?.type === "stuckConfirm") {
+    return "Sounds like you’re stuck. Want a quick help move? (yes/no)";
+  }
+
   if (s.pending?.type === "stuckMenu") {
+    // IMPORTANT: only ONE question mark in this entire string (enforceSingleQuestion truncates after first '?')
     return (
-      "Sounds like you’re stuck. Want a quick help move?\n" +
-      "1) Check directions\n" +
-      "2) Re-read source/notes\n" +
-      "3) I’ll ask a smaller question for this step\n" +
-      "4) Skip for now and come back\n" +
-      "Which one? (1–4)"
+      "Pick a quick help move: " +
+      "1) Check directions  " +
+      "2) Re-read source/notes  " +
+      "3) I’ll ask a smaller question for this step  " +
+      "4) Skip for now and come back. " +
+      "Which one (1–4)?"
     );
   }
 
@@ -698,6 +703,25 @@ function updateStateFromStudent(state, message) {
     return s;
   }
 
+  // 🧩 STUCK CONFIRM (Option B)
+  if (s.pending?.type === "stuckConfirm") {
+    const low = msg.toLowerCase().trim();
+    if (isAffirmative(low)) {
+      s.pending = {
+        type: "stuckMenu",
+        stage: s.pending.stage || getStage(s),
+        resumeQuestion: s.pending.resumeQuestion || enforceSingleQuestion(computeNextQuestion(s)),
+        miniQuestion: s.pending.miniQuestion || buildMiniQuestion(s),
+      };
+      return s;
+    }
+    if (isNegative(low)) {
+      s.pending = null;
+      return s;
+    }
+    return s;
+  }
+
   // 🧩 STUCK MENU
   if (s.pending?.type === "stuckMenu") {
     const choice = normalizeStuckChoice(msg);
@@ -736,7 +760,7 @@ function updateStateFromStudent(state, message) {
     // fall through to normal processing
   }
 
-  // stuckSkip: yes -> clear and move on; no -> go back to menu
+  // stuckSkip: yes -> clear and move on; no -> go back to confirm
   if (s.pending?.type === "stuckSkip") {
     const low = msg.toLowerCase().trim();
     if (isAffirmative(low)) {
@@ -744,9 +768,9 @@ function updateStateFromStudent(state, message) {
       return s;
     }
     s.pending = {
-      type: "stuckMenu",
+      type: "stuckConfirm",
       stage: getStage(s),
-      resumeQuestion: s.pending.resumeQuestion || computeNextQuestion(s),
+      resumeQuestion: s.pending.resumeQuestion || enforceSingleQuestion(computeNextQuestion(s)),
       miniQuestion: buildMiniQuestion(s),
     };
     return s;
@@ -1144,6 +1168,7 @@ export default async function handler(req, res) {
       const pendingType = state.pending?.type || null;
       const inProtectedPending =
         pendingType === "confirmLanguageSwitch" ||
+        pendingType === "stuckConfirm" ||
         pendingType === "stuckMenu" ||
         pendingType === "stuckReask" ||
         pendingType === "stuckMini" ||
@@ -1153,8 +1178,9 @@ export default async function handler(req, res) {
         const stage = getStage(state);
         const resumeQuestion = enforceSingleQuestion(computeNextQuestion(state));
 
+        // Option B: first confirm
         state.pending = {
-          type: "stuckMenu",
+          type: "stuckConfirm",
           stage,
           resumeQuestion,
           miniQuestion: buildMiniQuestion(state),
