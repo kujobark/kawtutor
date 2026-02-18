@@ -121,20 +121,14 @@ function parseKeyTopicIsAbout(msg) {
 // LANGUAGE HELPERS (LLM)
 // ---------------------
 
-// Returns { code, name, dir } or null
+// Returns { code, name, nativeName, dir } or null
 async function detectLanguageViaLLM(text) {
   const input = cleanText(text);
   if (!input || input.length < LANG_DETECT_MIN_CHARS) return null;
 
   // Avoid detecting on tiny “yes/no/ok/correct”
   const low = input.toLowerCase();
-  if (
-    isAffirmative(low) ||
-    isNegative(low) ||
-    low === "ok" ||
-    low === "okay" ||
-    low === "correct"
-  ) {
+  if (isAffirmative(low) || isNegative(low) || low === "ok" || low === "okay" || low === "correct") {
     return null;
   }
 
@@ -703,14 +697,14 @@ function updateStateFromStudent(state, message) {
     return s;
   }
 
-  // 🧩 STUCK CONFIRM (Option B)
+  // 🧩 STUCK CONFIRM (Option B) — FIXED (carry forward ONLY)
   if (s.pending?.type === "stuckConfirm") {
     const low = msg.toLowerCase().trim();
     if (isAffirmative(low)) {
       s.pending = {
         type: "stuckMenu",
         stage: s.pending.stage || getStage(s),
-        resumeQuestion: s.pending.resumeQuestion || enforceSingleQuestion(computeNextQuestion(s)),
+        resumeQuestion: s.pending.resumeQuestion, // ✅ carry forward only
         miniQuestion: s.pending.miniQuestion || buildMiniQuestion(s),
       };
       return s;
@@ -722,32 +716,49 @@ function updateStateFromStudent(state, message) {
     return s;
   }
 
-  // 🧩 STUCK MENU
+  // 🧩 STUCK MENU — FIXED (never recompute resumeQuestion)
   if (s.pending?.type === "stuckMenu") {
     const choice = normalizeStuckChoice(msg);
     if (!choice) return s;
 
     if (choice === "1") {
-      s.pending = { type: "stuckReask", mode: "directions", resumeQuestion: s.pending.resumeQuestion || computeNextQuestion(s) };
+      s.pending = {
+        type: "stuckReask",
+        mode: "directions",
+        resumeQuestion: s.pending.resumeQuestion,
+      };
       return s;
     }
+
     if (choice === "2") {
-      s.pending = { type: "stuckReask", mode: "reread", resumeQuestion: s.pending.resumeQuestion || computeNextQuestion(s) };
+      s.pending = {
+        type: "stuckReask",
+        mode: "reread",
+        resumeQuestion: s.pending.resumeQuestion,
+      };
       return s;
     }
+
     if (choice === "3") {
       s.pending = {
         type: "stuckMini",
         stage: s.pending.stage,
         miniQuestion: s.pending.miniQuestion || buildMiniQuestion(s),
-        resumeQuestion: s.pending.resumeQuestion || computeNextQuestion(s),
+        resumeQuestion: s.pending.resumeQuestion,
       };
       return s;
     }
+
     if (choice === "4") {
       if (!Array.isArray(s.skips)) s.skips = [];
       s.skips.push({ stage: s.pending.stage || getStage(s), at: Date.now() });
-      s.pending = { type: "stuckSkip", resumeQuestion: s.pending.resumeQuestion || computeNextQuestion(s) };
+
+      s.pending = {
+        type: "stuckSkip",
+        stage: s.pending.stage || getStage(s),
+        resumeQuestion: s.pending.resumeQuestion,
+        miniQuestion: s.pending.miniQuestion || buildMiniQuestion(s),
+      };
       return s;
     }
 
@@ -760,19 +771,32 @@ function updateStateFromStudent(state, message) {
     // fall through to normal processing
   }
 
-  // stuckSkip: yes -> clear and move on; no -> go back to confirm
+  // 🧩 stuckSkip — FIXED (compiles + no loop + carry forward only)
   if (s.pending?.type === "stuckSkip") {
     const low = msg.toLowerCase().trim();
+
     if (isAffirmative(low)) {
-      s.pending = null;
+      // Move them forward with a smaller question
+      s.pending = {
+        type: "stuckMini",
+        stage: s.pending.stage || getStage(s),
+        miniQuestion: s.pending.miniQuestion || buildMiniQuestion(s),
+        resumeQuestion: s.pending.resumeQuestion,
+      };
       return s;
     }
-    s.pending = {
-      type: "stuckConfirm",
-      stage: getStage(s),
-      resumeQuestion: s.pending.resumeQuestion || enforceSingleQuestion(computeNextQuestion(s)),
-      miniQuestion: buildMiniQuestion(s),
-    };
+
+    if (isNegative(low)) {
+      // Go back to confirm
+      s.pending = {
+        type: "stuckConfirm",
+        stage: s.pending.stage || getStage(s),
+        resumeQuestion: s.pending.resumeQuestion,
+        miniQuestion: s.pending.miniQuestion || buildMiniQuestion(s),
+      };
+      return s;
+    }
+
     return s;
   }
 
@@ -1103,11 +1127,7 @@ export default async function handler(req, res) {
     }
 
     // 1) If language not locked and no language-switch pending, detect and ask
-    if (
-      message &&
-      !state.settings.languageLocked &&
-      state.pending?.type !== "confirmLanguageSwitch"
-    ) {
+    if (message && !state.settings.languageLocked && state.pending?.type !== "confirmLanguageSwitch") {
       const detected = await detectLanguageViaLLM(message);
       if (detected && detected.code && detected.code !== "en") {
         // Set pending language switch
@@ -1132,8 +1152,6 @@ export default async function handler(req, res) {
     // 2) If we are in confirmLanguageSwitch and they replied (maybe in their language), classify yes/no
     if (state.pending?.type === "confirmLanguageSwitch" && message) {
       const low = message.toLowerCase().trim();
-
-      // If english yes/no, updateStateFromStudent can handle
       let proceedState = state;
 
       if (!isAffirmative(low) && !isNegative(low)) {
@@ -1178,7 +1196,7 @@ export default async function handler(req, res) {
         const stage = getStage(state);
         const resumeQuestion = enforceSingleQuestion(computeNextQuestion(state));
 
-        // Option B: first confirm
+        // Option B: first confirm (store resumeQuestion ONCE)
         state.pending = {
           type: "stuckConfirm",
           stage,
@@ -1190,7 +1208,10 @@ export default async function handler(req, res) {
 
         // Respect language if locked
         if (state.settings.languageLocked && state.settings.language !== "en") {
-          reply = await translateQuestionViaLLM(reply, state.settings.languageName || "the target language");
+          reply = await translateQuestionViaLLM(
+            reply,
+            state.settings.languageName || "the target language"
+          );
         }
 
         appendTurn(state, "Student", message);
