@@ -221,6 +221,126 @@ Rules:
 // ---------------------
 // STUCK SUPPORT (SSOT)
 // ---------------------
+
+function detectStuckTone(text) {
+  const t = cleanText(text).toLowerCase();
+  if (!t) return "neutral";
+  const frustration = ["confus", "stupid", "dumb", "hate", "annoy", "frustrat", "angry", "mad", "ugh", "this sucks", "do we have to"];
+  if (frustration.some((p) => t.includes(p))) return "frustration";
+  const resistance = ["do we have to", "why do we have to", "why am i doing", "what's the point", "pointless"];
+  if (resistance.some((p) => t.includes(p))) return "resistance";
+  return "neutral";
+}
+
+function normalizePurpose(msg) {
+  const t = cleanText(msg).toLowerCase();
+  if (!t) return null;
+  if (t.includes("study") || t.includes("review") || t === "s") return "study";
+  if (t.includes("write") || t.includes("essay") || t.includes("paragraph") || t.includes("create") || t === "w") return "write";
+  if (t.includes("read") || t.includes("note") || t.includes("annot") || t === "r") return "read";
+  // allow 1/2/3 mapping if you want buttons later
+  if (t === "1") return "study";
+  if (t === "2") return "write";
+  if (t === "3") return "read";
+  return null;
+}
+
+function mapPurposeToFrameType(purpose) {
+  // Phase 1: deterministic mapping (no teacher override yet)
+  if (purpose === "study") return "causeEffect";   // Linear & Cause-and-Effect Relationships
+  if (purpose === "write") return "themes";        // Framing Themes
+  if (purpose === "read") return "reading";        // Reading Frames
+  return "base";
+}
+
+function fillTopic(template, keyTopic) {
+  return (template || "").replaceAll("[Key Topic]", keyTopic || "your topic");
+}
+
+const PROMPT_BANK = {
+  // Phase 1 vertical slice: Studying/Review + Linear & Cause-and-Effect
+  study: {
+    causeEffect: {
+      isAbout: 'In your own words, what is happening in "[Key Topic]", and why is it important?',
+      mainIdea: "What is one major cause or effect that is important to remember?",
+      detail: "What is an important detail that explains how or why this cause or effect occurs?",
+      soWhat: 'When you look at all of these causes and effects together, what can you conclude about "[Key Topic]"?'
+    },
+  },
+};
+
+function getPromptForStage(state, stage) {
+  const purpose = state.frameMeta?.purpose || "";
+  const frameType = state.frameMeta?.frameType || "";
+  const kt = state.frame?.keyTopic || "";
+
+  // isAbout
+  if (stage === "isAbout") {
+    const tpl = PROMPT_BANK?.[purpose]?.[frameType]?.isAbout;
+    if (tpl) return fillTopic(tpl, kt);
+  }
+
+  if (stage === "mainIdeas") {
+    const q = PROMPT_BANK?.[purpose]?.[frameType]?.mainIdea;
+    if (q) return q;
+  }
+
+  if (stage.startsWith("details:")) {
+    const q = PROMPT_BANK?.[purpose]?.[frameType]?.detail;
+    if (q) return q;
+  }
+
+  if (stage === "soWhat") {
+    const tpl = PROMPT_BANK?.[purpose]?.[frameType]?.soWhat;
+    if (tpl) return fillTopic(tpl, kt);
+  }
+
+  return null;
+}
+
+function buildStuckNudges(state, stage) {
+  const purpose = state.frameMeta?.purpose || "";
+  const frameType = state.frameMeta?.frameType || "";
+
+  // Phase 1: study + cause/effect nudges
+  if (purpose === "study" && frameType === "causeEffect") {
+    if (stage === "mainIdeas") {
+      return [
+        "What caused this to happen",
+        "What happened because of it",
+        "Is this a cause or an effect",
+      ];
+    }
+    if (stage.startsWith("details:")) {
+      return [
+        "How does this happen",
+        "Why does this happen",
+        "What shows the connection between the cause and the effect",
+      ];
+    }
+    if (stage === "soWhat") {
+      return [
+        "What changed from beginning to end",
+        "What connects all of these causes and effects",
+        "What do they have in common",
+        "What conclusion can you draw",
+      ];
+    }
+  }
+
+  // default fallback nudges (generic, no question marks)
+  if (stage === "mainIdeas") return ["Think of one important part", "Think of one reason or cause", "Think of one result or effect"];
+  if (stage.startsWith("details:")) return ["Look for one example", "Look for one fact that supports it", "Look for one specific detail"];
+  if (stage === "soWhat") return ["What is important here", "Why should someone care", "What does this mean overall"];
+  return ["Take a deep breath", "Start rough", "You can revise later"];
+}
+
+function formatNudgeText(nudges) {
+  const items = (nudges || []).slice(0, 4).map((x) => `- ${cleanText(x)}`).join("\n");
+  return items ? `Here are a few quick nudges (pick one):\n${items}` : "";
+}
+
+
 function isStuckMessage(text) {
   const t = cleanText(text).toLowerCase();
   if (!t) return false;
@@ -242,7 +362,9 @@ function isStuckMessage(text) {
 
 function getStage(state) {
   const f = state.frame;
+  const m = state.frameMeta || {};
 
+  if (!m.purpose) return "purpose";
   if (!f.keyTopic) return "keyTopic";
   if (!f.isAbout) return "isAbout";
   if ((f.mainIdeas || []).length < 2) return "mainIdeas";
@@ -269,6 +391,10 @@ function buildMiniQuestion(state) {
   }
 
   if (stage === "mainIdeas") {
+    // Purpose-aware mini question (single question)
+    if (state.frameMeta?.purpose === "study" && state.frameMeta?.frameType === "causeEffect") {
+      return `What is one major cause or effect related to "${state.frame.keyTopic}"? (Rough is fine.)`;
+    }
     return `What is one reason, part, or cause related to "${state.frame.keyTopic}"? (Rough is fine.)`;
   }
 
@@ -279,6 +405,9 @@ function buildMiniQuestion(state) {
   }
 
   if (stage === "soWhat") {
+    if (state.frameMeta?.purpose === "study" && state.frameMeta?.frameType === "causeEffect") {
+      return `When you look at the causes and effects together, what can you conclude about "${state.frame.keyTopic}"?`;
+    }
     return `Who is affected by "${state.frame.keyTopic}", and why should they care?`;
   }
 
@@ -310,7 +439,11 @@ function normalizeStuckChoice(msg) {
 // ---------------------
 function defaultState() {
   return {
-    version: 1,
+    version: 2,
+    frameMeta: {
+      purpose: "", // study|write|read
+      frameType: "", // causeEffect|themes|reading
+    },
     frame: {
       keyTopic: "",
       isAbout: "",
@@ -366,6 +499,11 @@ function normalizeIncomingState(raw) {
   }
 
   base.frame.soWhat = cleanText(frame.soWhat || s.soWhat || "");
+
+  // Frame meta (purpose + frame type)
+  const frameMeta = s.frameMeta && typeof s.frameMeta === "object" ? s.frameMeta : {};
+  base.frameMeta.purpose = cleanText(frameMeta.purpose || "") || "";
+  base.frameMeta.frameType = cleanText(frameMeta.frameType || "") || (base.frameMeta.purpose ? mapPurposeToFrameType(base.frameMeta.purpose) : "");
 
   base.pending = s.pending && typeof s.pending === "object" ? s.pending : null;
 
@@ -531,6 +669,18 @@ function computeNextQuestion(state) {
     return `${tip} Then answer: ${s.pending.resumeQuestion}`;
   }
 
+  if (s.pending?.type === "stuckNudge") {
+    const tone = s.pending.tone || "neutral";
+    const ack =
+      tone === "frustration"
+        ? "That can feel frustrating. "
+        : tone === "resistance"
+          ? "I hear you. "
+          : "";
+    const nudge = cleanText(s.pending.nudgeText || "");
+    return `${ack}${nudge} Then answer: ${s.pending.resumeQuestion}`;
+  }
+
   if (s.pending?.type === "stuckMini") {
     return s.pending.miniQuestion || buildMiniQuestion(s);
   }
@@ -609,15 +759,22 @@ function computeNextQuestion(state) {
   }
 
   // Base progression
+  if (!s.frameMeta?.purpose) {
+    return "How will you use this Frame: studying/review, writing/creating, or reading/note-taking? (study/write/read)";
+  }
+
   if (!s.frame.keyTopic) {
     return "What is your Key Topic? (2–5 words)";
   }
 
   if (!s.frame.isAbout) {
-    return `Finish this sentence: "${s.frame.keyTopic} is about ____."`;
+    const pb = getPromptForStage(s, "isAbout");
+    return pb || `Finish this sentence: "${s.frame.keyTopic} is about ____."`;
   }
 
   if (s.frame.mainIdeas.length < 2) {
+    const pb = getPromptForStage(s, "mainIdeas");
+    if (pb) return pb;
     return s.frame.mainIdeas.length === 0
       ? `What is your first Main Idea that helps explain ${s.frame.keyTopic}?`
       : `What is your second Main Idea that helps explain ${s.frame.keyTopic}?`;
@@ -635,7 +792,8 @@ function computeNextQuestion(state) {
   }
 
   if (!s.frame.soWhat) {
-    return `So what? Why does "${s.frame.keyTopic}" matter? (1–2 sentences)`;
+    const pb = getPromptForStage(s, "soWhat");
+    return pb || `So what? Why does "${s.frame.keyTopic}" matter? (1–2 sentences)`;
   }
 
   return "Want to refine anything (Key Topic, Is About, Main Ideas, Details, or So What)?";
@@ -666,6 +824,17 @@ function updateStateFromStudent(state, message) {
   const msg = cleanText(message);
   const s = structuredClone(state);
   ensureBuckets(s);
+
+  // 0) Purpose capture (before everything else, but after protected pending)
+  if (!s.frameMeta) s.frameMeta = { purpose: "", frameType: "" };
+  if (!s.frameMeta.purpose && !(s.pending && s.pending.type)) {
+    const p = normalizePurpose(msg);
+    if (p) {
+      s.frameMeta.purpose = p;
+      s.frameMeta.frameType = mapPurposeToFrameType(p);
+      return s;
+    }
+  }
 
   // 0) Pending handlers first
 
@@ -704,6 +873,7 @@ function updateStateFromStudent(state, message) {
       s.pending = {
         type: "stuckMenu",
         stage: s.pending.stage || getStage(s),
+        tone: s.pending.tone || "neutral",
         resumeQuestion: s.pending.resumeQuestion, // ✅ carry forward only
         miniQuestion: s.pending.miniQuestion || buildMiniQuestion(s),
       };
@@ -740,10 +910,14 @@ function updateStateFromStudent(state, message) {
     }
 
     if (choice === "3") {
+      const stage = s.pending.stage || getStage(s);
+      const nudges = buildStuckNudges(s, stage);
+      const nudgeText = formatNudgeText(nudges);
       s.pending = {
-        type: "stuckMini",
-        stage: s.pending.stage,
-        miniQuestion: s.pending.miniQuestion || buildMiniQuestion(s),
+        type: "stuckNudge",
+        stage,
+        tone: s.pending.tone || "neutral",
+        nudgeText,
         resumeQuestion: s.pending.resumeQuestion,
       };
       return s;
@@ -1200,6 +1374,7 @@ export default async function handler(req, res) {
         state.pending = {
           type: "stuckConfirm",
           stage,
+          tone: detectStuckTone(message),
           resumeQuestion,
           miniQuestion: buildMiniQuestion(state),
         };
