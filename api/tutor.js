@@ -742,7 +742,15 @@ function computeNextQuestion(state) {
 
   if (s.frame.mainIdeas.length < 2) {
     const pb = getPromptForStage(s, "mainIdeas");
-    if (pb) return pb;
+    if (pb) {
+      // Add ordinal clarity when prompt bank uses a generic stem.
+      const c = s.frame.mainIdeas.length;
+      if (/^What is one major cause or effect/i.test(pb)) {
+        const ord = c === 0 ? "first" : c === 1 ? "second" : "next";
+        return pb.replace(/^What is one/i, `What is your ${ord}`);
+      }
+      return pb;
+    }
     return s.frame.mainIdeas.length === 0
       ? `What is your first Main Idea that helps explain ${s.frame.keyTopic}?`
       : `What is your second Main Idea that helps explain ${s.frame.keyTopic}?`;
@@ -753,7 +761,10 @@ function computeNextQuestion(state) {
     const arr = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
     if (arr.length < 2) {
       const pb = getPromptForStage(s, `details:${i}`);
-      if (pb) return pb;
+      if (pb) {
+        const base = pb.replace(/\?\s*$/, "");
+        return `For this Main Idea: "${mi}", ${base}?`;
+      }
       return arr.length === 0
         ? `What is your first Supporting Detail for this Main Idea: "${mi}"?`
         : `What is your second Supporting Detail for this Main Idea: "${mi}"?`;
@@ -1319,7 +1330,7 @@ export default async function handler(req, res) {
         appendTurn(state, "Student", message);
         appendTurn(state, "Kaw", reply);
 
-        if (isFrameComplete(state)) {
+        if (isFrameComplete(state) && !state.pending) {
           const frameText = buildFrameText(state);
           const transcriptText = buildTranscriptText(state);
           const html = buildExportHtml(state);
@@ -1344,14 +1355,14 @@ export default async function handler(req, res) {
     if (message) appendTurn(state, "Student", message);
     appendTurn(state, "Kaw", reply);
 
-    if (isFrameComplete(state)) {
-      const frameText = buildFrameText(state);
-      const transcriptText = buildTranscriptText(state);
-      const html = buildExportHtml(state);
-      state.exports = { frameText, transcriptText, html };
-    } else {
-      state.exports = null;
-    }
+    if (isFrameComplete(state) && !state.pending) {
+          const frameText = buildFrameText(state);
+          const transcriptText = buildTranscriptText(state);
+          const html = buildExportHtml(state);
+          state.exports = { frameText, transcriptText, html };
+        } else {
+          state.exports = null;
+        }
 
     return res.status(200).json({ reply, state });
   } catch (err) {
