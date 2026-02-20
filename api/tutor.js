@@ -245,6 +245,23 @@ function normalizePurpose(msg) {
   return null;
 }
 
+function normalizeFrameTypeSelection(input) {
+  const t = (input || "").toLowerCase().trim();
+
+  // Accept numeric choices
+  if (t === "1" || t.startsWith("1 ")) return "causeEffect";
+  if (t === "2" || t.startsWith("2 ")) return "themes";
+  if (t === "3" || t.startsWith("3 ")) return "reading";
+
+  // Accept common text variants (still deterministic)
+  if (t.includes("cause") || t.includes("effect") || t.includes("how") || t.includes("why")) return "causeEffect";
+  if (t.includes("theme") || t.includes("big idea") || t.includes("central idea")) return "themes";
+  if (t.includes("read") || t.includes("text") || t.includes("source") || t.includes("note")) return "reading";
+
+  return "";
+}
+
+
 function mapPurposeToFrameType(purpose) {
   // Phase 1: deterministic mapping (no teacher override yet)
   if (purpose === "study") return "causeEffect";   // Linear & Cause-and-Effect Relationships
@@ -760,8 +777,20 @@ function computeNextQuestion(state) {
 
   // Base progression
   if (!s.frameMeta?.purpose) {
-    return "How will you use this Frame: studying/review, writing/creating, or reading/note-taking? (study/write/read)";
+    return "How will you use this Frame: studying/review, writing/creating, or create notes from a reading or source? (study/write/read)";
   }
+
+  if (!s.frameMeta?.frameType) {
+    // IMPORTANT: only ONE question mark in this entire string (enforceSingleQuestion truncates after first '?')
+    return (
+      "What kind of thinking are you doing: " +
+      "1) Explain how/why something happens (Linear & Cause-and-Effect Relationships)  " +
+      "2) Explain a big idea or theme (Framing Themes)  " +
+      "3) Organize ideas from a text or source (Reading Frames). " +
+      "Which one (1–3)?"
+    );
+  }
+
 
   if (!s.frame.keyTopic) {
     return "What is your Key Topic? (2–5 words)";
@@ -831,12 +860,21 @@ function updateStateFromStudent(state, message) {
     const p = normalizePurpose(msg);
     if (p) {
       s.frameMeta.purpose = p;
-      s.frameMeta.frameType = mapPurposeToFrameType(p);
       return s;
     }
   }
 
-  // 0) Pending handlers first
+  
+  // 0b) Frame type selection (thinking pattern) — after purpose, before progression
+  if (s.frameMeta?.purpose && !s.frameMeta.frameType && !(s.pending && s.pending.type)) {
+    const ft = normalizeFrameTypeSelection(msg);
+    if (ft) {
+      s.frameMeta.frameType = ft;
+      return s;
+    }
+  }
+
+// 0) Pending handlers first
 
   // confirmLanguageSwitch
   if (s.pending?.type === "confirmLanguageSwitch") {
