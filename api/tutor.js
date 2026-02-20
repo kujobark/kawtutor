@@ -261,15 +261,6 @@ function normalizeFrameTypeSelection(input) {
   return "";
 }
 
-
-function mapPurposeToFrameType(purpose) {
-  // Phase 1: deterministic mapping (no teacher override yet)
-  if (purpose === "study") return "causeEffect";   // Linear & Cause-and-Effect Relationships
-  if (purpose === "write") return "themes";        // Framing Themes
-  if (purpose === "read") return "reading";        // Reading Frames
-  return "base";
-}
-
 function fillTopic(template, keyTopic) {
   return (template || "").replaceAll("[Key Topic]", keyTopic || "your topic");
 }
@@ -291,7 +282,6 @@ function getPromptForStage(state, stage) {
   const frameType = state.frameMeta?.frameType || "";
   const kt = state.frame?.keyTopic || "";
 
-  // isAbout
   if (stage === "isAbout") {
     const tpl = PROMPT_BANK?.[purpose]?.[frameType]?.isAbout;
     if (tpl) return fillTopic(tpl, kt);
@@ -319,7 +309,6 @@ function buildStuckNudges(state, stage) {
   const purpose = state.frameMeta?.purpose || "";
   const frameType = state.frameMeta?.frameType || "";
 
-  // Phase 1: study + cause/effect nudges
   if (purpose === "study" && frameType === "causeEffect") {
     if (stage === "mainIdeas") {
       return [
@@ -345,7 +334,6 @@ function buildStuckNudges(state, stage) {
     }
   }
 
-  // default fallback nudges (generic, no question marks)
   if (stage === "mainIdeas") return ["Think of one important part", "Think of one reason or cause", "Think of one result or effect"];
   if (stage.startsWith("details:")) return ["Look for one example", "Look for one fact that supports it", "Look for one specific detail"];
   if (stage === "soWhat") return ["What is important here", "Why should someone care", "What does this mean overall"];
@@ -357,12 +345,10 @@ function formatNudgeText(nudges) {
   return items ? `Here are a few quick nudges (pick one):\n${items}` : "";
 }
 
-
 function isStuckMessage(text) {
   const t = cleanText(text).toLowerCase();
   if (!t) return false;
 
-  // Keep it short so we don’t mis-fire on real answers
   const wc = t.split(/\s+/).filter(Boolean).length;
   if (wc > 14) return false;
 
@@ -382,11 +368,11 @@ function getStage(state) {
   const m = state.frameMeta || {};
 
   if (!m.purpose) return "purpose";
+  if (!m.frameType) return "frameType";
   if (!f.keyTopic) return "keyTopic";
   if (!f.isAbout) return "isAbout";
   if ((f.mainIdeas || []).length < 2) return "mainIdeas";
 
-  // details stage: find first main idea needing details (2 required)
   for (let i = 0; i < (f.mainIdeas || []).length; i++) {
     const arr = Array.isArray(f.details?.[i]) ? f.details[i] : [];
     if (arr.length < 2) return `details:${i}`;
@@ -399,16 +385,23 @@ function getStage(state) {
 function buildMiniQuestion(state) {
   const stage = getStage(state);
 
+  if (stage === "purpose") {
+    return "Which fits best: study/review, write/create, or create notes from a reading/source? (study/write/read)";
+  }
+
+  if (stage === "frameType") {
+    return "Which one: 1) cause/effect, 2) themes, or 3) reading frames? (1–3)";
+  }
+
   if (stage === "keyTopic") {
-    return "If you had to title this assignment in 4 words, what would the title be?";
+    return "If you had to title this in 4 words, what would the title be?";
   }
 
   if (stage === "isAbout") {
-    return "In one rough sentence, what is the main point you think you’re supposed to explain?";
+    return "In one rough sentence, what is happening in your topic and why does it matter?";
   }
 
   if (stage === "mainIdeas") {
-    // Purpose-aware mini question (single question)
     if (state.frameMeta?.purpose === "study" && state.frameMeta?.frameType === "causeEffect") {
       return `What is one major cause or effect related to "${state.frame.keyTopic}"? (Rough is fine.)`;
     }
@@ -428,7 +421,6 @@ function buildMiniQuestion(state) {
     return `Who is affected by "${state.frame.keyTopic}", and why should they care?`;
   }
 
-  // refine
   return "What part feels easiest to improve right now: Key Topic, Is About, Main Ideas, Details, or So What?";
 }
 
@@ -436,13 +428,11 @@ function normalizeStuckChoice(msg) {
   const t = cleanText(msg).toLowerCase();
   if (!t) return null;
 
-  // direct numbers
   if (t === "1" || t.startsWith("1 ")) return "1";
   if (t === "2" || t.startsWith("2 ")) return "2";
   if (t === "3" || t.startsWith("3 ")) return "3";
   if (t === "4" || t.startsWith("4 ")) return "4";
 
-  // keyword matches
   if (t.includes("direction") || t.includes("prompt")) return "1";
   if (t.includes("re-read") || t.includes("reread") || t.includes("notes") || t.includes("text")) return "2";
   if (t.includes("smaller") || t.includes("small") || t.includes("mini")) return "3";
@@ -458,14 +448,13 @@ function defaultState() {
   return {
     version: 2,
     frameMeta: {
-      purpose: "", // study|write|read
+      purpose: "",   // study|write|read
       frameType: "", // causeEffect|themes|reading
     },
     frame: {
       keyTopic: "",
       isAbout: "",
       mainIdeas: [],
-      // index-based buckets: details[0] supports mainIdeas[0], etc.
       details: [],
       soWhat: "",
     },
@@ -477,13 +466,13 @@ function defaultState() {
       dir: "ltr",
       languageLocked: false,
     },
-    transcript: [], // [{ role: "Student"|"Kaw", text }]
-    exports: null,  // { frameText, transcriptText, html }
+    transcript: [],
+    exports: null,
     flags: {
       exportOffered: false,
-      exportChoice: null, // "frame"|"transcript"|"both"
+      exportChoice: null,
     },
-    skips: [], // optional: [{ stage, at }]
+    skips: [],
   };
 }
 
@@ -500,7 +489,6 @@ function normalizeIncomingState(raw) {
     ? frame.mainIdeas.map(cleanText).filter(Boolean)
     : [];
 
-  // details normalization + migration
   if (Array.isArray(frame.details)) {
     base.frame.details = frame.details.map((bucket) =>
       Array.isArray(bucket) ? bucket.map(cleanText).filter(Boolean) : []
@@ -517,14 +505,13 @@ function normalizeIncomingState(raw) {
 
   base.frame.soWhat = cleanText(frame.soWhat || s.soWhat || "");
 
-  // Frame meta (purpose + frame type)
+  // Frame meta (NO AUTO-MAPPING fallback — student selection is authoritative)
   const frameMeta = s.frameMeta && typeof s.frameMeta === "object" ? s.frameMeta : {};
   base.frameMeta.purpose = cleanText(frameMeta.purpose || "") || "";
-  base.frameMeta.frameType = cleanText(frameMeta.frameType || "") || (base.frameMeta.purpose ? mapPurposeToFrameType(base.frameMeta.purpose) : "");
+  base.frameMeta.frameType = cleanText(frameMeta.frameType || "") || "";
 
   base.pending = s.pending && typeof s.pending === "object" ? s.pending : null;
 
-  // Settings
   const settings = s.settings && typeof s.settings === "object" ? s.settings : {};
   base.settings.language = cleanText(settings.language || base.settings.language) || "en";
   base.settings.languageName = cleanText(settings.languageName || base.settings.languageName) || "English";
@@ -533,7 +520,6 @@ function normalizeIncomingState(raw) {
   base.settings.dir = settings.dir === "rtl" ? "rtl" : "ltr";
   base.settings.languageLocked = !!settings.languageLocked;
 
-  // Transcript
   if (Array.isArray(s.transcript)) {
     base.transcript = s.transcript
       .map((t) => ({
@@ -544,7 +530,6 @@ function normalizeIncomingState(raw) {
       .slice(-TRANSCRIPT_MAX_TURNS);
   }
 
-  // Exports + flags
   if (s.exports && typeof s.exports === "object") {
     base.exports = s.exports;
   }
@@ -552,14 +537,12 @@ function normalizeIncomingState(raw) {
   base.flags.exportOffered = !!flags.exportOffered;
   base.flags.exportChoice = flags.exportChoice || null;
 
-  // Skips
   if (Array.isArray(s.skips)) {
     base.skips = s.skips
       .map((x) => ({ stage: cleanText(x?.stage || ""), at: Number(x?.at || 0) }))
       .filter((x) => x.stage);
   }
 
-  // Defensive: ensure buckets exist for each main idea
   for (let i = 0; i < base.frame.mainIdeas.length; i++) {
     if (!Array.isArray(base.frame.details[i])) base.frame.details[i] = [];
   }
@@ -572,7 +555,6 @@ function isFrameComplete(s) {
   if (!s.frame.isAbout) return false;
   if (!Array.isArray(s.frame.mainIdeas) || s.frame.mainIdeas.length < 2) return false;
 
-  // require at least 2 details per main idea
   for (let i = 0; i < s.frame.mainIdeas.length; i++) {
     const arr = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
     if (arr.length < 2) return false;
@@ -654,20 +636,15 @@ function buildExportHtml(s) {
 function computeNextQuestion(state) {
   const s = state;
 
-  // 0) Language switch checkpoint
   if (s.pending?.type === "confirmLanguageSwitch") {
     const candNative = s.pending?.candidateNativeName || s.pending?.candidateName || "that language";
     const candName = s.pending?.candidateName || "that language";
     return `I notice you’re writing in ${candName}. Would you like to continue in ${candNative}? (yes/no)`;
   }
 
-  // 🧩 STUCK (Option B): confirm -> menu -> next action
-  if (s.pending?.type === "stuckConfirm") {
-    return "Sounds like you’re stuck. Want a quick help move? (yes/no)";
-  }
+  if (s.pending?.type === "stuckConfirm") return "Sounds like you’re stuck. Want a quick help move? (yes/no)";
 
   if (s.pending?.type === "stuckMenu") {
-    // IMPORTANT: only ONE question mark in this entire string (enforceSingleQuestion truncates after first '?')
     return (
       "Pick a quick help move: " +
       "1) Check directions  " +
@@ -698,50 +675,35 @@ function computeNextQuestion(state) {
     return `${ack}${nudge} Then answer: ${s.pending.resumeQuestion}`;
   }
 
-  if (s.pending?.type === "stuckMini") {
-    return s.pending.miniQuestion || buildMiniQuestion(s);
-  }
+  if (s.pending?.type === "stuckMini") return s.pending.miniQuestion || buildMiniQuestion(s);
 
-  if (s.pending?.type === "stuckSkip") {
-    return "Got it — we’ll come back to this. Want to try the next step now? (yes/no)";
-  }
+  if (s.pending?.type === "stuckSkip") return "Got it — we’ll come back to this. Want to try the next step now? (yes/no)";
 
-  // 🔒 Is About confirmation checkpoint
   if (s.pending?.type === "confirmIsAbout") {
     return `"${s.frame.keyTopic}" is about "${s.frame.isAbout}". Is that correct, or would you like to revise it?`;
   }
 
-  // 🔒 Main Ideas confirmation checkpoint
   if (s.pending?.type === "confirmMainIdeas") {
     const lines = (s.frame.mainIdeas || []).map((mi, i) => `${i + 1}) ${mi}`).join("\n");
     return `You have identified the following Main Ideas:\n${lines}\nIs that correct, or would you like to revise one?`;
   }
 
-  // 🧠 Offer optional 3rd main idea
-  if (s.pending?.type === "offerThirdMainIdea") {
-    return "Do you have a third Main Idea? (yes/no)";
-  }
+  if (s.pending?.type === "offerThirdMainIdea") return "Do you have a third Main Idea? (yes/no)";
 
-  // 🧠 Collect the 3rd main idea
-  if (s.pending?.type === "collectThirdMainIdea") {
-    return `What is your third Main Idea that helps explain ${s.frame.keyTopic}?`;
-  }
+  if (s.pending?.type === "collectThirdMainIdea") return `What is your third Main Idea that helps explain ${s.frame.keyTopic}?`;
 
-  // 🧠 Offer optional 3rd supporting detail for a specific main idea
   if (s.pending?.type === "offerThirdDetail") {
     const i = Number(s.pending.index);
     const mi = s.frame.mainIdeas?.[i] || "";
     return `For this Main Idea: "${mi}", do you have a third Supporting Detail? (yes/no)`;
   }
 
-  // 🧠 Collect optional 3rd supporting detail for a specific main idea
   if (s.pending?.type === "collectThirdDetail") {
     const i = Number(s.pending.index);
     const mi = s.frame.mainIdeas?.[i] || "";
     return `What is your third Supporting Detail for this Main Idea: "${mi}"?`;
   }
 
-  // 🔒 Details confirmation checkpoint for a specific main idea
   if (s.pending?.type === "confirmDetails") {
     const i = Number(s.pending.index);
     const mi = s.frame.mainIdeas?.[i] || "";
@@ -750,30 +712,11 @@ function computeNextQuestion(state) {
     return `For this Main Idea: "${mi}", you identified the following Supporting Details:\n${lines}\nIs that correct, or would you like to revise one?`;
   }
 
-  // 🧠 Offer optional extra So What sentence
-  if (s.pending?.type === "offerMoreSoWhat") {
-    return `Do you want to add one more sentence to your So What? (yes/no)`;
-  }
-
-  // 🧠 Collect optional extra So What sentence
-  if (s.pending?.type === "collectMoreSoWhat") {
-    return `Add one more sentence to your So What:`;
-  }
-
-  // 🔒 So What confirmation checkpoint
-  if (s.pending?.type === "confirmSoWhat") {
-    return `Your So What is: "${s.frame.soWhat}". Is that correct, or would you like to revise it?`;
-  }
-
-  // 🖨️ Export offer checkpoint (after frame complete)
-  if (s.pending?.type === "offerExport") {
-    return "Would you like to save or print a copy of your work? (yes/no)";
-  }
-
-  // 🖨️ Export choice checkpoint
-  if (s.pending?.type === "chooseExportType") {
-    return "What would you like to save/print: frame, transcript, or both? (frame/transcript/both)";
-  }
+  if (s.pending?.type === "offerMoreSoWhat") return `Do you want to add one more sentence to your So What? (yes/no)`;
+  if (s.pending?.type === "collectMoreSoWhat") return `Add one more sentence to your So What:`;
+  if (s.pending?.type === "confirmSoWhat") return `Your So What is: "${s.frame.soWhat}". Is that correct, or would you like to revise it?`;
+  if (s.pending?.type === "offerExport") return "Would you like to save or print a copy of your work? (yes/no)";
+  if (s.pending?.type === "chooseExportType") return "What would you like to save/print: frame, transcript, or both? (frame/transcript/both)";
 
   // Base progression
   if (!s.frameMeta?.purpose) {
@@ -781,7 +724,6 @@ function computeNextQuestion(state) {
   }
 
   if (!s.frameMeta?.frameType) {
-    // IMPORTANT: only ONE question mark in this entire string (enforceSingleQuestion truncates after first '?')
     return (
       "What kind of thinking are you doing: " +
       "1) Explain how/why something happens (Linear & Cause-and-Effect Relationships)  " +
@@ -791,10 +733,7 @@ function computeNextQuestion(state) {
     );
   }
 
-
-  if (!s.frame.keyTopic) {
-    return "What is your Key Topic? (2–5 words)";
-  }
+  if (!s.frame.keyTopic) return "What is your Key Topic? (2–5 words)";
 
   if (!s.frame.isAbout) {
     const pb = getPromptForStage(s, "isAbout");
@@ -809,11 +748,12 @@ function computeNextQuestion(state) {
       : `What is your second Main Idea that helps explain ${s.frame.keyTopic}?`;
   }
 
-  // Details per main idea (granular: first/second)
   for (let i = 0; i < s.frame.mainIdeas.length; i++) {
     const mi = s.frame.mainIdeas[i];
     const arr = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
     if (arr.length < 2) {
+      const pb = getPromptForStage(s, `details:${i}`);
+      if (pb) return pb;
       return arr.length === 0
         ? `What is your first Supporting Detail for this Main Idea: "${mi}"?`
         : `What is your second Supporting Detail for this Main Idea: "${mi}"?`;
@@ -854,8 +794,9 @@ function updateStateFromStudent(state, message) {
   const s = structuredClone(state);
   ensureBuckets(s);
 
-  // 0) Purpose capture (before everything else, but after protected pending)
   if (!s.frameMeta) s.frameMeta = { purpose: "", frameType: "" };
+
+  // Purpose capture
   if (!s.frameMeta.purpose && !(s.pending && s.pending.type)) {
     const p = normalizePurpose(msg);
     if (p) {
@@ -864,8 +805,7 @@ function updateStateFromStudent(state, message) {
     }
   }
 
-  
-  // 0b) Frame type selection (thinking pattern) — after purpose, before progression
+  // Frame type selection (thinking pattern)
   if (s.frameMeta?.purpose && !s.frameMeta.frameType && !(s.pending && s.pending.type)) {
     const ft = normalizeFrameTypeSelection(msg);
     if (ft) {
@@ -874,13 +814,13 @@ function updateStateFromStudent(state, message) {
     }
   }
 
-// 0) Pending handlers first
+  // ----------------
+  // Pending handlers
+  // ----------------
 
-  // confirmLanguageSwitch
   if (s.pending?.type === "confirmLanguageSwitch") {
     const normalized = msg.toLowerCase().trim();
 
-    // Fast path (English yes/no)
     if (isAffirmative(normalized)) {
       s.settings.language = s.pending.candidateCode || "en";
       s.settings.languageName = s.pending.candidateName || s.settings.languageName;
@@ -899,12 +839,10 @@ function updateStateFromStudent(state, message) {
       s.pending = null;
       return s;
     }
-
-    // If they answered in their language, hold (handler will do LLM yes/no in the main handler)
     return s;
   }
 
-  // 🧩 STUCK CONFIRM (Option B) — FIXED (carry forward ONLY)
+  // STUCK flow (unchanged)
   if (s.pending?.type === "stuckConfirm") {
     const low = msg.toLowerCase().trim();
     if (isAffirmative(low)) {
@@ -912,7 +850,7 @@ function updateStateFromStudent(state, message) {
         type: "stuckMenu",
         stage: s.pending.stage || getStage(s),
         tone: s.pending.tone || "neutral",
-        resumeQuestion: s.pending.resumeQuestion, // ✅ carry forward only
+        resumeQuestion: s.pending.resumeQuestion,
         miniQuestion: s.pending.miniQuestion || buildMiniQuestion(s),
       };
       return s;
@@ -924,29 +862,18 @@ function updateStateFromStudent(state, message) {
     return s;
   }
 
-  // 🧩 STUCK MENU — FIXED (never recompute resumeQuestion)
   if (s.pending?.type === "stuckMenu") {
     const choice = normalizeStuckChoice(msg);
     if (!choice) return s;
 
     if (choice === "1") {
-      s.pending = {
-        type: "stuckReask",
-        mode: "directions",
-        resumeQuestion: s.pending.resumeQuestion,
-      };
+      s.pending = { type: "stuckReask", mode: "directions", resumeQuestion: s.pending.resumeQuestion };
       return s;
     }
-
     if (choice === "2") {
-      s.pending = {
-        type: "stuckReask",
-        mode: "reread",
-        resumeQuestion: s.pending.resumeQuestion,
-      };
+      s.pending = { type: "stuckReask", mode: "reread", resumeQuestion: s.pending.resumeQuestion };
       return s;
     }
-
     if (choice === "3") {
       const stage = s.pending.stage || getStage(s);
       const nudges = buildStuckNudges(s, stage);
@@ -960,7 +887,6 @@ function updateStateFromStudent(state, message) {
       };
       return s;
     }
-
     if (choice === "4") {
       if (!Array.isArray(s.skips)) s.skips = [];
       s.skips.push({ stage: s.pending.stage || getStage(s), at: Date.now() });
@@ -973,22 +899,17 @@ function updateStateFromStudent(state, message) {
       };
       return s;
     }
-
     return s;
   }
 
-  // stuckReask: clear pending and treat this message as the actual answer
   if (s.pending?.type === "stuckReask") {
     s.pending = null;
-    // fall through to normal processing
+    // fall through
   }
 
-  // 🧩 stuckSkip — FIXED (compiles + no loop + carry forward only)
   if (s.pending?.type === "stuckSkip") {
     const low = msg.toLowerCase().trim();
-
     if (isAffirmative(low)) {
-      // Move them forward with a smaller question
       s.pending = {
         type: "stuckMini",
         stage: s.pending.stage || getStage(s),
@@ -997,9 +918,7 @@ function updateStateFromStudent(state, message) {
       };
       return s;
     }
-
     if (isNegative(low)) {
-      // Go back to confirm
       s.pending = {
         type: "stuckConfirm",
         stage: s.pending.stage || getStage(s),
@@ -1008,13 +927,25 @@ function updateStateFromStudent(state, message) {
       };
       return s;
     }
-
     return s;
   }
 
-  // stuckMini: apply answer into the current stage if possible, then resume
   if (s.pending?.type === "stuckMini") {
     const stage = s.pending.stage || getStage(s);
+
+    if (stage === "purpose") {
+      const p = normalizePurpose(msg);
+      if (p) s.frameMeta.purpose = p;
+      s.pending = null;
+      return s;
+    }
+
+    if (stage === "frameType") {
+      const ft = normalizeFrameTypeSelection(msg);
+      if (ft) s.frameMeta.frameType = ft;
+      s.pending = null;
+      return s;
+    }
 
     if (stage === "keyTopic") {
       const wc = msg.split(/\s+/).filter(Boolean).length;
@@ -1074,48 +1005,40 @@ function updateStateFromStudent(state, message) {
       return s;
     }
 
-    // refine: just clear and resume
     s.pending = null;
     return s;
   }
 
-  // confirmIsAbout
   if (s.pending?.type === "confirmIsAbout") {
     const normalized = msg.toLowerCase().trim();
     if (isAffirmative(normalized)) {
       s.pending = null;
       return s;
     }
-    // anything else is treated as revised Is About
     s.frame.isAbout = msg;
     s.pending = null;
     return s;
   }
 
-  // confirmMainIdeas
   if (s.pending?.type === "confirmMainIdeas") {
     const normalized = msg.toLowerCase().trim();
     if (isAffirmative(normalized)) {
       s.pending = null;
       return s;
     }
-    // Hold here for now (revision routing later)
     return s;
   }
 
-  // offerThirdMainIdea
   if (s.pending?.type === "offerThirdMainIdea") {
     const normalized = msg.toLowerCase().trim();
     if (isAffirmative(normalized)) {
       s.pending = { type: "collectThirdMainIdea" };
       return s;
     }
-    // No → confirm main ideas next
     s.pending = { type: "confirmMainIdeas" };
     return s;
   }
 
-  // collectThirdMainIdea
   if (s.pending?.type === "collectThirdMainIdea") {
     if (!isNegative(msg)) {
       s.frame.mainIdeas.push(msg);
@@ -1123,12 +1046,10 @@ function updateStateFromStudent(state, message) {
         s.frame.details[s.frame.mainIdeas.length - 1] = [];
       }
     }
-    // After MI #3, confirm main ideas
     s.pending = { type: "confirmMainIdeas" };
     return s;
   }
 
-  // offerThirdDetail
   if (s.pending?.type === "offerThirdDetail") {
     const normalized = msg.toLowerCase().trim();
     const idx = Number(s.pending.index);
@@ -1137,64 +1058,49 @@ function updateStateFromStudent(state, message) {
       s.pending = { type: "collectThirdDetail", index: idx };
       return s;
     }
-
-    // No → confirm details for this main idea
     s.pending = { type: "confirmDetails", index: idx };
     return s;
   }
 
-  // collectThirdDetail
   if (s.pending?.type === "collectThirdDetail") {
     const idx = Number(s.pending.index);
     if (!Array.isArray(s.frame.details[idx])) s.frame.details[idx] = [];
-    if (!isNegative(msg)) {
-      s.frame.details[idx] = [...s.frame.details[idx], msg];
-    }
-    // After collecting third, confirm details for this main idea
+    if (!isNegative(msg)) s.frame.details[idx] = [...s.frame.details[idx], msg];
     s.pending = { type: "confirmDetails", index: idx };
     return s;
   }
 
-  // confirmDetails
   if (s.pending?.type === "confirmDetails") {
     const normalized = msg.toLowerCase().trim();
     if (isAffirmative(normalized)) {
       s.pending = null;
       return s;
     }
-    // Hold here for now (revision routing later)
     return s;
   }
 
-  // offerMoreSoWhat
   if (s.pending?.type === "offerMoreSoWhat") {
     const normalized = msg.toLowerCase().trim();
     if (isAffirmative(normalized)) {
       s.pending = { type: "collectMoreSoWhat" };
       return s;
     }
-    // No → confirm So What next
     s.pending = { type: "confirmSoWhat" };
     return s;
   }
 
-  // collectMoreSoWhat
   if (s.pending?.type === "collectMoreSoWhat") {
-    if (!isNegative(msg)) {
-      s.frame.soWhat = cleanText(`${s.frame.soWhat} ${msg}`);
-    }
+    if (!isNegative(msg)) s.frame.soWhat = cleanText(`${s.frame.soWhat} ${msg}`);
     s.pending = { type: "confirmSoWhat" };
     return s;
   }
 
-  // confirmSoWhat
   if (s.pending?.type === "confirmSoWhat") {
     const normalized = msg.toLowerCase().trim();
 
     if (isAffirmative(normalized)) {
       s.pending = null;
 
-      // After So What is confirmed, offer export once (printing/save)
       if (isFrameComplete(s) && !s.flags.exportOffered) {
         s.flags.exportOffered = true;
         s.pending = { type: "offerExport" };
@@ -1202,27 +1108,21 @@ function updateStateFromStudent(state, message) {
       return s;
     }
 
-    // otherwise treat as revised So What
     s.frame.soWhat = msg;
     s.pending = null;
     return s;
   }
 
-  // offerExport
   if (s.pending?.type === "offerExport") {
     const normalized = msg.toLowerCase().trim();
-
     if (isAffirmative(normalized)) {
       s.pending = { type: "chooseExportType" };
       return s;
     }
-
-    // No → proceed to refine prompt
     s.pending = null;
     return s;
   }
 
-  // chooseExportType
   if (s.pending?.type === "chooseExportType") {
     const normalized = msg.toLowerCase().trim();
     const choice =
@@ -1236,6 +1136,10 @@ function updateStateFromStudent(state, message) {
     return s;
   }
 
+  // ----------------
+  // Normal capture
+  // ----------------
+
   // 1) Extraction rule: "X is about Y"
   const parsed = parseKeyTopicIsAbout(msg);
   if (parsed) {
@@ -1245,14 +1149,15 @@ function updateStateFromStudent(state, message) {
     return s;
   }
 
-  // 2) Key Topic capture (plain 2–5 words)
+  // 2) Key Topic capture (plain 2–5 words) — ✅ FIX: RETURN after capturing
   if (!s.frame.keyTopic) {
     const wc = msg.split(/\s+/).filter(Boolean).length;
     if (!isBadKeyTopic(msg) && wc >= 2 && wc <= 5) {
       s.frame.keyTopic = msg;
+      return s; // ✅ do NOT also treat this message as Is About
     }
+    return s;
   }
-  if (!s.frame.keyTopic) return s;
 
   // 3) Is About capture (plain sentence/phrase) + checkpoint
   if (!s.frame.isAbout) {
@@ -1264,7 +1169,7 @@ function updateStateFromStudent(state, message) {
     return s;
   }
 
-  // 4) Main Ideas capture (need 2 then offer optional 3rd)
+  // 4) Main Ideas capture
   if (s.frame.mainIdeas.length < 2) {
     if (!isNegative(msg)) {
       s.frame.mainIdeas.push(msg);
@@ -1278,24 +1183,20 @@ function updateStateFromStudent(state, message) {
     return s;
   }
 
-  // 5) Details capture (per main idea: 2 required, optional 3rd + confirm)
+  // 5) Details capture
   for (let i = 0; i < s.frame.mainIdeas.length; i++) {
     const arr = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
     if (arr.length < 2) {
-      if (!isNegative(msg)) {
-        s.frame.details[i] = [...arr, msg];
-      }
+      if (!isNegative(msg)) s.frame.details[i] = [...arr, msg];
 
-      // After we just collected the 2nd detail, offer optional 3rd
       const updated = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
-      if (updated.length === 2) {
-        s.pending = { type: "offerThirdDetail", index: i };
-      }
+      if (updated.length === 2) s.pending = { type: "offerThirdDetail", index: i };
+
       return s;
     }
   }
 
-  // 6) So What capture + offer optional extra sentence
+  // 6) So What capture
   if (!s.frame.soWhat) {
     if (!isNegative(msg)) {
       s.frame.soWhat = msg;
@@ -1320,7 +1221,6 @@ export default async function handler(req, res) {
     const body = req.body && typeof req.body === "object" ? req.body : {};
     const message = cleanText(body.message || "");
 
-    // Incoming SSOT state
     let state = normalizeIncomingState(body.state || body.vercelState || body.framing || {});
 
     // Safety
@@ -1330,7 +1230,6 @@ export default async function handler(req, res) {
         const reply = SAFETY_RESPONSES[safety.category] || SAFETY_RESPONSES.default;
         const out = enforceSingleQuestion(reply);
 
-        // transcript
         appendTurn(state, "Student", message);
         appendTurn(state, "Kaw", out);
 
@@ -1338,11 +1237,10 @@ export default async function handler(req, res) {
       }
     }
 
-    // 1) If language not locked and no language-switch pending, detect and ask
+    // Language detect (only if not locked and not already pending)
     if (message && !state.settings.languageLocked && state.pending?.type !== "confirmLanguageSwitch") {
       const detected = await detectLanguageViaLLM(message);
       if (detected && detected.code && detected.code !== "en") {
-        // Set pending language switch
         state.pending = {
           type: "confirmLanguageSwitch",
           candidateCode: detected.code,
@@ -1361,23 +1259,19 @@ export default async function handler(req, res) {
       }
     }
 
-    // 2) If we are in confirmLanguageSwitch and they replied (maybe in their language), classify yes/no
+    // ConfirmLanguageSwitch handling
     if (state.pending?.type === "confirmLanguageSwitch" && message) {
       const low = message.toLowerCase().trim();
       let proceedState = state;
 
       if (!isAffirmative(low) && !isNegative(low)) {
         const yn = await classifyYesNoViaLLM(message);
-        if (yn === "yes") {
-          proceedState = updateStateFromStudent(state, "yes");
-        } else if (yn === "no") {
-          proceedState = updateStateFromStudent(state, "no");
-        } else {
-          // Ask again (single question)
+        if (yn === "yes") proceedState = updateStateFromStudent(state, "yes");
+        else if (yn === "no") proceedState = updateStateFromStudent(state, "no");
+        else {
           const q = computeNextQuestion(state);
           let reply = enforceSingleQuestion(q);
 
-          // If candidate language is known, translate the question so they understand
           const candName = state.pending?.candidateName || "English";
           if ((state.pending?.candidateCode || "") !== "en") {
             reply = await translateQuestionViaLLM(reply, candName);
@@ -1394,7 +1288,7 @@ export default async function handler(req, res) {
 
       state = proceedState;
     } else if (message) {
-      // 🧩 STUCK DETECTOR (global interrupt) — do not interrupt language switch flow
+      // STUCK detector (global interrupt) — do not interrupt protected pending flows
       const pendingType = state.pending?.type || null;
       const inProtectedPending =
         pendingType === "confirmLanguageSwitch" ||
@@ -1408,7 +1302,6 @@ export default async function handler(req, res) {
         const stage = getStage(state);
         const resumeQuestion = enforceSingleQuestion(computeNextQuestion(state));
 
-        // Option B: first confirm (store resumeQuestion ONCE)
         state.pending = {
           type: "stuckConfirm",
           stage,
@@ -1419,18 +1312,13 @@ export default async function handler(req, res) {
 
         let reply = enforceSingleQuestion(computeNextQuestion(state));
 
-        // Respect language if locked
         if (state.settings.languageLocked && state.settings.language !== "en") {
-          reply = await translateQuestionViaLLM(
-            reply,
-            state.settings.languageName || "the target language"
-          );
+          reply = await translateQuestionViaLLM(reply, state.settings.languageName || "the target language");
         }
 
         appendTurn(state, "Student", message);
         appendTurn(state, "Kaw", reply);
 
-        // exports
         if (isFrameComplete(state)) {
           const frameText = buildFrameText(state);
           const transcriptText = buildTranscriptText(state);
@@ -1443,29 +1331,23 @@ export default async function handler(req, res) {
         return res.status(200).json({ reply, state });
       }
 
-      // Normal state update
       state = updateStateFromStudent(state, message);
     }
 
-    // 3) Compute deterministic next question
     let nextQ = computeNextQuestion(state);
     let reply = enforceSingleQuestion(nextQ);
 
-    // 4) If language locked and not English, translate the reply question
     if (state.settings.languageLocked && state.settings.language !== "en") {
       reply = await translateQuestionViaLLM(reply, state.settings.languageName || "the target language");
     }
 
-    // 5) Transcript append
     if (message) appendTurn(state, "Student", message);
     appendTurn(state, "Kaw", reply);
 
-    // 6) Build exports when frame complete (always available for UI buttons)
     if (isFrameComplete(state)) {
       const frameText = buildFrameText(state);
       const transcriptText = buildTranscriptText(state);
       const html = buildExportHtml(state);
-
       state.exports = { frameText, transcriptText, html };
     } else {
       state.exports = null;
