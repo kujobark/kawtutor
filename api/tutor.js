@@ -727,22 +727,32 @@ function computeNextQuestion(state) {
   if (s.pending?.type === "confirmSoWhat") return `Your So What is: "${s.frame.soWhat}". Is that correct, or would you like to revise it?`;
 
   // Base progression
-if (!s.frameMeta?.frameType) {
-  return (
-    "What kind of thinking are you doing? Choose one:\n\n" +
-    "1) Explain how or why something happens\n" +
-    "   (Cause & Effect Frame)\n\n" +
-    "2) Explain a big idea or theme\n" +
-    "   (Theme Frame)\n\n" +
-    "3) Organize ideas from a text or source\n" +
-    "   (Reading Frame)\n\n" +
-    "4) Organize my thinking\n" +
-    "   (General Frame)\n\n" +
-    "Which number (1–4)?"
-  );
-}
+  if (!s.frameMeta?.purpose) {
+    return (
+      "How will you use this Frame? Choose one:\n\n" +
+      "1) Study / review\n" +
+      "2) Write / create\n" +
+      "3) Read / take notes from a text or source\n\n" +
+      "Which number (1–3)?"
+    );
+  }
 
-  // Key Topic
+  if (!s.frameMeta?.frameType) {
+    return (
+      "What kind of thinking are you doing? Choose one:\n\n" +
+      "1) Explain how or why something happens\n" +
+      "   (Cause & Effect Frame)\n\n" +
+      "2) Explain a big idea or theme\n" +
+      "   (Theme Frame)\n\n" +
+      "3) Organize ideas from a text or source\n" +
+      "   (Reading Frame)\n\n" +
+      "4) Organize my thinking\n" +
+      "   (General Frame)\n\n" +
+      "Which number (1–4)?"
+    );
+  }
+
+// Key Topic
   if (!s.frame.keyTopic) {
     if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
       return "What event, issue, or situation are you writing about? (2–5 words)";
@@ -1325,6 +1335,3 @@ export default async function handler(req, res) {
     });
   }
 }
-
-
-
