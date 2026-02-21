@@ -131,6 +131,36 @@ function looksLikeEvidence(text) {
   return false;
 }
 
+
+// Parse which numbered item the student wants to revise (1..max).
+// Accepts: "2", "revise 2", "revise #2", "change 1", "main idea 1", "detail 2 is wrong", "second one", etc.
+function parseRevisionIndex(text, max) {
+  const t = cleanText(text).toLowerCase();
+  if (!t || !max || max < 1) return null;
+
+  // Ordinal words
+  const ordMap = { first: 1, 1st: 1, second: 2, 2nd: 2, third: 3, 3rd: 3, fourth: 4, 4th: 4 };
+  for (const [k, v] of Object.entries(ordMap)) {
+    if (t.includes(k) && v <= max) return v;
+  }
+
+  // Any standalone digits
+  const nums = t.match(/\b\d+\b/g) || [];
+  for (const n of nums) {
+    const v = Number(n);
+    if (Number.isFinite(v) && v >= 1 && v <= max) return v;
+  }
+
+  return null;
+}
+
+function indicatesRevisionIntent(text) {
+  const t = cleanText(text).toLowerCase();
+  if (!t) return false;
+  const signals = ["revise", "change", "fix", "replace", "edit", "not a main idea", "not a detail", "wrong", "isn't", "isnt"];
+  return signals.some((p) => t.includes(p));
+}
+
 // Parse pattern: "X is about Y"
 function parseKeyTopicIsAbout(msg) {
   const m = cleanText(msg);
@@ -629,6 +659,27 @@ function computeNextQuestion(state) {
     return "What is the broader cause that this evidence supports?";
   }
 
+  // Revision workflows (deterministic)
+  if (s.pending?.type === "clarifyMainIdeaToRevise") {
+    const max = Array.isArray(s.frame.mainIdeas) ? s.frame.mainIdeas.length : 2;
+    return `Which Main Idea do you want to revise (1–${max})?`;
+  }
+  if (s.pending?.type === "collectMainIdeaRevision") {
+    const n = Number(s.pending.index) + 1;
+    return `What should Main Idea ${n} be instead?`;
+  }
+
+  if (s.pending?.type === "clarifyDetailToRevise") {
+    const i = Number(s.pending.index);
+    const arr = Array.isArray(s.frame.details?.[i]) ? s.frame.details[i] : [];
+    const max = Math.max(arr.length, 2);
+    return `Which Supporting Detail do you want to revise (1–${max})?`;
+  }
+  if (s.pending?.type === "collectDetailRevision") {
+    const n = Number(s.pending.detailIndex) + 1;
+    return `What should Supporting Detail ${n} be instead?`;
+  }
+
   // Language switch pending
   if (s.pending?.type === "confirmLanguageSwitch") {
     const candNative = s.pending?.candidateNativeName || s.pending?.candidateName || "that language";
@@ -798,6 +849,72 @@ function updateStateFromStudent(state, message) {
     return s;
   }
 
+  // ------
+  // Revision workflows (deterministic)
+  // ------
+
+  if (s.pending?.type === "clarifyMainIdeaToRevise") {
+    const max = Array.isArray(s.frame.mainIdeas) ? s.frame.mainIdeas.length : 2;
+    const idx = parseRevisionIndex(msg, max);
+    if (idx) {
+      s.pending = { type: "collectMainIdeaRevision", index: idx - 1 };
+      return s;
+    }
+    return s;
+  }
+
+  if (s.pending?.type === "collectMainIdeaRevision") {
+    const i = Number(s.pending.index);
+    if (!Number.isFinite(i) || i < 0 || i >= s.frame.mainIdeas.length) {
+      s.pending = { type: "confirmMainIdeas" };
+      return s;
+    }
+    const updated = cleanText(msg);
+    if (updated && !isNegative(updated)) {
+      s.frame.mainIdeas[i] = updated;
+      if (!Array.isArray(s.frame.details[i])) s.frame.details[i] = [];
+    }
+    s.pending = { type: "confirmMainIdeas" };
+    return s;
+  }
+
+  if (s.pending?.type === "clarifyDetailToRevise") {
+    const miIndex = Number(s.pending.index);
+    const arr = Array.isArray(s.frame.details?.[miIndex]) ? s.frame.details[miIndex] : [];
+    const max = Math.max(arr.length, 2);
+    const idx = parseRevisionIndex(msg, max);
+    if (idx) {
+      s.pending = { type: "collectDetailRevision", index: miIndex, detailIndex: idx - 1 };
+      return s;
+    }
+    return s;
+  }
+
+  if (s.pending?.type === "collectDetailRevision") {
+    const miIndex = Number(s.pending.index);
+    const dIndex = Number(s.pending.detailIndex);
+    if (!Array.isArray(s.frame.details?.[miIndex])) s.frame.details[miIndex] = [];
+    const arr = s.frame.details[miIndex];
+    const max = Math.max(arr.length, 2);
+
+    if (!Number.isFinite(dIndex) || dIndex < 0 || dIndex >= max) {
+      s.pending = { type: "confirmDetails", index: miIndex };
+      return s;
+    }
+
+    const updated = cleanText(msg);
+    if (updated && !isNegative(updated)) {
+      // If detail slot doesn't exist yet (should be rare), pad deterministically.
+      while (arr.length <= dIndex) arr.push("");
+      arr[dIndex] = updated;
+      s.frame.details[miIndex] = arr.map(cleanText);
+    }
+
+    s.pending = { type: "confirmDetails", index: miIndex };
+    return s;
+  }
+
+
   // Purpose capture
   if (!s.frameMeta.purpose && !(s.pending && s.pending.type)) {
     const p = normalizePurpose(msg);
@@ -889,6 +1006,20 @@ function updateStateFromStudent(state, message) {
       s.pending = null;
       return s;
     }
+
+    const max = Array.isArray(s.frame.mainIdeas) ? s.frame.mainIdeas.length : 2;
+    const idx = parseRevisionIndex(msg, max);
+
+    if (idx) {
+      s.pending = { type: "collectMainIdeaRevision", index: idx - 1 };
+      return s;
+    }
+
+    if (indicatesRevisionIntent(msg)) {
+      s.pending = { type: "clarifyMainIdeaToRevise" };
+      return s;
+    }
+
     return s;
   }
 
@@ -913,10 +1044,26 @@ function updateStateFromStudent(state, message) {
 
   if (s.pending?.type === "confirmDetails") {
     const normalized = msg.toLowerCase().trim();
+    const i = Number(s.pending.index);
     if (isAffirmative(normalized)) {
       s.pending = null;
       return s;
     }
+
+    const arr = Array.isArray(s.frame.details?.[i]) ? s.frame.details[i] : [];
+    const max = Math.max(arr.length, 2);
+    const idx = parseRevisionIndex(msg, max);
+
+    if (idx) {
+      s.pending = { type: "collectDetailRevision", index: i, detailIndex: idx - 1 };
+      return s;
+    }
+
+    if (indicatesRevisionIntent(msg)) {
+      s.pending = { type: "clarifyDetailToRevise", index: i };
+      return s;
+    }
+
     return s;
   }
 
