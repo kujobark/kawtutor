@@ -1350,17 +1350,20 @@ export default async function handler(req, res) {
     state.lastStudentMessage = message;
 
     // Safety
-    if (message) {
-      const safety = await classifyMessage(message);
-      if (safety?.blocked) {
-        const reply = enforceSingleQuestion(SAFETY_RESPONSES[safety.category] || SAFETY_RESPONSES.default);
+if (message) {
+  const safety = classifyMessage(message);
 
-        appendTurn(state, "Student", message);
-        appendTurn(state, "Kaw", reply);
+  if (safety?.flagged) {
+    const reply = enforceSingleQuestion(
+      SAFETY_RESPONSES[safety.flagCategory] || SAFETY_RESPONSES.default
+    );
 
-        return res.status(200).json({ reply, state });
-      }
-    }
+    appendTurn(state, "Student", message);
+    appendTurn(state, "Kaw", reply);
+
+    return res.status(200).json({ reply, state });
+  }
+}
 
     // Language detect (only if not locked and not already pending)
     if (message && !state.settings.languageLocked && state.pending?.type !== "confirmLanguageSwitch") {
