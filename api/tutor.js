@@ -117,6 +117,35 @@ function parseKeyTopicIsAbout(msg) {
   return { keyTopic, isAbout };
 }
 
+// Deterministic parser for Cause & Effect Writing "This topic is about how ___ leads to ___"
+function parseCauseEffectLeadsTo(isAboutRaw) {
+  const t0 = cleanText(isAboutRaw);
+  if (!t0) return null;
+
+  // Normalize common lead-in
+  let t = t0;
+  const low = t.toLowerCase();
+
+  // Strip common prefix if present
+  const prefix = "this topic is about how ";
+  if (low.startsWith(prefix)) {
+    t = cleanText(t.slice(prefix.length));
+  }
+
+  // Must include "leads to"
+  const idx = t.toLowerCase().indexOf(" leads to ");
+  if (idx < 0) return null;
+
+  const cause = cleanText(t.slice(0, idx));
+  const effect = cleanText(t.slice(idx + " leads to ".length));
+
+  if (!cause || !effect) return null;
+
+  // Light guard against ultra-vague effect
+  // (we still allow it, but it will help stuck nudges / specificity later)
+  return { cause, effect };
+}
+
 // ---------------------
 // LANGUAGE HELPERS (LLM)
 // ---------------------
@@ -265,8 +294,17 @@ function fillTopic(template, keyTopic) {
   return (template || "").replaceAll("[Key Topic]", keyTopic || "your topic");
 }
 
+function safeEffectFromState(state) {
+  const eff = cleanText(state?.frameMeta?.causeEffect?.effect || "");
+  return eff || "the effect";
+}
+
+function safeKeyTopic(state) {
+  return cleanText(state?.frame?.keyTopic || "") || "your topic";
+}
+
 const PROMPT_BANK = {
-  // Phase 1 vertical slice: Studying/Review + Linear & Cause-and-Effect
+  // Studying/Review + Linear & Cause-and-Effect
   study: {
     causeEffect: {
       isAbout: 'In your own words, what is happening in "[Key Topic]", and why is it important?',
@@ -275,9 +313,29 @@ const PROMPT_BANK = {
       soWhat: 'When you look at all of these causes and effects together, what can you conclude about "[Key Topic]"?'
     },
   },
+
+  // Writing/Creating + Linear & Cause-and-Effect
+  // KU-aligned frame stages preserved. Details buckets are used as:
+  // - Detail 1: Explanation (logic link)
+  // - Detail 2: Evidence/Example (support)
+  write: {
+    causeEffect: {
+      // Stage: Is About
+      isAbout: "Complete this sentence: This topic is about how ______ leads to ______.",
+      // Stage: Main Ideas (2 required)
+      // We'll add specificity in computeNextQuestion for ordinal & effect.
+      mainIdea: "What is the first major cause that leads to [EFFECT]?",
+      // Stage: Supporting Details (per main idea)
+      // We pick which one based on detail count (0 => explanation, 1 => evidence).
+      detailExplain: "How does [MAIN IDEA] lead to [EFFECT]?",
+      detailEvidence: "What evidence or example will you use to support the idea that [MAIN IDEA] leads to [EFFECT]?",
+      // Stage: So What
+      soWhat: "Why should people care about this effect?"
+    }
+  },
 };
 
-function getPromptForStage(state, stage) {
+function getPromptForStage(state, stage, opts = {}) {
   const purpose = state.frameMeta?.purpose || "";
   const frameType = state.frameMeta?.frameType || "";
   const kt = state.frame?.keyTopic || "";
@@ -293,6 +351,24 @@ function getPromptForStage(state, stage) {
   }
 
   if (stage.startsWith("details:")) {
+    // For Writing + CauseEffect, select explain/evidence prompt deterministically based on detail count.
+    if (purpose === "write" && frameType === "causeEffect") {
+      const idx = Number(stage.split(":")[1]);
+      const mi = state.frame.mainIdeas?.[idx] || "this Main Idea";
+      const arr = Array.isArray(state.frame.details?.[idx]) ? state.frame.details[idx] : [];
+      const effect = safeEffectFromState(state);
+
+      const tpl = arr.length === 0
+        ? PROMPT_BANK?.write?.causeEffect?.detailExplain
+        : PROMPT_BANK?.write?.causeEffect?.detailEvidence;
+
+      if (tpl) {
+        return tpl
+          .replaceAll("[MAIN IDEA]", mi)
+          .replaceAll("[EFFECT]", effect);
+      }
+    }
+
     const q = PROMPT_BANK?.[purpose]?.[frameType]?.detail;
     if (q) return q;
   }
@@ -309,6 +385,62 @@ function buildStuckNudges(state, stage) {
   const purpose = state.frameMeta?.purpose || "";
   const frameType = state.frameMeta?.frameType || "";
 
+  // Purpose+Stage specific (Writing + CauseEffect)
+  if (purpose === "write" && frameType === "causeEffect") {
+    const effect = safeEffectFromState(state);
+
+    if (stage === "keyTopic") {
+      return [
+        "Name a specific event, issue, or situation (not a broad category)",
+        "Try adding a little context (who/where/when)",
+        "Make it something you could put in a short title",
+      ];
+    }
+
+    if (stage === "isAbout") {
+      return [
+        "Start with the effect (the outcome) you want to explain",
+        `Then name what causes ${effect}`,
+        'Use the words "leads to" to show direction',
+      ];
+    }
+
+    if (stage === "mainIdeas") {
+      return [
+        `What is one thing that directly contributes to ${effect}`,
+        "Think: policies, choices, conditions, actions, or events",
+        "If you’re unsure, pick the cause you can explain most clearly",
+      ];
+    }
+
+    if (stage.startsWith("details:")) {
+      const idx = Number(stage.split(":")[1]);
+      const mi = state.frame.mainIdeas?.[idx] || "this cause";
+      const arr = Array.isArray(state.frame.details?.[idx]) ? state.frame.details[idx] : [];
+      if (arr.length === 0) {
+        return [
+          `What happens between "${mi}" and "${effect}"`,
+          "Describe the chain in simple steps",
+          "Use: because ___, then ___, which leads to ___",
+        ];
+      }
+      return [
+        "Pick one: a statistic, a real example, a quote, or a quick scenario",
+        `What could you point to that supports "${mi}"`,
+        "Even a classroom or personal example can work",
+      ];
+    }
+
+    if (stage === "soWhat") {
+      return [
+        `What could happen if "${effect}" continues`,
+        "Who is impacted most, and what changes for them",
+        "What is one real-world consequence that makes this urgent",
+      ];
+    }
+  }
+
+  // Existing (Study + CauseEffect)
   if (purpose === "study" && frameType === "causeEffect") {
     if (stage === "mainIdeas") {
       return [
@@ -334,6 +466,7 @@ function buildStuckNudges(state, stage) {
     }
   }
 
+  // Generic fallback
   if (stage === "mainIdeas") return ["Think of one important part", "Think of one reason or cause", "Think of one result or effect"];
   if (stage.startsWith("details:")) return ["Look for one example", "Look for one fact that supports it", "Look for one specific detail"];
   if (stage === "soWhat") return ["What is important here", "Why should someone care", "What does this mean overall"];
@@ -393,15 +526,26 @@ function buildMiniQuestion(state) {
     return "Which one: 1) cause/effect, 2) themes, or 3) reading frames? (1–3)";
   }
 
+  // Writing + CauseEffect: Key Topic mini is still a tight title-style check
   if (stage === "keyTopic") {
+    if (state.frameMeta?.purpose === "write" && state.frameMeta?.frameType === "causeEffect") {
+      return "What event, issue, or situation are you writing about? (2–5 words)";
+    }
     return "If you had to title this in 4 words, what would the title be?";
   }
 
   if (stage === "isAbout") {
+    if (state.frameMeta?.purpose === "write" && state.frameMeta?.frameType === "causeEffect") {
+      return "Complete this sentence: This topic is about how ______ leads to ______.";
+    }
     return "In one rough sentence, what is happening in your topic and why does it matter?";
   }
 
   if (stage === "mainIdeas") {
+    if (state.frameMeta?.purpose === "write" && state.frameMeta?.frameType === "causeEffect") {
+      const effect = safeEffectFromState(state);
+      return `What is one major cause that leads to ${effect}?`;
+    }
     if (state.frameMeta?.purpose === "study" && state.frameMeta?.frameType === "causeEffect") {
       return `What is one major cause or effect related to "${state.frame.keyTopic}"? (Rough is fine.)`;
     }
@@ -411,10 +555,19 @@ function buildMiniQuestion(state) {
   if (stage.startsWith("details:")) {
     const idx = Number(stage.split(":")[1]);
     const mi = state.frame.mainIdeas?.[idx] || "this Main Idea";
+    if (state.frameMeta?.purpose === "write" && state.frameMeta?.frameType === "causeEffect") {
+      const effect = safeEffectFromState(state);
+      const arr = Array.isArray(state.frame.details?.[idx]) ? state.frame.details[idx] : [];
+      if (arr.length === 0) return `How does "${mi}" lead to ${effect}?`;
+      return `What evidence or example will you use to support the idea that "${mi}" leads to ${effect}?`;
+    }
     return `What is one specific example from your text/notes that connects to: "${mi}"?`;
   }
 
   if (stage === "soWhat") {
+    if (state.frameMeta?.purpose === "write" && state.frameMeta?.frameType === "causeEffect") {
+      return "Why should people care about this effect?";
+    }
     if (state.frameMeta?.purpose === "study" && state.frameMeta?.frameType === "causeEffect") {
       return `When you look at the causes and effects together, what can you conclude about "${state.frame.keyTopic}"?`;
     }
@@ -450,6 +603,11 @@ function defaultState() {
     frameMeta: {
       purpose: "",   // study|write|read
       frameType: "", // causeEffect|themes|reading
+      // Optional extracted vars for Cause & Effect specificity (kept deterministic)
+      causeEffect: {
+        cause: "",
+        effect: "",
+      },
     },
     frame: {
       keyTopic: "",
@@ -510,6 +668,11 @@ function normalizeIncomingState(raw) {
   base.frameMeta.purpose = cleanText(frameMeta.purpose || "") || "";
   base.frameMeta.frameType = cleanText(frameMeta.frameType || "") || "";
 
+  // Optional extracted Cause/Effect vars for specificity
+  const ce = frameMeta.causeEffect && typeof frameMeta.causeEffect === "object" ? frameMeta.causeEffect : {};
+  base.frameMeta.causeEffect.cause = cleanText(ce.cause || "");
+  base.frameMeta.causeEffect.effect = cleanText(ce.effect || "");
+
   base.pending = s.pending && typeof s.pending === "object" ? s.pending : null;
 
   const settings = s.settings && typeof s.settings === "object" ? s.settings : {};
@@ -568,6 +731,11 @@ function buildFrameText(s) {
   const lines = [];
   lines.push(`KEY TOPIC: ${s.frame.keyTopic}`);
   lines.push(`IS ABOUT: ${s.frame.isAbout}`);
+
+  // If we have extracted effect, show it (helps Writing exports / clarity)
+  const eff = cleanText(s.frameMeta?.causeEffect?.effect || "");
+  if (eff) lines.push(`EFFECT: ${eff}`);
+
   lines.push("");
   lines.push("MAIN IDEAS + SUPPORTING DETAILS:");
 
@@ -733,14 +901,30 @@ function computeNextQuestion(state) {
     );
   }
 
-  if (!s.frame.keyTopic) return "What is your Key Topic? (2–5 words)";
+  // Purpose-specific Key Topic prompt for Writing + CauseEffect (KU order preserved)
+  if (!s.frame.keyTopic) {
+    if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
+      return "What event, issue, or situation are you writing about? (2–5 words)";
+    }
+    return "What is your Key Topic? (2–5 words)";
+  }
 
+  // Is About
   if (!s.frame.isAbout) {
     const pb = getPromptForStage(s, "isAbout");
     return pb || `Finish this sentence: "${s.frame.keyTopic} is about ____."`;
   }
 
+  // Main Ideas (2 required)
   if (s.frame.mainIdeas.length < 2) {
+    // Writing + CauseEffect: force cause framing and use extracted effect if available
+    if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
+      const effect = safeEffectFromState(s);
+      return s.frame.mainIdeas.length === 0
+        ? `What is the first major cause that leads to ${effect}?`
+        : `What is the second major cause?`;
+    }
+
     const pb = getPromptForStage(s, "mainIdeas");
     if (pb) {
       // Add ordinal clarity when prompt bank uses a generic stem.
@@ -756,12 +940,18 @@ function computeNextQuestion(state) {
       : `What is your second Main Idea that helps explain ${s.frame.keyTopic}?`;
   }
 
+  // Details (2 per main idea)
   for (let i = 0; i < s.frame.mainIdeas.length; i++) {
     const mi = s.frame.mainIdeas[i];
     const arr = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
     if (arr.length < 2) {
       const pb = getPromptForStage(s, `details:${i}`);
       if (pb) {
+        // Writing + CauseEffect pb already includes MI + Effect for clarity.
+        if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
+          return pb;
+        }
+
         const base = pb.replace(/\?\s*$/, "");
         return `For this Main Idea: "${mi}", ${base}?`;
       }
@@ -771,6 +961,7 @@ function computeNextQuestion(state) {
     }
   }
 
+  // So What
   if (!s.frame.soWhat) {
     const pb = getPromptForStage(s, "soWhat");
     return pb || `So what? Why does "${s.frame.keyTopic}" matter? (1–2 sentences)`;
@@ -805,7 +996,8 @@ function updateStateFromStudent(state, message) {
   const s = structuredClone(state);
   ensureBuckets(s);
 
-  if (!s.frameMeta) s.frameMeta = { purpose: "", frameType: "" };
+  if (!s.frameMeta) s.frameMeta = { purpose: "", frameType: "", causeEffect: { cause: "", effect: "" } };
+  if (!s.frameMeta.causeEffect) s.frameMeta.causeEffect = { cause: "", effect: "" };
 
   // Purpose capture
   if (!s.frameMeta.purpose && !(s.pending && s.pending.type)) {
@@ -970,6 +1162,14 @@ function updateStateFromStudent(state, message) {
     if (stage === "isAbout") {
       if (!s.frame.isAbout) {
         s.frame.isAbout = msg;
+
+        // If Writing + CauseEffect, extract cause/effect deterministically for specificity
+        if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
+          const parsed = parseCauseEffectLeadsTo(msg);
+          if (parsed?.cause) s.frameMeta.causeEffect.cause = parsed.cause;
+          if (parsed?.effect) s.frameMeta.causeEffect.effect = parsed.effect;
+        }
+
         s.pending = { type: "confirmIsAbout" };
         return s;
       }
@@ -1026,7 +1226,16 @@ function updateStateFromStudent(state, message) {
       s.pending = null;
       return s;
     }
+
     s.frame.isAbout = msg;
+
+    // If they revised Is About, re-extract cause/effect for Writing+CauseEffect
+    if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
+      const parsed = parseCauseEffectLeadsTo(msg);
+      s.frameMeta.causeEffect.cause = parsed?.cause || "";
+      s.frameMeta.causeEffect.effect = parsed?.effect || "";
+    }
+
     s.pending = null;
     return s;
   }
@@ -1156,6 +1365,14 @@ function updateStateFromStudent(state, message) {
   if (parsed) {
     if (!s.frame.keyTopic) s.frame.keyTopic = parsed.keyTopic;
     if (!s.frame.isAbout) s.frame.isAbout = parsed.isAbout;
+
+    // Writing + CauseEffect: also try extracting cause/effect from the isAbout part
+    if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
+      const ce = parseCauseEffectLeadsTo(s.frame.isAbout);
+      s.frameMeta.causeEffect.cause = ce?.cause || "";
+      s.frameMeta.causeEffect.effect = ce?.effect || "";
+    }
+
     s.pending = { type: "confirmIsAbout" };
     return s;
   }
@@ -1175,6 +1392,14 @@ function updateStateFromStudent(state, message) {
     const lowered = msg.toLowerCase().trim();
     if (lowered !== "revise" && lowered !== "change") {
       s.frame.isAbout = msg;
+
+      // Writing + CauseEffect: extract cause/effect deterministically
+      if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
+        const ce = parseCauseEffectLeadsTo(msg);
+        s.frameMeta.causeEffect.cause = ce?.cause || "";
+        s.frameMeta.causeEffect.effect = ce?.effect || "";
+      }
+
       s.pending = { type: "confirmIsAbout" };
     }
     return s;
@@ -1356,13 +1581,13 @@ export default async function handler(req, res) {
     appendTurn(state, "Kaw", reply);
 
     if (isFrameComplete(state) && !state.pending) {
-          const frameText = buildFrameText(state);
-          const transcriptText = buildTranscriptText(state);
-          const html = buildExportHtml(state);
-          state.exports = { frameText, transcriptText, html };
-        } else {
-          state.exports = null;
-        }
+      const frameText = buildFrameText(state);
+      const transcriptText = buildTranscriptText(state);
+      const html = buildExportHtml(state);
+      state.exports = { frameText, transcriptText, html };
+    } else {
+      state.exports = null;
+    }
 
     return res.status(200).json({ reply, state });
   } catch (err) {
