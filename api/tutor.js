@@ -153,6 +153,10 @@ function parseRevisionIndex(text, max) {
     if (Number.isFinite(v) && v >= 1 && v <= max) return v;
   }
 
+  if (s.includes("general")) return "general";
+  if (s.includes("organize my thinking")) return "general";
+  if (s === "organize") return "general";
+  if (s === "thinking") return "general";
   return null;
 }
 
@@ -337,6 +341,7 @@ function normalizePurpose(msg) {
   if (t === "1") return "study";
   if (t === "2") return "write";
   if (t === "3") return "read";
+  if (t === "4" || t === 4) return "general";
   return null;
 }
 
@@ -730,10 +735,12 @@ function computeNextQuestion(state) {
   }
   if (!s.frameMeta?.frameType) {
     return (
-      "What kind of thinking are you doing: " +
-      "1) Explain how/why something happens (Linear & Cause-and-Effect Relationships)  " +
-      "2) Explain a big idea or theme (Framing Themes)  " +
-      "3) Organize ideas from a text or source (Reading Frames). Which one (1–3)?"
+      "What kind of thinking are you doing?\n" +
+      "1) Explain how/why something happens (Linear & Cause-and-Effect Relationships)\n" +
+      "2) Explain a big idea or theme (Framing Themes)\n" +
+      "3) Organize ideas from a text or source (Reading Frames)\n" +
+      "4) Organize my thinking (General Frame)\n\n" +
+      "Reply with 1, 2, 3, or 4."
     );
   }
 
@@ -1320,3 +1327,4 @@ export default async function handler(req, res) {
     });
   }
 }
+
