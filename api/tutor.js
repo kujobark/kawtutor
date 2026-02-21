@@ -237,10 +237,14 @@ async function detectLanguageViaLLM(text) {
     return null;
   }
 
-  const system = `You detect the language of user text.
+const system = `
+You detect the language of user text.
+
 Return ONLY a compact JSON object with:
-{"code":"<ISO-639-1 if possible else 'und'>","name":"<English language name>","nativeName":"<native language name>","dir":"ltr|rtl","confidence":0-1}
-If uncertain, use code "und" and confidence < 0.6.`;
+{"code":"<ISO-639-1 if possible else 'und'>","name":"<English language name>","nativeName":"<native language name>"}
+
+If uncertain, use code "und" and confidence < 0.6.
+`;
 
   const user = `Text:\n${input}`;
 
