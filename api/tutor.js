@@ -723,17 +723,20 @@ function computeNextQuestion(state) {
   if (s.pending?.type === "confirmSoWhat") return `Your So What is: "${s.frame.soWhat}". Is that correct, or would you like to revise it?`;
 
   // Base progression
-  if (!s.frameMeta?.purpose) {
-    return "How will you use this Frame: studying/review, writing/creating, or create notes from a reading or source? (study/write/read)";
-  }
-  if (!s.frameMeta?.frameType) {
-    return (
-      "What kind of thinking are you doing: " +
-      "1) Explain how/why something happens (Linear & Cause-and-Effect Relationships)  " +
-      "2) Explain a big idea or theme (Framing Themes)  " +
-      "3) Organize ideas from a text or source (Reading Frames). Which one (1–3)?"
-    );
-  }
+if (!s.frameMeta?.frameType) {
+  return (
+    "What kind of thinking are you doing? Choose one:\n\n" +
+    "1) Explain how or why something happens\n" +
+    "   (Cause & Effect Frame)\n\n" +
+    "2) Explain a big idea or theme\n" +
+    "   (Theme Frame)\n\n" +
+    "3) Organize ideas from a text or source\n" +
+    "   (Reading Frame)\n\n" +
+    "4) Organize my thinking\n" +
+    "   (General Frame)\n\n" +
+    "Which number (1–4)?"
+  );
+}
 
   // Key Topic
   if (!s.frame.keyTopic) {
@@ -1318,4 +1321,5 @@ export default async function handler(req, res) {
     });
   }
 }
+
 
