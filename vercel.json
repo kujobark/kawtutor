@@ -1,5 +1,7 @@
 {
   "functions": {
-    "api/*.js": {
+    "api/tutor.js": {
+      "maxDuration": 60
+    }
   }
 }
