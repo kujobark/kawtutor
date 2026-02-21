@@ -345,11 +345,15 @@ function normalizeFrameTypeSelection(input) {
   if (t === "1" || t.startsWith("1 ")) return "causeEffect";
   if (t === "2" || t.startsWith("2 ")) return "themes";
   if (t === "3" || t.startsWith("3 ")) return "reading";
+  if (t === "4" || t.startsWith("4 ")) return "general";
 
   // Accept common text variants
   if (t.includes("cause") || t.includes("effect") || t.includes("how") || t.includes("why")) return "causeEffect";
   if (t.includes("theme") || t.includes("big idea") || t.includes("central idea")) return "themes";
   if (t.includes("read") || t.includes("text") || t.includes("source") || t.includes("note")) return "reading";
+
+  // General frame variants (optional but helpful)
+  if (t.includes("general") || t.includes("organize my thinking") || t.includes("organize") || t.includes("thinking")) return "general";
 
   return "";
 }
@@ -1321,5 +1325,6 @@ export default async function handler(req, res) {
     });
   }
 }
+
 
 
