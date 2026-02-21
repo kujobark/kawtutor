@@ -153,12 +153,10 @@ function parseRevisionIndex(text, max) {
     if (Number.isFinite(v) && v >= 1 && v <= max) return v;
   }
 
-  if (s.includes("general")) return "general";
-  if (s.includes("organize my thinking")) return "general";
-  if (s === "organize") return "general";
-  if (s === "thinking") return "general";
+
   return null;
 }
+
 
 function indicatesRevisionIntent(text) {
   const t = cleanText(text).toLowerCase();
@@ -341,7 +339,6 @@ function normalizePurpose(msg) {
   if (t === "1") return "study";
   if (t === "2") return "write";
   if (t === "3") return "read";
-  if (t === "4" || t === 4) return "general";
   return null;
 }
 
@@ -349,17 +346,22 @@ function normalizeFrameTypeSelection(input) {
   const t = (input || "").toLowerCase().trim();
 
   // Accept numeric choices
-  if (t === "1" || t.startsWith("1 ")) return "causeEffect";
-  if (t === "2" || t.startsWith("2 ")) return "themes";
-  if (t === "3" || t.startsWith("3 ")) return "reading";
+  if (t === "1" || t.startsWith("1")) return "causeEffect";
+  if (t === "2" || t.startsWith("2")) return "themes";
+  if (t === "3" || t.startsWith("3")) return "reading";
+  if (t === "4" || t.startsWith("4")) return "general";
 
   // Accept common text variants
   if (t.includes("cause") || t.includes("effect") || t.includes("how") || t.includes("why")) return "causeEffect";
   if (t.includes("theme") || t.includes("big idea") || t.includes("central idea")) return "themes";
   if (t.includes("read") || t.includes("text") || t.includes("source") || t.includes("note")) return "reading";
 
-  return "";
+  // General frame
+  if (t.includes("general") || t.includes("organize my thinking") || t === "organize" || t === "thinking") return "general";
+
+  return null;
 }
+
 
 function fillTopic(template, keyTopic) {
   return (template || "").replaceAll("[Key Topic]", keyTopic || "your topic");
