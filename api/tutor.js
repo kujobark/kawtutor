@@ -345,15 +345,11 @@ function normalizeFrameTypeSelection(input) {
   if (t === "1" || t.startsWith("1 ")) return "causeEffect";
   if (t === "2" || t.startsWith("2 ")) return "themes";
   if (t === "3" || t.startsWith("3 ")) return "reading";
-  if (t === "4" || t.startsWith("4 ")) return "general";
 
   // Accept common text variants
   if (t.includes("cause") || t.includes("effect") || t.includes("how") || t.includes("why")) return "causeEffect";
   if (t.includes("theme") || t.includes("big idea") || t.includes("central idea")) return "themes";
   if (t.includes("read") || t.includes("text") || t.includes("source") || t.includes("note")) return "reading";
-
-  // General frame variants (optional but helpful)
-  if (t.includes("general") || t.includes("organize my thinking") || t.includes("organize") || t.includes("thinking")) return "general";
 
   return "";
 }
@@ -728,31 +724,18 @@ function computeNextQuestion(state) {
 
   // Base progression
   if (!s.frameMeta?.purpose) {
-    return (
-      "How will you use this Frame? Choose one:\n\n" +
-      "1) Study / review\n" +
-      "2) Write / create\n" +
-      "3) Read / take notes from a text or source\n\n" +
-      "Which number (1–3)?"
-    );
+    return "How will you use this Frame: studying/review, writing/creating, or create notes from a reading or source? (study/write/read)";
   }
-
   if (!s.frameMeta?.frameType) {
     return (
-      "What kind of thinking are you doing? Choose one:\n\n" +
-      "1) Explain how or why something happens\n" +
-      "   (Cause & Effect Frame)\n\n" +
-      "2) Explain a big idea or theme\n" +
-      "   (Theme Frame)\n\n" +
-      "3) Organize ideas from a text or source\n" +
-      "   (Reading Frame)\n\n" +
-      "4) Organize my thinking\n" +
-      "   (General Frame)\n\n" +
-      "Which number (1–4)?"
+      "What kind of thinking are you doing: " +
+      "1) Explain how/why something happens (Linear & Cause-and-Effect Relationships)  " +
+      "2) Explain a big idea or theme (Framing Themes)  " +
+      "3) Organize ideas from a text or source (Reading Frames). Which one (1–3)?"
     );
   }
 
-// Key Topic
+  // Key Topic
   if (!s.frame.keyTopic) {
     if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
       return "What event, issue, or situation are you writing about? (2–5 words)";
