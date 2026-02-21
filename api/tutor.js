@@ -4,6 +4,8 @@ import { classifyMessage } from "../lib/safetyCheck.js";
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+const BUILD_TAG = "build-2026-02-21-a";
+
 // ---------------------
 // CONFIG
 // ---------------------
@@ -1318,3 +1320,4 @@ export default async function handler(req, res) {
     });
   }
 }
+
