@@ -1,25 +1,10 @@
-/**
- * Kaw Companion — tutor.js (Vercel Serverless Function, ESM)
- * - One question per turn (Socratic)
- * - Deterministic state machine + minimal LLM usage (language detection/translation + safety classification)
- * - Frames supported:
- *   1) Cause & Effect (Study + Write)
- *   2) Themes (Study + Write)
- *   3) Reading Frames (Read/Notes)
- *
- * IMPORTANT:
- * - This file assumes ESM (package.json includes: "type": "module")
- * - If you are NOT ESM, tell me and I’ll convert to CommonJS.
- */
-
 import OpenAI from "openai";
 import { SAFETY_RESPONSES } from "../lib/safetyResponses.js";
 import { classifyMessage } from "../lib/safetyCheck.js";
 
-// ---------------------
-// OPENAI CLIENT
-// ---------------------
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+const BUILD_TAG = "build-2026-02-21-a";
 
 // ---------------------
 // CONFIG
@@ -29,7 +14,7 @@ const DEFAULT_MODEL = process.env.OPENAI_MODEL || "gpt-4.1-mini";
 // Transcript cap (avoid bloating state)
 const TRANSCRIPT_MAX_TURNS = 200;
 
-// Run language detection only on "real" text
+// Run language detection only on “real” text
 const LANG_DETECT_MIN_CHARS = 18;
 
 // ---------------------
@@ -38,7 +23,7 @@ const LANG_DETECT_MIN_CHARS = 18;
 const ALLOWED_ORIGIN = "*";
 function setCors(res) {
   res.setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS, GET");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 }
 
@@ -49,17 +34,13 @@ function cleanText(s) {
   return (s || "").toString().trim().replace(/\s+/g, " ");
 }
 
-function lowerClean(s) {
-  return cleanText(s).toLowerCase();
-}
-
 function isNegative(s) {
-  const t = lowerClean(s);
+  const t = cleanText(s).toLowerCase();
   return t === "no" || t === "nope" || t === "nah" || t === "n/a" || t === "none";
 }
 
 function isAffirmative(s) {
-  const t = lowerClean(s);
+  const t = cleanText(s).toLowerCase();
   return (
     t === "yes" ||
     t === "y" ||
@@ -112,7 +93,7 @@ const GENERIC_KEY_TOPICS = new Set([
 ]);
 
 function isBadKeyTopic(keyTopic) {
-  const kt = lowerClean(keyTopic);
+  const kt = cleanText(keyTopic).toLowerCase();
   if (!kt) return true;
   if (GENERIC_KEY_TOPICS.has(kt)) return true;
   if (kt.startsWith("my ")) return true;
@@ -121,12 +102,14 @@ function isBadKeyTopic(keyTopic) {
 
 // Heuristic: looks like evidence (stats/attribution) rather than a broad cause
 function looksLikeEvidence(text) {
-  const t = lowerClean(text);
+  const t = cleanText(text).toLowerCase();
   if (!t) return false;
 
+  // Numbers / percents / ranges
   if (/[0-9]/.test(t)) return true;
   if (t.includes("%")) return true;
 
+  // Attribution / research-y signals
   const evidenceSignals = [
     "according to",
     "research",
@@ -143,33 +126,42 @@ function looksLikeEvidence(text) {
   ];
   if (evidenceSignals.some((p) => t.includes(p))) return true;
 
+  // Common quantitative units (keep light)
   const units = ["hours", "hour", "years", "year", "minutes", "minute", "days", "day"];
   if (units.some((u) => t.includes(u))) return true;
 
   return false;
 }
 
+
 // Parse which numbered item the student wants to revise (1..max).
+// Accepts: "2", "revise 2", "revise #2", "change 1", "main idea 1", "detail 2 is wrong", "second one", etc.
 function parseRevisionIndex(text, max) {
-  const t = lowerClean(text);
+  const t = cleanText(text).toLowerCase();
   if (!t || !max || max < 1) return null;
 
+  // Ordinal words
   const ordMap = { first: 1, 1st: 1, second: 2, 2nd: 2, third: 3, 3rd: 3, fourth: 4, 4th: 4 };
   for (const [k, v] of Object.entries(ordMap)) {
     if (t.includes(k) && v <= max) return v;
   }
 
+  // Any standalone digits
   const nums = t.match(/\b\d+\b/g) || [];
   for (const n of nums) {
     const v = Number(n);
     if (Number.isFinite(v) && v >= 1 && v <= max) return v;
   }
 
+  if (s.includes("general")) return "general";
+  if (s.includes("organize my thinking")) return "general";
+  if (s === "organize") return "general";
+  if (s === "thinking") return "general";
   return null;
 }
 
 function indicatesRevisionIntent(text) {
-  const t = lowerClean(text);
+  const t = cleanText(text).toLowerCase();
   if (!t) return false;
   const signals = ["revise", "change", "fix", "replace", "edit", "not a main idea", "not a detail", "wrong", "isn't", "isnt"];
   return signals.some((p) => t.includes(p));
@@ -195,6 +187,7 @@ function parseKeyTopicIsAbout(msg) {
 }
 
 // Deterministic parser for Cause & Effect Writing:
+// Accept both "lead to" and "leads to"
 function parseCauseEffectLeadsTo(isAboutRaw) {
   const t0 = cleanText(isAboutRaw);
   if (!t0) return null;
@@ -207,6 +200,7 @@ function parseCauseEffectLeadsTo(isAboutRaw) {
     t = cleanText(t.slice(prefix.length));
   }
 
+  // Support both phrases
   const low = t.toLowerCase();
   let idx = low.indexOf(" leads to ");
   let phrase = " leads to ";
@@ -232,19 +226,16 @@ async function detectLanguageViaLLM(text) {
   const input = cleanText(text);
   if (!input || input.length < LANG_DETECT_MIN_CHARS) return null;
 
+  // Avoid detecting on tiny “yes/no/ok/correct”
   const low = input.toLowerCase();
   if (isAffirmative(low) || isNegative(low) || low === "ok" || low === "okay" || low === "correct") {
     return null;
   }
 
-const system = `
-You detect the language of user text.
-
+  const system = `You detect the language of user text.
 Return ONLY a compact JSON object with:
-{"code":"<ISO-639-1 if possible else 'und'>","name":"<English language name>","nativeName":"<native language name>"}
-
-If uncertain, use code "und" and confidence < 0.6.
-`;
+{"code":"<ISO-639-1 if possible else 'und'>","name":"<English language name>","nativeName":"<native language name>","dir":"ltr|rtl","confidence":0-1}
+If uncertain, use code "und" and confidence < 0.6.`;
 
   const user = `Text:\n${input}`;
 
@@ -328,10 +319,11 @@ Rules:
 }
 
 // ---------------------
-// STUCK SUPPORT (DETERMINISTIC)
+// STUCK SUPPORT (SSOT)
 // ---------------------
+
 function detectStuckTone(text) {
-  const t = lowerClean(text);
+  const t = cleanText(text).toLowerCase();
   if (!t) return "neutral";
   const frustration = ["confus", "stupid", "dumb", "hate", "annoy", "frustrat", "angry", "mad", "ugh", "this sucks", "do we have to"];
   if (frustration.some((p) => t.includes(p))) return "frustration";
@@ -340,53 +332,8 @@ function detectStuckTone(text) {
   return "neutral";
 }
 
-function isStuckMessage(text) {
-  const t = lowerClean(text);
-  if (!t) return false;
-
-  const wc = t.split(/\s+/).filter(Boolean).length;
-  if (wc > 14) return false;
-
-  const patterns = [
-    "i don't know", "i dont know", "idk", "dont know",
-    "i'm confused", "im confused", "confused",
-    "i don't get it", "i dont get it", "dont get it",
-    "help", "can you help", "stuck", "not sure", "i forgot",
-    "i can't", "i cant", "no idea"
-  ];
-  return patterns.some((p) => t.includes(p));
-}
-
-function stuckNudgeQuestion(state) {
-  const stage = getStage(state);
-  const tone = detectStuckTone(state.lastStudentMessage || "");
-
-  // Keep it one question, and keep it actionable.
-  if (stage === "keyTopic") {
-    return tone === "frustration"
-      ? "Pick 2–5 words—what’s the shortest name for what you’re working on?"
-      : "What 2–5 word Key Topic best names what you’re working on?";
-  }
-  if (stage === "isAbout") {
-    return "Start with a simple sentence—what is your Key Topic mostly about?";
-  }
-  if (stage === "mainIdeas") {
-    return "What is one big reason, cause, effect, or idea you want your reader to remember?";
-  }
-  if (stage.startsWith("details:")) {
-    return "What is one specific example, fact, or explanation that supports that Main Idea?";
-  }
-  if (stage === "soWhat") {
-    return "Why does this matter to people—what’s the takeaway?";
-  }
-  return "What’s the part you feel stuck on: Key Topic, Is About, Main Ideas, Details, or So What?";
-}
-
-// ---------------------
-// PURPOSE + FRAME TYPE NORMALIZERS
-// ---------------------
 function normalizePurpose(msg) {
-  const t = lowerClean(msg);
+  const t = cleanText(msg).toLowerCase();
   if (!t) return null;
   if (t.includes("study") || t.includes("review") || t === "s") return "study";
   if (t.includes("write") || t.includes("essay") || t.includes("paragraph") || t.includes("create") || t === "w") return "write";
@@ -394,11 +341,12 @@ function normalizePurpose(msg) {
   if (t === "1") return "study";
   if (t === "2") return "write";
   if (t === "3") return "read";
+  if (t === "4" || t === 4) return "general";
   return null;
 }
 
 function normalizeFrameTypeSelection(input) {
-  const t = lowerClean(input);
+  const t = (input || "").toLowerCase().trim();
 
   // Accept numeric choices
   if (t === "1" || t.startsWith("1 ")) return "causeEffect";
@@ -422,11 +370,8 @@ function safeEffectFromState(state) {
   return eff || "the effect";
 }
 
-// ---------------------
-// PROMPT BANK (STUDY + WRITE + READ)
-// ---------------------
 const PROMPT_BANK = {
-  // Studying/Review
+  // Studying/Review + Linear & Cause-and-Effect
   study: {
     causeEffect: {
       isAbout: 'In your own words, what is happening in "[Key Topic]", and why is it important?',
@@ -434,21 +379,9 @@ const PROMPT_BANK = {
       detail: "What is an important detail that explains how or why this cause or effect occurs?",
       soWhat: 'When you look at all of these causes and effects together, what can you conclude about "[Key Topic]"?'
     },
-    themes: {
-      isAbout: 'In one sentence, what is the text or topic "[Key Topic]" mostly exploring?',
-      mainIdea: "What is one big theme, lesson, or message that keeps showing up?",
-      detail: "What is a key moment, example, or quote idea that shows that theme?",
-      soWhat: 'Why does this theme matter for understanding "[Key Topic]"?'
-    },
-    reading: {
-      isAbout: 'What is the source "[Key Topic]" mainly about (in one sentence)?',
-      mainIdea: "What is one main claim or point the author makes?",
-      detail: "What is one piece of evidence or explanation the author uses to support that point?",
-      soWhat: "How does this source help you understand the topic better?"
-    },
   },
 
-  // Writing/Creating
+  // Writing/Creating + Cause-and-Effect (KU frame preserved)
   write: {
     causeEffect: {
       isAbout: "Complete this sentence: This topic is about how ______ leads to ______.",
@@ -458,25 +391,7 @@ const PROMPT_BANK = {
       detailEvidence: "What evidence or example will you use to support the idea that [MAIN IDEA] leads to [EFFECT]?",
       soWhat: "Why should people care about this effect?"
     },
-    themes: {
-      isAbout: 'Complete this sentence: This topic is about how "[Key Topic]" shows ______.',
-      mainIdeaFirst: "What is the first theme or message you want your reader to understand?",
-      mainIdeaSecond: "What is the second theme or message?",
-      detailExplain: "How does the text show [MAIN IDEA]?",
-      detailEvidence: "What specific example or moment will you use as evidence for [MAIN IDEA]?",
-      soWhat: "So what—what can people learn from these themes?"
-    },
   },
-
-  // Reading/Notes
-  read: {
-    reading: {
-      isAbout: 'What is the source mainly about (one sentence)?',
-      mainIdea: "What is one main point or claim from the source?",
-      detail: "What is one supporting detail from the source that backs that point?",
-      soWhat: "How could you use this in your notes or writing?"
-    }
-  }
 };
 
 function getPromptForStage(state, stage) {
@@ -490,14 +405,10 @@ function getPromptForStage(state, stage) {
   }
 
   if (stage === "mainIdeas") {
-    const pb = PROMPT_BANK?.[purpose]?.[frameType];
-    if (!pb) return null;
-
-    // Writing patterns that want ordered main-idea prompts
-    if (purpose === "write" && frameType === "causeEffect") return pb?.mainIdeaFirst || null;
-    if (purpose === "write" && frameType === "themes") return pb?.mainIdeaFirst || null;
-
-    return pb?.mainIdea || null;
+    const ce = PROMPT_BANK?.[purpose]?.[frameType];
+    if (purpose === "write" && frameType === "causeEffect") return ce?.mainIdeaFirst || null;
+    const q = PROMPT_BANK?.[purpose]?.[frameType]?.mainIdea;
+    if (q) return q;
   }
 
   if (stage.startsWith("details:")) {
@@ -513,16 +424,34 @@ function getPromptForStage(state, stage) {
   return null;
 }
 
+function isStuckMessage(text) {
+  const t = cleanText(text).toLowerCase();
+  if (!t) return false;
+
+  const wc = t.split(/\s+/).filter(Boolean).length;
+  if (wc > 14) return false;
+
+  const patterns = [
+    "i don't know", "i dont know", "idk", "dont know",
+    "i'm confused", "im confused", "confused",
+    "i don't get it", "i dont get it", "dont get it",
+    "help", "can you help", "stuck", "not sure", "i forgot",
+    "i can't", "i cant", "no idea"
+  ];
+
+  return patterns.some((p) => t.includes(p));
+}
+
 // ---------------------
 // STATE
 // ---------------------
 function defaultState() {
   return {
-    version: 3,
+    version: 2,
     frameMeta: {
       purpose: "",   // study|write|read
       frameType: "", // causeEffect|themes|reading
-      causeEffect: { cause: "", effect: "" }, // writing specificity
+      causeEffect: { cause: "", effect: "" }, // for writing specificity
     },
     frame: {
       keyTopic: "",
@@ -543,7 +472,6 @@ function defaultState() {
     exports: null,
     flags: { exportOffered: false, exportChoice: null },
     skips: [],
-    lastStudentMessage: "",
   };
 }
 
@@ -602,9 +530,6 @@ function normalizeIncomingState(raw) {
       .filter((x) => x.stage);
   }
 
-  base.lastStudentMessage = cleanText(s.lastStudentMessage || "");
-
-  // Ensure detail buckets exist for each main idea
   for (let i = 0; i < base.frame.mainIdeas.length; i++) {
     if (!Array.isArray(base.frame.details[i])) base.frame.details[i] = [];
   }
@@ -646,13 +571,8 @@ function buildFrameText(s) {
   const lines = [];
   lines.push(`KEY TOPIC: ${s.frame.keyTopic}`);
   lines.push(`IS ABOUT: ${s.frame.isAbout}`);
-
-  // If cause/effect extracted
   const eff = cleanText(s.frameMeta?.causeEffect?.effect || "");
-  const cause = cleanText(s.frameMeta?.causeEffect?.cause || "");
-  if (cause) lines.push(`CAUSE: ${cause}`);
   if (eff) lines.push(`EFFECT: ${eff}`);
-
   lines.push("");
   lines.push("MAIN IDEAS + SUPPORTING DETAILS:");
 
@@ -708,7 +628,7 @@ function buildExportHtml(s) {
   <h2>Full Transcript</h2>
   <div class="box">${transcriptText || "<em>(No transcript captured.)</em>"}</div>
 
-  <div class="muted">Tip: Use your browser's Print dialog to print or "Save as PDF."</div>
+  <div class="muted">Tip: Use your browser’s Print dialog to print or “Save as PDF.”</div>
 </body>
 </html>`;
 }
@@ -738,7 +658,7 @@ function getStage(state) {
 function computeNextQuestion(state) {
   const s = state;
 
-  // ---- CauseEffect Writing pending checks (evidence vs cause) ----
+  // ---- Purpose-specific pending checks (CauseEffect Writing) ----
   if (s.pending?.type === "ceMainIdeaEvidenceCheck") {
     return "Is that a major cause, or is it evidence that supports a cause? (cause/evidence)";
   }
@@ -746,7 +666,7 @@ function computeNextQuestion(state) {
     return "What is the broader cause that this evidence supports?";
   }
 
-  // ---- Revision workflows (deterministic) ----
+  // Revision workflows (deterministic)
   if (s.pending?.type === "clarifyMainIdeaToRevise") {
     const max = Array.isArray(s.frame.mainIdeas) ? s.frame.mainIdeas.length : 2;
     return `Which Main Idea do you want to revise (1–${max})?`;
@@ -767,18 +687,18 @@ function computeNextQuestion(state) {
     return `What should Supporting Detail ${n} be instead?`;
   }
 
-  // ---- Language switch pending ----
+  // Language switch pending
   if (s.pending?.type === "confirmLanguageSwitch") {
     const candNative = s.pending?.candidateNativeName || s.pending?.candidateName || "that language";
     const candName = s.pending?.candidateName || "that language";
     return `I notice you’re writing in ${candName}. Would you like to continue in ${candNative}? (yes/no)`;
   }
 
-  // ---- Export pending ----
+  // Export pending
   if (s.pending?.type === "offerExport") return "Would you like to save or print a copy of your work? (yes/no)";
   if (s.pending?.type === "chooseExportType") return "What would you like to save/print: frame, transcript, or both? (frame/transcript/both)";
 
-  // ---- Confirmations ----
+  // Confirmation pending (kept from your earlier flow)
   if (s.pending?.type === "confirmIsAbout") {
     return `"${s.frame.keyTopic}" is about "${s.frame.isAbout}". Is that correct, or would you like to revise it?`;
   }
@@ -806,37 +726,39 @@ function computeNextQuestion(state) {
     return `For this Main Idea: "${mi}", you identified the following Supporting Details:\n${lines}\nIs that correct, or would you like to revise one?`;
   }
   if (s.pending?.type === "offerMoreSoWhat") return `Do you want to add one more sentence to your So What? (yes/no)`;
-  if (s.pending?.type === "collectMoreSoWhat") return "Add one more sentence to your So What:";
+  if (s.pending?.type === "collectMoreSoWhat") return `Add one more sentence to your So What:`;
   if (s.pending?.type === "confirmSoWhat") return `Your So What is: "${s.frame.soWhat}". Is that correct, or would you like to revise it?`;
 
-  // ---- Base progression ----
+  // Base progression
   if (!s.frameMeta?.purpose) {
     return "How will you use this Frame: studying/review, writing/creating, or create notes from a reading or source? (study/write/read)";
   }
   if (!s.frameMeta?.frameType) {
     return (
-      "What kind of thinking are you doing: " +
-      "1) Explain how/why something happens (Linear & Cause-and-Effect Relationships)  " +
-      "2) Explain a big idea or theme (Framing Themes)  " +
-      "3) Organize ideas from a text or source (Reading Frames). Which one (1–3)?"
+      "What kind of thinking are you doing?\n" +
+      "1) Explain how/why something happens (Linear & Cause-and-Effect Relationships)\n" +
+      "2) Explain a big idea or theme (Framing Themes)\n" +
+      "3) Organize ideas from a text or source (Reading Frames)\n" +
+      "4) Organize my thinking (General Frame)\n\n" +
+      "Reply with 1, 2, 3, or 4."
     );
   }
 
-  // ---- Key Topic ----
+  // Key Topic
   if (!s.frame.keyTopic) {
-    if (s.frameMeta?.purpose === "write" && (s.frameMeta?.frameType === "causeEffect" || s.frameMeta?.frameType === "themes")) {
+    if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
       return "What event, issue, or situation are you writing about? (2–5 words)";
     }
     return "What is your Key Topic? (2–5 words)";
   }
 
-  // ---- Is About ----
+  // Is About
   if (!s.frame.isAbout) {
     const pb = getPromptForStage(s, "isAbout");
     return pb || `Finish this sentence: "${s.frame.keyTopic} is about ____."`;
   }
 
-  // ---- Main Ideas (2 required) ----
+  // Main Ideas (2 required)
   if (s.frame.mainIdeas.length < 2) {
     if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
       const effect = safeEffectFromState(s);
@@ -846,18 +768,13 @@ function computeNextQuestion(state) {
       return PROMPT_BANK.write.causeEffect.mainIdeaSecond;
     }
 
-    if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "themes") {
-      if (s.frame.mainIdeas.length === 0) return PROMPT_BANK.write.themes.mainIdeaFirst;
-      return PROMPT_BANK.write.themes.mainIdeaSecond;
-    }
-
     const pb = getPromptForStage(s, "mainIdeas");
     return pb || (s.frame.mainIdeas.length === 0
       ? `What is your first Main Idea that helps explain ${s.frame.keyTopic}?`
       : `What is your second Main Idea that helps explain ${s.frame.keyTopic}?`);
   }
 
-  // ---- Details (2 per main idea) ----
+  // Details (2 per main idea)
   for (let i = 0; i < s.frame.mainIdeas.length; i++) {
     const mi = s.frame.mainIdeas[i];
     const arr = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
@@ -869,30 +786,19 @@ function computeNextQuestion(state) {
         return tpl.replaceAll("[MAIN IDEA]", `"${mi}"`).replaceAll("[EFFECT]", `"${effect}"`);
       }
 
-      // Writing + Themes: Explanation then Evidence
-      if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "themes") {
-        const tpl = arr.length === 0 ? PROMPT_BANK.write.themes.detailExplain : PROMPT_BANK.write.themes.detailEvidence;
-        return tpl.replaceAll("[MAIN IDEA]", `"${mi}"`);
-      }
-
       const pb = getPromptForStage(s, `details:${i}`);
       if (pb) return `For this Main Idea: "${mi}", ${pb.replace(/\?\s*$/, "")}?`;
-
       return arr.length === 0
         ? `What is your first Supporting Detail for this Main Idea: "${mi}"?`
         : `What is your second Supporting Detail for this Main Idea: "${mi}"?`;
     }
   }
 
-  // ---- So What ----
+  // So What
   if (!s.frame.soWhat) {
     if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
       return PROMPT_BANK.write.causeEffect.soWhat;
     }
-    if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "themes") {
-      return PROMPT_BANK.write.themes.soWhat;
-    }
-
     const pb = getPromptForStage(s, "soWhat");
     return pb || `So what? Why does "${s.frame.keyTopic}" matter? (1–2 sentences)`;
   }
@@ -901,21 +807,19 @@ function computeNextQuestion(state) {
 }
 
 // ---------------------
-// STATE UPDATE (DETERMINISTIC)
+// SSOT STATE UPDATE
 // ---------------------
 function updateStateFromStudent(state, message) {
   const msg = cleanText(message);
   const s = structuredClone(state);
   ensureBuckets(s);
 
-  s.lastStudentMessage = msg;
-
   if (!s.frameMeta) s.frameMeta = { purpose: "", frameType: "", causeEffect: { cause: "", effect: "" } };
   if (!s.frameMeta.causeEffect) s.frameMeta.causeEffect = { cause: "", effect: "" };
 
-  // ---- CauseEffect Writing: evidence vs cause guardrail ----
+  // Handle CauseEffect Writing pending: evidence vs cause
   if (s.pending?.type === "ceMainIdeaEvidenceCheck") {
-    const low = lowerClean(msg);
+    const low = msg.toLowerCase().trim();
     const choice =
       low === "cause" ? "cause" :
       low === "evidence" ? "evidence" :
@@ -932,6 +836,7 @@ function updateStateFromStudent(state, message) {
         if (!Array.isArray(s.frame.details[s.frame.mainIdeas.length - 1])) s.frame.details[s.frame.mainIdeas.length - 1] = [];
       }
       s.pending = null;
+
       if (s.frame.mainIdeas.length === 2) s.pending = { type: "offerThirdMainIdea" };
       return s;
     }
@@ -948,11 +853,15 @@ function updateStateFromStudent(state, message) {
       if (!Array.isArray(s.frame.details[s.frame.mainIdeas.length - 1])) s.frame.details[s.frame.mainIdeas.length - 1] = [];
     }
     s.pending = null;
+
     if (s.frame.mainIdeas.length === 2) s.pending = { type: "offerThirdMainIdea" };
     return s;
   }
 
-  // ---- Revision workflows ----
+  // ------
+  // Revision workflows (deterministic)
+  // ------
+
   if (s.pending?.type === "clarifyMainIdeaToRevise") {
     const max = Array.isArray(s.frame.mainIdeas) ? s.frame.mainIdeas.length : 2;
     const idx = parseRevisionIndex(msg, max);
@@ -1004,6 +913,7 @@ function updateStateFromStudent(state, message) {
 
     const updated = cleanText(msg);
     if (updated && !isNegative(updated)) {
+      // If detail slot doesn't exist yet (should be rare), pad deterministically.
       while (arr.length <= dIndex) arr.push("");
       arr[dIndex] = updated;
       s.frame.details[miIndex] = arr.map(cleanText);
@@ -1013,33 +923,28 @@ function updateStateFromStudent(state, message) {
     return s;
   }
 
-  // ---- Purpose capture ----
+
+  // Purpose capture
   if (!s.frameMeta.purpose && !(s.pending && s.pending.type)) {
     const p = normalizePurpose(msg);
     if (p) {
       s.frameMeta.purpose = p;
-
-      // Small guardrail: if purpose is read, default frameType to reading (still ask if missing later)
       return s;
     }
   }
 
-  // ---- Frame type capture ----
+  // Frame type selection
   if (s.frameMeta?.purpose && !s.frameMeta.frameType && !(s.pending && s.pending.type)) {
-    let ft = normalizeFrameTypeSelection(msg);
-
-    // If they chose read purpose, allow "reading" quickly
-    if (!ft && s.frameMeta.purpose === "read") ft = "reading";
-
+    const ft = normalizeFrameTypeSelection(msg);
     if (ft) {
       s.frameMeta.frameType = ft;
       return s;
     }
   }
 
-  // ---- Language switch pending ----
+  // Language switch pending
   if (s.pending?.type === "confirmLanguageSwitch") {
-    const normalized = lowerClean(msg);
+    const normalized = msg.toLowerCase().trim();
 
     if (isAffirmative(normalized)) {
       s.settings.language = s.pending.candidateCode || "en";
@@ -1062,9 +967,9 @@ function updateStateFromStudent(state, message) {
     return s;
   }
 
-  // ---- Confirm Is About ----
+  // Confirm Is About
   if (s.pending?.type === "confirmIsAbout") {
-    const normalized = lowerClean(msg);
+    const normalized = msg.toLowerCase().trim();
     if (isAffirmative(normalized)) {
       s.pending = null;
       return s;
@@ -1084,9 +989,9 @@ function updateStateFromStudent(state, message) {
     return s;
   }
 
-  // ---- Optional third main idea ----
+  // Offer third main idea
   if (s.pending?.type === "offerThirdMainIdea") {
-    const normalized = lowerClean(msg);
+    const normalized = msg.toLowerCase().trim();
     if (isAffirmative(normalized)) {
       s.pending = { type: "collectThirdMainIdea" };
       return s;
@@ -1105,7 +1010,7 @@ function updateStateFromStudent(state, message) {
   }
 
   if (s.pending?.type === "confirmMainIdeas") {
-    const normalized = lowerClean(msg);
+    const normalized = msg.toLowerCase().trim();
     if (isAffirmative(normalized)) {
       s.pending = null;
       return s;
@@ -1127,9 +1032,8 @@ function updateStateFromStudent(state, message) {
     return s;
   }
 
-  // ---- Optional third detail ----
   if (s.pending?.type === "offerThirdDetail") {
-    const normalized = lowerClean(msg);
+    const normalized = msg.toLowerCase().trim();
     const idx = Number(s.pending.index);
     if (isAffirmative(normalized)) {
       s.pending = { type: "collectThirdDetail", index: idx };
@@ -1148,7 +1052,7 @@ function updateStateFromStudent(state, message) {
   }
 
   if (s.pending?.type === "confirmDetails") {
-    const normalized = lowerClean(msg);
+    const normalized = msg.toLowerCase().trim();
     const i = Number(s.pending.index);
     if (isAffirmative(normalized)) {
       s.pending = null;
@@ -1172,9 +1076,8 @@ function updateStateFromStudent(state, message) {
     return s;
   }
 
-  // ---- So What confirmations ----
   if (s.pending?.type === "offerMoreSoWhat") {
-    const normalized = lowerClean(msg);
+    const normalized = msg.toLowerCase().trim();
     if (isAffirmative(normalized)) {
       s.pending = { type: "collectMoreSoWhat" };
       return s;
@@ -1190,7 +1093,7 @@ function updateStateFromStudent(state, message) {
   }
 
   if (s.pending?.type === "confirmSoWhat") {
-    const normalized = lowerClean(msg);
+    const normalized = msg.toLowerCase().trim();
     if (isAffirmative(normalized)) {
       s.pending = null;
       if (isFrameComplete(s) && !s.flags.exportOffered) {
@@ -1204,9 +1107,8 @@ function updateStateFromStudent(state, message) {
     return s;
   }
 
-  // ---- Export ----
   if (s.pending?.type === "offerExport") {
-    const normalized = lowerClean(msg);
+    const normalized = msg.toLowerCase().trim();
     if (isAffirmative(normalized)) {
       s.pending = { type: "chooseExportType" };
       return s;
@@ -1216,7 +1118,7 @@ function updateStateFromStudent(state, message) {
   }
 
   if (s.pending?.type === "chooseExportType") {
-    const normalized = lowerClean(msg);
+    const normalized = msg.toLowerCase().trim();
     const choice =
       normalized.includes("both") ? "both" :
       normalized.includes("frame") ? "frame" :
@@ -1228,16 +1130,7 @@ function updateStateFromStudent(state, message) {
     return s;
   }
 
-  // ---------------------
-  // NORMAL CAPTURE FLOW
-  // ---------------------
-
-  // 0) Stuck detection: if the student is stuck, do NOT advance state; just keep them moving with a nudge.
-  if (isStuckMessage(msg)) {
-    // Put a pending marker so computeNextQuestion can ask a better nudge if desired,
-    // but we’ll keep it simple and just not write data from "idk".
-    return s;
-  }
+  // ---- Normal capture ----
 
   // 1) "X is about Y"
   const parsedKA = parseKeyTopicIsAbout(msg);
@@ -1260,17 +1153,18 @@ function updateStateFromStudent(state, message) {
     const wc = msg.split(/\s+/).filter(Boolean).length;
     if (!isBadKeyTopic(msg) && wc >= 2 && wc <= 5) {
       s.frame.keyTopic = msg;
-      return s;
+      return s; // do not also treat this as isAbout
     }
     return s;
   }
 
   // 3) Is About capture
   if (!s.frame.isAbout) {
-    const lowered = lowerClean(msg);
+    const lowered = msg.toLowerCase().trim();
     if (lowered !== "revise" && lowered !== "change") {
       s.frame.isAbout = msg;
 
+      // Writing + CauseEffect: extract cause/effect for specificity
       if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
         const ce = parseCauseEffectLeadsTo(msg);
         s.frameMeta.causeEffect.cause = ce?.cause || "";
@@ -1285,7 +1179,7 @@ function updateStateFromStudent(state, message) {
   // 4) Main Ideas capture (2 required)
   if (s.frame.mainIdeas.length < 2) {
     if (!isNegative(msg)) {
-      // CauseEffect Writing: evidence guardrail before committing
+      // Writing + CauseEffect: evidence guardrail before committing
       if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect" && looksLikeEvidence(msg)) {
         s.pending = { type: "ceMainIdeaEvidenceCheck", candidate: msg };
         return s;
@@ -1328,42 +1222,28 @@ function updateStateFromStudent(state, message) {
 export default async function handler(req, res) {
   setCors(res);
 
-  // Easy health check (use this to confirm the function loads)
-  if (req.method === "GET") {
-    return res.status(200).json({ ok: true, route: "tutor", hasKey: !!process.env.OPENAI_API_KEY });
-  }
-
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   try {
-    // Parse body safely (Vercel sometimes gives string)
-    const body =
-      req.body && typeof req.body === "string"
-        ? JSON.parse(req.body)
-        : (req.body && typeof req.body === "object" ? req.body : {});
-
+    const body = req.body && typeof req.body === "object" ? req.body : {};
     const message = cleanText(body.message || "");
+
     let state = normalizeIncomingState(body.state || body.vercelState || body.framing || {});
 
-    // Record last student message
-    state.lastStudentMessage = message;
-
     // Safety
-if (message) {
-  const safety = classifyMessage(message);
+    if (message) {
+      const safety = await classifyMessage(message);
+      if (safety?.blocked) {
+        const reply = SAFETY_RESPONSES[safety.category] || SAFETY_RESPONSES.default;
+        const out = enforceSingleQuestion(reply);
 
-  if (safety?.flagged) {
-    const reply = enforceSingleQuestion(
-      SAFETY_RESPONSES[safety.flagCategory] || SAFETY_RESPONSES.default
-    );
+        appendTurn(state, "Student", message);
+        appendTurn(state, "Kaw", out);
 
-    appendTurn(state, "Student", message);
-    appendTurn(state, "Kaw", reply);
-
-    return res.status(200).json({ reply, state });
-  }
-}
+        return res.status(200).json({ reply: out, state });
+      }
+    }
 
     // Language detect (only if not locked and not already pending)
     if (message && !state.settings.languageLocked && state.pending?.type !== "confirmLanguageSwitch") {
@@ -1377,7 +1257,8 @@ if (message) {
           candidateDir: detected.dir,
         };
 
-        let reply = enforceSingleQuestion(computeNextQuestion(state));
+        const q = computeNextQuestion(state);
+        const reply = enforceSingleQuestion(q);
 
         appendTurn(state, "Student", message);
         appendTurn(state, "Kaw", reply);
@@ -1388,7 +1269,7 @@ if (message) {
 
     // ConfirmLanguageSwitch handling
     if (state.pending?.type === "confirmLanguageSwitch" && message) {
-      const low = lowerClean(message);
+      const low = message.toLowerCase().trim();
       let proceedState = state;
 
       if (!isAffirmative(low) && !isNegative(low)) {
@@ -1396,7 +1277,9 @@ if (message) {
         if (yn === "yes") proceedState = updateStateFromStudent(state, "yes");
         else if (yn === "no") proceedState = updateStateFromStudent(state, "no");
         else {
-          let reply = enforceSingleQuestion(computeNextQuestion(state));
+          const q = computeNextQuestion(state);
+          let reply = enforceSingleQuestion(q);
+
           const candName = state.pending?.candidateName || "English";
           if ((state.pending?.candidateCode || "") !== "en") {
             reply = await translateQuestionViaLLM(reply, candName);
@@ -1413,21 +1296,7 @@ if (message) {
 
       state = proceedState;
     } else if (message) {
-      // Stuck handling: if stuck, ask a targeted nudge question without capturing "idk" as content
-      if (isStuckMessage(message)) {
-        let reply = enforceSingleQuestion(stuckNudgeQuestion(state));
-
-        if (state.settings.languageLocked && state.settings.language !== "en") {
-          reply = await translateQuestionViaLLM(reply, state.settings.languageName || "the target language");
-        }
-
-        appendTurn(state, "Student", message);
-        appendTurn(state, "Kaw", reply);
-
-        // no exports update needed
-        return res.status(200).json({ reply, state });
-      }
-
+      // Optional: stuck logic can be layered here later (kept minimal in this patch)
       state = updateStateFromStudent(state, message);
     }
 
@@ -1451,10 +1320,7 @@ if (message) {
 
     return res.status(200).json({ reply, state });
   } catch (err) {
-    // IMPORTANT: this is what you’ll see in Vercel logs
-    console.error("Tutor API error (fatal):", err?.stack || err);
-
-    // Return a stable shape (don’t crash the UI)
+    console.error("Tutor API error:", err);
     return res.status(200).json({
       reply: "Hmm — I had trouble processing that. Can you try again?",
       state: normalizeIncomingState({}),
