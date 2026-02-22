@@ -1,5 +1,5 @@
-import OpenAI from "openai";
-import { SAFETY_RESPONSES } from "../lib/safetyResponses.js";
+import OpenAi from "openai";
+import { SAFETY_RESPONSES } from "../lib/safetyresponses.js";
 import { classifyMessage } from "../lib/safetyCheck.js";
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
