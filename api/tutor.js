@@ -29,7 +29,7 @@ const DEFAULT_MODEL = process.env.OPENAI_MODEL || "gpt-4.1-mini";
 // Transcript cap (avoid bloating state)
 const TRANSCRIPT_MAX_TURNS = 200;
 
-// Run language detection only on “real” text
+// Run language detection only on "real" text
 const LANG_DETECT_MIN_CHARS = 18;
 
 // ---------------------
@@ -708,7 +708,7 @@ function buildExportHtml(s) {
   <h2>Full Transcript</h2>
   <div class="box">${transcriptText || "<em>(No transcript captured.)</em>"}</div>
 
-  <div class="muted">Tip: Use your browser’s Print dialog to print or “Save as PDF.”</div>
+  <div class="muted">Tip: Use your browser's Print dialog to print or "Save as PDF."</div>
 </body>
 </html>`;
 }
