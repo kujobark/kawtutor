@@ -781,10 +781,10 @@ if (s.pending?.type === "confirmIsAbout") {
       }
       return pb;
     }
-    if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect" && s.frame.effect) {
- return s.frame.mainIdeas.length === 0
-  ? `What is the first major cause that leads to ${s.frame.effect}?`
-  : `What is the second major cause that leads to ${s.frame.effect}?`;
+  if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect" && s.frame.effect) {
+  return s.frame.mainIdeas.length === 0
+    ? `What is the first major cause that leads to ${s.frame.effect}?`
+    : `What is the second major cause that leads to ${s.frame.effect}?`;
 }
 
 return s.frame.mainIdeas.length === 0
