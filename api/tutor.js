@@ -461,13 +461,15 @@ function defaultState() {
       purpose: "",   // study|write|read
       frameType: "", // causeEffect|themes|reading
     },
-    frame: {
-      keyTopic: "",
-      isAbout: "",
-      mainIdeas: [],
-      details: [],
-      soWhat: "",
-    },
+   frame: {
+  keyTopic: "",
+  isAbout: "",
+  cause: "",
+  effect: "",
+  mainIdeas: [],
+  details: [],
+  soWhat: "",
+},
     pending: null,
     settings: {
       language: "en",
@@ -779,9 +781,15 @@ if (s.pending?.type === "confirmIsAbout") {
       }
       return pb;
     }
-    return s.frame.mainIdeas.length === 0
-      ? `What is your first Main Idea that helps explain ${s.frame.keyTopic}?`
-      : `What is your second Main Idea that helps explain ${s.frame.keyTopic}?`;
+    if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect" && s.frame.effect) {
+ return s.frame.mainIdeas.length === 0
+  ? `What is the first major cause that leads to ${s.frame.effect}?`
+  : `What is the second major cause that leads to ${s.frame.effect}?`;
+}
+
+return s.frame.mainIdeas.length === 0
+  ? `What is your first Main Idea that helps explain ${s.frame.keyTopic}?`
+  : `What is your second Main Idea that helps explain ${s.frame.keyTopic}?`;
   }
 
   for (let i = 0; i < s.frame.mainIdeas.length; i++) {
@@ -1210,6 +1218,22 @@ if (!s.frame.isAbout) {
         return s;
       }
     }
+
+// Step 3: parse/store cause + effect from "leads to"
+if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
+  const lowerMsg = msg.toLowerCase();
+  const idx = lowerMsg.indexOf("leads to");
+  if (idx >= 0) {
+    const leftRaw = msg.slice(0, idx);
+    const rightRaw = msg.slice(idx + "leads to".length);
+
+    const cause = leftRaw.replace(/^this topic is about\s+how\s+/i, "").trim();
+    const effect = rightRaw.trim().replace(/[.?!]+$/, "");
+
+    s.frame.cause = cause;
+    s.frame.effect = effect;
+  }
+}
 
     s.frame.isAbout = msg;
     s.pending = { type: "confirmIsAbout" };
