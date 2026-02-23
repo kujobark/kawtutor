@@ -390,9 +390,9 @@ function buildMiniQuestion(state) {
     return "Which fits best: study/review, write/create, or create notes from a reading/source? (study/write/read)";
   }
 
-  if (stage === "frameType") {
-    return "Which one: 1) cause/effect, 2) themes, or 3) reading frames? (1–3)";
-  }
+ if (stage === "frameType") {
+  return "Which one: 1) cause/effect, 2) themes, 3) reading frames, or 4) general frame? (1–4)";
+}
 
   if (stage === "keyTopic") {
     return "If you had to title this in 4 words, what would the title be?";
