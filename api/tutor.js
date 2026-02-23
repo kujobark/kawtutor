@@ -689,6 +689,10 @@ function computeNextQuestion(state) {
 
   if (s.pending?.type === "stuckSkip") return "Got it — we’ll come back to this. Want to try the next step now? (yes/no)";
 
+if (s.pending?.type === "needWriteCauseEffectStem") {
+  return 'That’s a strong start. Can you restate it as a clear cause-and-effect relationship? Try: "This topic is about how ___ leads to ___."';
+}
+  
   if (s.pending?.type === "confirmIsAbout") {
     return `"${s.frame.keyTopic}" is about "${s.frame.isAbout}". Is that correct, or would you like to revise it?`;
   }
@@ -1186,15 +1190,24 @@ function updateStateFromStudent(state, message) {
     return s;
   }
 
-  // 3) Is About capture (plain sentence/phrase) + checkpoint
-  if (!s.frame.isAbout) {
-    const lowered = msg.toLowerCase().trim();
-    if (lowered !== "revise" && lowered !== "change") {
-      s.frame.isAbout = msg;
-      s.pending = { type: "confirmIsAbout" };
+ // 3) Is About capture (plain sentence/phrase) + checkpoint
+if (!s.frame.isAbout) {
+  const lowered = msg.toLowerCase().trim();
+  if (lowered !== "revise" && lowered !== "change") {
+
+    // Step 2: write + causeEffect must use "leads to" stem
+    if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
+      if (!msg.toLowerCase().includes("leads to")) {
+        s.pending = { type: "needWriteCauseEffectStem" };
+        return s;
+      }
     }
-    return s;
+
+    s.frame.isAbout = msg;
+    s.pending = { type: "confirmIsAbout" };
   }
+  return s;
+}
 
   // 4) Main Ideas capture
   if (s.frame.mainIdeas.length < 2) {
