@@ -693,9 +693,17 @@ if (s.pending?.type === "needWriteCauseEffectStem") {
   return 'That’s a strong start. Can you restate it as a clear cause-and-effect relationship? Try: "This topic is about how ___ leads to ___."';
 }
   
-  if (s.pending?.type === "confirmIsAbout") {
-    return `"${s.frame.keyTopic}" is about "${s.frame.isAbout}". Is that correct, or would you like to revise it?`;
+if (s.pending?.type === "confirmIsAbout") {
+  // Write + Cause/Effect gets a teacher-voice confirmation
+  if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
+    // Prefer using the student’s sentence, but strip leading "This topic is about "
+    const raw = (s.frame.isAbout || "").trim();
+    const cleaned = raw.replace(/^this topic is about\s+/i, "").replace(/\.$/, "");
+    return `So your cause-and-effect focus is ${cleaned}. Is that correct, or would you like to revise it?`;
   }
+  // Default confirmation (study, other frames)
+  return `"${s.frame.keyTopic}" is about "${s.frame.isAbout}". Is that correct, or would you like to revise it?`;
+}
 
   if (s.pending?.type === "confirmMainIdeas") {
     const lines = (s.frame.mainIdeas || []).map((mi, i) => `${i + 1}) ${mi}`).join("\n");
