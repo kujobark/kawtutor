@@ -731,8 +731,7 @@ function computeNextQuestion(state) {
     "2) Explain a big idea or theme (Framing Themes)\n" +
     "3) Organize ideas from a text or source (Reading Frames)\n" +
     "4) Organize my thinking (General Frame)\n" +
-    "Reply with 1, 2, 3, or 4."
-  );
+    "Reply with 1, 2, 3, or 4?"  );
 }
 
   if (!s.frame.keyTopic) return "What is your Key Topic? (2–5 words)";
