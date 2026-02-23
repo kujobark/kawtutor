@@ -276,6 +276,15 @@ const PROMPT_BANK = {
       soWhat: 'When you look at all of these causes and effects together, what can you conclude about "[Key Topic]"?'
     },
   },
+
+  write: {
+    causeEffect: {
+      isAbout: 'Finish this sentence: "This topic is about how ____ leads to ____."',
+      mainIdea: "What is the first major cause that leads to the effect you’re writing about?",
+      detail: "For this cause, what would you say next?",
+      soWhat: "Why should people care about this effect?"
+    },
+  },
 };
 
 function getPromptForStage(state, stage) {
