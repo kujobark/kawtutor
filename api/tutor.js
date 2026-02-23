@@ -252,7 +252,8 @@ function normalizeFrameTypeSelection(input) {
   if (t === "1" || t.startsWith("1 ")) return "causeEffect";
   if (t === "2" || t.startsWith("2 ")) return "themes";
   if (t === "3" || t.startsWith("3 ")) return "reading";
-
+  if (t === "4" || t.startsWith("4 ")) return "general";
+  
   // Accept common text variants (still deterministic)
   if (t.includes("cause") || t.includes("effect") || t.includes("how") || t.includes("why")) return "causeEffect";
   if (t.includes("theme") || t.includes("big idea") || t.includes("central idea")) return "themes";
