@@ -391,7 +391,7 @@ function buildMiniQuestion(state) {
   }
 
  if (stage === "frameType") {
-  return "Which one: 1) cause/effect, 2) themes, 3) reading frames, or 4) general frame? (1–4)";
+  return "Which one: 1) cause/effect, 2) themes, 3) reading frames, or 4) general frame (1–4)?";
 }
 
   if (stage === "keyTopic") {
@@ -726,14 +726,14 @@ function computeNextQuestion(state) {
 
   if (!s.frameMeta?.frameType) {
   return (
-    "What kind of thinking are you doing?\n" +
-    "1) Explain how/why something happens (Linear & Cause-and-Effect Relationships)\n" +
-    "2) Explain a big idea or theme (Framing Themes)\n" +
-    "3) Organize ideas from a text or source (Reading Frames)\n" +
-    "4) Organize my thinking (General Frame)\n" +
-    "Reply with 1, 2, 3, or 4?"  );
+  "What kind of thinking are you doing.\n" +
+  "1) Explain how/why something happens (Linear & Cause-and-Effect Relationships)\n" +
+  "2) Explain a big idea or theme (Framing Themes)\n" +
+  "3) Organize ideas from a text or source (Reading Frames)\n" +
+  "4) Organize my thinking (General Frame)\n" +
+  "Reply with 1, 2, 3, or 4?"
+  );
 }
-
   if (!s.frame.keyTopic) return "What is your Key Topic? (2–5 words)";
 
   if (!s.frame.isAbout) {
