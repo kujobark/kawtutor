@@ -390,8 +390,8 @@ function buildMiniQuestion(state) {
     return "Which fits best: study/review, write/create, or create notes from a reading/source? (study/write/read)";
   }
 
- if (stage === "frameType") {
-  return "Which one: 1) cause/effect, 2) themes, 3) reading frames, or 4) general frame (1–4)?";
+if (stage === "purpose") {
+  return "Which one: 1) study/review, 2) write/create, or 3) reading/source notes (1–3)?";
 }
 
   if (stage === "keyTopic") {
@@ -720,9 +720,15 @@ function computeNextQuestion(state) {
   if (s.pending?.type === "chooseExportType") return "What would you like to save/print: frame, transcript, or both? (frame/transcript/both)";
 
   // Base progression
-  if (!s.frameMeta?.purpose) {
-    return "How will you use this Frame: studying/review, writing/creating, or create notes from a reading or source? (study/write/read)";
-  }
+ if (!s.frameMeta?.purpose) {
+  return (
+    "How will you use this Frame.\n" +
+    "1) Study / review\n" +
+    "2) Write / create\n" +
+    "3) Create notes from a reading or source\n" +
+    "Reply with 1, 2, or 3?"
+  );
+}
 
   if (!s.frameMeta?.frameType) {
   return (
