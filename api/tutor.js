@@ -1031,32 +1031,44 @@ function updateStateFromStudent(state, message) {
 
 if (stage === "isAbout") {
   if (!s.frame.isAbout) {
+    const lowered = msg.toLowerCase().trim();
 
-    // Write + Cause/Effect must use "leads to"
+    // ✅ Write + Cause/Effect must include "leads to"
     if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
-      const lower = msg.toLowerCase();
-      if (!lower.includes("leads to")) {
+      if (!lowered.includes("leads to")) {
         s.pending = { type: "needWriteCauseEffectStem" };
         return s;
       }
 
-      // Parse/store cause + effect from "leads to"
-      const idx = lower.indexOf("leads to");
+      // ✅ Parse/store cause + effect from "leads to"
+      const idx = lowered.indexOf("leads to");
       if (idx >= 0) {
         const leftRaw = msg.slice(0, idx);
         const rightRaw = msg.slice(idx + "leads to".length);
 
-        const cause = leftRaw.replace(/^this topic is about\s+how\s+/i, "").trim();
-        const effect = rightRaw.trim().replace(/[.?!]+$/, "");
+        const cause = leftRaw
+          .replace(/^\s*(this|the)\s+topic\s+is\s+about\s+how\s+/i, "")
+          .trim();
+
+        const effect = rightRaw
+          .trim()
+          .replace(/[.?!]+$/, "")
+          .trim();
 
         s.frame.cause = cause;
         s.frame.effect = effect;
       }
     }
 
-    s.frame.isAbout = msg;
-    s.pending = { type: "confirmIsAbout" };
+    // Ignore "revise/change" as content
+    if (lowered !== "revise" && lowered !== "change") {
+      s.frame.isAbout = msg;
+      s.pending = { type: "confirmIsAbout" };
+      return s;
+    }
   }
+
+  s.pending = null;
   return s;
 }
 
