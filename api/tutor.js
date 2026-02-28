@@ -770,21 +770,29 @@ if (s.pending?.type === "confirmIsAbout") {
     return pb || `Finish this sentence: "${s.frame.keyTopic} is about ____."`;
   }
 
-  if (s.frame.mainIdeas.length < 2) {
-    const pb = getPromptForStage(s, "mainIdeas");
-    if (pb) {
-      // Add ordinal clarity when prompt bank uses a generic stem.
-      const c = s.frame.mainIdeas.length;
-      if (/^What is one major cause or effect/i.test(pb)) {
-        const ord = c === 0 ? "first" : c === 1 ? "second" : "next";
-        return pb.replace(/^What is one/i, `What is your ${ord}`);
-      }
-      return pb;
-    }
+ if (s.frame.mainIdeas.length < 2) {
+
+  // Step 3C (must be BEFORE prompt bank return)
   if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect" && s.frame.effect) {
+    return s.frame.mainIdeas.length === 0
+      ? `What is the first major cause that leads to ${s.frame.effect}?`
+      : `What is the second major cause that leads to ${s.frame.effect}?`;
+  }
+
+  const pb = getPromptForStage(s, "mainIdeas");
+  if (pb) {
+    // Add ordinal clarity when prompt bank uses a generic stem.
+    const c = s.frame.mainIdeas.length;
+    if (/^What is one major cause or effect/i.test(pb)) {
+      const ord = c === 0 ? "first" : c === 1 ? "second" : "next";
+      return pb.replace(/^What is one/i, `What is your ${ord}`);
+    }
+    return pb;
+  }
+
   return s.frame.mainIdeas.length === 0
-    ? `What is the first major cause that leads to ${s.frame.effect}?`
-    : `What is the second major cause that leads to ${s.frame.effect}?`;
+    ? `What is your first Main Idea that helps explain ${s.frame.keyTopic}?`
+    : `What is your second Main Idea that helps explain ${s.frame.keyTopic}?`;
 }
 
 return s.frame.mainIdeas.length === 0
