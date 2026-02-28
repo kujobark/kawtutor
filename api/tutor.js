@@ -795,11 +795,6 @@ if (s.pending?.type === "confirmIsAbout") {
     : `What is your second Main Idea that helps explain ${s.frame.keyTopic}?`;
 }
 
-return s.frame.mainIdeas.length === 0
-  ? `What is your first Main Idea that helps explain ${s.frame.keyTopic}?`
-  : `What is your second Main Idea that helps explain ${s.frame.keyTopic}?`;
-  }
-
   for (let i = 0; i < s.frame.mainIdeas.length; i++) {
     const mi = s.frame.mainIdeas[i];
     const arr = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
