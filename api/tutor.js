@@ -1030,44 +1030,38 @@ function updateStateFromStudent(state, message) {
     }
 
 if (stage === "isAbout") {
-  // WRITE + Cause/Effect: require "leads to" and parse cause/effect
-  if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
-    const lower = (msg || "").toLowerCase();
+  if (!s.frame.isAbout) {
 
-    // Require "leads to"
-    if (!lower.includes("leads to")) {
-      s.pending = { type: "needWriteCauseEffectStem" };
-      return s;
+    // Write + Cause/Effect: require + parse "leads to" so we can store cause/effect
+    if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
+      const lower = (msg || "").toLowerCase();
+      const key = "leads to";
+      const idx = lower.indexOf(key);
+
+      // Must include "leads to"
+      if (idx === -1) {
+        s.pending = { type: "needWriteCauseEffectStem" };
+        return s;
+      }
+
+      const leftRaw = msg.slice(0, idx);
+      const rightRaw = msg.slice(idx + key.length);
+
+      const cause = leftRaw
+        .replace(/^(this|the)\s+(key\s+)?topic\s+is\s+about\s+how\s+/i, "")
+        .replace(/^\s*how\s+/i, "")
+        .trim()
+        .replace(/[.?!]+$/g, "");
+
+      const effect = rightRaw
+        .trim()
+        .replace(/[.?!]+$/g, "");
+
+      if (cause) s.frame.cause = cause;
+      if (effect) s.frame.effect = effect;
     }
 
-    // Parse/store cause + effect from "leads to"
-    const idx = lower.indexOf("leads to");
-    const leftRaw = msg.slice(0, idx);
-    const rightRaw = msg.slice(idx + "leads to".length);
-
-    const cause = leftRaw
-      .replace(/^(this|the)\s+(key\s+)?topic\s+is\s+about\s+how\s+/i, "")
-      .replace(/^(this|the)\s+topic\s+is\s+about\s+how\s+/i, "")
-      .replace(/^\s*how\s+/i, "")
-      .trim()
-      .replace(/[.?!]+$/g, "");
-
-    const effect = rightRaw
-      .trim()
-      .replace(/[.?!]+$/g, "");
-
-    s.frame.cause = cause;
-    s.frame.effect = effect;
-
-    // Normalize isAbout so confirmation sounds clean
-    s.frame.isAbout = `how ${cause} leads to ${effect}`;
-
-    s.pending = { type: "confirmIsAbout" };
-    return s;
-  }
-
-  // Default (study, other frames)
-  if (!s.frame.isAbout) {
+    // Store the full isAbout statement (what the student typed)
     s.frame.isAbout = msg;
     s.pending = { type: "confirmIsAbout" };
     return s;
