@@ -1040,25 +1040,29 @@ if (stage === "isAbout") {
         return s;
       }
 
-      // ✅ Parse/store cause + effect from "leads to"
-      const idx = lowered.indexOf("leads to");
-      if (idx >= 0) {
-        const leftRaw = msg.slice(0, idx);
-        const rightRaw = msg.slice(idx + "leads to".length);
+// Parse/store cause + effect from "leads to" (robust)
+if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
+  const lower = msg.toLowerCase();
+  const idx = lower.indexOf("leads to");
 
-        const cause = leftRaw
-          .replace(/^\s*(this|the)\s+topic\s+is\s+about\s+how\s+/i, "")
-          .trim();
+  if (idx >= 0) {
+    const leftRaw = msg.slice(0, idx);
+    const rightRaw = msg.slice(idx + "leads to".length);
 
-        const effect = rightRaw
-          .trim()
-          .replace(/[.?!]+$/, "")
-          .trim();
+    const cause = leftRaw
+      .replace(/^(this|the)\s+(key\s+)?topic\s+is\s+about\s+how\s+/i, "")
+      .replace(/^\s*how\s+/i, "")
+      .trim()
+      .replace(/[.?!]+$/g, "");
 
-        s.frame.cause = cause;
-        s.frame.effect = effect;
-      }
-    }
+    const effect = rightRaw
+      .trim()
+      .replace(/[.?!]+$/g, "");
+
+    s.frame.cause = cause;
+    s.frame.effect = effect;
+  }
+}
 
     // Ignore "revise/change" as content
     if (lowered !== "revise" && lowered !== "change") {
