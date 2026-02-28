@@ -1061,7 +1061,7 @@ if (stage === "isAbout") {
       if (effect) s.frame.effect = effect;
     }
 
-    // Store the full isAbout statement (what the student typed)
+    // Store the full isAbout statement
     s.frame.isAbout = msg;
     s.pending = { type: "confirmIsAbout" };
     return s;
