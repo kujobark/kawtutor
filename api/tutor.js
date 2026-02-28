@@ -1029,15 +1029,36 @@ function updateStateFromStudent(state, message) {
       return s;
     }
 
-    if (stage === "isAbout") {
-      if (!s.frame.isAbout) {
-        s.frame.isAbout = msg;
-        s.pending = { type: "confirmIsAbout" };
+if (stage === "isAbout") {
+  if (!s.frame.isAbout) {
+
+    // Write + Cause/Effect must use "leads to"
+    if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
+      const lower = msg.toLowerCase();
+      if (!lower.includes("leads to")) {
+        s.pending = { type: "needWriteCauseEffectStem" };
         return s;
       }
-      s.pending = null;
-      return s;
+
+      // Parse/store cause + effect from "leads to"
+      const idx = lower.indexOf("leads to");
+      if (idx >= 0) {
+        const leftRaw = msg.slice(0, idx);
+        const rightRaw = msg.slice(idx + "leads to".length);
+
+        const cause = leftRaw.replace(/^this topic is about\s+how\s+/i, "").trim();
+        const effect = rightRaw.trim().replace(/[.?!]+$/, "");
+
+        s.frame.cause = cause;
+        s.frame.effect = effect;
+      }
     }
+
+    s.frame.isAbout = msg;
+    s.pending = { type: "confirmIsAbout" };
+  }
+  return s;
+}
 
     if (stage === "mainIdeas") {
       if (s.frame.mainIdeas.length < 2 && !isNegative(msg)) {
