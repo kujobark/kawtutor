@@ -280,7 +280,7 @@ const PROMPT_BANK = {
   write: {
     causeEffect: {
       isAbout: 'Finish this sentence: "This topic is about how ____ leads to ____."',
-      mainIdea: "What is the first major cause that leads to the effect you’re writing about?",
+      mainIdea: "What is the first major cause that leads to [EFFECT]?",
       detail: "For this cause, what would you say next?",
       soWhat: "Why should people care about this effect?"
     },
