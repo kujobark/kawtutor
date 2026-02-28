@@ -779,16 +779,27 @@ if (s.pending?.type === "confirmIsAbout") {
       : `What is the second major cause that leads to ${s.frame.effect}?`;
   }
 
-  const pb = getPromptForStage(s, "mainIdeas");
-  if (pb) {
-    // Add ordinal clarity when prompt bank uses a generic stem.
-    const c = s.frame.mainIdeas.length;
-    if (/^What is one major cause or effect/i.test(pb)) {
-      const ord = c === 0 ? "first" : c === 1 ? "second" : "next";
-      return pb.replace(/^What is one/i, `What is your ${ord}`);
-    }
-    return pb;
+let pb = getPromptForStage(s, "mainIdeas");
+if (pb) {
+  // Add ordinal clarity when prompt bank uses a generic stem.
+  const c = s.frame.mainIdeas.length;
+
+  // Inject effect into generic prompt-bank language
+  if (s.frameMeta?.purpose === "write" &&
+      s.frameMeta?.frameType === "causeEffect" &&
+      s.frame.effect) {
+
+    pb = pb.replace(/the effect you[’']re writing about/gi, s.frame.effect);
+    pb = pb.replace(/\[EFFECT\]/g, s.frame.effect);
   }
+
+  if (/^What is one major cause or effect/i.test(pb)) {
+    const ord = c === 0 ? "first" : c === 1 ? "second" : "next";
+    return pb.replace(/^What is one/i, `What is your ${ord}`);
+  }
+
+  return pb;
+}
 
   return s.frame.mainIdeas.length === 0
     ? `What is your first Main Idea that helps explain ${s.frame.keyTopic}?`
