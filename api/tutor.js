@@ -1033,37 +1033,36 @@ if (stage === "isAbout") {
   if (!s.frame.isAbout) {
     const lowered = msg.toLowerCase().trim();
 
-    // ✅ Write + Cause/Effect must include "leads to"
-    if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
-      if (!lowered.includes("leads to")) {
-        s.pending = { type: "needWriteCauseEffectStem" };
-        return s;
-      }
-
-// Parse/store cause + effect from "leads to" (robust)
+// Write + Cause/Effect must use "leads to"
 if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
   const lower = msg.toLowerCase();
-  const idx = lower.indexOf("leads to");
 
-  if (idx >= 0) {
-    const leftRaw = msg.slice(0, idx);
-    const rightRaw = msg.slice(idx + "leads to".length);
-
-    const cause = leftRaw
-      .replace(/^(this|the)\s+(key\s+)?topic\s+is\s+about\s+how\s+/i, "")
-      .replace(/^\s*how\s+/i, "")
-      .trim()
-      .replace(/[.?!]+$/g, "");
-
-    const effect = rightRaw
-      .trim()
-      .replace(/[.?!]+$/g, "");
-
-    s.frame.cause = cause;
-    s.frame.effect = effect;
+  // Require "leads to"
+  if (!lower.includes("leads to")) {
+    s.pending = { type: "needWriteCauseEffectStem" };
+    return s;
   }
-}
 
+  // Parse/store cause + effect from "leads to" (robust)
+  const idx = lower.indexOf("leads to");
+  if (idx < 0) return s;
+  const leftRaw = msg.slice(0, idx);
+  const rightRaw = msg.slice(idx + "leads to".length);
+
+  const cause = leftRaw
+    .replace(/^(this|the)\s+(key\s+)?topic\s+is\s+about\s+how\s+/i, "")
+    .replace(/^\s*how\s+/i, "")
+    .trim()
+    .replace(/[.?!]+$/g, "");
+
+  const effect = rightRaw
+    .trim()
+    .replace(/[.?!]+$/g, "");
+
+  s.frame.cause = cause;
+  s.frame.effect = effect;
+}
+    
     // Ignore "revise/change" as content
     if (lowered !== "revise" && lowered !== "change") {
       s.frame.isAbout = msg;
