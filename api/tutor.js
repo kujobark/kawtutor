@@ -395,10 +395,6 @@ function getStage(state) {
 function buildMiniQuestion(state) {
   const stage = getStage(state);
 
-  if (stage === "purpose") {
-    return "Which fits best: study/review, write/create, or create notes from a reading/source? (study/write/read)";
-  }
-
 if (stage === "purpose") {
   return "Which one: 1) study/review, 2) write/create, or 3) reading/source notes (1–3)?";
 }
@@ -408,8 +404,10 @@ if (stage === "purpose") {
   }
 
   if (stage === "isAbout") {
-    return "In one rough sentence, what is happening in your topic and why does it matter?";
-  }
+  const pb = getPromptForStage(state, "isAbout");
+  if (pb) return pb;
+  return "In one rough sentence, what is happening in your topic and why does it matter?";
+}
 
   if (stage === "mainIdeas") {
     if (state.frameMeta?.purpose === "study" && state.frameMeta?.frameType === "causeEffect") {
@@ -772,21 +770,32 @@ if (s.pending?.type === "confirmIsAbout") {
 
 if (s.frame.mainIdeas.length < 2) {
 
-  // Step 3C (must be BEFORE prompt bank return)
-  if (
-    s.frameMeta?.purpose === "write" &&
-    s.frameMeta?.frameType === "causeEffect" &&
-    s.frame.effect
-  ) {
-    return s.frame.mainIdeas.length === 0
-      ? `What is the first major cause that leads to ${s.frame.effect}?`
-      : `What is the second major cause that leads to ${s.frame.effect}?`;
-  }
+// Step 3C (must be BEFORE prompt bank return)
+// For write + cause/effect, we want the prompt to include the specific effect.
+// We do NOT early-return here; we let the prompt-bank (pb) flow and inject the effect below.
+const isWriteCE = (
+  s.frameMeta?.purpose === "write" &&
+  s.frameMeta?.frameType === "causeEffect" &&
+  !!s.frame.effect
+);
 
   let pb = getPromptForStage(s, "mainIdeas");
 
   if (pb) {
     const c = s.frame.mainIdeas.length;
+if (isWriteCE) {
+    pb = pb.replace(/the effect you[’']?re writing about/gi, s.frame.effect);
+    pb = pb.replace(/the effect/gi, s.frame.effect);
+    pb = pb.replace(/\[EFFECT\]/g, s.frame.effect);
+  }
+
+  if (/^What is one major cause or effect/i.test(pb)) {
+    const ord = c === 0 ? "first" : c === 1 ? "second" : "next";
+    return pb.replace(/^What is one/i, `What is your ${ord}`);
+  }
+
+  return pb;
+}
 
     // Inject effect into generic prompt-bank language
     if (
