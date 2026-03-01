@@ -1,4 +1,3 @@
-The following image can be moved on the page using keyboard controls (left, right, up, down)
 import OpenAI from "openai";
 import { SAFETY_RESPONSES } from "../lib/safetyResponses.js";
 import { classifyMessage } from "../lib/safetyCheck.js";
