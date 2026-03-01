@@ -495,6 +495,9 @@ function normalizeIncomingState(raw) {
   base.frame.keyTopic = cleanText(frame.keyTopic || s.keyTopic || "");
   base.frame.isAbout = cleanText(frame.isAbout || s.isAbout || "");
 
+  base.frame.cause  = cleanText(frame.cause  || s.cause  || "");
+base.frame.effect = cleanText(frame.effect || s.effect || "");
+
   base.frame.mainIdeas = Array.isArray(frame.mainIdeas)
     ? frame.mainIdeas.map(cleanText).filter(Boolean)
     : [];
@@ -796,22 +799,6 @@ if (isWriteCE) {
 
   return pb;
 }
-
-    // Inject effect into generic prompt-bank language
-    if (
-      s.frameMeta?.purpose === "write" &&
-      s.frameMeta?.frameType === "causeEffect" &&
-      s.frame.effect
-    ) {
-      // Preferred: replace the full phrase
-      pb = pb.replace(/the effect you[’']?re writing about/gi, s.frame.effect);
-
-      // Fallback: if phrasing differs, at least replace "the effect"
-      pb = pb.replace(/the effect/gi, s.frame.effect);
-
-      // Future-proof token option (if you ever use it)
-      pb = pb.replace(/\[EFFECT\]/g, s.frame.effect);
-    }
 
     if (/^What is one major cause or effect/i.test(pb)) {
       const ord = c === 0 ? "first" : c === 1 ? "second" : "next";
