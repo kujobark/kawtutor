@@ -225,7 +225,19 @@ Rules:
 function detectStuckTone(text) {
   const t = cleanText(text).toLowerCase();
   if (!t) return "neutral";
-  const frustration = ["confus", "stupid", "dumb", "hate", "annoy", "frustrat", "angry", "mad", "ugh", "this sucks", "do we have to"];
+  const frustration = [
+    "confus",
+    "stupid",
+    "dumb",
+    "hate",
+    "annoy",
+    "frustrat",
+    "angry",
+    "mad",
+    "ugh",
+    "this sucks",
+    "do we have to",
+  ];
   if (frustration.some((p) => t.includes(p))) return "frustration";
   const resistance = ["do we have to", "why do we have to", "why am i doing", "what's the point", "pointless"];
   if (resistance.some((p) => t.includes(p))) return "resistance";
@@ -236,9 +248,10 @@ function normalizePurpose(msg) {
   const t = cleanText(msg).toLowerCase();
   if (!t) return null;
   if (t.includes("study") || t.includes("review") || t === "s") return "study";
-  if (t.includes("write") || t.includes("essay") || t.includes("paragraph") || t.includes("create") || t === "w") return "write";
+  if (t.includes("write") || t.includes("essay") || t.includes("paragraph") || t.includes("create") || t === "w")
+    return "write";
   if (t.includes("read") || t.includes("note") || t.includes("annot") || t === "r") return "read";
-  // allow 1/2/3 mapping if you want buttons later
+  // allow 1/2/3 mapping (for buttons)
   if (t === "1") return "study";
   if (t === "2") return "write";
   if (t === "3") return "read";
@@ -253,13 +266,14 @@ function normalizeFrameTypeSelection(input) {
   if (t === "2" || t.startsWith("2 ")) return "themes";
   if (t === "3" || t.startsWith("3 ")) return "reading";
   if (t === "4" || t.startsWith("4 ")) return "general";
-  
+
   // Accept common text variants (still deterministic)
   if (t.includes("cause") || t.includes("effect") || t.includes("how") || t.includes("why")) return "causeEffect";
   if (t.includes("theme") || t.includes("big idea") || t.includes("central idea")) return "themes";
   if (t.includes("read") || t.includes("text") || t.includes("source") || t.includes("note")) return "reading";
+  if (t.includes("general") || t.includes("organize") || t.includes("organise")) return "general";
 
-  return "";
+  return null;
 }
 
 function fillTopic(template, keyTopic) {
@@ -271,7 +285,7 @@ function applyPromptTokens(template, state) {
   const kt = state?.frame?.keyTopic || "";
   const eff = state?.frame?.effect || "";
 
-  // Key Topic token (existing convention)
+  // Key Topic token
   if (kt) out = out.replace(/\[Key Topic\]/g, kt);
 
   // Cause/Effect write tokens / phrases
@@ -284,16 +298,16 @@ function applyPromptTokens(template, state) {
   return out;
 }
 
-
-
+// ---------------------
+// PROMPT BANK
+// ---------------------
 const PROMPT_BANK = {
-  // Phase 1 vertical slice: Studying/Review + Linear & Cause-and-Effect
   study: {
     causeEffect: {
       isAbout: 'In your own words, what is happening in "[Key Topic]", and why is it important?',
       mainIdea: "What is one major cause or effect that is important to remember?",
       detail: "What is an important detail that explains how or why this cause or effect occurs?",
-      soWhat: 'When you look at all of these causes and effects together, what can you conclude about "[Key Topic]"?'
+      soWhat: 'When you look at all of these causes and effects together, what can you conclude about "[Key Topic]"?',
     },
   },
 
@@ -302,7 +316,7 @@ const PROMPT_BANK = {
       isAbout: 'Finish this sentence: "This topic is about how ____ leads to ____."',
       mainIdea: "What is the first major cause that leads to [EFFECT]?",
       detail: "For this cause, what would you say next?",
-      soWhat: "Why should people care about this effect?"
+      soWhat: "Why should people care about this effect?",
     },
   },
 };
@@ -335,24 +349,19 @@ function getPromptForStage(state, stage) {
   return null;
 }
 
+// ---------------------
+// STUCK NU DGES
+// ---------------------
 function buildStuckNudges(state, stage) {
   const purpose = state.frameMeta?.purpose || "";
   const frameType = state.frameMeta?.frameType || "";
 
   if (purpose === "study" && frameType === "causeEffect") {
     if (stage === "mainIdeas") {
-      return [
-        "What caused this to happen",
-        "What happened because of it",
-        "Is this a cause or an effect",
-      ];
+      return ["What caused this to happen", "What happened because of it", "Is this a cause or an effect"];
     }
     if (stage.startsWith("details:")) {
-      return [
-        "How does this happen",
-        "Why does this happen",
-        "What shows the connection between the cause and the effect",
-      ];
+      return ["How does this happen", "Why does this happen", "What shows the connection between the cause and the effect"];
     }
     if (stage === "soWhat") {
       return [
@@ -383,16 +392,32 @@ function isStuckMessage(text) {
   if (wc > 14) return false;
 
   const patterns = [
-    "i don't know", "i dont know", "idk", "dont know",
-    "i'm confused", "im confused", "confused",
-    "i don't get it", "i dont get it", "dont get it",
-    "help", "can you help", "stuck", "not sure", "i forgot",
-    "i can't", "i cant", "no idea"
+    "i don't know",
+    "i dont know",
+    "idk",
+    "dont know",
+    "i'm confused",
+    "im confused",
+    "confused",
+    "i don't get it",
+    "i dont get it",
+    "dont get it",
+    "help",
+    "can you help",
+    "stuck",
+    "not sure",
+    "i forgot",
+    "i can't",
+    "i cant",
+    "no idea",
   ];
 
   return patterns.some((p) => t.includes(p));
 }
 
+// ---------------------
+// STAGE
+// ---------------------
 function getStage(state) {
   const f = state.frame;
   const m = state.frameMeta || {};
@@ -415,19 +440,19 @@ function getStage(state) {
 function buildMiniQuestion(state) {
   const stage = getStage(state);
 
-if (stage === "purpose") {
-  return "Which one: 1) study/review, 2) write/create, or 3) reading/source notes (1–3)?";
-}
+  if (stage === "purpose") {
+    return "Which one: 1) study/review, 2) write/create, or 3) reading/source notes (1–3)?";
+  }
 
   if (stage === "keyTopic") {
     return "If you had to title this in 4 words, what would the title be?";
   }
 
   if (stage === "isAbout") {
-  const pb = getPromptForStage(state, "isAbout");
-  if (pb) return pb;
-  return "In one rough sentence, what is happening in your topic and why does it matter?";
-}
+    const pb = getPromptForStage(state, "isAbout");
+    if (pb) return pb;
+    return "In one rough sentence, what is happening in your topic and why does it matter?";
+  }
 
   if (stage === "mainIdeas") {
     if (state.frameMeta?.purpose === "study" && state.frameMeta?.frameType === "causeEffect") {
@@ -476,18 +501,18 @@ function defaultState() {
   return {
     version: 2,
     frameMeta: {
-      purpose: "",   // study|write|read
-      frameType: "", // causeEffect|themes|reading
+      purpose: "", // study|write|read
+      frameType: "", // causeEffect|themes|reading|general
     },
-   frame: {
-  keyTopic: "",
-  isAbout: "",
-  cause: "",
-  effect: "",
-  mainIdeas: [],
-  details: [],
-  soWhat: "",
-},
+    frame: {
+      keyTopic: "",
+      isAbout: "",
+      cause: "",
+      effect: "",
+      mainIdeas: [],
+      details: [],
+      soWhat: "",
+    },
     pending: null,
     settings: {
       language: "en",
@@ -515,18 +540,15 @@ function normalizeIncomingState(raw) {
   base.frame.keyTopic = cleanText(frame.keyTopic || s.keyTopic || "");
   base.frame.isAbout = cleanText(frame.isAbout || s.isAbout || "");
 
-  base.frame.cause  = cleanText(frame.cause  || s.cause  || "");
-base.frame.effect = cleanText(frame.effect || s.effect || "");
+  base.frame.cause = cleanText(frame.cause || s.cause || "");
+  base.frame.effect = cleanText(frame.effect || s.effect || "");
 
-  base.frame.mainIdeas = Array.isArray(frame.mainIdeas)
-    ? frame.mainIdeas.map(cleanText).filter(Boolean)
-    : [];
+  base.frame.mainIdeas = Array.isArray(frame.mainIdeas) ? frame.mainIdeas.map(cleanText).filter(Boolean) : [];
 
   if (Array.isArray(frame.details)) {
-    base.frame.details = frame.details.map((bucket) =>
-      Array.isArray(bucket) ? bucket.map(cleanText).filter(Boolean) : []
-    );
+    base.frame.details = frame.details.map((bucket) => (Array.isArray(bucket) ? bucket.map(cleanText).filter(Boolean) : []));
   } else if (frame.details && typeof frame.details === "object") {
+    // legacy object form
     const obj = frame.details;
     base.frame.details = base.frame.mainIdeas.map((mi) => {
       const bucket = obj[mi];
@@ -538,7 +560,6 @@ base.frame.effect = cleanText(frame.effect || s.effect || "");
 
   base.frame.soWhat = cleanText(frame.soWhat || s.soWhat || "");
 
-  // Frame meta (NO AUTO-MAPPING fallback — student selection is authoritative)
   const frameMeta = s.frameMeta && typeof s.frameMeta === "object" ? s.frameMeta : {};
   base.frameMeta.purpose = cleanText(frameMeta.purpose || "") || "";
   base.frameMeta.frameType = cleanText(frameMeta.frameType || "") || "";
@@ -555,17 +576,13 @@ base.frame.effect = cleanText(frame.effect || s.effect || "");
 
   if (Array.isArray(s.transcript)) {
     base.transcript = s.transcript
-      .map((t) => ({
-        role: cleanText(t?.role || ""),
-        text: cleanText(t?.text || ""),
-      }))
+      .map((t) => ({ role: cleanText(t?.role || ""), text: cleanText(t?.text || "") }))
       .filter((t) => t.role && t.text)
       .slice(-TRANSCRIPT_MAX_TURNS);
   }
 
-  if (s.exports && typeof s.exports === "object") {
-    base.exports = s.exports;
-  }
+  if (s.exports && typeof s.exports === "object") base.exports = s.exports;
+
   const flags = s.flags && typeof s.flags === "object" ? s.flags : {};
   base.flags.exportOffered = !!flags.exportOffered;
   base.flags.exportChoice = flags.exportChoice || null;
@@ -576,11 +593,28 @@ base.frame.effect = cleanText(frame.effect || s.effect || "");
       .filter((x) => x.stage);
   }
 
+  // ensure detail buckets exist for each main idea
   for (let i = 0; i < base.frame.mainIdeas.length; i++) {
     if (!Array.isArray(base.frame.details[i])) base.frame.details[i] = [];
   }
 
   return base;
+}
+
+function ensureBuckets(s) {
+  if (!Array.isArray(s.frame.details)) s.frame.details = [];
+  if (!Array.isArray(s.frame.mainIdeas)) s.frame.mainIdeas = [];
+  for (let i = 0; i < s.frame.mainIdeas.length; i++) {
+    if (!Array.isArray(s.frame.details[i])) s.frame.details[i] = [];
+  }
+}
+
+function appendTurn(s, role, text) {
+  const t = cleanText(text);
+  if (!t) return;
+  if (!Array.isArray(s.transcript)) s.transcript = [];
+  s.transcript.push({ role, text: t });
+  if (s.transcript.length > TRANSCRIPT_MAX_TURNS) s.transcript = s.transcript.slice(-TRANSCRIPT_MAX_TURNS);
 }
 
 function isFrameComplete(s) {
@@ -597,19 +631,24 @@ function isFrameComplete(s) {
   return true;
 }
 
+// ---------------------
+// EXPORT
+// ---------------------
 function buildFrameText(s) {
   const lines = [];
   lines.push(`KEY TOPIC: ${s.frame.keyTopic}`);
   lines.push(`IS ABOUT: ${s.frame.isAbout}`);
+  if (s.frame.cause || s.frame.effect) {
+    lines.push(`CAUSE: ${s.frame.cause || ""}`);
+    lines.push(`EFFECT: ${s.frame.effect || ""}`);
+  }
   lines.push("");
   lines.push("MAIN IDEAS + SUPPORTING DETAILS:");
 
   s.frame.mainIdeas.forEach((mi, i) => {
     lines.push(`${i + 1}) ${mi}`);
     const details = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
-    details.forEach((d, k) => {
-      lines.push(`   - Detail ${k + 1}: ${d}`);
-    });
+    details.forEach((d, k) => lines.push(`   - Detail ${k + 1}: ${d}`));
     lines.push("");
   });
 
@@ -664,6 +703,47 @@ function buildExportHtml(s) {
 }
 
 // ---------------------
+// CAUSE/EFFECT (WRITE) helper
+// ---------------------
+function parseCauseEffectFromLeadsTo(msg) {
+  const raw = cleanText(msg);
+  const lower = raw.toLowerCase();
+  const key = "leads to";
+  const idx = lower.indexOf(key);
+  if (idx === -1) return null;
+
+  const leftRaw = raw.slice(0, idx);
+  const rightRaw = raw.slice(idx + key.length);
+
+  const cause = leftRaw
+    .replace(/^(this|the)\s+(key\s+)?topic\s+is\s+about\s+how\s+/i, "")
+    .replace(/^\s*how\s+/i, "")
+    .trim()
+    .replace(/[.?!]+$/g, "");
+
+  const effect = rightRaw.trim().replace(/[.?!]+$/g, "");
+
+  return { cause, effect };
+}
+
+function applyIsAboutCapture(s, msg) {
+  // Write + causeEffect must include "leads to" and we parse/store cause/effect
+  if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
+    const parsed = parseCauseEffectFromLeadsTo(msg);
+    if (!parsed) {
+      s.pending = { type: "needWriteCauseEffectStem" };
+      return s;
+    }
+    if (parsed.cause) s.frame.cause = parsed.cause;
+    if (parsed.effect) s.frame.effect = parsed.effect;
+  }
+
+  s.frame.isAbout = msg;
+  s.pending = { type: "confirmIsAbout" };
+  return s;
+}
+
+// ---------------------
 // PROGRESSION
 // ---------------------
 function computeNextQuestion(state) {
@@ -698,12 +778,7 @@ function computeNextQuestion(state) {
 
   if (s.pending?.type === "stuckNudge") {
     const tone = s.pending.tone || "neutral";
-    const ack =
-      tone === "frustration"
-        ? "That can feel frustrating. "
-        : tone === "resistance"
-          ? "I hear you. "
-          : "";
+    const ack = tone === "frustration" ? "That can feel frustrating. " : tone === "resistance" ? "I hear you. " : "";
     const nudge = cleanText(s.pending.nudgeText || "");
     return `${ack}${nudge} Then answer: ${s.pending.resumeQuestion}`;
   }
@@ -712,21 +787,19 @@ function computeNextQuestion(state) {
 
   if (s.pending?.type === "stuckSkip") return "Got it — we’ll come back to this. Want to try the next step now? (yes/no)";
 
-if (s.pending?.type === "needWriteCauseEffectStem") {
-  return 'That’s a strong start. Can you restate it as a clear cause-and-effect relationship? Try: "This topic is about how ___ leads to ___."';
-}
-  
-if (s.pending?.type === "confirmIsAbout") {
-  // Write + Cause/Effect gets a teacher-voice confirmation
-  if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
-    // Prefer using the student’s sentence, but strip leading "This topic is about "
-    const raw = (s.frame.isAbout || "").trim();
-    const cleaned = raw.replace(/^this topic is about\s+/i, "").replace(/\.$/, "");
-    return `So your cause-and-effect focus is ${cleaned}. Is that correct, or would you like to revise it?`;
+  if (s.pending?.type === "needWriteCauseEffectStem") {
+    return 'That’s a strong start. Can you restate it as a clear cause-and-effect relationship? Try: "This topic is about how ___ leads to ___."';
   }
-  // Default confirmation (study, other frames)
-  return `"${s.frame.keyTopic}" is about "${s.frame.isAbout}". Is that correct, or would you like to revise it?`;
-}
+
+  if (s.pending?.type === "confirmIsAbout") {
+    // Write + causeEffect gets a teacher-voice confirmation
+    if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
+      const raw = (s.frame.isAbout || "").trim();
+      const cleaned = raw.replace(/^this topic is about\s+/i, "").replace(/\.$/, "");
+      return `So your cause-and-effect focus is ${cleaned}. Is that correct, or would you like to revise it?`;
+    }
+    return `"${s.frame.keyTopic}" is about "${s.frame.isAbout}". Is that correct, or would you like to revise it?`;
+  }
 
   if (s.pending?.type === "confirmMainIdeas") {
     const lines = (s.frame.mainIdeas || []).map((mi, i) => `${i + 1}) ${mi}`).join("\n");
@@ -734,7 +807,6 @@ if (s.pending?.type === "confirmIsAbout") {
   }
 
   if (s.pending?.type === "offerThirdMainIdea") return "Do you have a third Main Idea? (yes/no)";
-
   if (s.pending?.type === "collectThirdMainIdea") return `What is your third Main Idea that helps explain ${s.frame.keyTopic}?`;
 
   if (s.pending?.type === "offerThirdDetail") {
@@ -758,32 +830,34 @@ if (s.pending?.type === "confirmIsAbout") {
   }
 
   if (s.pending?.type === "offerMoreSoWhat") return `Do you want to add one more sentence to your So What? (yes/no)`;
-  if (s.pending?.type === "collectMoreSoWhat") return `Add one more sentence to your So What:`;
-  if (s.pending?.type === "confirmSoWhat") return `Your So What is: "${s.frame.soWhat}". Is that correct, or would you like to revise it?`;
+  if (s.pending?.type === "collectMoreSoWhat") return "Add one more sentence to your So What:";
+  if (s.pending?.type === "confirmSoWhat")
+    return `Your So What is: "${s.frame.soWhat}". Is that correct, or would you like to revise it?`;
   if (s.pending?.type === "offerExport") return "Would you like to save or print a copy of your work? (yes/no)";
   if (s.pending?.type === "chooseExportType") return "What would you like to save/print: frame, transcript, or both? (frame/transcript/both)";
 
   // Base progression
- if (!s.frameMeta?.purpose) {
-  return (
-    "How will you use this Frame.\n" +
-    "1) Study / review\n" +
-    "2) Write / create\n" +
-    "3) Create notes from a reading or source\n" +
-    "Reply with 1, 2, or 3?"
-  );
-}
+  if (!s.frameMeta?.purpose) {
+    return (
+      "How will you use this Frame.\n" +
+      "1) Study / review\n" +
+      "2) Write / create\n" +
+      "3) Create notes from a reading or source\n" +
+      "Reply with 1, 2, or 3?"
+    );
+  }
 
   if (!s.frameMeta?.frameType) {
-  return (
-  "What kind of thinking are you doing.\n" +
-  "1) Explain how/why something happens (Linear & Cause-and-Effect Relationships)\n" +
-  "2) Explain a big idea or theme (Framing Themes)\n" +
-  "3) Organize ideas from a text or source (Reading Frames)\n" +
-  "4) Organize my thinking (General Frame)\n" +
-  "Reply with 1, 2, 3, or 4?"
-  );
-}
+    return (
+      "What kind of thinking are you doing.\n" +
+      "1) Explain how/why something happens (Linear & Cause-and-Effect Relationships)\n" +
+      "2) Explain a big idea or theme (Framing Themes)\n" +
+      "3) Organize ideas from a text or source (Reading Frames)\n" +
+      "4) Organize my thinking (General Frame)\n" +
+      "Reply with 1, 2, 3, or 4?"
+    );
+  }
+
   if (!s.frame.keyTopic) return "What is your Key Topic? (2–5 words)";
 
   if (!s.frame.isAbout) {
@@ -791,44 +865,23 @@ if (s.pending?.type === "confirmIsAbout") {
     return pb || `Finish this sentence: "${s.frame.keyTopic} is about ____."`;
   }
 
-if (s.frame.mainIdeas.length < 2) {
-  let pb = getPromptForStage(s, "mainIdeas");
+  if (s.frame.mainIdeas.length < 2) {
+    let pb = getPromptForStage(s, "mainIdeas");
 
-  if (pb) {
-    // Add ordinal clarity when prompt bank uses a generic stem.
-    const c = s.frame.mainIdeas.length;
-
-    // If we're writing a cause/effect piece and we already captured an effect,
-    // inject it into the prompt-bank language.
-    if (
-      s.frameMeta?.purpose === "write" &&
-      s.frameMeta?.frameType === "causeEffect" &&
-      s.frame.effect
-    ) {
-      pb = pb.replace(/\[EFFECT\]/g, s.frame.effect);
-      pb = pb.replace(/the effect you[’']?re writing about/gi, s.frame.effect);
-      pb = pb.replace(/\bthe effect\b/gi, s.frame.effect);
+    if (pb) {
+      // If prompt bank uses generic "one major..." stem, add ordinal clarity.
+      const c = s.frame.mainIdeas.length;
+      if (/^What is one major cause or effect/i.test(pb)) {
+        const ord = c === 0 ? "first" : c === 1 ? "second" : "next";
+        return pb.replace(/^What is one/i, `What is your ${ord}`);
+      }
+      return pb;
     }
 
-    if (/^What is one major cause or effect/i.test(pb)) {
-      const ord = c === 0 ? "first" : c === 1 ? "second" : "next";
-      return pb.replace(/^What is one/i, `What is your ${ord}`);
-    }
-
-    return pb;
+    return s.frame.mainIdeas.length === 0
+      ? `What is your first Main Idea that helps explain ${s.frame.keyTopic}?`
+      : `What is your second Main Idea that helps explain ${s.frame.keyTopic}?`;
   }
-
-  // Fallback if prompt bank doesn't have one
-  return s.frame.mainIdeas.length === 0
-    ? `What is your first Main Idea that helps explain ${s.frame.keyTopic}?`
-    : `What is your second Main Idea that helps explain ${s.frame.keyTopic}?`;
-}
-
-  // Fallback if prompt bank doesn't have one
-  return s.frame.mainIdeas.length === 0
-    ? `What is your first Main Idea that helps explain ${s.frame.keyTopic}?`
-    : `What is your second Main Idea that helps explain ${s.frame.keyTopic}?`;
-}
 
   for (let i = 0; i < s.frame.mainIdeas.length; i++) {
     const mi = s.frame.mainIdeas[i];
@@ -856,24 +909,6 @@ if (s.frame.mainIdeas.length < 2) {
 // ---------------------
 // STATE UPDATE (SSOT)
 // ---------------------
-function ensureBuckets(s) {
-  if (!Array.isArray(s.frame.details)) s.frame.details = [];
-  if (!Array.isArray(s.frame.mainIdeas)) s.frame.mainIdeas = [];
-  for (let i = 0; i < s.frame.mainIdeas.length; i++) {
-    if (!Array.isArray(s.frame.details[i])) s.frame.details[i] = [];
-  }
-}
-
-function appendTurn(s, role, text) {
-  const t = cleanText(text);
-  if (!t) return;
-  if (!Array.isArray(s.transcript)) s.transcript = [];
-  s.transcript.push({ role, text: t });
-  if (s.transcript.length > TRANSCRIPT_MAX_TURNS) {
-    s.transcript = s.transcript.slice(-TRANSCRIPT_MAX_TURNS);
-  }
-}
-
 function updateStateFromStudent(state, message) {
   const msg = cleanText(message);
   const s = structuredClone(state);
@@ -890,7 +925,7 @@ function updateStateFromStudent(state, message) {
     }
   }
 
-  // Frame type selection (thinking pattern)
+  // Frame type selection
   if (s.frameMeta?.purpose && !s.frameMeta.frameType && !(s.pending && s.pending.type)) {
     const ft = normalizeFrameTypeSelection(msg);
     if (ft) {
@@ -902,7 +937,6 @@ function updateStateFromStudent(state, message) {
   // ----------------
   // Pending handlers
   // ----------------
-
   if (s.pending?.type === "confirmLanguageSwitch") {
     const normalized = msg.toLowerCase().trim();
 
@@ -927,7 +961,7 @@ function updateStateFromStudent(state, message) {
     return s;
   }
 
-  // STUCK flow (unchanged)
+  // STUCK flow
   if (s.pending?.type === "stuckConfirm") {
     const low = msg.toLowerCase().trim();
     if (isAffirmative(low)) {
@@ -963,13 +997,7 @@ function updateStateFromStudent(state, message) {
       const stage = s.pending.stage || getStage(s);
       const nudges = buildStuckNudges(s, stage);
       const nudgeText = formatNudgeText(nudges);
-      s.pending = {
-        type: "stuckNudge",
-        stage,
-        tone: s.pending.tone || "neutral",
-        nudgeText,
-        resumeQuestion: s.pending.resumeQuestion,
-      };
+      s.pending = { type: "stuckNudge", stage, tone: s.pending.tone || "neutral", nudgeText, resumeQuestion: s.pending.resumeQuestion };
       return s;
     }
     if (choice === "4") {
@@ -995,21 +1023,11 @@ function updateStateFromStudent(state, message) {
   if (s.pending?.type === "stuckSkip") {
     const low = msg.toLowerCase().trim();
     if (isAffirmative(low)) {
-      s.pending = {
-        type: "stuckMini",
-        stage: s.pending.stage || getStage(s),
-        miniQuestion: s.pending.miniQuestion || buildMiniQuestion(s),
-        resumeQuestion: s.pending.resumeQuestion,
-      };
+      s.pending = { type: "stuckMini", stage: s.pending.stage || getStage(s), miniQuestion: s.pending.miniQuestion || buildMiniQuestion(s), resumeQuestion: s.pending.resumeQuestion };
       return s;
     }
     if (isNegative(low)) {
-      s.pending = {
-        type: "stuckConfirm",
-        stage: s.pending.stage || getStage(s),
-        resumeQuestion: s.pending.resumeQuestion,
-        miniQuestion: s.pending.miniQuestion || buildMiniQuestion(s),
-      };
+      s.pending = { type: "stuckConfirm", stage: s.pending.stage || getStage(s), resumeQuestion: s.pending.resumeQuestion, miniQuestion: s.pending.miniQuestion || buildMiniQuestion(s) };
       return s;
     }
     return s;
@@ -1041,54 +1059,19 @@ function updateStateFromStudent(state, message) {
       return s;
     }
 
-if (stage === "isAbout") {
-  if (!s.frame.isAbout) {
-
-    // Write + Cause/Effect: require + parse "leads to" so we can store cause/effect
-    if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
-      const lower = (msg || "").toLowerCase();
-      const key = "leads to";
-      const idx = lower.indexOf(key);
-
-      // Must include "leads to"
-      if (idx === -1) {
-        s.pending = { type: "needWriteCauseEffectStem" };
+    if (stage === "isAbout") {
+      if (!s.frame.isAbout) {
+        applyIsAboutCapture(s, msg);
         return s;
       }
-
-      const leftRaw = msg.slice(0, idx);
-      const rightRaw = msg.slice(idx + key.length);
-
-      const cause = leftRaw
-        .replace(/^(this|the)\s+(key\s+)?topic\s+is\s+about\s+how\s+/i, "")
-        .replace(/^\s*how\s+/i, "")
-        .trim()
-        .replace(/[.?!]+$/g, "");
-
-      const effect = rightRaw
-        .trim()
-        .replace(/[.?!]+$/g, "");
-
-      if (cause) s.frame.cause = cause;
-      if (effect) s.frame.effect = effect;
+      s.pending = null;
+      return s;
     }
-
-    // Store the full isAbout statement
-    s.frame.isAbout = msg;
-    s.pending = { type: "confirmIsAbout" };
-    return s;
-  }
-
-  s.pending = null;
-  return s;
-}
 
     if (stage === "mainIdeas") {
       if (s.frame.mainIdeas.length < 2 && !isNegative(msg)) {
         s.frame.mainIdeas.push(msg);
-        if (!Array.isArray(s.frame.details[s.frame.mainIdeas.length - 1])) {
-          s.frame.details[s.frame.mainIdeas.length - 1] = [];
-        }
+        if (!Array.isArray(s.frame.details[s.frame.mainIdeas.length - 1])) s.frame.details[s.frame.mainIdeas.length - 1] = [];
         if (s.frame.mainIdeas.length === 2) {
           s.pending = { type: "offerThirdMainIdea" };
           return s;
@@ -1132,7 +1115,8 @@ if (stage === "isAbout") {
       s.pending = null;
       return s;
     }
-    s.frame.isAbout = msg;
+    // revise
+    applyIsAboutCapture(s, msg);
     s.pending = null;
     return s;
   }
@@ -1159,9 +1143,7 @@ if (stage === "isAbout") {
   if (s.pending?.type === "collectThirdMainIdea") {
     if (!isNegative(msg)) {
       s.frame.mainIdeas.push(msg);
-      if (!Array.isArray(s.frame.details[s.frame.mainIdeas.length - 1])) {
-        s.frame.details[s.frame.mainIdeas.length - 1] = [];
-      }
+      if (!Array.isArray(s.frame.details[s.frame.mainIdeas.length - 1])) s.frame.details[s.frame.mainIdeas.length - 1] = [];
     }
     s.pending = { type: "confirmMainIdeas" };
     return s;
@@ -1170,7 +1152,6 @@ if (stage === "isAbout") {
   if (s.pending?.type === "offerThirdDetail") {
     const normalized = msg.toLowerCase().trim();
     const idx = Number(s.pending.index);
-
     if (isAffirmative(normalized)) {
       s.pending = { type: "collectThirdDetail", index: idx };
       return s;
@@ -1214,17 +1195,14 @@ if (stage === "isAbout") {
 
   if (s.pending?.type === "confirmSoWhat") {
     const normalized = msg.toLowerCase().trim();
-
     if (isAffirmative(normalized)) {
       s.pending = null;
-
       if (isFrameComplete(s) && !s.flags.exportOffered) {
         s.flags.exportOffered = true;
         s.pending = { type: "offerExport" };
       }
       return s;
     }
-
     s.frame.soWhat = msg;
     s.pending = null;
     return s;
@@ -1242,12 +1220,7 @@ if (stage === "isAbout") {
 
   if (s.pending?.type === "chooseExportType") {
     const normalized = msg.toLowerCase().trim();
-    const choice =
-      normalized.includes("both") ? "both" :
-      normalized.includes("frame") ? "frame" :
-      normalized.includes("transcript") ? "transcript" :
-      null;
-
+    const choice = normalized.includes("both") ? "both" : normalized.includes("frame") ? "frame" : normalized.includes("transcript") ? "transcript" : null;
     s.flags.exportChoice = choice || "both";
     s.pending = null;
     return s;
@@ -1261,66 +1234,40 @@ if (stage === "isAbout") {
   const parsed = parseKeyTopicIsAbout(msg);
   if (parsed) {
     if (!s.frame.keyTopic) s.frame.keyTopic = parsed.keyTopic;
-    if (!s.frame.isAbout) s.frame.isAbout = parsed.isAbout;
-    s.pending = { type: "confirmIsAbout" };
+    if (!s.frame.isAbout) {
+      // If write+c/e, enforce leads-to when capturing isAbout
+      applyIsAboutCapture(s, parsed.isAbout);
+    } else {
+      s.pending = { type: "confirmIsAbout" };
+    }
     return s;
   }
 
-  // 2) Key Topic capture (plain 2–5 words) — ✅ FIX: RETURN after capturing
+  // 2) Key Topic capture (plain 2–5 words) — return after capturing
   if (!s.frame.keyTopic) {
     const wc = msg.split(/\s+/).filter(Boolean).length;
     if (!isBadKeyTopic(msg) && wc >= 2 && wc <= 5) {
       s.frame.keyTopic = msg;
-      return s; // ✅ do NOT also treat this message as Is About
+      return s;
     }
     return s;
   }
 
- // 3) Is About capture (plain sentence/phrase) + checkpoint
-if (!s.frame.isAbout) {
-  const lowered = msg.toLowerCase().trim();
-  if (lowered !== "revise" && lowered !== "change") {
-
-    // Step 2: write + causeEffect must use "leads to" stem
-    if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
-      if (!msg.toLowerCase().includes("leads to")) {
-        s.pending = { type: "needWriteCauseEffectStem" };
-        return s;
-      }
+  // 3) Is About capture + checkpoint
+  if (!s.frame.isAbout) {
+    const lowered = msg.toLowerCase().trim();
+    if (lowered !== "revise" && lowered !== "change") {
+      applyIsAboutCapture(s, msg);
     }
-
-// Step 3: parse/store cause + effect from "leads to"
-if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
-  const lowerMsg = msg.toLowerCase();
-  const idx = lowerMsg.indexOf("leads to");
-  if (idx >= 0) {
-    const leftRaw = msg.slice(0, idx);
-    const rightRaw = msg.slice(idx + "leads to".length);
-
-    const cause = leftRaw.replace(/^this topic is about\s+how\s+/i, "").trim();
-    const effect = rightRaw.trim().replace(/[.?!]+$/, "");
-
-    s.frame.cause = cause;
-    s.frame.effect = effect;
+    return s;
   }
-}
-
-    s.frame.isAbout = msg;
-    s.pending = { type: "confirmIsAbout" };
-  }
-  return s;
-}
 
   // 4) Main Ideas capture
   if (s.frame.mainIdeas.length < 2) {
     if (!isNegative(msg)) {
       s.frame.mainIdeas.push(msg);
-      if (!Array.isArray(s.frame.details[s.frame.mainIdeas.length - 1])) {
-        s.frame.details[s.frame.mainIdeas.length - 1] = [];
-      }
-      if (s.frame.mainIdeas.length === 2) {
-        s.pending = { type: "offerThirdMainIdea" };
-      }
+      if (!Array.isArray(s.frame.details[s.frame.mainIdeas.length - 1])) s.frame.details[s.frame.mainIdeas.length - 1] = [];
+      if (s.frame.mainIdeas.length === 2) s.pending = { type: "offerThirdMainIdea" };
     }
     return s;
   }
@@ -1330,10 +1277,8 @@ if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect"
     const arr = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
     if (arr.length < 2) {
       if (!isNegative(msg)) s.frame.details[i] = [...arr, msg];
-
       const updated = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
       if (updated.length === 2) s.pending = { type: "offerThirdDetail", index: i };
-
       return s;
     }
   }
@@ -1487,13 +1432,13 @@ export default async function handler(req, res) {
     appendTurn(state, "Kaw", reply);
 
     if (isFrameComplete(state) && !state.pending) {
-          const frameText = buildFrameText(state);
-          const transcriptText = buildTranscriptText(state);
-          const html = buildExportHtml(state);
-          state.exports = { frameText, transcriptText, html };
-        } else {
-          state.exports = null;
-        }
+      const frameText = buildFrameText(state);
+      const transcriptText = buildTranscriptText(state);
+      const html = buildExportHtml(state);
+      state.exports = { frameText, transcriptText, html };
+    } else {
+      state.exports = null;
+    }
 
     return res.status(200).json({ reply, state });
   } catch (err) {
