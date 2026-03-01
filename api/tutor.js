@@ -314,8 +314,8 @@ const PROMPT_BANK = {
   write: {
     causeEffect: {
       isAbout: 'Finish this sentence: "This topic is about how ____ leads to ____."',
-      mainIdea: "What is the first major cause that leads to [EFFECT]?",
-      detail: "For this cause, what would you say next?",
+      mainIdea: "What is one major cause that leads to [EFFECT]?",
+      detail: "What is one detail that shows how this cause leads to [EFFECT]?",
       soWhat: "Why should people care about this effect?",
     },
   },
@@ -867,20 +867,25 @@ function computeNextQuestion(state) {
 
   if (s.frame.mainIdeas.length < 2) {
     let pb = getPromptForStage(s, "mainIdeas");
+    const c = s.frame.mainIdeas.length; // 0 or 1
 
     if (pb) {
       // If prompt bank uses generic "one major..." stem, add ordinal clarity.
-      const c = s.frame.mainIdeas.length;
-      if (/^What is one major cause or effect/i.test(pb)) {
+      if (/^What is one major cause or effect/i.test(pb) || /^What is one major cause/i.test(pb)) {
         const ord = c === 0 ? "first" : c === 1 ? "second" : "next";
-        return pb.replace(/^What is one/i, `What is your ${ord}`);
+        pb = pb.replace(/^What is one/i, `What is your ${ord}`);
       }
-      return pb;
+
+      // Numbering wrapper (no extra question marks)
+      return `Main Idea ${c + 1}:\n${pb}`;
     }
 
-    return s.frame.mainIdeas.length === 0
-      ? `What is your first Main Idea that helps explain ${s.frame.keyTopic}?`
-      : `What is your second Main Idea that helps explain ${s.frame.keyTopic}?`;
+    const fallback =
+      c === 0
+        ? `What is your first Main Idea that helps explain ${s.frame.keyTopic}?`
+        : `What is your second Main Idea that helps explain ${s.frame.keyTopic}?`;
+
+    return `Main Idea ${c + 1}:\n${fallback}`;
   }
 
   for (let i = 0; i < s.frame.mainIdeas.length; i++) {
@@ -888,13 +893,19 @@ function computeNextQuestion(state) {
     const arr = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
     if (arr.length < 2) {
       const pb = getPromptForStage(s, `details:${i}`);
+      const detailNum = arr.length + 1; // 1 or 2
+
       if (pb) {
         const base = pb.replace(/\?\s*$/, "");
-        return `For this Main Idea: "${mi}", ${base}?`;
+        return `Main Idea ${i + 1}: ${mi}\nSupporting Detail ${detailNum}: ${base}?`;
       }
-      return arr.length === 0
-        ? `What is your first Supporting Detail for this Main Idea: "${mi}"?`
-        : `What is your second Supporting Detail for this Main Idea: "${mi}"?`;
+
+      const fallback =
+        detailNum === 1
+          ? `What is your first Supporting Detail for this Main Idea: "${mi}"?`
+          : `What is your second Supporting Detail for this Main Idea: "${mi}"?`;
+
+      return `Main Idea ${i + 1}: ${mi}\nSupporting Detail ${detailNum}: ${fallback}`;
     }
   }
 
@@ -1115,9 +1126,8 @@ function updateStateFromStudent(state, message) {
       s.pending = null;
       return s;
     }
-    // revise
+       // revise
     applyIsAboutCapture(s, msg);
-    s.pending = null;
     return s;
   }
 
