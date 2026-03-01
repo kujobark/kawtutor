@@ -1010,48 +1010,33 @@ function computeNextQuestion(state) {
 
     return `${label} ${c + 1}:\n${fallback}`;
   }
- 
-  for (let i = 0; i < s.frame.mainIdeas.length; i++) {
-    const mi = s.frame.mainIdeas[i];
-    const arr = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
-    if (arr.length < 2) {
-const pb = getPromptForStage(s, `details:${i}`);
-const detailNum = arr.length + 1; // 1 or 2
 
-const isReadCE = s.frameMeta?.purpose === "read" && s.frameMeta?.frameType === "causeEffect";
-const miLabel = isReadCE ? "Cause" : "Main Idea";
-const dLabel  = isReadCE ? "Text Evidence" : "Supporting Detail";
+  // Details progression
+for (let i = 0; i < s.frame.mainIdeas.length; i++) {
+  const mi = s.frame.mainIdeas[i];
+  const arr = Array.isArray(s.frame.details?.[i]) ? s.frame.details[i] : [];
 
-if (pb) {
-  const base = pb.replace(/\?\s*$/, "");
-  return `${miLabel} ${i + 1}: ${mi}\n${dLabel} ${detailNum}: ${base}?`;
-}
+  if (arr.length < 2) {
+    const pb = getPromptForStage(s, `details:${i}`);
+    const detailNum = arr.length + 1; // 1 or 2
 
-const fallback =
-  detailNum === 1
-    ? `What is your first ${dLabel} for this ${miLabel}: "${mi}"?`
-    : `What is your second ${dLabel} for this ${miLabel}: "${mi}"?`;
+    const isReadCE = s.frameMeta?.purpose === "read" && s.frameMeta?.frameType === "causeEffect";
+    const miLabel = isReadCE ? "Cause" : "Main Idea";
+    const dLabel  = isReadCE ? "Text Evidence" : "Supporting Detail";
 
-return `${miLabel} ${i + 1}: ${mi}\n${dLabel} ${detailNum}: ${fallback}`;
-
-
-
-
-
-
-
-
-      
-}
-
-const fallback =
-  detailNum === 1
-    ? `What is your first ${dLabel} for this ${miLabel}: "${mi}"?`
-    : `What is your second ${dLabel} for this ${miLabel}: "${mi}"?`;
-
-return `${miLabel} ${i + 1}: ${mi}\n${dLabel} ${detailNum}: ${fallback}`;
+    if (pb) {
+      const base = pb.replace(/\?\s*$/, "");
+      return `${miLabel} ${i + 1}: ${mi}\n${dLabel} ${detailNum}: ${base}?`;
     }
+
+    const fallback =
+      detailNum === 1
+        ? `What is your first ${dLabel} for this ${miLabel}: "${mi}"?`
+        : `What is your second ${dLabel} for this ${miLabel}: "${mi}"?`;
+
+    return `${miLabel} ${i + 1}: ${mi}\n${dLabel} ${detailNum}: ${fallback}`;
   }
+}
 
   if (!s.frame.soWhat) {
     const pb = getPromptForStage(s, "soWhat");
