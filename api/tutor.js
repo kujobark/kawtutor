@@ -288,7 +288,7 @@ function applyPromptTokens(template, state) {
   // Key Topic token
   if (kt) out = out.replace(/\[Key Topic\]/g, kt);
 
-  // Cause/Effect write tokens / phrases
+  // Cause/Effect tokens / phrases
   if (eff) {
     out = out.replace(/\[EFFECT\]/g, eff);
     out = out.replace(/the effect you[’']?re writing about/gi, eff);
@@ -306,16 +306,19 @@ const PROMPT_BANK = {
     causeEffect: {
       isAbout: 'In your own words, what is happening in "[Key Topic]", and why is it important?',
       mainIdea: "What is one major cause or effect that is important to remember?",
-      detail: "What is an important detail that explains how or why this cause or effect occurs?",
+      // removed “one detail” so numbering line can carry first/second
+      detail: "What detail explains how or why this cause or effect occurs?",
       soWhat: 'When you look at all of these causes and effects together, what can you conclude about "[Key Topic]"?',
     },
   },
 
   write: {
     causeEffect: {
-      isAbout: 'Finish this sentence: "This topic is about how ____ leads to ____."',
+      // Key Topic anchored (still preserves the required “leads to” stem)
+      isAbout: 'In this topic about "[Key Topic]", finish this sentence: "This topic is about how ____ leads to ____."',
       mainIdea: "What is one major cause that leads to [EFFECT]?",
-      detail: "What is one detail that shows how this cause leads to [EFFECT]?",
+      // removed “one detail” so numbering line can carry first/second
+      detail: "What detail shows how this cause connects to [EFFECT]?",
       soWhat: "Why should people care about this effect?",
     },
   },
@@ -359,7 +362,7 @@ function getPromptForStage(state, stage) {
 }
 
 // ---------------------
-// STUCK NU DGES
+// STUCK NUDGES
 // ---------------------
 function buildStuckNudges(state, stage) {
   const purpose = state.frameMeta?.purpose || "";
@@ -494,7 +497,6 @@ function shouldRequestEvidenceDetail(state, detailText) {
   return looksLikeMechanism(t);
 }
 
-
 // ---------------------
 // STAGE
 // ---------------------
@@ -535,20 +537,21 @@ function buildMiniQuestion(state) {
   }
 
   if (stage === "mainIdeas") {
-    if (state.frameMeta?.purpose === "study" && state.frameMeta?.frameType === "causeEffect") {
-      return `What is one major cause or effect related to "${state.frame.keyTopic}"? (Rough is fine.)`;
-    }
-    return `What is one reason, part, or cause related to "${state.frame.keyTopic}"? (Rough is fine.)`;
+    const isCE = state.frameMeta?.frameType === "causeEffect";
+    const label = isCE ? "cause" : "main idea";
+    return `What is one important ${label} related to "${state.frame.keyTopic}"? (Rough is fine.)`;
   }
 
   if (stage.startsWith("details:")) {
     const idx = Number(stage.split(":")[1]);
     const mi = state.frame.mainIdeas?.[idx] || "this Main Idea";
-    return `What is one specific example from your text/notes that connects to: "${mi}"?`;
+    const isCE = state.frameMeta?.frameType === "causeEffect";
+    const miLabel = isCE ? "Cause" : "Main Idea";
+    return `What is one specific example from your text/notes that connects to this ${miLabel}: "${mi}"?`;
   }
 
   if (stage === "soWhat") {
-    if (state.frameMeta?.purpose === "study" && state.frameMeta?.frameType === "causeEffect") {
+    if (state.frameMeta?.frameType === "causeEffect") {
       return `When you look at the causes and effects together, what can you conclude about "${state.frame.keyTopic}"?`;
     }
     return `Who is affected by "${state.frame.keyTopic}", and why should they care?`;
@@ -716,6 +719,8 @@ function isFrameComplete(s) {
 // ---------------------
 function buildFrameText(s) {
   const lines = [];
+  const isCE = s.frameMeta?.frameType === "causeEffect";
+
   lines.push(`KEY TOPIC: ${s.frame.keyTopic}`);
   lines.push(`IS ABOUT: ${s.frame.isAbout}`);
   if (s.frame.cause || s.frame.effect) {
@@ -723,7 +728,9 @@ function buildFrameText(s) {
     lines.push(`EFFECT: ${s.frame.effect || ""}`);
   }
   lines.push("");
-  lines.push("MAIN IDEAS + SUPPORTING DETAILS:");
+
+  // Surface-labeling only (structure unchanged)
+  lines.push(isCE ? "CAUSES + SUPPORTING DETAILS:" : "MAIN IDEAS + SUPPORTING DETAILS:");
 
   s.frame.mainIdeas.forEach((mi, i) => {
     lines.push(`${i + 1}) ${mi}`);
@@ -820,10 +827,10 @@ function applyIsAboutCapture(s, msg) {
 
   // Read + causeEffect: treat the isAbout response as the CENTRAL EFFECT (short phrase)
   if (s.frameMeta?.purpose === "read" && s.frameMeta?.frameType === "causeEffect") {
-    s.frame.effect = msg;     // this powers [EFFECT] tokens in mainIdea prompts
+    s.frame.effect = msg; // powers [EFFECT] tokens in mainIdea prompts
   }
 
-  s.frame.isAbout = msg;      // stage completion gate (keep engine deterministic)
+  s.frame.isAbout = msg; // stage completion gate (keep engine deterministic)
   s.pending = { type: "confirmIsAbout" };
   return s;
 }
@@ -879,11 +886,11 @@ function computeNextQuestion(state) {
 
   if (s.pending?.type === "writeNeedEvidenceDetail") {
     const i = Number(s.pending.index);
-    const mi = s.frame.mainIdeas?.[i] || "this Main Idea";
+    const mi = s.frame.mainIdeas?.[i] || "this Cause";
     const eff = s.frame.effect || "the effect";
     const mech = cleanText(s.pending.mechanism || "");
     const ctx = mech ? `You're explaining how it works: "${mech}". ` : "";
-    return `${ctx}Can you add one concrete piece of evidence (example, fact, quote, or statistic) that shows how "${mi}" leads to ${eff}?`;
+    return `${ctx}Can you add one concrete piece of evidence (example, fact, quote, or statistic) that shows how "${mi}" connects to ${eff}?`;
   }
 
   if (s.pending?.type === "confirmIsAbout") {
@@ -905,20 +912,30 @@ function computeNextQuestion(state) {
 
   if (s.pending?.type === "confirmMainIdeas") {
     const lines = (s.frame.mainIdeas || []).map((mi, i) => `${i + 1}) ${mi}`).join("\n");
-    return `You have identified the following Main Ideas:\n${lines}\nIs that correct, or would you like to revise one?`;
+    const isCE = s.frameMeta?.frameType === "causeEffect";
+    const label = isCE ? "Causes" : "Main Ideas";
+    return `You have identified the following ${label}:\n${lines}\nIs that correct, or would you like to revise one?`;
   }
 
-  if (s.pending?.type === "offerThirdMainIdea") return "Do you have a third Main Idea? (yes/no)";
-  if (s.pending?.type === "collectThirdMainIdea")
-    return `What is your third Main Idea that helps explain ${s.frame.keyTopic}?`;
+  if (s.pending?.type === "offerThirdMainIdea") {
+    const isCE = s.frameMeta?.frameType === "causeEffect";
+    return isCE ? "Do you have a third Cause? (yes/no)" : "Do you have a third Main Idea? (yes/no)";
+  }
+
+  if (s.pending?.type === "collectThirdMainIdea") {
+    const isCE = s.frameMeta?.frameType === "causeEffect";
+    return isCE
+      ? `What is your third Cause that helps explain ${s.frame.keyTopic}?`
+      : `What is your third Main Idea that helps explain ${s.frame.keyTopic}?`;
+  }
 
   if (s.pending?.type === "offerThirdDetail") {
     const i = Number(s.pending.index);
     const mi = s.frame.mainIdeas?.[i] || "";
 
-    const isReadCE = s.frameMeta?.purpose === "read" && s.frameMeta?.frameType === "causeEffect";
-    const miLabel = isReadCE ? "Cause" : "Main Idea";
-    const dLabel = isReadCE ? "Text Evidence" : "Supporting Detail";
+    const isCE = s.frameMeta?.frameType === "causeEffect";
+    const miLabel = isCE ? "Cause" : "Main Idea";
+    const dLabel = isCE && s.frameMeta?.purpose === "read" ? "Text Evidence" : "Supporting Detail";
 
     return `For this ${miLabel}: "${mi}", do you have a third ${dLabel}? (yes/no)`;
   }
@@ -927,9 +944,9 @@ function computeNextQuestion(state) {
     const i = Number(s.pending.index);
     const mi = s.frame.mainIdeas?.[i] || "";
 
-    const isReadCE = s.frameMeta?.purpose === "read" && s.frameMeta?.frameType === "causeEffect";
-    const miLabel = isReadCE ? "Cause" : "Main Idea";
-    const dLabel = isReadCE ? "Text Evidence" : "Supporting Detail";
+    const isCE = s.frameMeta?.frameType === "causeEffect";
+    const miLabel = isCE ? "Cause" : "Main Idea";
+    const dLabel = isCE && s.frameMeta?.purpose === "read" ? "Text Evidence" : "Supporting Detail";
 
     return `What is your third ${dLabel} for this ${miLabel}: "${mi}"?`;
   }
@@ -940,14 +957,14 @@ function computeNextQuestion(state) {
     const arr = Array.isArray(s.frame.details?.[i]) ? s.frame.details[i] : [];
     const lines = arr.map((d, k) => `${k + 1}) ${d}`).join("\n");
 
-    const isReadCE = s.frameMeta?.purpose === "read" && s.frameMeta?.frameType === "causeEffect";
-    const miLabel = isReadCE ? "Cause" : "Main Idea";
-    const dLabel = isReadCE ? "Text Evidence" : "Supporting Details";
+    const isCE = s.frameMeta?.frameType === "causeEffect";
+    const miLabel = isCE ? "Cause" : "Main Idea";
+    const dLabel = isCE && s.frameMeta?.purpose === "read" ? "Text Evidence" : "Supporting Details";
 
     return `For this ${miLabel}: "${mi}", you identified the following ${dLabel}:\n${lines}\nIs that correct, or would you like to revise one?`;
   }
 
-  if (s.pending?.type === "offerMoreSoWhat") return `Do you want to add one more sentence to your So What? (yes/no)`;
+  if (s.pending?.type === "offerMoreSoWhat") return "Do you want to add one more sentence to your So What? (yes/no)";
   if (s.pending?.type === "collectMoreSoWhat") return "Add one more sentence to your So What:";
   if (s.pending?.type === "confirmSoWhat")
     return `Your So What is: "${s.frame.soWhat}". Is that correct, or would you like to revise it?`;
@@ -988,18 +1005,14 @@ function computeNextQuestion(state) {
     let pb = getPromptForStage(s, "mainIdeas");
     const c = s.frame.mainIdeas.length; // 0 or 1
 
-    // Read + causeEffect uses "Cause" labeling (same underlying buckets)
-    const isReadCE = s.frameMeta?.purpose === "read" && s.frameMeta?.frameType === "causeEffect";
-    const label = isReadCE ? "Cause" : "Main Idea";
+    const isCE = s.frameMeta?.frameType === "causeEffect";
+    const label = isCE ? "Cause" : "Main Idea";
 
     if (pb) {
-      // If prompt bank uses generic "one major..." stem, add ordinal clarity.
       if (/^What is one major cause or effect/i.test(pb) || /^What is one major cause/i.test(pb)) {
         const ord = c === 0 ? "first" : c === 1 ? "second" : "next";
         pb = pb.replace(/^What is one/i, `What is your ${ord}`);
       }
-
-      // Numbering wrapper (no extra question marks)
       return `${label} ${c + 1}:\n${pb}`;
     }
 
@@ -1011,32 +1024,31 @@ function computeNextQuestion(state) {
     return `${label} ${c + 1}:\n${fallback}`;
   }
 
-  // Details progression
-for (let i = 0; i < s.frame.mainIdeas.length; i++) {
-  const mi = s.frame.mainIdeas[i];
-  const arr = Array.isArray(s.frame.details?.[i]) ? s.frame.details[i] : [];
+  // DETAILS LOOP (CLEANED — no duplicate fallback / brace drift)
+  for (let i = 0; i < s.frame.mainIdeas.length; i++) {
+    const mi = s.frame.mainIdeas[i];
+    const arr = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
+    if (arr.length < 2) {
+      const pb = getPromptForStage(s, `details:${i}`);
+      const detailNum = arr.length + 1; // 1 or 2
 
-  if (arr.length < 2) {
-    const pb = getPromptForStage(s, `details:${i}`);
-    const detailNum = arr.length + 1; // 1 or 2
+      const isCE = s.frameMeta?.frameType === "causeEffect";
+      const miLabel = isCE ? "Cause" : "Main Idea";
+      const dLabel = isCE && s.frameMeta?.purpose === "read" ? "Text Evidence" : "Supporting Detail";
 
-    const isReadCE = s.frameMeta?.purpose === "read" && s.frameMeta?.frameType === "causeEffect";
-    const miLabel = isReadCE ? "Cause" : "Main Idea";
-    const dLabel  = isReadCE ? "Text Evidence" : "Supporting Detail";
+      if (pb) {
+        const base = pb.replace(/\?\s*$/, "");
+        return `${miLabel} ${i + 1}: ${mi}\n${dLabel} ${detailNum}: ${base}?`;
+      }
 
-    if (pb) {
-      const base = pb.replace(/\?\s*$/, "");
-      return `${miLabel} ${i + 1}: ${mi}\n${dLabel} ${detailNum}: ${base}?`;
+      const fallback =
+        detailNum === 1
+          ? `What is your first ${dLabel} for this ${miLabel}: "${mi}"?`
+          : `What is your second ${dLabel} for this ${miLabel}: "${mi}"?`;
+
+      return `${miLabel} ${i + 1}: ${mi}\n${dLabel} ${detailNum}: ${fallback}`;
     }
-
-    const fallback =
-      detailNum === 1
-        ? `What is your first ${dLabel} for this ${miLabel}: "${mi}"?`
-        : `What is your second ${dLabel} for this ${miLabel}: "${mi}"?`;
-
-    return `${miLabel} ${i + 1}: ${mi}\n${dLabel} ${detailNum}: ${fallback}`;
   }
-}
 
   if (!s.frame.soWhat) {
     const pb = getPromptForStage(s, "soWhat");
@@ -1101,30 +1113,29 @@ function updateStateFromStudent(state, message) {
     return s;
   }
 
+  // Write-mode evidence guardrail follow-up
+  if (s.pending?.type === "writeNeedEvidenceDetail") {
+    const idx = Number(s.pending.index);
+    if (!Array.isArray(s.frame.details[idx])) s.frame.details[idx] = [];
 
-// Write-mode evidence guardrail follow-up
-if (s.pending?.type === "writeNeedEvidenceDetail") {
-  const idx = Number(s.pending.index);
-  if (!Array.isArray(s.frame.details[idx])) s.frame.details[idx] = [];
+    const mechanism = cleanText(s.pending.mechanism || "");
+    const evidence = msg;
 
-  const mechanism = cleanText(s.pending.mechanism || "");
-  const evidence = msg;
+    // Store a combined detail (mechanism + evidence) so the student's thinking is preserved.
+    const combined = mechanism ? `${mechanism} (evidence: ${evidence})` : evidence;
 
-  // Store a combined detail (mechanism + evidence) so the student's thinking is preserved.
-  const combined = mechanism ? `${mechanism} (evidence: ${evidence})` : evidence;
-
-  const arr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
-  if (arr.length < 2 && !isNegative(evidence)) {
-    s.frame.details[idx] = [...arr, combined];
-    if (s.frame.details[idx].length === 2) {
-      s.pending = { type: "offerThirdDetail", index: idx };
-      return s;
+    const arr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
+    if (arr.length < 2 && !isNegative(evidence)) {
+      s.frame.details[idx] = [...arr, combined];
+      if (s.frame.details[idx].length === 2) {
+        s.pending = { type: "offerThirdDetail", index: idx };
+        return s;
+      }
     }
-  }
 
-  s.pending = null;
-  return s;
-}
+    s.pending = null;
+    return s;
+  }
 
   // STUCK flow
   if (s.pending?.type === "stuckConfirm") {
@@ -1278,16 +1289,16 @@ if (s.pending?.type === "writeNeedEvidenceDetail") {
     return s;
   }
 
- if (s.pending?.type === "confirmIsAbout") {
-  const normalized = msg.toLowerCase().trim();
-  if (isAffirmative(normalized)) {
-    s.pending = null;
+  if (s.pending?.type === "confirmIsAbout") {
+    const normalized = msg.toLowerCase().trim();
+    if (isAffirmative(normalized)) {
+      s.pending = null;
+      return s;
+    }
+    // revise
+    applyIsAboutCapture(s, msg);
     return s;
   }
-  // revise
-  applyIsAboutCapture(s, msg);
-  return s;
-}
 
   if (s.pending?.type === "confirmMainIdeas") {
     const normalized = msg.toLowerCase().trim();
@@ -1586,6 +1597,7 @@ export default async function handler(req, res) {
         appendTurn(state, "Student", message);
         appendTurn(state, "Kaw", reply);
 
+        // exports only when complete and not pending
         if (isFrameComplete(state) && !state.pending) {
           const frameText = buildFrameText(state);
           const transcriptText = buildTranscriptText(state);
