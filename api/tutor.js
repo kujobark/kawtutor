@@ -1,3 +1,4 @@
+The following image can be moved on the page using keyboard controls (left, right, up, down)
 import OpenAI from "openai";
 import { SAFETY_RESPONSES } from "../lib/safetyResponses.js";
 import { classifyMessage } from "../lib/safetyCheck.js";
@@ -416,6 +417,77 @@ function isStuckMessage(text) {
 }
 
 // ---------------------
+// WRITE-MODE GUARDRAILS (heuristics only)
+// ---------------------
+function looksLikeEvidence(text) {
+  const t = cleanText(text).toLowerCase();
+  if (!t) return false;
+
+  // numbers, percentages, or quoted text often signal evidence
+  if (/\d/.test(t)) return true;
+  if (t.includes("%")) return true;
+  if (t.includes('"') || t.includes("“") || t.includes("”")) return true;
+
+  const markers = [
+    "for example",
+    "for instance",
+    "such as",
+    "according to",
+    "the text says",
+    "in the text",
+    "in the article",
+    "in the source",
+    "the author",
+    "the study",
+    "research",
+    "survey",
+    "data",
+    "statistic",
+    "evidence",
+    "report",
+    "shows that",
+    "found that",
+  ];
+  return markers.some((p) => t.includes(p));
+}
+
+function looksLikeMechanism(text) {
+  const t = cleanText(text).toLowerCase();
+  if (!t) return false;
+
+  // causal connectives often signal mechanism/explanation rather than evidence
+  const markers = [
+    "because",
+    "leads to",
+    "causes",
+    "results in",
+    "therefore",
+    "so that",
+    "this makes",
+    "which makes",
+    "as a result",
+    "due to",
+  ];
+  return markers.some((p) => t.includes(p));
+}
+
+function shouldRequestEvidenceDetail(state, detailText) {
+  // Only apply guardrail for: write mode + causeEffect + details stage
+  if (state.frameMeta?.purpose !== "write") return false;
+  if (state.frameMeta?.frameType !== "causeEffect") return false;
+
+  const t = cleanText(detailText);
+  if (!t) return false;
+
+  // If it already looks like evidence, don't interrupt.
+  if (looksLikeEvidence(t)) return false;
+
+  // If it looks like mechanism (how/why) but not evidence, ask for evidence.
+  return looksLikeMechanism(t);
+}
+
+
+// ---------------------
 // STAGE
 // ---------------------
 function getStage(state) {
@@ -791,6 +863,15 @@ function computeNextQuestion(state) {
     return 'That’s a strong start. Can you restate it as a clear cause-and-effect relationship? Try: "This topic is about how ___ leads to ___."';
   }
 
+  if (s.pending?.type === "writeNeedEvidenceDetail") {
+    const i = Number(s.pending.index);
+    const mi = s.frame.mainIdeas?.[i] || "this Main Idea";
+    const eff = s.frame.effect || "the effect";
+    const mech = cleanText(s.pending.mechanism || "");
+    const ctx = mech ? `You\'re explaining how it works: "${mech}". ` : "";
+    return `${ctx}Can you add one concrete piece of evidence (example, fact, quote, or statistic) that shows how "${mi}" leads to ${eff}?`;
+  }
+
   if (s.pending?.type === "confirmIsAbout") {
     // Write + causeEffect gets a teacher-voice confirmation
     if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
@@ -972,6 +1053,31 @@ function updateStateFromStudent(state, message) {
     return s;
   }
 
+
+// Write-mode evidence guardrail follow-up
+if (s.pending?.type === "writeNeedEvidenceDetail") {
+  const idx = Number(s.pending.index);
+  if (!Array.isArray(s.frame.details[idx])) s.frame.details[idx] = [];
+
+  const mechanism = cleanText(s.pending.mechanism || "");
+  const evidence = msg;
+
+  // Store a combined detail (mechanism + evidence) so the student's thinking is preserved.
+  const combined = mechanism ? `${mechanism} (evidence: ${evidence})` : evidence;
+
+  const arr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
+  if (arr.length < 2 && !isNegative(evidence)) {
+    s.frame.details[idx] = [...arr, combined];
+    if (s.frame.details[idx].length === 2) {
+      s.pending = { type: "offerThirdDetail", index: idx };
+      return s;
+    }
+  }
+
+  s.pending = null;
+  return s;
+}
+
   // STUCK flow
   if (s.pending?.type === "stuckConfirm") {
     const low = msg.toLowerCase().trim();
@@ -1096,6 +1202,10 @@ function updateStateFromStudent(state, message) {
       const idx = Number(stage.split(":")[1]);
       const arr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
       if (arr.length < 2 && !isNegative(msg)) {
+        if (shouldRequestEvidenceDetail(s, msg)) {
+          s.pending = { type: "writeNeedEvidenceDetail", index: idx, mechanism: msg };
+          return s;
+        }
         s.frame.details[idx] = [...arr, msg];
         if (s.frame.details[idx].length === 2) {
           s.pending = { type: "offerThirdDetail", index: idx };
@@ -1120,16 +1230,16 @@ function updateStateFromStudent(state, message) {
     return s;
   }
 
-  if (s.pending?.type === "confirmIsAbout") {
-    const normalized = msg.toLowerCase().trim();
-    if (isAffirmative(normalized)) {
-      s.pending = null;
-      return s;
-    }
-       // revise
-    applyIsAboutCapture(s, msg);
+ if (s.pending?.type === "confirmIsAbout") {
+  const normalized = msg.toLowerCase().trim();
+  if (isAffirmative(normalized)) {
+    s.pending = null;
     return s;
   }
+  // revise
+  applyIsAboutCapture(s, msg);
+  return s;
+}
 
   if (s.pending?.type === "confirmMainIdeas") {
     const normalized = msg.toLowerCase().trim();
@@ -1173,7 +1283,13 @@ function updateStateFromStudent(state, message) {
   if (s.pending?.type === "collectThirdDetail") {
     const idx = Number(s.pending.index);
     if (!Array.isArray(s.frame.details[idx])) s.frame.details[idx] = [];
-    if (!isNegative(msg)) s.frame.details[idx] = [...s.frame.details[idx], msg];
+    if (!isNegative(msg)) {
+      if (shouldRequestEvidenceDetail(s, msg)) {
+        s.pending = { type: "writeNeedEvidenceDetail", index: idx, mechanism: msg };
+        return s;
+      }
+      s.frame.details[idx] = [...s.frame.details[idx], msg];
+    }
     s.pending = { type: "confirmDetails", index: idx };
     return s;
   }
@@ -1286,7 +1402,13 @@ function updateStateFromStudent(state, message) {
   for (let i = 0; i < s.frame.mainIdeas.length; i++) {
     const arr = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
     if (arr.length < 2) {
-      if (!isNegative(msg)) s.frame.details[i] = [...arr, msg];
+      if (!isNegative(msg)) {
+        if (shouldRequestEvidenceDetail(s, msg)) {
+          s.pending = { type: "writeNeedEvidenceDetail", index: i, mechanism: msg };
+          return s;
+        }
+        s.frame.details[i] = [...arr, msg];
+      }
       const updated = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
       if (updated.length === 2) s.pending = { type: "offerThirdDetail", index: i };
       return s;
