@@ -302,15 +302,14 @@ function applyPromptTokens(template, state) {
 // PROMPT BANK
 // ---------------------
 const PROMPT_BANK = {
-  study: {
-    causeEffect: {
-      isAbout: 'In your own words, what is happening in "[Key Topic]", and why is it important?',
-      mainIdea: "What is one major cause or effect that is important to remember?",
-      // removed “one detail” so numbering line can carry first/second
-      detail: "What detail explains how or why this cause or effect occurs?",
-      soWhat: 'When you look at all of these causes and effects together, what can you conclude about "[Key Topic]"?',
-    },
+study: {
+  causeEffect: {
+    isAbout: 'In your own words, what is happening in "[Key Topic]", and why is it important?',
+    mainIdea: 'What is one major cause that helps explain "[Key Topic]"?',
+    detail: "What detail helps explain how or why this cause matters?",
+    soWhat: 'When you look at all of these causes and effects together, what can you conclude about "[Key Topic]"?',
   },
+},
 
   write: {
     causeEffect: {
