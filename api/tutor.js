@@ -1663,30 +1663,37 @@ function updateStateFromStudent(state, message) {
   }
 
   // 5) Details capture
-  for (let i = 0; i < s.frame.mainIdeas.length; i++) {
-    const arr = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
+for (let i = 0; i < s.frame.mainIdeas.length; i++) {
+  const arr = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
+
   if (arr.length < 2) {
-  if (!isNegative(msg)) {
+    if (!isNegative(msg)) {
 
-    // Prevent "idk / not sure / help" from being saved as a detail
-    if (isStuckMessage(msg)) {
-      s.pending = {
-        type: "stuckConfirm",
-        stage: `details:${i}`,
-        tone: detectStuckTone(msg),
-        resumeQuestion: buildMiniQuestion(s),
-        miniQuestion: buildMiniQuestion(s)
-      };
-      return s;
+      // Prevent "idk / not sure / help" from being saved as a detail
+      if (isStuckMessage(msg)) {
+        s.pending = {
+          type: "stuckConfirm",
+          stage: `details:${i}`,
+          tone: detectStuckTone(msg),
+          resumeQuestion: buildMiniQuestion(s),
+          miniQuestion: buildMiniQuestion(s)
+        };
+        return s;
+      }
+
+      if (shouldRequestEvidenceDetail(s, msg)) {
+        s.pending = { type: "writeNeedEvidenceDetail", index: i, mechanism: msg };
+        return s;
+      }
+
+      s.frame.details[i] = [...arr, msg];
     }
 
-    if (shouldRequestEvidenceDetail(s, msg)) {
-      s.pending = { type: "writeNeedEvidenceDetail", index: i, mechanism: msg };
-      return s;
-    }
-
-    s.frame.details[i] = [...arr, msg];
+    const updated = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
+    if (updated.length === 2) s.pending = { type: "offerThirdDetail", index: i };
+    return s;
   }
+}
 
   const updated = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
   if (updated.length === 2) s.pending = { type: "offerThirdDetail", index: i };
