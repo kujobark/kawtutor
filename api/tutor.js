@@ -304,9 +304,9 @@ function applyPromptTokens(template, state) {
 const PROMPT_BANK = {
 study: {
   causeEffect: {
-    isAbout: 'In your own words, what is happening in "[Key Topic]", and why is it important?',
+    isAbout: 'In your own words, what is "[Key Topic]" mostly about?',
     mainIdea: 'What is one major cause that helps explain "[Key Topic]"?',
-    detail: "What detail helps explain how or why this cause matters?",
+    detail: "What detail helps explain how this cause contributes to "[Key Topic]"?",
     soWhat: 'When you look at all of these causes and effects together, what can you conclude about "[Key Topic]"?',
   },
 },
@@ -371,9 +371,12 @@ function buildStuckNudges(state, stage) {
     if (stage === "mainIdeas") {
       return ["What caused this to happen", "What happened because of it", "Is this a cause or an effect"];
     }
-    if (stage.startsWith("details:")) {
-      return ["How does this happen", "Why does this happen", "What shows the connection between the cause and the effect"];
-    }
+   if (stage.startsWith("details:")) {
+  return [
+    "Think about the cause you identified.",
+    "What usually happens when this cause occurs?"
+  ];
+}
     if (stage === "soWhat") {
       return [
         "What changed from beginning to end",
