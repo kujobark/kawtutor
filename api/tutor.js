@@ -1318,30 +1318,37 @@ function updateStateFromStudent(state, message) {
     return s;
   }
 
-  // Write-mode evidence guardrail follow-up
-  if (s.pending?.type === "writeNeedEvidenceDetail") {
-    const idx = Number(s.pending.index);
-    if (!Array.isArray(s.frame.details[idx])) s.frame.details[idx] = [];
+// Write-mode cause/effect stem follow-up
+if (s.pending?.type === "needWriteCauseEffectStem") {
+  s.pending = null;
+  applyIsAboutCapture(s, msg);
+  return s;
+}
 
-    const mechanism = cleanText(s.pending.mechanism || "");
-    const evidence = msg;
+// Write-mode evidence guardrail follow-up
+if (s.pending?.type === "writeNeedEvidenceDetail") {
+  const idx = Number(s.pending.index);
+  if (!Array.isArray(s.frame.details[idx])) s.frame.details[idx] = [];
 
-    // Store a combined detail (mechanism + evidence) so the student's thinking is preserved.
-    const combined = mechanism ? `${mechanism} (evidence: ${evidence})` : evidence;
+  const mechanism = cleanText(s.pending.mechanism || "");
+  const evidence = msg;
 
-    const arr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
-    if (arr.length < 2 && !isNegative(evidence)) {
-      s.frame.details[idx] = [...arr, combined];
-      if (s.frame.details[idx].length === 2) {
-        s.pending = { type: "offerThirdDetail", index: idx };
-        return s;
-      }
+  // Store a combined detail (mechanism + evidence) so the student's thinking is preserved.
+  const combined = mechanism ? `${mechanism} (evidence: ${evidence})` : evidence;
+
+  const arr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
+  if (arr.length < 2 && !isNegative(evidence)) {
+    s.frame.details[idx] = [...arr, combined];
+    if (s.frame.details[idx].length === 2) {
+      s.pending = { type: "offerThirdDetail", index: idx };
+      return s;
     }
-
-    s.pending = null;
-    return s;
   }
 
+  s.pending = null;
+  return s;
+}
+ 
   // STUCK flow
   if (s.pending?.type === "stuckConfirm") {
     const low = msg.toLowerCase().trim();
