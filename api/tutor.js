@@ -502,6 +502,41 @@ function shouldRequestEvidenceDetail(state, detailText) {
 // ---------------------
 // STAGE
 // ---------------------
+// --------------------------------------------------
+// FRAME STAGE ENGINE
+// --------------------------------------------------
+// Determines the current progression stage of the frame.
+// This is the core deterministic state machine.
+//
+// Order matters. The engine always returns the FIRST
+// stage that has not yet been satisfied.
+//
+// Stage progression:
+// 1. purpose
+// 2. frameType
+// 3. keyTopic
+// 4. isAbout
+// 5. mainIdeas
+// 6. details (per main idea)
+// 7. soWhat
+// 8. refine
+//
+// NOTE:
+// Parent Anchor stages map onto these later via the
+// Parent Anchor Bridge, but this engine remains the
+// single source of truth for frame progression.
+
+const FRAME_STAGE_SEQUENCE = [
+  "purpose",
+  "frameType",
+  "keyTopic",
+  "isAbout",
+  "mainIdeas",
+  "details",
+  "soWhat",
+  "refine",
+];
+
 function getStage(state) {
   const f = state.frame;
   const m = state.frameMeta || {};
@@ -519,6 +554,12 @@ function getStage(state) {
 
   if (!f.soWhat) return "soWhat";
   return "refine";
+}
+
+function getBaseStage(stage) {
+  if (!stage) return "";
+  if (stage.startsWith("details:")) return "details";
+  return stage;
 }
 
 // ---------------------
@@ -683,8 +724,9 @@ function getParentAnchorStage(state) {
 }
 
 function buildMiniQuestion(state) {
-  const stage = getStage(state);
-
+const stage = getStage(state);
+const baseStage = getBaseStage(stage);
+  
   if (stage === "purpose") {
     return "Which one: 1) study/review, 2) write/create, or 3) reading/source notes (1–3)?";
   }
@@ -705,7 +747,7 @@ function buildMiniQuestion(state) {
     return `What is one important ${label} related to "${state.frame.keyTopic}"? (Rough is fine.)`;
   }
 
-  if (stage.startsWith("details:")) {
+if (baseStage === "details") {
     const idx = Number(stage.split(":")[1]);
     const mi = state.frame.mainIdeas?.[idx] || "this Main Idea";
     const isCE = state.frameMeta?.frameType === "causeEffect";
