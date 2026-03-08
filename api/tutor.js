@@ -1102,8 +1102,14 @@ function computeNextQuestion(state) {
     // Write + causeEffect gets a teacher-voice confirmation
     if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
       const raw = (s.frame.isAbout || "").trim();
-      const cleaned = raw.replace(/^this topic is about\s+/i, "").replace(/\.$/, "").trim();
-      return `So your cause-and-effect focus is ${cleaned}. Is that correct, or would you like to revise it?`;
+const cleaned = raw.replace(/^this topic is about\s+/i, "").replace(/\.$/, "").trim();
+
+const keyTopic =
+  s.frame.keyTopic && s.frame.keyTopic.length
+    ? s.frame.keyTopic.charAt(0).toUpperCase() + s.frame.keyTopic.slice(1)
+    : s.frame.keyTopic;
+
+return "So your frame reads:\n\n" + keyTopic + " is about " + cleaned + ".\n\nIs that correct, or would you like to revise it?";
     }
 
     // Read + causeEffect gets a structural confirmation (central effect/result)
@@ -1111,8 +1117,6 @@ function computeNextQuestion(state) {
       const eff = (s.frame.effect || s.frame.isAbout || "that effect").trim().replace(/\.$/, "");
       return `Central effect/result: ${eff}. Is that correct, or would you like to revise it?`;
     }
-
-    return `"${s.frame.keyTopic}" is about "${s.frame.isAbout}". Is that correct, or would you like to revise it?`;
   }
 
   if (s.pending?.type === "confirmMainIdeas") {
