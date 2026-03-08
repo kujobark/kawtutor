@@ -518,6 +518,167 @@ function getStage(state) {
   return "refine";
 }
 
+// ---------------------
+// PARENT ANCHOR BRIDGE
+// ---------------------
+//
+// This bridge does NOT change progression logic.
+// It interprets the current tutor.js workflow through the
+// Parent Anchor structural stage model.
+//
+// Parent Anchor structural stage model:
+// the invariant Framing Routine spine
+// Key Topic -> Is About -> Main Ideas -> Details -> So What
+//
+// Structural stages are the invariant Parent Anchor stages.
+// Pending-state mappings are used to infer confirmation/export stages.
+// Interrupt mappings map temporary correction states back to the
+// structural stage they belong to.
+// Overlay pending types are non-structural helpers (for example,
+// stuck support or language support) and should not be treated as
+// Parent Anchor stages.
+
+const PARENT_ANCHOR_BRIDGE = {
+  structuralStages: [
+    "purpose",
+    "frameType",
+    "keyTopic",
+    "isAbout",
+    "isAboutConfirm",
+    "mainIdeas",
+    "mainIdeasConfirm",
+    "detailsLoop",
+    "detailsConfirmLoop",
+    "soWhat",
+    "soWhatConfirm",
+    "export",
+  ],
+
+  // Pending states that indicate the engine is currently inside
+  // a structural confirmation/export stage.
+  //
+  // These mappings preserve current tutor.js behavior only.
+  // They should not be mistaken for permanent instructional rules.
+  confirmationStageByPending: {
+    confirmIsAbout: "isAboutConfirm",
+
+    offerThirdMainIdea: "mainIdeasConfirm",
+    collectThirdMainIdea: "mainIdeasConfirm",
+    confirmMainIdeas: "mainIdeasConfirm",
+
+    offerThirdDetail: "detailsConfirmLoop",
+    collectThirdDetail: "detailsConfirmLoop",
+    confirmDetails: "detailsConfirmLoop",
+
+    // Current-behavior compatibility only:
+    // tutor.js currently allows optional additional So What text,
+    // but the long-term Parent Anchor contract does NOT require
+    // a multi-step So What expansion loop.
+    offerMoreSoWhat: "soWhatConfirm",
+    collectMoreSoWhat: "soWhatConfirm",
+    confirmSoWhat: "soWhatConfirm",
+
+    offerExport: "export",
+    chooseExportType: "export",
+  },
+
+  // Pending states that temporarily interrupt input capture
+  // but do NOT create a new structural stage.
+  interruptStageByPending: {
+    needWriteCauseEffectStem: "isAbout",
+    writeNeedEvidenceDetail: "detailsLoop",
+  },
+
+  // Overlay pending states are helper flows, not structural stages.
+  // They should be interpreted around the current structural stage.
+  overlayPendingTypes: new Set([
+    "confirmLanguageSwitch",
+    "stuckConfirm",
+    "stuckMenu",
+    "stuckReask",
+    "stuckNudge",
+    "stuckMini",
+    "stuckSkip",
+  ]),
+
+  // Raw getStage() outputs mapped to Parent Anchor structural stages.
+  //
+  // Detail buckets like details:0 / details:1 collapse to the single
+  // structural stage "detailsLoop".
+  //
+  // Post-completion states are interpreted structurally as "export"
+  // so the Parent Anchor endpoint stays stable even if tutor.js
+  // continues to expose completion/refine behavior around export.
+  structuralStageByRawStage(rawStage) {
+    if (rawStage === "purpose") return "purpose";
+    if (rawStage === "frameType") return "frameType";
+    if (rawStage === "keyTopic") return "keyTopic";
+    if (rawStage === "isAbout") return "isAbout";
+    if (rawStage === "mainIdeas") return "mainIdeas";
+    if (typeof rawStage === "string" && rawStage.startsWith("details:")) return "detailsLoop";
+    if (rawStage === "soWhat") return "soWhat";
+    if (rawStage === "refine") return "export";
+    if (rawStage === "export") return "export";
+    return null;
+  },
+};
+
+/**
+ * Returns the current Parent Anchor structural stage without changing
+ * any existing tutor.js progression behavior.
+ *
+ * This helper is an interpretation layer only.
+ * It does NOT advance stages, mutate state, or replace getStage().
+ *
+ * It interprets the current tutor.js workflow through the Parent Anchor
+ * structural stage model: the invariant Framing Routine spine
+ * Key Topic -> Is About -> Main Ideas -> Details -> So What.
+ *
+ * How it works:
+ * 1) It checks state.pending?.type first.
+ *    - confirmation/export pending states override raw getStage()
+ *    - interrupt pending states map back to their owning structural stage
+ *    - overlay pending types do not become structural stages
+ *
+ * 2) If no pending override applies, it falls back to getStage(state).
+ *
+ * 3) Raw detail stages like "details:0" or "details:1" collapse to
+ *    the single structural stage "detailsLoop".
+ *
+ * 4) Post-completion raw stages like "refine" are interpreted
+ *    structurally as "export".
+ */
+function getParentAnchorStage(state) {
+  const pendingType = state?.pending?.type || null;
+
+  // Confirmation/export pending states take priority because they
+  // represent the active structural stage the student is currently in.
+  if (pendingType && PARENT_ANCHOR_BRIDGE.confirmationStageByPending[pendingType]) {
+    return PARENT_ANCHOR_BRIDGE.confirmationStageByPending[pendingType];
+  }
+
+  // Interrupts belong to an underlying structural stage and do not
+  // create a new Parent Anchor stage.
+  if (pendingType && PARENT_ANCHOR_BRIDGE.interruptStageByPending[pendingType]) {
+    return PARENT_ANCHOR_BRIDGE.interruptStageByPending[pendingType];
+  }
+
+  // Stuck overlays should use the saved stage only if it actually exists
+  // in the current pending payload. Otherwise, fall back to getStage(state).
+  if (pendingType && pendingType.startsWith("stuck")) {
+    const savedStage = state?.pending?.stage || null;
+    if (savedStage) {
+      const mappedSavedStage = PARENT_ANCHOR_BRIDGE.structuralStageByRawStage(savedStage);
+      if (mappedSavedStage) return mappedSavedStage;
+    }
+  }
+
+  // Other overlays remain non-structural and do not override the
+  // underlying Parent Anchor stage. Fall back to the raw current stage.
+  const rawStage = getStage(state);
+  return PARENT_ANCHOR_BRIDGE.structuralStageByRawStage(rawStage);
+}
+
 function buildMiniQuestion(state) {
   const stage = getStage(state);
 
