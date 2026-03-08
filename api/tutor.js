@@ -306,7 +306,7 @@ study: {
   causeEffect: {
     isAbout: 'In your own words, what is "[Key Topic]" mostly about?',
     mainIdea: 'What is one major cause that helps explain "[Key Topic]"?',
-    detail: "What detail helps explain how this cause contributes to "[Key Topic]"?",
+    detail: 'What detail helps explain how this cause contributes to "[Key Topic]"?',
     soWhat: 'When you look at all of these causes and effects together, what can you conclude about "[Key Topic]"?',
   },
 },
