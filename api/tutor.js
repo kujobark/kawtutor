@@ -286,12 +286,15 @@ function isStuckMessage(text) {
 
 function formatNudgeText(nudges) {
   const items = Array.isArray(nudges)
-    ? nudges.map((n) => cleanText(n)).filter(Boolean)
+    ? nudges.map((n) => (n || "").toString().trim()).filter(Boolean)
     : [];
 
   if (!items.length) {
     return "Try one small step:";
   }
+
+  return items.join("\n\n");
+}
 
   return items.map((n, i) => `${i + 1}) ${n}`).join(" ");
 }
