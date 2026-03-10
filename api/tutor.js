@@ -457,51 +457,50 @@ function buildStuckNudges(state, stage) {
   // MAIN IDEAS
   if (stage === "mainIdeas") {
     if (frameType === "causeEffect") {
+
       if (mostRecentCause && effect && keyTopic) {
-        if (purpose === "write") {
-          return [
-            `Your frame explains why ${effect} happens.`,
-            `You already identified this major cause: "${mostRecentCause}". Ask yourself: what other cause related to ${keyTopic} might also contribute to ${effect}?`,
-            "What is another major cause?"
-          ];
-        }
-
-        if (purpose === "read") {
-          return [
-            `Your frame explains why ${effect} happens.`,
-            `You already identified this major cause: "${mostRecentCause}". Ask yourself: what other cause related to ${keyTopic} might also contribute to ${effect}?`,
-            "What is another major cause from the text or source?"
-          ];
-        }
-
         return [
-          `Your frame explains why ${effect} happens.`,
-          `You already identified this major cause: "${mostRecentCause}". Ask yourself: what other cause related to ${keyTopic} might also contribute to ${effect}?`,
-          "What is another major cause?"
+`Your frame explains why ${effect} happens.
+
+You already identified this major cause:
+"${mostRecentCause}"
+
+Ask yourself: what other cause related to ${keyTopic} might also contribute to ${effect}?`,
+
+"What is another major cause?"
         ];
       }
 
       if (mostRecentCause && effect) {
         return [
-          `Your frame explains why ${effect} happens.`,
-          `You already identified this major cause: "${mostRecentCause}". Ask yourself: what other cause might also contribute to ${effect}?`,
-          "What is another major cause?"
+`Your frame explains why ${effect} happens.
+
+You already identified this major cause:
+"${mostRecentCause}"
+
+Ask yourself: what other cause might also contribute to ${effect}?`,
+
+"What is another major cause?"
         ];
       }
 
       if (effect && keyTopic) {
         return [
-          `Your frame explains why ${effect} happens.`,
-          `Ask yourself: what cause related to ${keyTopic} might help explain ${effect}?`,
-          "What is one major cause?"
+`Your frame explains why ${effect} happens.
+
+Ask yourself: what cause related to ${keyTopic} might help explain ${effect}?`,
+
+"What is one major cause?"
         ];
       }
 
       if (effect) {
         return [
-          `Your frame explains why ${effect} happens.`,
-          "Ask yourself: what cause might help explain that effect?",
-          "What is one major cause?"
+`Your frame explains why ${effect} happens.
+
+Ask yourself: what cause might help explain that effect?`,
+
+"What is one major cause?"
         ];
       }
     }
@@ -516,51 +515,26 @@ function buildStuckNudges(state, stage) {
     const selectedMainIdea = Number.isInteger(idx) ? (mainIdeas[idx] || "") : "";
 
     if (frameType === "causeEffect") {
+
       if (selectedMainIdea && effect) {
-        if (purpose === "write") {
-          return [
-            `You already identified this cause: "${selectedMainIdea}".`,
-            `Now help the reader understand how that cause leads to ${effect}.`,
-            "What specific detail, example, or explanation could support or explain that cause?"
-          ];
-        }
-
-        if (purpose === "read") {
-          return [
-            `You already identified this cause: "${selectedMainIdea}".`,
-            `Look back at the text and find how that cause leads to ${effect}.`,
-            "What specific fact, example, or explanation from the text could support or explain that cause?"
-          ];
-        }
-
         return [
-          `You already identified this cause: "${selectedMainIdea}".`,
-          `What detail helps explain how that cause leads to ${effect}?`,
-          "What specific detail, example, or explanation could support or explain that cause?"
+`You already identified this cause:
+"${selectedMainIdea}"
+
+Now help the reader understand how that cause leads to ${effect}.`,
+
+"What specific detail, example, or explanation could support or explain that cause?"
         ];
       }
 
       if (selectedMainIdea) {
-        if (purpose === "write") {
-          return [
-            `You already identified this cause: "${selectedMainIdea}".`,
-            "Now help the reader understand how that cause connects to your frame.",
-            "What specific detail, example, or explanation could support or explain that cause?"
-          ];
-        }
-
-        if (purpose === "read") {
-          return [
-            `You already identified this cause: "${selectedMainIdea}".`,
-            "Look back at the text and find a detail that supports or explains that cause.",
-            "What specific fact, example, or explanation from the text could support it?"
-          ];
-        }
-
         return [
-          `You already identified this cause: "${selectedMainIdea}".`,
-          "What detail helps explain or support that cause?",
-          "What specific detail, example, or explanation could support or explain that cause?"
+`You already identified this cause:
+"${selectedMainIdea}"
+
+Now help the reader understand how that cause connects to your frame.`,
+
+"What specific detail, example, or explanation could support or explain that cause?"
         ];
       }
     }
@@ -571,43 +545,34 @@ function buildStuckNudges(state, stage) {
   // SO WHAT
   if (stage === "soWhat") {
     if (frameType === "causeEffect") {
+
       if (mainIdeas.length > 1 && effect && keyTopic) {
-        if (purpose === "write") {
-          return [
-            `You identified causes that lead to ${effect}.`,
-            `Now think about the bigger meaning of that pattern in ${keyTopic}.`,
-            "What larger idea or takeaway should the reader understand about this topic?"
-          ];
-        }
-
-        if (purpose === "read") {
-          return [
-            `You identified causes that lead to ${effect}.`,
-            `Now think about the bigger meaning of that pattern in ${keyTopic}.`,
-            "What larger idea or takeaway should someone understand from the text?"
-          ];
-        }
-
         return [
-          `You identified causes that lead to ${effect}.`,
-          `Now think about the bigger meaning of that pattern in ${keyTopic}.`,
-          "What larger idea or takeaway should someone understand about this topic?"
+`You identified causes that lead to ${effect}.
+
+Now think about the bigger meaning of that pattern in ${keyTopic}.`,
+
+"What larger idea or takeaway should someone understand about this topic?"
         ];
       }
 
       if (mainIdeas.length > 0 && effect) {
         return [
-          `You identified causes that lead to ${effect}.`,
-          "Now think about the bigger meaning of that pattern.",
-          "What larger idea or takeaway should someone understand?"
+`You identified causes that lead to ${effect}.
+
+Now think about the bigger meaning of that pattern.`,
+
+"What larger idea or takeaway should someone understand?"
         ];
       }
 
       if (mostRecentCause && effect) {
         return [
-          `If "${mostRecentCause}" leads to ${effect}, think about the bigger meaning of that connection.`,
-          "What larger idea or takeaway should someone understand?",
-          "Why does that matter overall?"
+`If "${mostRecentCause}" leads to ${effect},
+
+think about the bigger meaning of that connection.`,
+
+"What larger idea or takeaway should someone understand?"
         ];
       }
     }
