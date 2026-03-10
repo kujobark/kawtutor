@@ -225,24 +225,46 @@ Rules:
 function detectStuckTone(text) {
   const t = cleanText(text).toLowerCase();
   if (!t) return "neutral";
+
   const frustration = [
     "confus",
-    "stupid",
-    "dumb",
-    "hate",
-    "annoy",
     "frustrat",
+    "annoy",
     "angry",
     "mad",
     "ugh",
     "this sucks",
-    "do we have to",
+    "this is hard",
+    "this is confusing",
+    "this makes no sense",
+    "i'm confused",
+    "im confused",
+    "i'm lost",
+    "im lost",
+    "i can't do this",
+    "i cant do this",
+    "stupid",
+    "dumb",
+    "hate",
   ];
   if (frustration.some((p) => t.includes(p))) return "frustration";
-  const resistance = ["do we have to", "why do we have to", "why am i doing", "what's the point", "pointless"];
+
+  const resistance = [
+    "do we have to",
+    "why do we have to",
+    "why am i doing",
+    "what's the point",
+    "whats the point",
+    "pointless",
+    "this is pointless",
+    "can you just tell me",
+    "just tell me",
+  ];
   if (resistance.some((p) => t.includes(p))) return "resistance";
+
   return "neutral";
 }
+
 function isStuckMessage(text) {
   const t = cleanText(text).toLowerCase();
   if (!t) return false;
@@ -262,6 +284,16 @@ function isStuckMessage(text) {
     "i need help",
     "stuck",
     "skip",
+    "i'm stuck",
+    "im stuck",
+    "confused",
+    "lost",
+    "blank",
+    "blanking",
+    "nothing",
+    "i forgot",
+    "i dont remember",
+    "i don't remember",
   ]);
 
   if (exact.has(t)) return true;
@@ -273,17 +305,34 @@ function isStuckMessage(text) {
     "i don't understand",
     "this is hard",
     "this is confusing",
+    "this makes no sense",
     "im confused",
     "i'm confused",
+    "im lost",
+    "i'm lost",
+    "i cant do this",
+    "i can't do this",
     "what do i do",
     "what am i supposed to do",
+    "what does that mean",
     "can you just tell me",
     "just tell me",
+    "i forgot what to do",
+    "i don't remember what to do",
+    "i dont remember what to do",
   ];
 
-  return patterns.some((p) => t.includes(p));
-}
+  if (patterns.some((p) => t.includes(p))) return true;
 
+  const hesitantShort = new Set([
+    "maybe",
+    "i guess",
+    "guess",
+  ]);
+  if (hesitantShort.has(t)) return true;
+
+  return false;
+}
 function formatNudgeText(nudges) {
   const items = Array.isArray(nudges)
     ? nudges.map((n) => (n || "").toString().trim()).filter(Boolean)
