@@ -296,8 +296,6 @@ function formatNudgeText(nudges) {
   return items.join("\n\n");
 }
 
-  return items.map((n, i) => `${i + 1}) ${n}`).join(" ");
-}
 function normalizePurpose(msg) {
   const t = cleanText(msg).toLowerCase();
   if (!t) return null;
