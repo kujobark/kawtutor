@@ -1488,6 +1488,11 @@ if (s.pending?.type === "writeNeedEvidenceDetail") {
     // fall through
   }
 
+if (s.pending?.type === "stuckNudge") {
+  s.pending = null;
+  // fall through
+} 
+  
   if (s.pending?.type === "stuckSkip") {
     const low = msg.toLowerCase().trim();
     if (isAffirmative(low)) {
@@ -1882,6 +1887,7 @@ export default async function handler(req, res) {
         pendingType === "stuckConfirm" ||
         pendingType === "stuckMenu" ||
         pendingType === "stuckReask" ||
+        pendingType === "stuckNudge" ||
         pendingType === "stuckMini" ||
         pendingType === "stuckSkip";
 
