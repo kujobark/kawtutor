@@ -364,68 +364,93 @@ function getPromptForStage(state, stage) {
 // STUCK NUDGES
 // ---------------------
 function buildStuckNudges(state, stage) {
-  const purpose = state.frameMeta?.purpose || "";
-  const frameType = state.frameMeta?.frameType || "";
+  const purpose = state?.frameMeta?.purpose || "";
+  const frameType = state?.frameMeta?.frameType || "";
 
-  if (purpose === "study" && frameType === "causeEffect") {
-    if (stage === "mainIdeas") {
-      return [
-        "What caused this to happen?",
-        "What happened because of it?",
-        "Is this a cause or an effect?"
-      ];
-    }
+  const causeEffectStudyMainIdeas = [
+    "What caused this to happen?",
+    "What happened because of it?",
+    "Is this a cause or an effect?"
+  ];
 
-    if (stage.startsWith("details:")) {
-      const idx = Number(stage.split(":")[1]);
-      const cause = state.frame?.mainIdeas?.[idx] || "this cause";
-      const effect = state.frame?.effect || state.frame?.isAbout || "the effect";
+  const genericMainIdeas = [
+    "What is one main idea you could add?",
+    "What is an important part of this topic?",
+    "What belongs as a main idea here?"
+  ];
 
-      return [
-        `Think about this cause: ${cause}. What happens because of it?`,
-        `How might ${cause} connect to ${effect}?`,
-        "What specific example or fact shows that connection?"
-      ];
-    }
+  const genericDetails = [
+    "What is one example that fits here?",
+    "What is one fact or detail you could add?",
+    "What specific information supports this idea?"
+  ];
 
-    if (stage === "soWhat") {
-      return [
-        "What changed from beginning to end?",
-        "What connects all of these causes and effects?",
-        "What do they have in common?",
-        "What conclusion can you draw?"
-      ];
-    }
-  }
+  const genericSoWhat = [
+    "Why does this matter?",
+    "What should someone understand after reading this?",
+    "What is the takeaway?"
+  ];
 
   if (stage === "mainIdeas") {
-    return [
-      "Think of one important part.",
-      "Think of one reason or cause.",
-      "Think of one result or effect."
-    ];
+    if (purpose === "study" && frameType === "causeEffect") {
+      return causeEffectStudyMainIdeas;
+    }
+    return genericMainIdeas;
   }
 
-  if (stage.startsWith("details:")) {
-    return [
-      "Look for one example.",
-      "Look for one fact that supports it.",
-      "Look for one specific detail."
-    ];
+  if (typeof stage === "string" && stage.startsWith("details:")) {
+    const rawIndex = stage.split(":")[1];
+    const idx = Number(rawIndex);
+    const mainIdeas = Array.isArray(state?.frame?.mainIdeas) ? state.frame.mainIdeas : [];
+    const selectedMainIdea = Number.isInteger(idx) ? (mainIdeas[idx] || "") : "";
+
+    const effect =
+      state?.frame?.effect ||
+      state?.frame?.centralEffect ||
+      state?.frame?.result ||
+      "";
+
+    if (purpose === "study" && frameType === "causeEffect") {
+      if (selectedMainIdea && effect) {
+        return [
+          `Think about this cause: ${selectedMainIdea}. What happens because of it?`,
+          `How might ${selectedMainIdea} connect to ${effect}?`,
+          "What specific example or fact shows that connection?"
+        ];
+      }
+
+      if (selectedMainIdea) {
+        return [
+          `Think about this cause: ${selectedMainIdea}. What happens because of it?`,
+          `What does ${selectedMainIdea} help explain?`,
+          "What specific example or fact shows that connection?"
+        ];
+      }
+
+      if (effect) {
+        return [
+          `What is one cause that helps explain ${effect}?`,
+          `What fact, example, or clue shows that connection to ${effect}?`,
+          "What specific example or fact shows that connection?"
+        ];
+      }
+    }
+
+    return genericDetails;
   }
 
   if (stage === "soWhat") {
     return [
-      "What is important here?",
-      "Why should someone care?",
-      "What does this mean overall?"
+      "Why does this frame matter overall?",
+      "What is the main takeaway someone should understand?",
+      "How would you sum up the importance of this in one sentence?"
     ];
   }
 
   return [
-    "Take a deep breath.",
-    "Start rough.",
-    "You can revise later."
+    "What is one small next step you could try?",
+    "What is one idea you are considering?",
+    "What part feels easiest to answer first?"
   ];
 }
 
