@@ -243,7 +243,58 @@ function detectStuckTone(text) {
   if (resistance.some((p) => t.includes(p))) return "resistance";
   return "neutral";
 }
+function isStuckMessage(text) {
+  const t = cleanText(text).toLowerCase();
+  if (!t) return false;
 
+  const exact = new Set([
+    "idk",
+    "i dont know",
+    "i don't know",
+    "dont know",
+    "don't know",
+    "not sure",
+    "im not sure",
+    "i'm not sure",
+    "no idea",
+    "help",
+    "can you help",
+    "i need help",
+    "stuck",
+    "skip",
+  ]);
+
+  if (exact.has(t)) return true;
+
+  const patterns = [
+    "i dont get it",
+    "i don't get it",
+    "i dont understand",
+    "i don't understand",
+    "this is hard",
+    "this is confusing",
+    "im confused",
+    "i'm confused",
+    "what do i do",
+    "what am i supposed to do",
+    "can you just tell me",
+    "just tell me",
+  ];
+
+  return patterns.some((p) => t.includes(p));
+}
+
+function formatNudgeText(nudges) {
+  const items = Array.isArray(nudges)
+    ? nudges.map((n) => cleanText(n)).filter(Boolean)
+    : [];
+
+  if (!items.length) {
+    return "Try one small step:";
+  }
+
+  return items.map((n, i) => `${i + 1}) ${n}`).join(" ");
+}
 function normalizePurpose(msg) {
   const t = cleanText(msg).toLowerCase();
   if (!t) return null;
