@@ -369,64 +369,64 @@ function buildStuckNudges(state, stage) {
 
   if (purpose === "study" && frameType === "causeEffect") {
     if (stage === "mainIdeas") {
-      return ["What caused this to happen", "What happened because of it", "Is this a cause or an effect"];
+      return [
+        "What caused this to happen?",
+        "What happened because of it?",
+        "Is this a cause or an effect?"
+      ];
     }
-   if (stage.startsWith("details:")) {
-  return [
-    "Think about the cause you identified.",
-    "What usually happens when this cause occurs?"
-  ];
-}
+
+    if (stage.startsWith("details:")) {
+      const idx = Number(stage.split(":")[1]);
+      const cause = state.frame?.mainIdeas?.[idx] || "this cause";
+      const effect = state.frame?.effect || state.frame?.isAbout || "the effect";
+
+      return [
+        `Think about this cause: ${cause}. What happens because of it?`,
+        `How might ${cause} connect to ${effect}?`,
+        "What specific example or fact shows that connection?"
+      ];
+    }
+
     if (stage === "soWhat") {
       return [
-        "What changed from beginning to end",
-        "What connects all of these causes and effects",
-        "What do they have in common",
-        "What conclusion can you draw",
+        "What changed from beginning to end?",
+        "What connects all of these causes and effects?",
+        "What do they have in common?",
+        "What conclusion can you draw?"
       ];
     }
   }
 
-  if (stage === "mainIdeas") return ["Think of one important part", "Think of one reason or cause", "Think of one result or effect"];
-  if (stage.startsWith("details:")) return ["Look for one example", "Look for one fact that supports it", "Look for one specific detail"];
-  if (stage === "soWhat") return ["What is important here", "Why should someone care", "What does this mean overall"];
-  return ["Take a deep breath", "Start rough", "You can revise later"];
-}
+  if (stage === "mainIdeas") {
+    return [
+      "Think of one important part.",
+      "Think of one reason or cause.",
+      "Think of one result or effect."
+    ];
+  }
 
-function formatNudgeText(nudges) {
-  const items = (nudges || []).slice(0, 4).map((x) => `- ${cleanText(x)}`).join("\n");
-  return items ? `Here are a few quick nudges (pick one):\n${items}` : "";
-}
+  if (stage.startsWith("details:")) {
+    return [
+      "Look for one example.",
+      "Look for one fact that supports it.",
+      "Look for one specific detail."
+    ];
+  }
 
-function isStuckMessage(text) {
-  const t = cleanText(text).toLowerCase();
-  if (!t) return false;
+  if (stage === "soWhat") {
+    return [
+      "What is important here?",
+      "Why should someone care?",
+      "What does this mean overall?"
+    ];
+  }
 
-  const wc = t.split(/\s+/).filter(Boolean).length;
-  if (wc > 14) return false;
-
-  const patterns = [
-    "i don't know",
-    "i dont know",
-    "idk",
-    "dont know",
-    "i'm confused",
-    "im confused",
-    "confused",
-    "i don't get it",
-    "i dont get it",
-    "dont get it",
-    "help",
-    "can you help",
-    "stuck",
-    "not sure",
-    "i forgot",
-    "i can't",
-    "i cant",
-    "no idea",
+  return [
+    "Take a deep breath.",
+    "Start rough.",
+    "You can revise later."
   ];
-
-  return patterns.some((p) => t.includes(p));
 }
 
 // ---------------------
