@@ -1690,14 +1690,25 @@ if (s.pending?.type === "writeNeedEvidenceDetail") {
     const choice = normalizeStuckChoice(msg);
     if (!choice) return s;
 
-    if (choice === "1") {
-      s.pending = { type: "stuckReask", mode: "directions", resumeQuestion: s.pending.resumeQuestion };
-      return s;
-    }
-    if (choice === "2") {
-      s.pending = { type: "stuckReask", mode: "reread", resumeQuestion: s.pending.resumeQuestion };
-      return s;
-    }
+   if (choice === "1") {
+  s.pending = {
+    type: "stuckReask",
+    mode: "directions",
+    stage: s.pending.stage || getStage(s),
+    resumeQuestion: s.pending.resumeQuestion
+  };
+  return s;
+}
+
+if (choice === "2") {
+  s.pending = {
+    type: "stuckReask",
+    mode: "reread",
+    stage: s.pending.stage || getStage(s),
+    resumeQuestion: s.pending.resumeQuestion
+  };
+  return s;
+}
     if (choice === "3") {
       const stage = s.pending.stage || getStage(s);
       const nudges = buildStuckNudges(s, stage);
