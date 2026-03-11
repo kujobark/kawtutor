@@ -1380,11 +1380,11 @@ if (s.pending?.type === "stuckReask") {
 }
  
   if (s.pending?.type === "stuckNudge") {
-    const tone = s.pending.tone || "neutral";
-    const ack = tone === "frustration" ? "That can feel frustrating. " : tone === "resistance" ? "I hear you. " : "";
-    const nudge = cleanText(s.pending.nudgeText || "");
-    return `${ack}${nudge} Then answer: ${s.pending.resumeQuestion}`;
-  }
+  const tone = s.pending.tone || "neutral";
+  const ack = tone === "frustration" ? "That can feel frustrating. " : tone === "resistance" ? "I hear you. " : "";
+  const nudge = (s.pending.nudgeText || "").toString().trim();
+  return `${ack}${nudge}\n\nThen answer: ${s.pending.resumeQuestion}`;
+}
 
   if (s.pending?.type === "stuckMini") return s.pending.miniQuestion || buildMiniQuestion(s);
 
