@@ -385,6 +385,10 @@ function applyPromptTokens(template, state) {
   let out = template || "";
   const kt = state?.frame?.keyTopic || "";
   const eff = state?.frame?.effect || "";
+  const mainIdeas = Array.isArray(state?.frame?.mainIdeas)
+    ? state.frame.mainIdeas.filter(Boolean)
+    : [];
+  const cause = mainIdeas.length ? mainIdeas[mainIdeas.length - 1] : "";
 
   // Key Topic token
   if (kt) out = out.replace(/\[Key Topic\]/g, kt);
@@ -394,6 +398,11 @@ function applyPromptTokens(template, state) {
     out = out.replace(/\[EFFECT\]/g, eff);
     out = out.replace(/the effect you[’']?re writing about/gi, eff);
     out = out.replace(/\bthe effect\b/gi, eff);
+  }
+
+  // Cause token
+  if (cause) {
+    out = out.replace(/\[CAUSE\]/g, cause);
   }
 
   return out;
