@@ -1273,14 +1273,112 @@ function computeNextQuestion(state) {
     );
   }
 
-  if (s.pending?.type === "stuckReask") {
-    const tip =
-      s.pending.mode === "directions"
-        ? "Quick reset: re-read the prompt and underline the verb (explain/argue/compare)."
-        : "Quick reset: skim your notes/text and pick one phrase that feels important.";
-    return `${tip} Then answer: ${s.pending.resumeQuestion}`;
+if (s.pending?.type === "stuckReask") {
+  const stage = s.pending.stage || getStage(s);
+
+  const keyTopic =
+    s?.frame?.keyTopic ||
+    s?.frame?.topic ||
+    "";
+
+  const effect =
+    s?.frame?.effect ||
+    s?.frame?.centralEffect ||
+    s?.frame?.result ||
+    "";
+
+  const mainIdeas = Array.isArray(s?.frame?.mainIdeas)
+    ? s.frame.mainIdeas.filter(Boolean)
+    : [];
+
+  let selectedMainIdea = "";
+  if (typeof stage === "string" && stage.startsWith("details:")) {
+    const rawIndex = stage.split(":")[1];
+    const idx = Number(rawIndex);
+    selectedMainIdea = Number.isInteger(idx) ? (mainIdeas[idx] || "") : "";
+  } else if (mainIdeas.length > 0) {
+    selectedMainIdea = mainIdeas[mainIdeas.length - 1] || "";
   }
 
+  if (s.pending.mode === "directions") {
+    if (typeof stage === "string" && stage.startsWith("details:")) {
+      if (selectedMainIdea && effect) {
+        return `Let's check what this step is asking you to do.\n\nRight now you're working on the Details part of the Frame.\n\nYour cause is:\n"${selectedMainIdea}"\n\nWhat detail could help explain how that leads to ${effect}?`;
+      }
+
+      if (selectedMainIdea) {
+        return `Let's check what this step is asking you to do.\n\nRight now you're working on the Details part of the Frame.\n\nYour cause is:\n"${selectedMainIdea}"\n\nWhat detail could help someone understand that idea better?`;
+      }
+
+      return `Let's check what this step is asking you to do.\n\nRight now you're working on the Details part of the Frame.\n\nWhat detail could help explain your cause more clearly?`;
+    }
+
+    if (stage === "mainIdeas") {
+      if (effect && keyTopic) {
+        return `Let's check what this step is asking you to do.\n\nRight now you're working on the Main Ideas part of the Frame.\n\nYou're explaining why ${effect} happens in ${keyTopic}.\n\nWhat might be another cause that could lead to ${effect}?`;
+      }
+
+      if (effect) {
+        return `Let's check what this step is asking you to do.\n\nRight now you're working on the Main Ideas part of the Frame.\n\nYou're explaining why ${effect} happens.\n\nWhat might be another cause that could lead to that effect?`;
+      }
+
+      return `Let's check what this step is asking you to do.\n\nRight now you're working on the Main Ideas part of the Frame.\n\nWhat might be another major idea or cause to add?`;
+    }
+
+    if (stage === "soWhat") {
+      if (effect && keyTopic) {
+        return `Let's check what this step is asking you to do.\n\nRight now you're working on the So What part of the Frame.\n\nYou've identified causes that lead to ${effect} in ${keyTopic}.\n\nWhat larger idea should someone understand after seeing those causes?`;
+      }
+
+      if (effect) {
+        return `Let's check what this step is asking you to do.\n\nRight now you're working on the So What part of the Frame.\n\nYou've identified causes that lead to ${effect}.\n\nWhat larger idea should someone understand after seeing those causes?`;
+      }
+
+      return `Let's check what this step is asking you to do.\n\nRight now you're working on the So What part of the Frame.\n\nWhat larger idea or takeaway should someone understand?`;
+    }
+
+    return `Let's check what this step is asking you to do.\n\n${s.pending.resumeQuestion}`;
+  }
+
+  if (s.pending.mode === "reread") {
+    if (typeof stage === "string" && stage.startsWith("details:")) {
+      if (selectedMainIdea && effect) {
+        return `Look back at your notes or source.\n\nFind a sentence that relates to this cause:\n"${selectedMainIdea}"\n\nDoes that sentence help explain how this cause leads to ${effect}?`;
+      }
+
+      if (selectedMainIdea) {
+        return `Look back at your notes or source.\n\nFind a sentence that relates to this cause:\n"${selectedMainIdea}"\n\nCould that sentence help explain that idea more clearly?`;
+      }
+
+      return `Look back at your notes or source.\n\nDo you see a sentence that could help explain your cause more clearly?`;
+    }
+
+    if (stage === "mainIdeas") {
+      if (effect && keyTopic) {
+        return `Look back at your notes or source about ${keyTopic}.\n\nDo you see a sentence that explains another reason why ${effect} happens?\n\nCould that idea become another cause in your Frame?`;
+      }
+
+      if (effect) {
+        return `Look back at your notes or source.\n\nDo you see a sentence that explains another reason why ${effect} happens?\n\nCould that idea become another cause in your Frame?`;
+      }
+
+      return `Look back at your notes or source.\n\nDo you see another important reason or cause you could add to your Frame?`;
+    }
+
+    if (stage === "soWhat") {
+      if (keyTopic) {
+        return `Look back at your notes or source about ${keyTopic}.\n\nDo you see a sentence that connects the causes you found to the bigger issue?\n\nCould that idea help you write the takeaway for your Frame?`;
+      }
+
+      return `Look back at your notes or source.\n\nDo you see a sentence that could help you write the takeaway for your Frame?`;
+    }
+
+    return `Look back at your notes or source.\n\nIs there a sentence or phrase there that could help you answer this step?`;
+  }
+
+  return s.pending.resumeQuestion;
+}
+ 
   if (s.pending?.type === "stuckNudge") {
     const tone = s.pending.tone || "neutral";
     const ack = tone === "frustration" ? "That can feel frustrating. " : tone === "resistance" ? "I hear you. " : "";
