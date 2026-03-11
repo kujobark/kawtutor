@@ -412,32 +412,30 @@ function applyPromptTokens(template, state) {
 // PROMPT BANK
 // ---------------------
 const PROMPT_BANK = {
-study: {
-  causeEffect: {
-    isAbout: 'In your own words, what is "[Key Topic]" mostly about?',
-    mainIdea: 'What is one major cause that helps explain "[Key Topic]"?',
-    detail: 'What detail helps explain how this cause contributes to "[Key Topic]"?',
-    soWhat: 'When you look at all of these causes and effects together, what can you conclude about "[Key Topic]"?',
+  study: {
+    causeEffect: {
+      isAbout: 'Your Key Topic is:\n\n"[Key Topic]"\n\nNow let\'s think about what happens with this topic.\n\nIn your own words, what is the main effect or result?',
+      mainIdea: 'Your frame explains that:\n\n"[EFFECT]"\n\nNow let\'s think about why that happens.\n\nWhat is one major cause that could help explain it?',
+      detail: 'You identified this cause.\n\nThis helps explain why\n\n"[EFFECT]"\n\nNow let\'s explain how that cause works.\n\nWhat detail or example could support it?',
+      soWhat: 'Your frame shows that:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nLooking at this explanation,\n\nwhat important takeaway should someone understand about "[Key Topic]"?',
+    },
   },
-},
 
   write: {
     causeEffect: {
-      // Key Topic anchored (still preserves the required “leads to” stem)
-      isAbout: 'In this topic about "[Key Topic]", finish this sentence: "This topic is about how ____ leads to ____."',
-      mainIdea: "What is one major cause that leads to [EFFECT]?",
-      // removed “one detail” so numbering line can carry first/second
-      detail: "What detail shows how this cause connects to [EFFECT]?",
-      soWhat: "Why should people care about this effect?",
+      isAbout: 'Your Key Topic is:\n\n"[Key Topic]"\n\nNow let\'s think about what happens in this topic.\n\nFinish this sentence:\n"This topic is about how ____ leads to ____."',
+      mainIdea: 'Your frame explains this effect:\n\n"[EFFECT]"\n\nNow let\'s think about why that happens.\n\nWhat is one major cause that leads to [EFFECT]?',
+      detail: 'You identified this cause.\n\nThis helps explain why\n\n"[EFFECT]"\n\nNow let\'s explain how that cause works.\n\nWhat detail shows how this cause connects to [EFFECT]?',
+      soWhat: 'Your frame shows that:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nLooking at this explanation,\n\nwhy should people care about this effect?',
     },
   },
 
   read: {
     causeEffect: {
-      isAbout: "In the text, what is the main effect or result the author emphasizes?",
-      mainIdea: "What is one cause the author presents that led to [EFFECT]?",
-      detail: "According to the text, what evidence supports this cause?",
-      soWhat: "Why does this effect matter beyond the text?",
+      isAbout: 'The text is about:\n\n"[Key Topic]"\n\nNow let\'s think about what happens in this topic.\n\nWhat main effect or result does the author emphasize?',
+      mainIdea: 'The text explains this effect:\n\n"[EFFECT]"\n\nNow let\'s think about why that happens.\n\nWhat is one cause the author presents that led to [EFFECT]?',
+      detail: 'You identified this cause in the text.\n\nThis helps explain why\n\n"[EFFECT]"\n\nNow let\'s look for how the text supports that cause.\n\nWhat evidence or example does the author give that supports it?',
+      soWhat: 'The text shows that:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nLooking at this explanation,\n\nwhy does this effect matter beyond the text?',
     },
   },
 };
