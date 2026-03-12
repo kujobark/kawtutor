@@ -1278,16 +1278,22 @@ function computeNextQuestion(state) {
 
   if (s.pending?.type === "stuckConfirm") return "Sounds like you’re stuck. Want a quick help move? (yes/no)";
 
-  if (s.pending?.type === "stuckMenu") {
-    return (
-      "Pick a quick help move: " +
-      "1) Check directions  " +
-      "2) Re-read source/notes  " +
-      "3) I’ll ask a smaller question for this step  " +
-      "4) Skip for now and come back. " +
-      "Which one (1–4)?"
-    );
-  }
+if (s.pending?.type === "stuckMenu") {
+
+  const intro = s.pending?.retryFromMini
+    ? "No problem — that smaller question didn’t help enough yet. Let’s try a different help move.\n\n"
+    : "";
+
+  return (
+    intro +
+    "Pick a quick help move: " +
+    "1) Check directions  " +
+    "2) Re-read source/notes  " +
+    "3) I’ll ask a smaller question for this step  " +
+    "4) Skip for now and come back.  " +
+    "Which one (1–4)?"
+  );
+}
 
 if (s.pending?.type === "stuckReask") {
   const stage = s.pending.stage || getStage(s);
@@ -1769,13 +1775,14 @@ if (s.pending?.type === "stuckNudge") {
   if (s.pending?.type === "stuckMini") {
     const stage = s.pending.stage || getStage(s);
 
-        if (isStuckMessage(msg)) {
+    if (isStuckMessage(msg)) {
       s.pending = {
         type: "stuckMenu",
         stage,
         tone: detectStuckTone(msg),
         resumeQuestion: s.pending.resumeQuestion,
         miniQuestion: s.pending.miniQuestion || buildMiniQuestion(s),
+        retryFromMini: true,
       };
       return s;
     }
