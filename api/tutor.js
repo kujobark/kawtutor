@@ -939,42 +939,51 @@ function getParentAnchorStage(state) {
 }
 
 function buildMiniQuestion(state) {
-const stage = getStage(state);
-const baseStage = getBaseStage(stage);
-  
+  const stage = getStage(state);
+  const baseStage = getBaseStage(stage);
+
+  const keyTopic = state.frame?.keyTopic || "your topic";
+  const effect = state.frame?.isAbout || state.frame?.effect || "the effect";
+  const isCE = state.frameMeta?.frameType === "causeEffect";
+
   if (stage === "purpose") {
     return "Which one: 1) study/review, 2) write/create, or 3) reading/source notes (1–3)?";
   }
 
   if (stage === "keyTopic") {
-    return "If you had to title this in 4 words, what would the title be?";
+    return `Your frame begins with the Key Topic.\n\nIn just a few words, what is the name of the topic you are exploring?`;
   }
 
   if (stage === "isAbout") {
-    const pb = getPromptForStage(state, "isAbout");
-    if (pb) return pb;
-    return "In one rough sentence, what is happening in your topic and why does it matter?";
+    if (isCE) {
+      return `Your frame starts with this Key Topic:\n\n"${keyTopic}"\n\nNow think about what main effect this topic leads to.\n\nWhat effect is your frame trying to explain?`;
+    }
+    return `Your frame starts with this Key Topic:\n\n"${keyTopic}"\n\nNow think about what this topic is mostly about.\n\nWhat is the main idea your frame is trying to explain?`;
   }
 
   if (stage === "mainIdeas") {
-    const isCE = state.frameMeta?.frameType === "causeEffect";
-    const label = isCE ? "cause" : "main idea";
-    return `What is one important ${label} related to "${state.frame.keyTopic}"? (Rough is fine.)`;
+    if (isCE) {
+      return `You identified this effect:\n\n"${effect}"\n\nNow think about why this happens.\n\nWhat is one cause that could help explain it?`;
+    }
+    return `You identified this main idea:\n\n"${effect}"\n\nNow think about what important idea supports it.\n\nWhat is one main idea that could help explain it?`;
   }
 
-if (baseStage === "details") {
+  if (baseStage === "details") {
     const idx = Number(stage.split(":")[1]);
-    const mi = state.frame.mainIdeas?.[idx] || "this Main Idea";
-    const isCE = state.frameMeta?.frameType === "causeEffect";
-    const miLabel = isCE ? "Cause" : "Main Idea";
-    return `What is one specific example from your text/notes that connects to this ${miLabel}: "${mi}"?`;
+    const mi = state.frame?.mainIdeas?.[idx] || "this main idea";
+
+    if (isCE) {
+      return `You identified this cause:\n\n"${mi}"\n\nNow think about how that leads to this effect:\n\n"${effect}"\n\nWhat detail or example could help explain it?`;
+    }
+
+    return `You identified this main idea:\n\n"${mi}"\n\nNow think about how that connects to your topic.\n\nWhat detail or example could help explain it?`;
   }
 
   if (stage === "soWhat") {
-    if (state.frameMeta?.frameType === "causeEffect") {
-      return `When you look at the causes and effects together, what can you conclude about "${state.frame.keyTopic}"?`;
+    if (isCE) {
+      return `Your frame explains why this happens:\n\n"${effect}"\n\nNow think about why this matters.\n\nWhat should people really understand about this topic?`;
     }
-    return `Who is affected by "${state.frame.keyTopic}", and why should they care?`;
+    return `Your frame is about this topic:\n\n"${keyTopic}"\n\nNow think about why this matters.\n\nWhat should people really understand about it?`;
   }
 
   return "What part feels easiest to improve right now: Key Topic, Is About, Main Ideas, Details, or So What?";
