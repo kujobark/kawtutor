@@ -1718,13 +1718,16 @@ if (choice === "2") {
   };
   return s;
 }
-    if (choice === "3") {
-      const stage = s.pending.stage || getStage(s);
-      const nudges = buildStuckNudges(s, stage);
-      const nudgeText = formatNudgeText(nudges);
-      s.pending = { type: "stuckNudge", stage, tone: s.pending.tone || "neutral", nudgeText, resumeQuestion: s.pending.resumeQuestion };
-      return s;
-    }
+   if (choice === "3") {
+  const stage = s.pending.stage || getStage(s);
+  s.pending = {
+    type: "stuckMini",
+    stage,
+    miniQuestion: buildMiniQuestion(s),
+    resumeQuestion: s.pending.resumeQuestion
+  };
+  return s;
+}
     if (choice === "4") {
       if (!Array.isArray(s.skips)) s.skips = [];
       s.skips.push({ stage: s.pending.stage || getStage(s), at: Date.now() });
