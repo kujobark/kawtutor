@@ -1629,6 +1629,14 @@ return "So your frame reads:\n\n" + keyTopic + " is about " + cleaned + ".\n\nIs
 // ---------------------
 // STATE UPDATE (SSOT)
 // ---------------------
+function clearMatchingSkip(state, completedStage) {
+  if (!Array.isArray(state.skips) || !state.skips.length) return;
+
+  const first = state.skips[0];
+  if (first?.stage === completedStage) {
+    state.skips.shift();
+  }
+}
 function updateStateFromStudent(state, message) {
   const msg = cleanText(message);
   const s = structuredClone(state);
@@ -2028,6 +2036,7 @@ if (s.pending?.type === "stuckNudge") {
     if (!s.frame.isAbout) {
       // If write+c/e, enforce leads-to when capturing isAbout
       applyIsAboutCapture(s, parsed.isAbout);
+      clearMatchingSkip(s, "isAbout");
     } else {
       s.pending = { type: "confirmIsAbout" };
     }
@@ -2049,6 +2058,7 @@ if (s.pending?.type === "stuckNudge") {
     const lowered = msg.toLowerCase().trim();
     if (lowered !== "revise" && lowered !== "change") {
       applyIsAboutCapture(s, msg);
+      clearMatchingSkip(s, "isAbout");
     }
     return s;
   }
@@ -2057,6 +2067,7 @@ if (s.pending?.type === "stuckNudge") {
   if (s.frame.mainIdeas.length < 2) {
     if (!isNegative(msg)) {
       s.frame.mainIdeas.push(msg);
+      clearMatchingSkip(s, "mainIdeas");
       if (!Array.isArray(s.frame.details[s.frame.mainIdeas.length - 1])) s.frame.details[s.frame.mainIdeas.length - 1] = [];
       if (s.frame.mainIdeas.length === 2) s.pending = { type: "offerThirdMainIdea" };
     }
@@ -2087,6 +2098,7 @@ if (s.pending?.type === "stuckNudge") {
         }
 
         s.frame.details[i] = [...arr, msg];
+        clearMatchingSkip(s, `details:${i}`);
       }
 
       const updated = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
@@ -2097,14 +2109,11 @@ if (s.pending?.type === "stuckNudge") {
     }
   }
   
-  // 6) So What capture
-  if (!s.frame.soWhat) {
-    if (!isNegative(msg)) {
-      s.frame.soWhat = msg;
-      s.pending = { type: "offerMoreSoWhat" };
-    }
-    return s;
-  }
+// 6) So What capture
+if (!s.frame.soWhat) {
+  if (!isNegative(msg)) {
+    s.frame.soWhat = msg;
+    clearMatchingSkip(s, "soWhat");
 
   return s;
 }
