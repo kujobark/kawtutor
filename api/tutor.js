@@ -1426,6 +1426,37 @@ if (s.pending?.type === "stuckReask") {
     return `${ctx}Can you add one concrete piece of evidence (example, fact, quote, or statistic) that shows how "${mi}" connects to ${eff}?`;
   }
 
+// --- Return to skipped work before confirmation ---
+if (
+  Array.isArray(s.skips) &&
+  s.skips.length > 0 &&
+  ["confirmIsAbout", "confirmMainIdeas", "confirmDetails", "confirmSoWhat"].includes(s.pending?.type)
+) {
+
+  const skipped = s.skips[0];
+
+  let label = "a part of the frame";
+
+  if (skipped.stage === "mainIdeas") label = "a main idea";
+  if (skipped.stage === "soWhat") label = "the So What statement";
+  if (skipped.stage?.startsWith("details")) {
+    const idx = Number(skipped.stage.split(":")[1]);
+    const cause = s.frame.mainIdeas?.[idx];
+    label = cause
+      ? `a supporting detail for the cause "${cause}"`
+      : "a supporting detail";
+  }
+
+  // Keep the skip for now; remove it after the student completes this stage.
+
+  s.pending = {
+    type: "stuckReask",
+    stage: skipped.stage
+  };
+
+  return `Before we confirm your thinking and move on, let's return to the part we skipped earlier: ${label}.`;
+}
+ 
   if (s.pending?.type === "confirmIsAbout") {
     // Write + causeEffect gets a teacher-voice confirmation
     if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
