@@ -385,6 +385,10 @@ function applyPromptTokens(template, state) {
   let out = template || "";
   const kt = state?.frame?.keyTopic || "";
   const eff = state?.frame?.effect || "";
+  const mainIdeas = Array.isArray(state?.frame?.mainIdeas)
+    ? state.frame.mainIdeas.filter(Boolean)
+    : [];
+  const cause = mainIdeas.length ? mainIdeas[mainIdeas.length - 1] : "";
 
   // Key Topic token
   if (kt) out = out.replace(/\[Key Topic\]/g, kt);
@@ -396,6 +400,11 @@ function applyPromptTokens(template, state) {
     out = out.replace(/\bthe effect\b/gi, eff);
   }
 
+  // Cause token
+  if (cause) {
+    out = out.replace(/\[CAUSE\]/g, cause);
+  }
+
   return out;
 }
 
@@ -403,32 +412,30 @@ function applyPromptTokens(template, state) {
 // PROMPT BANK
 // ---------------------
 const PROMPT_BANK = {
-study: {
-  causeEffect: {
-    isAbout: 'In your own words, what is "[Key Topic]" mostly about?',
-    mainIdea: 'What is one major cause that helps explain "[Key Topic]"?',
-    detail: 'What detail helps explain how this cause contributes to "[Key Topic]"?',
-    soWhat: 'When you look at all of these causes and effects together, what can you conclude about "[Key Topic]"?',
+  study: {
+    causeEffect: {
+      isAbout: 'Your Key Topic is:\n\n"[Key Topic]"\n\nNow let\'s think about what happens with this topic.\n\nIn your own words, what is the main effect or result?',
+      mainIdea: 'Your frame explains that:\n\n"[EFFECT]"\n\nNow let\'s think about why that happens.\n\nWhat is one major cause that could help explain it?',
+      detail: 'You identified this cause.\n\nThis helps explain why\n\n"[EFFECT]"\n\nNow let\'s explain how that cause works.\n\nWhat detail or example could support it?',
+      soWhat: 'Your frame shows that:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nLooking at this explanation,\n\nwhat important takeaway should someone understand about "[Key Topic]"?',
+    },
   },
-},
 
   write: {
     causeEffect: {
-      // Key Topic anchored (still preserves the required “leads to” stem)
-      isAbout: 'In this topic about "[Key Topic]", finish this sentence: "This topic is about how ____ leads to ____."',
-      mainIdea: "What is one major cause that leads to [EFFECT]?",
-      // removed “one detail” so numbering line can carry first/second
-      detail: "What detail shows how this cause connects to [EFFECT]?",
-      soWhat: "Why should people care about this effect?",
+      isAbout: 'Your Key Topic is:\n\n"[Key Topic]"\n\nNow let\'s think about what happens in this topic.\n\nFinish this sentence:\n"This topic is about how ____ leads to ____."',
+      mainIdea: 'Your frame explains this effect:\n\n"[EFFECT]"\n\nNow let\'s think about why that happens.\n\nWhat is one major cause that leads to [EFFECT]?',
+      detail: 'You identified this cause.\n\nThis helps explain why\n\n"[EFFECT]"\n\nNow let\'s explain how that cause works.\n\nWhat detail shows how this cause connects to [EFFECT]?',
+      soWhat: 'Your frame shows that:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nLooking at this explanation,\n\nwhy should people care about this effect?',
     },
   },
 
   read: {
     causeEffect: {
-      isAbout: "In the text, what is the main effect or result the author emphasizes?",
-      mainIdea: "What is one cause the author presents that led to [EFFECT]?",
-      detail: "According to the text, what evidence supports this cause?",
-      soWhat: "Why does this effect matter beyond the text?",
+      isAbout: 'The text is about:\n\n"[Key Topic]"\n\nNow let\'s think about what happens in this topic.\n\nWhat main effect or result does the author emphasize?',
+      mainIdea: 'The text explains this effect:\n\n"[EFFECT]"\n\nNow let\'s think about why that happens.\n\nWhat is one cause the author presents that led to [EFFECT]?',
+      detail: 'You identified this cause in the text.\n\nThis helps explain why\n\n"[EFFECT]"\n\nNow let\'s look for how the text supports that cause.\n\nWhat evidence or example does the author give that supports it?',
+      soWhat: 'The text shows that:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nLooking at this explanation,\n\nwhy does this effect matter beyond the text?',
     },
   },
 };
@@ -932,42 +939,51 @@ function getParentAnchorStage(state) {
 }
 
 function buildMiniQuestion(state) {
-const stage = getStage(state);
-const baseStage = getBaseStage(stage);
-  
+  const stage = getStage(state);
+  const baseStage = getBaseStage(stage);
+
+  const keyTopic = state.frame?.keyTopic || "your topic";
+  const effect = state.frame?.isAbout || state.frame?.effect || "the effect";
+  const isCE = state.frameMeta?.frameType === "causeEffect";
+
   if (stage === "purpose") {
     return "Which one: 1) study/review, 2) write/create, or 3) reading/source notes (1–3)?";
   }
 
   if (stage === "keyTopic") {
-    return "If you had to title this in 4 words, what would the title be?";
+    return `Your frame begins with the Key Topic.\n\nIn just a few words, what is the name of the topic you are exploring?`;
   }
 
   if (stage === "isAbout") {
-    const pb = getPromptForStage(state, "isAbout");
-    if (pb) return pb;
-    return "In one rough sentence, what is happening in your topic and why does it matter?";
+    if (isCE) {
+      return `Your frame starts with this Key Topic:\n\n"${keyTopic}"\n\nNow think about what main effect this topic leads to.\n\nWhat effect is your frame trying to explain?`;
+    }
+    return `Your frame starts with this Key Topic:\n\n"${keyTopic}"\n\nNow think about what this topic is mostly about.\n\nWhat is the main idea your frame is trying to explain?`;
   }
 
   if (stage === "mainIdeas") {
-    const isCE = state.frameMeta?.frameType === "causeEffect";
-    const label = isCE ? "cause" : "main idea";
-    return `What is one important ${label} related to "${state.frame.keyTopic}"? (Rough is fine.)`;
+    if (isCE) {
+      return `You identified this effect:\n\n"${effect}"\n\nNow think about why this happens.\n\nWhat is one cause that could help explain it?`;
+    }
+    return `You identified this main idea:\n\n"${effect}"\n\nNow think about what important idea supports it.\n\nWhat is one main idea that could help explain it?`;
   }
 
-if (baseStage === "details") {
+  if (baseStage === "details") {
     const idx = Number(stage.split(":")[1]);
-    const mi = state.frame.mainIdeas?.[idx] || "this Main Idea";
-    const isCE = state.frameMeta?.frameType === "causeEffect";
-    const miLabel = isCE ? "Cause" : "Main Idea";
-    return `What is one specific example from your text/notes that connects to this ${miLabel}: "${mi}"?`;
+    const mi = state.frame?.mainIdeas?.[idx] || "this main idea";
+
+    if (isCE) {
+      return `You identified this cause:\n\n"${mi}"\n\nNow think about how that leads to this effect:\n\n"${effect}"\n\nWhat detail or example could help explain it?`;
+    }
+
+    return `You identified this main idea:\n\n"${mi}"\n\nNow think about how that connects to your topic.\n\nWhat detail or example could help explain it?`;
   }
 
   if (stage === "soWhat") {
-    if (state.frameMeta?.frameType === "causeEffect") {
-      return `When you look at the causes and effects together, what can you conclude about "${state.frame.keyTopic}"?`;
+    if (isCE) {
+      return `Your frame explains why this happens:\n\n"${effect}"\n\nNow think about why this matters.\n\nWhat should people really understand about this topic?`;
     }
-    return `Who is affected by "${state.frame.keyTopic}", and why should they care?`;
+    return `Your frame is about this topic:\n\n"${keyTopic}"\n\nNow think about why this matters.\n\nWhat should people really understand about it?`;
   }
 
   return "What part feels easiest to improve right now: Key Topic, Is About, Main Ideas, Details, or So What?";
@@ -1683,21 +1699,35 @@ if (s.pending?.type === "writeNeedEvidenceDetail") {
     const choice = normalizeStuckChoice(msg);
     if (!choice) return s;
 
-    if (choice === "1") {
-      s.pending = { type: "stuckReask", mode: "directions", resumeQuestion: s.pending.resumeQuestion };
-      return s;
-    }
-    if (choice === "2") {
-      s.pending = { type: "stuckReask", mode: "reread", resumeQuestion: s.pending.resumeQuestion };
-      return s;
-    }
-    if (choice === "3") {
-      const stage = s.pending.stage || getStage(s);
-      const nudges = buildStuckNudges(s, stage);
-      const nudgeText = formatNudgeText(nudges);
-      s.pending = { type: "stuckNudge", stage, tone: s.pending.tone || "neutral", nudgeText, resumeQuestion: s.pending.resumeQuestion };
-      return s;
-    }
+   if (choice === "1") {
+  s.pending = {
+    type: "stuckReask",
+    mode: "directions",
+    stage: s.pending.stage || getStage(s),
+    resumeQuestion: s.pending.resumeQuestion
+  };
+  return s;
+}
+
+if (choice === "2") {
+  s.pending = {
+    type: "stuckReask",
+    mode: "reread",
+    stage: s.pending.stage || getStage(s),
+    resumeQuestion: s.pending.resumeQuestion
+  };
+  return s;
+}
+   if (choice === "3") {
+  const stage = s.pending.stage || getStage(s);
+  s.pending = {
+    type: "stuckMini",
+    stage,
+    miniQuestion: buildMiniQuestion(s),
+    resumeQuestion: s.pending.resumeQuestion
+  };
+  return s;
+}
     if (choice === "4") {
       if (!Array.isArray(s.skips)) s.skips = [];
       s.skips.push({ stage: s.pending.stage || getStage(s), at: Date.now() });
