@@ -1449,12 +1449,18 @@ if (
 
   // Keep the skip for now; remove it after the student completes this stage.
 
+    const intro = `Before we confirm your thinking and move on, let's return to the part we skipped earlier: ${label}.\n\n`;
+
   s.pending = {
-    type: "stuckReask",
-    stage: skipped.stage
+    type: "stuckMini",
+    stage: skipped.stage,
+    miniQuestion: buildMiniQuestion({
+      ...s,
+      pending: { stage: skipped.stage }
+    })
   };
 
-  return `Before we confirm your thinking and move on, let's return to the part we skipped earlier: ${label}.`;
+  return intro + s.pending.miniQuestion;
 }
  
   if (s.pending?.type === "confirmIsAbout") {
