@@ -2114,8 +2114,11 @@ if (!s.frame.soWhat) {
   if (!isNegative(msg)) {
     s.frame.soWhat = msg;
     clearMatchingSkip(s, "soWhat");
-
+  }
   return s;
+}
+
+return s;
 }
 
 // ---------------------
