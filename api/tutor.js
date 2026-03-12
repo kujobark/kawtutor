@@ -939,8 +939,7 @@ function getParentAnchorStage(state) {
 }
 
 function buildMiniQuestion(state) {
-  const stage = getStage(state);
-  const baseStage = getBaseStage(stage);
+  const stage = state?.pending?.stage || getStage(state);
 
   const keyTopic = state.frame?.keyTopic || "your topic";
   const effect = state.frame?.isAbout || state.frame?.effect || "the effect";
