@@ -1769,6 +1769,17 @@ if (s.pending?.type === "stuckNudge") {
   if (s.pending?.type === "stuckMini") {
     const stage = s.pending.stage || getStage(s);
 
+        if (isStuckMessage(msg)) {
+      s.pending = {
+        type: "stuckMenu",
+        stage,
+        tone: detectStuckTone(msg),
+        resumeQuestion: s.pending.resumeQuestion,
+        miniQuestion: s.pending.miniQuestion || buildMiniQuestion(s),
+      };
+      return s;
+    }
+
     if (stage === "purpose") {
       const p = normalizePurpose(msg);
       if (p) s.frameMeta.purpose = p;
