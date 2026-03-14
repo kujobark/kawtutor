@@ -939,7 +939,7 @@ function getParentAnchorStage(state) {
 }
 
 function buildMiniQuestion(state) {
-  const stage = getStage(state);
+  const stage = state?.pending?.stage || getStage(state);
   const baseStage = getBaseStage(stage);
 
   const keyTopic = state.frame?.keyTopic || "your topic";
@@ -1162,9 +1162,9 @@ function buildFrameText(s) {
   lines.push(isCE ? "CAUSES + SUPPORTING DETAILS:" : "MAIN IDEAS + SUPPORTING DETAILS:");
 
   s.frame.mainIdeas.forEach((mi, i) => {
-    lines.push(`${i + 1}) ${mi}`);
+    lines.push(`Cause ${i + 1}: ${mi}`);
     const details = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
-    details.forEach((d, k) => lines.push(`   - Detail ${k + 1}: ${d}`));
+    details.forEach((d, k) => lines.push(`   - Supporting Detail ${k + 1}: ${d}`));
     lines.push("");
   });
 
@@ -1278,16 +1278,22 @@ function computeNextQuestion(state) {
 
   if (s.pending?.type === "stuckConfirm") return "Sounds like you’re stuck. Want a quick help move? (yes/no)";
 
-  if (s.pending?.type === "stuckMenu") {
-    return (
-      "Pick a quick help move: " +
-      "1) Check directions  " +
-      "2) Re-read source/notes  " +
-      "3) I’ll ask a smaller question for this step  " +
-      "4) Skip for now and come back. " +
-      "Which one (1–4)?"
-    );
-  }
+if (s.pending?.type === "stuckMenu") {
+
+  const intro = s.pending?.retryFromMini
+    ? "No problem — that smaller question didn’t help enough yet. Let’s try a different help move.\n\n"
+    : "";
+
+  return (
+    intro +
+    "Pick a quick help move: " +
+    "1) Check directions  " +
+    "2) Re-read source/notes  " +
+    "3) I’ll ask a smaller question for this step  " +
+    "4) Skip for now and come back.  " +
+    "Which one (1–4)?"
+  );
+}
 
 if (s.pending?.type === "stuckReask") {
   const stage = s.pending.stage || getStage(s);
@@ -1420,6 +1426,44 @@ if (s.pending?.type === "stuckReask") {
     return `${ctx}Can you add one concrete piece of evidence (example, fact, quote, or statistic) that shows how "${mi}" connects to ${eff}?`;
   }
 
+// --- Return to skipped work before confirmation ---
+if (
+  Array.isArray(s.skips) &&
+  s.skips.length > 0 &&
+  ["confirmIsAbout", "confirmMainIdeas", "confirmDetails", "confirmSoWhat"].includes(s.pending?.type)
+) {
+
+  const skipped = s.skips[0];
+
+  let label = "a part of the frame";
+if (skipped.stage === "mainIdeas") {
+  const nextCauseNumber = (Array.isArray(s.frame.mainIdeas) ? s.frame.mainIdeas.length : 0) + 1;
+  label = `Cause ${nextCauseNumber}`;
+}
+
+if (skipped.stage === "soWhat") label = "the So What statement";
+
+if (skipped.stage?.startsWith("details")) {
+  const idx = Number(skipped.stage.split(":")[1]);
+  label = `Supporting Detail for Cause ${idx + 1}`;
+}
+
+  // Keep the skip for now; remove it after the student completes this stage.
+
+    const intro = `Before we confirm your thinking and move on, let's return to the part we skipped earlier: ${label}.\n\n`;
+
+  s.pending = {
+    type: "stuckMini",
+    stage: skipped.stage,
+    miniQuestion: buildMiniQuestion({
+      ...s,
+      pending: { stage: skipped.stage }
+    })
+  };
+
+  return intro + s.pending.miniQuestion;
+}
+ 
   if (s.pending?.type === "confirmIsAbout") {
     // Write + causeEffect gets a teacher-voice confirmation
     if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
@@ -1442,7 +1486,7 @@ return "So your frame reads:\n\n" + keyTopic + " is about " + cleaned + ".\n\nIs
   }
 
   if (s.pending?.type === "confirmMainIdeas") {
-    const lines = (s.frame.mainIdeas || []).map((mi, i) => `${i + 1}) ${mi}`).join("\n");
+    const lines = (s.frame.mainIdeas || []).map((mi, i) => `Cause ${i + 1}: ${mi}`).join("\n");
     const isCE = s.frameMeta?.frameType === "causeEffect";
     const label = isCE ? "Causes" : "Main Ideas";
     return `You have identified the following ${label}:\n${lines}\nIs that correct, or would you like to revise one?`;
@@ -1486,7 +1530,7 @@ return "So your frame reads:\n\n" + keyTopic + " is about " + cleaned + ".\n\nIs
     const i = Number(s.pending.index);
     const mi = s.frame.mainIdeas?.[i] || "";
     const arr = Array.isArray(s.frame.details?.[i]) ? s.frame.details[i] : [];
-    const lines = arr.map((d, k) => `${k + 1}) ${d}`).join("\n");
+    const lines = arr.map((d, k) => `Supporting Detail ${k + 1}: ${d}`).join("\n");
 
     const isCE = s.frameMeta?.frameType === "causeEffect";
     const miLabel = isCE ? "Cause" : "Main Idea";
@@ -1592,6 +1636,14 @@ return "So your frame reads:\n\n" + keyTopic + " is about " + cleaned + ".\n\nIs
 // ---------------------
 // STATE UPDATE (SSOT)
 // ---------------------
+function clearMatchingSkip(state, completedStage) {
+  if (!Array.isArray(state.skips) || !state.skips.length) return;
+
+  const first = state.skips[0];
+  if (first?.stage === completedStage) {
+    state.skips.shift();
+  }
+}
 function updateStateFromStudent(state, message) {
   const msg = cleanText(message);
   const s = structuredClone(state);
@@ -1768,6 +1820,18 @@ if (s.pending?.type === "stuckNudge") {
 
   if (s.pending?.type === "stuckMini") {
     const stage = s.pending.stage || getStage(s);
+
+    if (isStuckMessage(msg)) {
+      s.pending = {
+        type: "stuckMenu",
+        stage,
+        tone: detectStuckTone(msg),
+        resumeQuestion: s.pending.resumeQuestion,
+        miniQuestion: s.pending.miniQuestion || buildMiniQuestion(s),
+        retryFromMini: true,
+      };
+      return s;
+    }
 
     if (stage === "purpose") {
       const p = normalizePurpose(msg);
@@ -1979,6 +2043,7 @@ if (s.pending?.type === "stuckNudge") {
     if (!s.frame.isAbout) {
       // If write+c/e, enforce leads-to when capturing isAbout
       applyIsAboutCapture(s, parsed.isAbout);
+      clearMatchingSkip(s, "isAbout");
     } else {
       s.pending = { type: "confirmIsAbout" };
     }
@@ -2000,6 +2065,7 @@ if (s.pending?.type === "stuckNudge") {
     const lowered = msg.toLowerCase().trim();
     if (lowered !== "revise" && lowered !== "change") {
       applyIsAboutCapture(s, msg);
+      clearMatchingSkip(s, "isAbout");
     }
     return s;
   }
@@ -2008,6 +2074,7 @@ if (s.pending?.type === "stuckNudge") {
   if (s.frame.mainIdeas.length < 2) {
     if (!isNegative(msg)) {
       s.frame.mainIdeas.push(msg);
+      clearMatchingSkip(s, "mainIdeas");
       if (!Array.isArray(s.frame.details[s.frame.mainIdeas.length - 1])) s.frame.details[s.frame.mainIdeas.length - 1] = [];
       if (s.frame.mainIdeas.length === 2) s.pending = { type: "offerThirdMainIdea" };
     }
@@ -2038,6 +2105,7 @@ if (s.pending?.type === "stuckNudge") {
         }
 
         s.frame.details[i] = [...arr, msg];
+        clearMatchingSkip(s, `details:${i}`);
       }
 
       const updated = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
@@ -2048,16 +2116,16 @@ if (s.pending?.type === "stuckNudge") {
     }
   }
   
-  // 6) So What capture
-  if (!s.frame.soWhat) {
-    if (!isNegative(msg)) {
-      s.frame.soWhat = msg;
-      s.pending = { type: "offerMoreSoWhat" };
-    }
-    return s;
+// 6) So What capture
+if (!s.frame.soWhat) {
+  if (!isNegative(msg)) {
+    s.frame.soWhat = msg;
+    clearMatchingSkip(s, "soWhat");
   }
-
   return s;
+}
+
+return s;
 }
 
 // ---------------------
