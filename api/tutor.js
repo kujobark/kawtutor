@@ -424,8 +424,8 @@ const PROMPT_BANK = {
   write: {
     causeEffect: {
       isAbout: 'Your Key Topic is:\n\n"[Key Topic]"\n\nNow let\'s think about what happens in this topic.\n\nFinish this sentence:\n"This topic is about how ____ leads to ____."',
-      mainIdea: 'Your frame explains this effect:\n\n"[EFFECT]"\n\nNow let\'s think about why that happens.\n\nWhat is one major cause that leads to [EFFECT]?',
-      detail: 'You identified this cause.\n\nThis helps explain why\n\n"[EFFECT]"\n\nNow let\'s explain how that cause works.\n\nWhat detail shows how this cause connects to [EFFECT]?',
+      mainIdea: 'Your frame explains this effect:\n\n"[EFFECT]"\n\nWhat are the main causes that lead to this effect?',
+      detail: 'You identified this cause:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nNow let\'s explain how that cause works.\n\nWhat detail or example shows how this cause produces the effect?',
       soWhat: 'Your frame shows that:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nLooking at this explanation,\n\nwhy should people care about this effect?',
     },
   },
