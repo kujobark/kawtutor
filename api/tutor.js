@@ -1492,40 +1492,56 @@ return "So your frame reads:\n\n" + keyTopic + " is about " + cleaned + ".\n\nIs
     return `You have identified the following ${label}:\n${lines}\nIs that correct, or would you like to revise one?`;
   }
 
-  if (s.pending?.type === "offerThirdMainIdea") {
-    const isCE = s.frameMeta?.frameType === "causeEffect";
-    return isCE ? "Do you have a third Cause? (yes/no)" : "Do you have a third Main Idea? (yes/no)";
-  }
+if (s.pending?.type === "offerAnotherMainIdea") {
+  const isCE = s.frameMeta?.frameType === "causeEffect";
+  const count = (s.frame.mainIdeas || []).length;
+  const label = isCE ? "Cause" : "Main Idea";
+  return `You currently have ${count} ${label}${count > 1 ? "s" : ""}. Would you like to add another ${label}? (yes/no)`;
+}
 
-  if (s.pending?.type === "collectThirdMainIdea") {
-    const isCE = s.frameMeta?.frameType === "causeEffect";
-    return isCE
-      ? `What is your third Cause that helps explain ${s.frame.keyTopic}?`
-      : `What is your third Main Idea that helps explain ${s.frame.keyTopic}?`;
-  }
+if (s.pending?.type === "collectAnotherMainIdea") {
+  const isCE = s.frameMeta?.frameType === "causeEffect";
+  const count = (s.frame.mainIdeas || []).length + 1;
+  return isCE
+    ? `What is Cause ${count} that helps explain ${s.frame.keyTopic}?`
+    : `What is Main Idea ${count} that helps explain ${s.frame.keyTopic}?`;
+}
+  
+ if (s.pending?.type === "offerAnotherDetail") {
+  const i = Number(s.pending.index);
+  const mi = s.frame.mainIdeas?.[i] || "";
 
-  if (s.pending?.type === "offerThirdDetail") {
-    const i = Number(s.pending.index);
-    const mi = s.frame.mainIdeas?.[i] || "";
+  const isCE = s.frameMeta?.frameType === "causeEffect";
+  const miLabel = isCE ? "Cause" : "Main Idea";
+  const dLabel = isCE && s.frameMeta?.purpose === "read" ? "Text Evidence" : "Supporting Detail";
 
-    const isCE = s.frameMeta?.frameType === "causeEffect";
-    const miLabel = isCE ? "Cause" : "Main Idea";
-    const dLabel = isCE && s.frameMeta?.purpose === "read" ? "Text Evidence" : "Supporting Detail";
+  const count = (s.frame.details?.[i] || []).length;
 
-    return `For this ${miLabel}: "${mi}", do you have a third ${dLabel}? (yes/no)`;
-  }
+  return `For ${miLabel} ${i + 1}: "${mi}", you currently have ${count} ${dLabel}${count > 1 ? "s" : ""}. Would you like to add another ${dLabel}? (yes/no)`;
+}
 
-  if (s.pending?.type === "collectThirdDetail") {
-    const i = Number(s.pending.index);
-    const mi = s.frame.mainIdeas?.[i] || "";
+  const isCE = s.frameMeta?.frameType === "causeEffect";
+  const miLabel = isCE ? "Cause" : "Main Idea";
+  const dLabel = isCE && s.frameMeta?.purpose === "read" ? "Text Evidence" : "Supporting Detail";
 
-    const isCE = s.frameMeta?.frameType === "causeEffect";
-    const miLabel = isCE ? "Cause" : "Main Idea";
-    const dLabel = isCE && s.frameMeta?.purpose === "read" ? "Text Evidence" : "Supporting Detail";
+  const count = (s.frame.details?.[i] || []).length;
 
-    return `What is your third ${dLabel} for this ${miLabel}: "${mi}"?`;
-  }
+  return `For ${miLabel} ${i + 1}: "${mi}", you currently have ${count} ${dLabel}${count > 1 ? "s" : ""}. Would you like to add another ${dLabel}? (yes/no)`;
+}
+  
+if (s.pending?.type === "collectAnotherDetail") {
+  const i = Number(s.pending.index);
+  const mi = s.frame.mainIdeas?.[i] || "";
 
+  const isCE = s.frameMeta?.frameType === "causeEffect";
+  const miLabel = isCE ? "Cause" : "Main Idea";
+  const dLabel = isCE && s.frameMeta?.purpose === "read" ? "Text Evidence" : "Supporting Detail";
+
+  const count = (s.frame.details?.[i] || []).length + 1;
+
+  return `What is ${dLabel} ${count} for ${miLabel} ${i + 1}: "${mi}"?`;
+}
+  
   if (s.pending?.type === "confirmDetails") {
     const i = Number(s.pending.index);
     const mi = s.frame.mainIdeas?.[i] || "";
@@ -1715,13 +1731,13 @@ if (s.pending?.type === "writeNeedEvidenceDetail") {
   const combined = mechanism ? `${mechanism} (evidence: ${evidence})` : evidence;
 
   const arr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
-  if (arr.length < 2 && !isNegative(evidence)) {
-    s.frame.details[idx] = [...arr, combined];
-    if (s.frame.details[idx].length === 2) {
-      s.pending = { type: "offerThirdDetail", index: idx };
-      return s;
-    }
+if (arr.length < 2 && !isNegative(evidence)) {
+  s.frame.details[idx] = [...arr, combined];
+  if (s.frame.details[idx].length === 2) {
+    s.pending = { type: "offerAnotherDetail", index: idx };
+    return s;
   }
+}
 
   s.pending = null;
   return s;
@@ -1930,7 +1946,7 @@ if (s.pending?.type === "stuckNudge") {
     return s;
   }
 
-  if (s.pending?.type === "offerThirdMainIdea") {
+ if (s.pending?.type === "offerThirdMainIdea") {
     const normalized = msg.toLowerCase().trim();
     if (isAffirmative(normalized)) {
       s.pending = { type: "collectThirdMainIdea" };
@@ -2076,7 +2092,7 @@ if (s.pending?.type === "stuckNudge") {
       s.frame.mainIdeas.push(msg);
       clearMatchingSkip(s, "mainIdeas");
       if (!Array.isArray(s.frame.details[s.frame.mainIdeas.length - 1])) s.frame.details[s.frame.mainIdeas.length - 1] = [];
-      if (s.frame.mainIdeas.length === 2) s.pending = { type: "offerThirdMainIdea" };
+      if (s.frame.mainIdeas.length === 2) s.pending = { type: "offerAnotherMainIdea" };
     }
     return s;
   }
