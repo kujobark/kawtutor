@@ -821,12 +821,12 @@ const PARENT_ANCHOR_BRIDGE = {
   confirmationStageByPending: {
     confirmIsAbout: "isAboutConfirm",
 
-    offerThirdMainIdea: "mainIdeasConfirm",
-    collectThirdMainIdea: "mainIdeasConfirm",
+    offerAnotherMainIdea: "mainIdeasConfirm",
+    collectAnotherMainIdea: "mainIdeasConfirm",
     confirmMainIdeas: "mainIdeasConfirm",
 
-    offerThirdDetail: "detailsConfirmLoop",
-    collectThirdDetail: "detailsConfirmLoop",
+    offerAnotherDetail: "detailsConfirmLoop",
+    collectAnotherDetail: "detailsConfirmLoop",
     confirmDetails: "detailsConfirmLoop",
 
     // Current-behavior compatibility only:
@@ -1519,15 +1519,6 @@ if (s.pending?.type === "collectAnotherMainIdea") {
 
   return `For ${miLabel} ${i + 1}: "${mi}", you currently have ${count} ${dLabel}${count > 1 ? "s" : ""}. Would you like to add another ${dLabel}? (yes/no)`;
 }
-
-  const isCE = s.frameMeta?.frameType === "causeEffect";
-  const miLabel = isCE ? "Cause" : "Main Idea";
-  const dLabel = isCE && s.frameMeta?.purpose === "read" ? "Text Evidence" : "Supporting Detail";
-
-  const count = (s.frame.details?.[i] || []).length;
-
-  return `For ${miLabel} ${i + 1}: "${mi}", you currently have ${count} ${dLabel}${count > 1 ? "s" : ""}. Would you like to add another ${dLabel}? (yes/no)`;
-}
   
 if (s.pending?.type === "collectAnotherDetail") {
   const i = Number(s.pending.index);
@@ -1733,6 +1724,7 @@ if (s.pending?.type === "writeNeedEvidenceDetail") {
   const arr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
 if (arr.length < 2 && !isNegative(evidence)) {
   s.frame.details[idx] = [...arr, combined];
+  clearMatchingSkip(s, `details:${idx}`);
   if (s.frame.details[idx].length === 2) {
     s.pending = { type: "offerAnotherDetail", index: idx };
     return s;
@@ -1875,6 +1867,7 @@ if (s.pending?.type === "stuckNudge") {
     if (stage === "isAbout") {
       if (!s.frame.isAbout) {
         applyIsAboutCapture(s, msg);
+        clearMatchingSkip(s, "isAbout");
         return s;
       }
       s.pending = null;
@@ -1884,9 +1877,10 @@ if (s.pending?.type === "stuckNudge") {
     if (stage === "mainIdeas") {
       if (s.frame.mainIdeas.length < 2 && !isNegative(msg)) {
         s.frame.mainIdeas.push(msg);
+        clearMatchingSkip(s, "mainIdeas");
         if (!Array.isArray(s.frame.details[s.frame.mainIdeas.length - 1])) s.frame.details[s.frame.mainIdeas.length - 1] = [];
         if (s.frame.mainIdeas.length === 2) {
-          s.pending = { type: "offerThirdMainIdea" };
+          s.pending = { type: "offerAnotherMainIdea" };
           return s;
         }
       }
@@ -1903,8 +1897,9 @@ if (s.pending?.type === "stuckNudge") {
           return s;
         }
         s.frame.details[idx] = [...arr, msg];
+        clearMatchingSkip(s, `details:${idx}`);
         if (s.frame.details[idx].length === 2) {
-          s.pending = { type: "offerThirdDetail", index: idx };
+          s.pending = { type: "offerAnotherDetail", index: idx };
           return s;
         }
       }
@@ -1915,6 +1910,7 @@ if (s.pending?.type === "stuckNudge") {
     if (stage === "soWhat") {
       if (!s.frame.soWhat && !isNegative(msg)) {
         s.frame.soWhat = msg;
+        clearMatchingSkip(s, "soWhat");
         s.pending = { type: "offerMoreSoWhat" };
         return s;
       }
@@ -1946,39 +1942,61 @@ if (s.pending?.type === "stuckNudge") {
     return s;
   }
 
- if (s.pending?.type === "offerThirdMainIdea") {
+ if (s.pending?.type === "offerAnotherMainIdea") {
     const normalized = msg.toLowerCase().trim();
+
     if (isAffirmative(normalized)) {
-      s.pending = { type: "collectThirdMainIdea" };
+      if ((s.frame.mainIdeas || []).length >= 5) {
+        s.pending = { type: "confirmMainIdeas" };
+        return s;
+      }
+      s.pending = { type: "collectAnotherMainIdea" };
       return s;
     }
+
     s.pending = { type: "confirmMainIdeas" };
     return s;
   }
 
-  if (s.pending?.type === "collectThirdMainIdea") {
+  if (s.pending?.type === "collectAnotherMainIdea") {
     if (!isNegative(msg)) {
       s.frame.mainIdeas.push(msg);
-      if (!Array.isArray(s.frame.details[s.frame.mainIdeas.length - 1])) s.frame.details[s.frame.mainIdeas.length - 1] = [];
+      if (!Array.isArray(s.frame.details[s.frame.mainIdeas.length - 1])) {
+        s.frame.details[s.frame.mainIdeas.length - 1] = [];
+      }
     }
-    s.pending = { type: "confirmMainIdeas" };
+
+    if ((s.frame.mainIdeas || []).length >= 5) {
+      s.pending = { type: "confirmMainIdeas" };
+      return s;
+    }
+
+    s.pending = { type: "offerAnotherMainIdea" };
     return s;
   }
 
-  if (s.pending?.type === "offerThirdDetail") {
+  if (s.pending?.type === "offerAnotherDetail") {
     const normalized = msg.toLowerCase().trim();
     const idx = Number(s.pending.index);
+
     if (isAffirmative(normalized)) {
-      s.pending = { type: "collectThirdDetail", index: idx };
+      const arr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
+      if (arr.length >= 5) {
+        s.pending = { type: "confirmDetails", index: idx };
+        return s;
+      }
+      s.pending = { type: "collectAnotherDetail", index: idx };
       return s;
     }
+
     s.pending = { type: "confirmDetails", index: idx };
     return s;
   }
 
-  if (s.pending?.type === "collectThirdDetail") {
+  if (s.pending?.type === "collectAnotherDetail") {
     const idx = Number(s.pending.index);
     if (!Array.isArray(s.frame.details[idx])) s.frame.details[idx] = [];
+
     if (!isNegative(msg)) {
       if (shouldRequestEvidenceDetail(s, msg)) {
         s.pending = { type: "writeNeedEvidenceDetail", index: idx, mechanism: msg };
@@ -1986,7 +2004,14 @@ if (s.pending?.type === "stuckNudge") {
       }
       s.frame.details[idx] = [...s.frame.details[idx], msg];
     }
-    s.pending = { type: "confirmDetails", index: idx };
+
+    const arr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
+    if (arr.length >= 5) {
+      s.pending = { type: "confirmDetails", index: idx };
+      return s;
+    }
+
+    s.pending = { type: "offerAnotherDetail", index: idx };
     return s;
   }
 
@@ -2126,7 +2151,7 @@ if (s.pending?.type === "stuckNudge") {
 
       const updated = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
       if (updated.length === 2) {
-        s.pending = { type: "offerThirdDetail", index: i };
+        s.pending = { type: "offerAnotherDetail", index: i };
       }
       return s;
     }
