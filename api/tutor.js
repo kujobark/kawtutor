@@ -940,6 +940,7 @@ function getParentAnchorStage(state) {
 
 function buildMiniQuestion(state) {
   const stage = state?.pending?.stage || getStage(state);
+  const baseStage = getBaseStage(stage);
 
   const keyTopic = state.frame?.keyTopic || "your topic";
   const effect = state.frame?.isAbout || state.frame?.effect || "the effect";
@@ -1161,9 +1162,9 @@ function buildFrameText(s) {
   lines.push(isCE ? "CAUSES + SUPPORTING DETAILS:" : "MAIN IDEAS + SUPPORTING DETAILS:");
 
   s.frame.mainIdeas.forEach((mi, i) => {
-    lines.push(`${i + 1}) ${mi}`);
+    lines.push(`Cause ${i + 1}: ${mi}`);
     const details = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
-    details.forEach((d, k) => lines.push(`   - Detail ${k + 1}: ${d}`));
+    details.forEach((d, k) => lines.push(`   - Supporting Detail ${k + 1}: ${d}`));
     lines.push("");
   });
 
@@ -1435,16 +1436,17 @@ if (
   const skipped = s.skips[0];
 
   let label = "a part of the frame";
+if (skipped.stage === "mainIdeas") {
+  const nextCauseNumber = (Array.isArray(s.frame.mainIdeas) ? s.frame.mainIdeas.length : 0) + 1;
+  label = `Cause ${nextCauseNumber}`;
+}
 
-  if (skipped.stage === "mainIdeas") label = "a main idea";
-  if (skipped.stage === "soWhat") label = "the So What statement";
-  if (skipped.stage?.startsWith("details")) {
-    const idx = Number(skipped.stage.split(":")[1]);
-    const cause = s.frame.mainIdeas?.[idx];
-    label = cause
-      ? `a supporting detail for the cause "${cause}"`
-      : "a supporting detail";
-  }
+if (skipped.stage === "soWhat") label = "the So What statement";
+
+if (skipped.stage?.startsWith("details")) {
+  const idx = Number(skipped.stage.split(":")[1]);
+  label = `Supporting Detail for Cause ${idx + 1}`;
+}
 
   // Keep the skip for now; remove it after the student completes this stage.
 
@@ -1484,7 +1486,7 @@ return "So your frame reads:\n\n" + keyTopic + " is about " + cleaned + ".\n\nIs
   }
 
   if (s.pending?.type === "confirmMainIdeas") {
-    const lines = (s.frame.mainIdeas || []).map((mi, i) => `${i + 1}) ${mi}`).join("\n");
+    const lines = (s.frame.mainIdeas || []).map((mi, i) => `Cause ${i + 1}: ${mi}`).join("\n");
     const isCE = s.frameMeta?.frameType === "causeEffect";
     const label = isCE ? "Causes" : "Main Ideas";
     return `You have identified the following ${label}:\n${lines}\nIs that correct, or would you like to revise one?`;
@@ -1528,7 +1530,7 @@ return "So your frame reads:\n\n" + keyTopic + " is about " + cleaned + ".\n\nIs
     const i = Number(s.pending.index);
     const mi = s.frame.mainIdeas?.[i] || "";
     const arr = Array.isArray(s.frame.details?.[i]) ? s.frame.details[i] : [];
-    const lines = arr.map((d, k) => `${k + 1}) ${d}`).join("\n");
+    const lines = arr.map((d, k) => `Supporting Detail ${k + 1}: ${d}`).join("\n");
 
     const isCE = s.frameMeta?.frameType === "causeEffect";
     const miLabel = isCE ? "Cause" : "Main Idea";
