@@ -943,7 +943,7 @@ function buildMiniQuestion(state) {
   const baseStage = getBaseStage(stage);
 
   const keyTopic = state.frame?.keyTopic || "your topic";
-  const effect = state.frame?.isAbout || state.frame?.effect || "the effect";
+  const effect = state.frame?.effect || state.frame?.isAbout || "the effect";
   const isCE = state.frameMeta?.frameType === "causeEffect";
 
   if (stage === "purpose") {
@@ -963,7 +963,7 @@ function buildMiniQuestion(state) {
 
   if (stage === "mainIdeas") {
     if (isCE) {
-      return `You identified this effect:\n\n"${effect}"\n\nNow think about why this happens.\n\nWhat is one cause that could help explain it?`;
+ return `You identified this effect:\n\n"${effect}"\n\nWhat are the main causes that lead to this effect?`;
     }
     return `You identified this main idea:\n\n"${effect}"\n\nNow think about what important idea supports it.\n\nWhat is one main idea that could help explain it?`;
   }
@@ -972,10 +972,10 @@ function buildMiniQuestion(state) {
     const idx = Number(stage.split(":")[1]);
     const mi = state.frame?.mainIdeas?.[idx] || "this main idea";
 
-    if (isCE) {
-      return `You identified this cause:\n\n"${mi}"\n\nNow think about how that leads to this effect:\n\n"${effect}"\n\nWhat detail or example could help explain it?`;
-    }
-
+     if (isCE) {
+  return `You identified this cause:\n\n"${mi}"\n\nNow think about how that leads to this effect:\n\n"${effect}"\n\nWhat detail or example shows how this cause produces the effect?`;
+}
+  
     return `You identified this main idea:\n\n"${mi}"\n\nNow think about how that connects to your topic.\n\nWhat detail or example could help explain it?`;
   }
 
