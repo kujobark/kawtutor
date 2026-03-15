@@ -2001,14 +2001,6 @@ if (s.pending?.type === "reviseIsAbout") {
   return s;
 }
 
-  applyIsAboutCapture(s, msg);
-  return s;
-}
-if (s.pending?.type === "reviseIsAbout") {
-  s.pending = { type: "confirmIsAbout" };
-  return s;
-}
-
   if (s.pending?.type === "confirmMainIdeas") {
     const normalized = msg.toLowerCase().trim();
     if (isAffirmative(normalized)) {
