@@ -412,15 +412,15 @@ function applyPromptTokens(template, state) {
 // PROMPT BANK
 // ---------------------
 const PROMPT_BANK = {
-  study: {
-    causeEffect: {
-      isAbout: 'Your Key Topic is:\n\n"[Key Topic]"\n\nNow let\'s think about what happens with this topic.\n\nIn your own words, what is the main effect or result?',
-      mainIdea: 'Your frame explains that:\n\n"[EFFECT]"\n\nNow let\'s think about why that happens.\n\nWhat is one major cause that could help explain it?',
-      detail: 'You identified this cause.\n\nThis helps explain why\n\n"[EFFECT]"\n\nNow let\'s explain how that cause works.\n\nWhat detail or example could support it?',
-      soWhat: 'Your frame shows that:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nLooking at this explanation,\n\nwhat important takeaway should someone understand about "[Key Topic]"?',
-    },
+ study: {
+  causeEffect: {
+    isAbout: 'Your Key Topic is:\n\n"[Key Topic]"\n\nNow let\'s think about what happens with this topic.\n\nIn your own words, what is the main effect or result?',
+    mainIdea: 'Your frame explains this effect:\n\n"[EFFECT]"\n\nWhat are the main causes that lead to this effect?',
+    detail: 'You identified this cause:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nNow let\'s explain how that cause works.\n\nWhat detail or example shows how this cause produces the effect?',
+    soWhat: 'Your frame shows that:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nLooking at this explanation,\n\nwhat important takeaway should someone understand about "[Key Topic]"?',
   },
-
+},
+ 
   write: {
     causeEffect: {
       isAbout: 'Your Key Topic is:\n\n"[Key Topic]"\n\nNow let\'s think about what happens in this topic.\n\nFinish this sentence:\n"This topic is about how ____ leads to ____."',
@@ -430,14 +430,14 @@ const PROMPT_BANK = {
     },
   },
 
-  read: {
-    causeEffect: {
-      isAbout: 'The text is about:\n\n"[Key Topic]"\n\nNow let\'s think about what happens in this topic.\n\nWhat main effect or result does the author emphasize?',
-      mainIdea: 'The text explains this effect:\n\n"[EFFECT]"\n\nNow let\'s think about why that happens.\n\nWhat is one cause the author presents that led to [EFFECT]?',
-      detail: 'You identified this cause in the text.\n\nThis helps explain why\n\n"[EFFECT]"\n\nNow let\'s look for how the text supports that cause.\n\nWhat evidence or example does the author give that supports it?',
-      soWhat: 'The text shows that:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nLooking at this explanation,\n\nwhy does this effect matter beyond the text?',
-    },
+   read: {
+  causeEffect: {
+    isAbout: 'The text is about:\n\n"[Key Topic]"\n\nNow let\'s think about what happens in this topic.\n\nWhat main effect or result does the author emphasize?',
+    mainIdea: 'The text explains this effect:\n\n"[EFFECT]"\n\nWhat are the main causes the author presents that lead to this effect?',
+    detail: 'You identified this cause in the text:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nNow let\'s look at how the text supports that cause.\n\nWhat evidence or example does the author give that shows how this cause produces the effect?',
+    soWhat: 'The text shows that:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nLooking at this explanation,\n\nwhy does this effect matter beyond the text?',
   },
+},
 };
 
 function getPromptForStage(state, stage) {
