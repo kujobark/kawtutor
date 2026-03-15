@@ -388,7 +388,17 @@ function applyPromptTokens(template, state) {
   const mainIdeas = Array.isArray(state?.frame?.mainIdeas)
     ? state.frame.mainIdeas.filter(Boolean)
     : [];
-  const cause = mainIdeas.length ? mainIdeas[mainIdeas.length - 1] : "";
+
+  const activeStage = state?.pending?.stage || getStage(state) || "";
+  let cause = mainIdeas.length ? mainIdeas[mainIdeas.length - 1] : "";
+
+  if (typeof activeStage === "string" && activeStage.startsWith("details:")) {
+    const rawIndex = activeStage.split(":")[1];
+    const idx = Number(rawIndex);
+    if (Number.isInteger(idx) && mainIdeas[idx]) {
+      cause = mainIdeas[idx];
+    }
+  }
 
   // Key Topic token
   if (kt) out = out.replace(/\[Key Topic\]/g, kt);
@@ -416,7 +426,7 @@ const PROMPT_BANK = {
   causeEffect: {
     isAbout: 'Your Key Topic is:\n\n"[Key Topic]"\n\nNow let\'s think about what happens with this topic.\n\nIn your own words, what is the main effect or result?',
     mainIdea: 'Your frame explains this effect:\n\n"[EFFECT]"\n\nWhat are the main causes that lead to this effect?',
-    detail: 'You identified this cause:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nNow let\'s explain how that cause works.\n\nWhat detail or example shows how this cause produces the effect?',
+    detail: 'You identified this cause:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nNow let\'s explain how that cause works.\n\nWhat detail or example shows how this contributes to the effect?',
     soWhat: 'Your frame shows that:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nLooking at this explanation,\n\nwhat important takeaway should someone understand about "[Key Topic]"?',
   },
 },
@@ -425,7 +435,7 @@ const PROMPT_BANK = {
     causeEffect: {
       isAbout: 'Your Key Topic is:\n\n"[Key Topic]"\n\nNow let\'s think about what happens in this topic.\n\nFinish this sentence:\n"This topic is about how ____ leads to ____."',
       mainIdea: 'Your frame explains this effect:\n\n"[EFFECT]"\n\nWhat are the main causes that lead to this effect?',
-      detail: 'You identified this cause:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nNow let\'s explain how that cause works.\n\nWhat detail or example shows how this cause produces the effect?',
+      detail: 'You identified this cause:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nNow let\'s explain how that cause works.\n\nWhat detail or example shows how this contributes to the effect?',
       soWhat: 'Your frame shows that:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nLooking at this explanation,\n\nwhat does this explanation help us understand about this effect?',
     },
   },
