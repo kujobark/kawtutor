@@ -1254,11 +1254,14 @@ function applyIsAboutCapture(s, msg) {
     if (parsed.effect) s.frame.effect = parsed.effect;
   }
 
-  // Read + causeEffect: treat the isAbout response as the CENTRAL EFFECT (short phrase)
-  if (s.frameMeta?.purpose === "read" && s.frameMeta?.frameType === "causeEffect") {
-    s.frame.effect = msg; // powers [EFFECT] tokens in mainIdea prompts
+  // Study/Read + causeEffect: treat the isAbout response as the central effect/result
+  if (
+    s.frameMeta?.frameType === "causeEffect" &&
+    (s.frameMeta?.purpose === "study" || s.frameMeta?.purpose === "read")
+  ) {
+    s.frame.effect = msg; // powers [EFFECT] tokens in downstream prompts
   }
-
+  
   s.frame.isAbout = msg; // stage completion gate (keep engine deterministic)
   s.pending = { type: "confirmIsAbout" };
   return s;
@@ -1476,6 +1479,12 @@ const keyTopic =
     : s.frame.keyTopic;
 
 return "So your frame reads:\n\n" + keyTopic + " is about " + cleaned + ".\n\nIs that correct, or would you like to revise it?";
+    }
+
+    // Study + causeEffect gets a structural confirmation (main effect/result)
+    if (s.frameMeta?.purpose === "study" && s.frameMeta?.frameType === "causeEffect") {
+      const eff = (s.frame.effect || s.frame.isAbout || "").trim().replace(/\.$/, "");
+      return `Main effect/result: ${eff}. Is that correct, or would you like to revise it?`;
     }
 
     // Read + causeEffect gets a structural confirmation (central effect/result)
