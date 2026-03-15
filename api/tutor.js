@@ -1481,14 +1481,22 @@ if (skipped.stage?.startsWith("details")) {
     // Write + causeEffect gets a teacher-voice confirmation
     if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
       const raw = (s.frame.isAbout || "").trim();
-const cleaned = raw.replace(/^this topic is about\s+/i, "").replace(/\.$/, "").trim();
+      const cleaned = raw.replace(/^this topic is about\s+/i, "").replace(/\.$/, "").trim();
 
-const keyTopic =
-  s.frame.keyTopic && s.frame.keyTopic.length
-    ? s.frame.keyTopic.charAt(0).toUpperCase() + s.frame.keyTopic.slice(1)
-    : s.frame.keyTopic;
+      const keyTopic =
+        s.frame.keyTopic && s.frame.keyTopic.length
+          ? s.frame.keyTopic.charAt(0).toUpperCase() + s.frame.keyTopic.slice(1)
+          : s.frame.keyTopic;
 
-return "So your frame reads:\n\n" + keyTopic + " is about " + cleaned + ".\n\nIs that correct, or would you like to revise it?";
+      return `Using your ideas, your frame now reads:
+
+Key Topic
+${keyTopic}
+
+Is About
+${cleaned}
+
+Is that correct, or would you like to revise it?`;
     }
 
     // Study + causeEffect gets a structural confirmation (main effect/result)
@@ -1503,10 +1511,6 @@ ${topic}
 
 Is About
 how ${topic} leads to ${eff}
-
-Put together, your frame says:
-
-${topic} is about how ${topic} leads to ${eff}.
 
 Is that correct, or would you like to revise it?`;
 }
@@ -1523,10 +1527,6 @@ ${topic}
 
 Is About
 how ${topic} leads to ${eff}
-
-Put together, your frame says:
-
-${topic} is about how ${topic} leads to ${eff}.
 
 Is that correct, or would you like to revise it?`;
 }
