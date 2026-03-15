@@ -1997,7 +1997,7 @@ if (s.pending?.type === "stuckNudge") {
 }
 
 if (s.pending?.type === "reviseIsAbout") {
-  s.pending = { type: "confirmIsAbout" };
+  applyIsAboutCapture(s, msg);
   return s;
 }
 
