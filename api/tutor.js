@@ -1492,17 +1492,44 @@ return "So your frame reads:\n\n" + keyTopic + " is about " + cleaned + ".\n\nIs
     }
 
     // Study + causeEffect gets a structural confirmation (main effect/result)
-    if (s.frameMeta?.purpose === "study" && s.frameMeta?.frameType === "causeEffect") {
-      const eff = (s.frame.effect || s.frame.isAbout || "").trim().replace(/\.$/, "");
-      return `Main effect/result: ${eff}. Is that correct, or would you like to revise it?`;
-    }
+   if (s.frameMeta?.purpose === "study" && s.frameMeta?.frameType === "causeEffect") {
+  const topic = (s.frame.keyTopic || "").trim();
+  const eff = (s.frame.effect || "").trim().replace(/\.$/, "");
+
+  return `Using your ideas, your frame now reads:
+
+Key Topic
+${topic}
+
+Is About
+how ${topic} leads to ${eff}
+
+Put together, your frame says:
+
+${topic} is about how ${topic} leads to ${eff}.
+
+Is that correct, or would you like to revise it?`;
+}
 
     // Read + causeEffect gets a structural confirmation (central effect/result)
-    if (s.frameMeta?.purpose === "read" && s.frameMeta?.frameType === "causeEffect") {
-      const eff = (s.frame.effect || s.frame.isAbout || "that effect").trim().replace(/\.$/, "");
-      return `Central effect/result: ${eff}. Is that correct, or would you like to revise it?`;
-    }
-  }
+   if (s.frameMeta?.purpose === "read" && s.frameMeta?.frameType === "causeEffect") {
+  const topic = (s.frame.keyTopic || "").trim();
+  const eff = (s.frame.effect || "").trim().replace(/\.$/, "");
+
+  return `Using your ideas from the text, your frame now reads:
+
+Key Topic
+${topic}
+
+Is About
+how ${topic} leads to ${eff}
+
+Put together, your frame says:
+
+${topic} is about how ${topic} leads to ${eff}.
+
+Is that correct, or would you like to revise it?`;
+}
 
   if (s.pending?.type === "confirmMainIdeas") {
     const lines = (s.frame.mainIdeas || []).map((mi, i) => `Cause ${i + 1}: ${mi}`).join("\n");
