@@ -1437,8 +1437,18 @@ if (s.pending?.type === "stuckReask") {
     const mech = cleanText(s.pending.mechanism || "");
     const ctx = mech ? `You're explaining how it works: "${mech}". ` : "";
     return `${ctx}Can you add one concrete piece of evidence (example, fact, quote, or statistic) that shows how "${mi}" connects to ${eff}?`;
-  }
 
+if (s.pending?.type === "reviseIsAbout") {
+  const topic = (s.frame.keyTopic || "").trim();
+
+  return "Let's revise the relationship in the frame.\n\n" +
+    "Right now we have the topic:\n\n" +
+    topic + "\n\n" +
+    "Try rewriting the cause-and-effect relationship more clearly.\n\n" +
+    "Use the pattern:\n" +
+    "how ___ leads to ___";
+}
+   
 // --- Return to skipped work before confirmation ---
 if (
   Array.isArray(s.skips) &&
@@ -1975,10 +1985,26 @@ if (s.pending?.type === "stuckNudge") {
       s.pending = null;
       return s;
     }
-    // revise
-    applyIsAboutCapture(s, msg);
+if (s.pending?.type === "confirmIsAbout") {
+  const normalized = msg.toLowerCase().trim();
+
+  if (isAffirmative(normalized)) {
+    s.pending = null;
     return s;
   }
+
+  if (normalized === "revise" || normalized === "change") {
+    s.pending = { type: "reviseIsAbout" };
+    return s;
+  }
+
+  applyIsAboutCapture(s, msg);
+  return s;
+}
+if (s.pending?.type === "reviseIsAbout") {
+  s.pending = { type: "confirmIsAbout" };
+  return s;
+}
 
   if (s.pending?.type === "confirmMainIdeas") {
     const normalized = msg.toLowerCase().trim();
