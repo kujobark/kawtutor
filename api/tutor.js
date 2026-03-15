@@ -2001,11 +2001,6 @@ if (s.pending?.type === "reviseIsAbout") {
   return s;
 }
 
-  if (normalized === "revise" || normalized === "change") {
-    s.pending = { type: "reviseIsAbout" };
-    return s;
-  }
-
   applyIsAboutCapture(s, msg);
   return s;
 }
