@@ -1530,7 +1530,8 @@ ${topic} is about how ${topic} leads to ${eff}.
 
 Is that correct, or would you like to revise it?`;
 }
-
+}
+    
   if (s.pending?.type === "confirmMainIdeas") {
     const lines = (s.frame.mainIdeas || []).map((mi, i) => `Cause ${i + 1}: ${mi}`).join("\n");
     const isCE = s.frameMeta?.frameType === "causeEffect";
