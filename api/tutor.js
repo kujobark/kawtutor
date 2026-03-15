@@ -1437,7 +1437,7 @@ if (s.pending?.type === "stuckReask") {
     const mech = cleanText(s.pending.mechanism || "");
     const ctx = mech ? `You're explaining how it works: "${mech}". ` : "";
     return `${ctx}Can you add one concrete piece of evidence (example, fact, quote, or statistic) that shows how "${mi}" connects to ${eff}?`;
-
+}
 if (s.pending?.type === "reviseIsAbout") {
   const topic = (s.frame.keyTopic || "").trim();
 
@@ -1980,18 +1980,26 @@ if (s.pending?.type === "stuckNudge") {
   }
 
   if (s.pending?.type === "confirmIsAbout") {
-    const normalized = msg.toLowerCase().trim();
-    if (isAffirmative(normalized)) {
-      s.pending = null;
-      return s;
-    }
-if (s.pending?.type === "confirmIsAbout") {
   const normalized = msg.toLowerCase().trim();
 
   if (isAffirmative(normalized)) {
     s.pending = null;
     return s;
   }
+
+  if (normalized === "revise" || normalized === "change") {
+    s.pending = { type: "reviseIsAbout" };
+    return s;
+  }
+
+  applyIsAboutCapture(s, msg);
+  return s;
+}
+
+if (s.pending?.type === "reviseIsAbout") {
+  s.pending = { type: "confirmIsAbout" };
+  return s;
+}
 
   if (normalized === "revise" || normalized === "change") {
     s.pending = { type: "reviseIsAbout" };
