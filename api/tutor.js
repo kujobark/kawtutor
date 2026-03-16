@@ -388,7 +388,17 @@ function applyPromptTokens(template, state) {
   const mainIdeas = Array.isArray(state?.frame?.mainIdeas)
     ? state.frame.mainIdeas.filter(Boolean)
     : [];
-  const cause = mainIdeas.length ? mainIdeas[mainIdeas.length - 1] : "";
+
+  const activeStage = state?.pending?.stage || getStage(state) || "";
+  let cause = mainIdeas.length ? mainIdeas[mainIdeas.length - 1] : "";
+
+  if (typeof activeStage === "string" && activeStage.startsWith("details:")) {
+    const rawIndex = activeStage.split(":")[1];
+    const idx = Number(rawIndex);
+    if (Number.isInteger(idx) && mainIdeas[idx]) {
+      cause = mainIdeas[idx];
+    }
+  }
 
   // Key Topic token
   if (kt) out = out.replace(/\[Key Topic\]/g, kt);
@@ -412,32 +422,32 @@ function applyPromptTokens(template, state) {
 // PROMPT BANK
 // ---------------------
 const PROMPT_BANK = {
-  study: {
-    causeEffect: {
-      isAbout: 'Your Key Topic is:\n\n"[Key Topic]"\n\nNow let\'s think about what happens with this topic.\n\nIn your own words, what is the main effect or result?',
-      mainIdea: 'Your frame explains that:\n\n"[EFFECT]"\n\nNow let\'s think about why that happens.\n\nWhat is one major cause that could help explain it?',
-      detail: 'You identified this cause.\n\nThis helps explain why\n\n"[EFFECT]"\n\nNow let\'s explain how that cause works.\n\nWhat detail or example could support it?',
-      soWhat: 'Your frame shows that:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nLooking at this explanation,\n\nwhat important takeaway should someone understand about "[Key Topic]"?',
-    },
+ study: {
+  causeEffect: {
+    isAbout: 'Your Key Topic is:\n\n"[Key Topic]"\n\nNow let\'s think about what happens with this topic.\n\nIn your own words, what is the main effect or result?',
+    mainIdea: 'Your frame explains this effect:\n\n"[EFFECT]"\n\nWhat are the main causes that lead to this effect?',
+    detail: 'You identified this cause:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nNow let\'s explain how that cause works.\n\nWhat detail or example shows how this contributes to the effect?',
+    soWhat: 'Your frame shows that:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nLooking at this explanation,\n\nwhat important takeaway should someone understand about "[Key Topic]"?',
   },
-
+},
+ 
   write: {
     causeEffect: {
       isAbout: 'Your Key Topic is:\n\n"[Key Topic]"\n\nNow let\'s think about what happens in this topic.\n\nFinish this sentence:\n"This topic is about how ____ leads to ____."',
-      mainIdea: 'Your frame explains this effect:\n\n"[EFFECT]"\n\nNow let\'s think about why that happens.\n\nWhat is one major cause that leads to [EFFECT]?',
-      detail: 'You identified this cause.\n\nThis helps explain why\n\n"[EFFECT]"\n\nNow let\'s explain how that cause works.\n\nWhat detail shows how this cause connects to [EFFECT]?',
-      soWhat: 'Your frame shows that:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nLooking at this explanation,\n\nwhy should people care about this effect?',
+      mainIdea: 'Your frame explains this effect:\n\n"[EFFECT]"\n\nWhat are the main causes that lead to this effect?',
+      detail: 'You identified this cause:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nNow let\'s explain how that cause works.\n\nWhat detail or example shows how this contributes to the effect?',
+      soWhat: 'Your frame shows that:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nLooking at this explanation,\n\nwhat does this explanation help us understand about this effect?',
     },
   },
 
-  read: {
-    causeEffect: {
-      isAbout: 'The text is about:\n\n"[Key Topic]"\n\nNow let\'s think about what happens in this topic.\n\nWhat main effect or result does the author emphasize?',
-      mainIdea: 'The text explains this effect:\n\n"[EFFECT]"\n\nNow let\'s think about why that happens.\n\nWhat is one cause the author presents that led to [EFFECT]?',
-      detail: 'You identified this cause in the text.\n\nThis helps explain why\n\n"[EFFECT]"\n\nNow let\'s look for how the text supports that cause.\n\nWhat evidence or example does the author give that supports it?',
-      soWhat: 'The text shows that:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nLooking at this explanation,\n\nwhy does this effect matter beyond the text?',
-    },
+   read: {
+  causeEffect: {
+    isAbout: 'The text is about:\n\n"[Key Topic]"\n\nNow let\'s think about what happens in this topic.\n\nWhat main effect or result does the author emphasize?',
+    mainIdea: 'The text explains this effect:\n\n"[EFFECT]"\n\nWhat are the main causes the author presents that lead to this effect?',
+    detail: 'You identified this cause in the text:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nNow let\'s look at how the text supports that cause.\n\nWhat evidence or example does the author give that shows how this cause produces the effect?',
+    soWhat: 'The text shows that:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nLooking at this explanation,\n\nwhy does this effect matter beyond the text?',
   },
+},
 };
 
 function getPromptForStage(state, stage) {
@@ -821,12 +831,12 @@ const PARENT_ANCHOR_BRIDGE = {
   confirmationStageByPending: {
     confirmIsAbout: "isAboutConfirm",
 
-    offerThirdMainIdea: "mainIdeasConfirm",
-    collectThirdMainIdea: "mainIdeasConfirm",
+    offerAnotherMainIdea: "mainIdeasConfirm",
+    collectAnotherMainIdea: "mainIdeasConfirm",
     confirmMainIdeas: "mainIdeasConfirm",
 
-    offerThirdDetail: "detailsConfirmLoop",
-    collectThirdDetail: "detailsConfirmLoop",
+    offerAnotherDetail: "detailsConfirmLoop",
+    collectAnotherDetail: "detailsConfirmLoop",
     confirmDetails: "detailsConfirmLoop",
 
     // Current-behavior compatibility only:
@@ -943,7 +953,7 @@ function buildMiniQuestion(state) {
   const baseStage = getBaseStage(stage);
 
   const keyTopic = state.frame?.keyTopic || "your topic";
-  const effect = state.frame?.isAbout || state.frame?.effect || "the effect";
+  const effect = state.frame?.effect || state.frame?.isAbout || "the effect";
   const isCE = state.frameMeta?.frameType === "causeEffect";
 
   if (stage === "purpose") {
@@ -963,7 +973,7 @@ function buildMiniQuestion(state) {
 
   if (stage === "mainIdeas") {
     if (isCE) {
-      return `You identified this effect:\n\n"${effect}"\n\nNow think about why this happens.\n\nWhat is one cause that could help explain it?`;
+ return `You identified this effect:\n\n"${effect}"\n\nWhat are the main causes that lead to this effect?`;
     }
     return `You identified this main idea:\n\n"${effect}"\n\nNow think about what important idea supports it.\n\nWhat is one main idea that could help explain it?`;
   }
@@ -972,10 +982,10 @@ function buildMiniQuestion(state) {
     const idx = Number(stage.split(":")[1]);
     const mi = state.frame?.mainIdeas?.[idx] || "this main idea";
 
-    if (isCE) {
-      return `You identified this cause:\n\n"${mi}"\n\nNow think about how that leads to this effect:\n\n"${effect}"\n\nWhat detail or example could help explain it?`;
-    }
-
+     if (isCE) {
+  return `You identified this cause:\n\n"${mi}"\n\nNow think about how that leads to this effect:\n\n"${effect}"\n\nWhat detail or example shows how this cause produces the effect?`;
+}
+  
     return `You identified this main idea:\n\n"${mi}"\n\nNow think about how that connects to your topic.\n\nWhat detail or example could help explain it?`;
   }
 
@@ -1254,11 +1264,14 @@ function applyIsAboutCapture(s, msg) {
     if (parsed.effect) s.frame.effect = parsed.effect;
   }
 
-  // Read + causeEffect: treat the isAbout response as the CENTRAL EFFECT (short phrase)
-  if (s.frameMeta?.purpose === "read" && s.frameMeta?.frameType === "causeEffect") {
-    s.frame.effect = msg; // powers [EFFECT] tokens in mainIdea prompts
+  // Study/Read + causeEffect: treat the isAbout response as the central effect/result
+  if (
+    s.frameMeta?.frameType === "causeEffect" &&
+    (s.frameMeta?.purpose === "study" || s.frameMeta?.purpose === "read")
+  ) {
+    s.frame.effect = msg; // powers [EFFECT] tokens in downstream prompts
   }
-
+  
   s.frame.isAbout = msg; // stage completion gate (keep engine deterministic)
   s.pending = { type: "confirmIsAbout" };
   return s;
@@ -1424,8 +1437,18 @@ if (s.pending?.type === "stuckReask") {
     const mech = cleanText(s.pending.mechanism || "");
     const ctx = mech ? `You're explaining how it works: "${mech}". ` : "";
     return `${ctx}Can you add one concrete piece of evidence (example, fact, quote, or statistic) that shows how "${mi}" connects to ${eff}?`;
-  }
+}
+if (s.pending?.type === "reviseIsAbout") {
+  const topic = (s.frame.keyTopic || "").trim();
 
+  return "Let's revise the relationship in the frame.\n\n" +
+    "Right now we have the topic:\n\n" +
+    topic + "\n\n" +
+    "Try rewriting the cause-and-effect relationship more clearly.\n\n" +
+    "Use the pattern:\n" +
+    "how ___ leads to ___";
+}
+   
 // --- Return to skipped work before confirmation ---
 if (
   Array.isArray(s.skips) &&
@@ -1468,23 +1491,57 @@ if (skipped.stage?.startsWith("details")) {
     // Write + causeEffect gets a teacher-voice confirmation
     if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
       const raw = (s.frame.isAbout || "").trim();
-const cleaned = raw.replace(/^this topic is about\s+/i, "").replace(/\.$/, "").trim();
+      const cleaned = raw.replace(/^this topic is about\s+/i, "").replace(/\.$/, "").trim();
 
-const keyTopic =
-  s.frame.keyTopic && s.frame.keyTopic.length
-    ? s.frame.keyTopic.charAt(0).toUpperCase() + s.frame.keyTopic.slice(1)
-    : s.frame.keyTopic;
+      const keyTopic =
+        s.frame.keyTopic && s.frame.keyTopic.length
+          ? s.frame.keyTopic.charAt(0).toUpperCase() + s.frame.keyTopic.slice(1)
+          : s.frame.keyTopic;
 
-return "So your frame reads:\n\n" + keyTopic + " is about " + cleaned + ".\n\nIs that correct, or would you like to revise it?";
+      return `Using your ideas, your frame now reads:
+
+Key Topic
+${keyTopic}
+
+Is About
+${cleaned}
+
+Is that correct, or would you like to revise it?`;
     }
+
+    // Study + causeEffect gets a structural confirmation (main effect/result)
+   if (s.frameMeta?.purpose === "study" && s.frameMeta?.frameType === "causeEffect") {
+  const topic = (s.frame.keyTopic || "").trim();
+  const eff = (s.frame.effect || "").trim().replace(/\.$/, "");
+
+  return `Using your ideas, your frame now reads:
+
+Key Topic
+${topic}
+
+Is About
+how ${topic} leads to ${eff}
+
+Is that correct, or would you like to revise it?`;
+}
 
     // Read + causeEffect gets a structural confirmation (central effect/result)
-    if (s.frameMeta?.purpose === "read" && s.frameMeta?.frameType === "causeEffect") {
-      const eff = (s.frame.effect || s.frame.isAbout || "that effect").trim().replace(/\.$/, "");
-      return `Central effect/result: ${eff}. Is that correct, or would you like to revise it?`;
-    }
-  }
+   if (s.frameMeta?.purpose === "read" && s.frameMeta?.frameType === "causeEffect") {
+  const topic = (s.frame.keyTopic || "").trim();
+  const eff = (s.frame.effect || "").trim().replace(/\.$/, "");
 
+  return `Using your ideas from the text, your frame now reads:
+
+Key Topic
+${topic}
+
+Is About
+how ${topic} leads to ${eff}
+
+Is that correct, or would you like to revise it?`;
+}
+}
+    
   if (s.pending?.type === "confirmMainIdeas") {
     const lines = (s.frame.mainIdeas || []).map((mi, i) => `Cause ${i + 1}: ${mi}`).join("\n");
     const isCE = s.frameMeta?.frameType === "causeEffect";
@@ -1492,40 +1549,47 @@ return "So your frame reads:\n\n" + keyTopic + " is about " + cleaned + ".\n\nIs
     return `You have identified the following ${label}:\n${lines}\nIs that correct, or would you like to revise one?`;
   }
 
-  if (s.pending?.type === "offerThirdMainIdea") {
-    const isCE = s.frameMeta?.frameType === "causeEffect";
-    return isCE ? "Do you have a third Cause? (yes/no)" : "Do you have a third Main Idea? (yes/no)";
-  }
+if (s.pending?.type === "offerAnotherMainIdea") {
+  const isCE = s.frameMeta?.frameType === "causeEffect";
+  const count = (s.frame.mainIdeas || []).length;
+  const label = isCE ? "Cause" : "Main Idea";
+  return `You currently have ${count} ${label}${count > 1 ? "s" : ""}. Would you like to add another ${label}? (yes/no)`;
+}
 
-  if (s.pending?.type === "collectThirdMainIdea") {
-    const isCE = s.frameMeta?.frameType === "causeEffect";
-    return isCE
-      ? `What is your third Cause that helps explain ${s.frame.keyTopic}?`
-      : `What is your third Main Idea that helps explain ${s.frame.keyTopic}?`;
-  }
+if (s.pending?.type === "collectAnotherMainIdea") {
+  const isCE = s.frameMeta?.frameType === "causeEffect";
+  const count = (s.frame.mainIdeas || []).length + 1;
+  return isCE
+    ? `What is Cause ${count} that helps explain ${s.frame.keyTopic}?`
+    : `What is Main Idea ${count} that helps explain ${s.frame.keyTopic}?`;
+}
+  
+ if (s.pending?.type === "offerAnotherDetail") {
+  const i = Number(s.pending.index);
+  const mi = s.frame.mainIdeas?.[i] || "";
 
-  if (s.pending?.type === "offerThirdDetail") {
-    const i = Number(s.pending.index);
-    const mi = s.frame.mainIdeas?.[i] || "";
+  const isCE = s.frameMeta?.frameType === "causeEffect";
+  const miLabel = isCE ? "Cause" : "Main Idea";
+  const dLabel = isCE && s.frameMeta?.purpose === "read" ? "Text Evidence" : "Supporting Detail";
 
-    const isCE = s.frameMeta?.frameType === "causeEffect";
-    const miLabel = isCE ? "Cause" : "Main Idea";
-    const dLabel = isCE && s.frameMeta?.purpose === "read" ? "Text Evidence" : "Supporting Detail";
+  const count = (s.frame.details?.[i] || []).length;
 
-    return `For this ${miLabel}: "${mi}", do you have a third ${dLabel}? (yes/no)`;
-  }
+  return `For ${miLabel} ${i + 1}: "${mi}", you currently have ${count} ${dLabel}${count > 1 ? "s" : ""}. Would you like to add another ${dLabel}? (yes/no)`;
+}
+  
+if (s.pending?.type === "collectAnotherDetail") {
+  const i = Number(s.pending.index);
+  const mi = s.frame.mainIdeas?.[i] || "";
 
-  if (s.pending?.type === "collectThirdDetail") {
-    const i = Number(s.pending.index);
-    const mi = s.frame.mainIdeas?.[i] || "";
+  const isCE = s.frameMeta?.frameType === "causeEffect";
+  const miLabel = isCE ? "Cause" : "Main Idea";
+  const dLabel = isCE && s.frameMeta?.purpose === "read" ? "Text Evidence" : "Supporting Detail";
 
-    const isCE = s.frameMeta?.frameType === "causeEffect";
-    const miLabel = isCE ? "Cause" : "Main Idea";
-    const dLabel = isCE && s.frameMeta?.purpose === "read" ? "Text Evidence" : "Supporting Detail";
+  const count = (s.frame.details?.[i] || []).length + 1;
 
-    return `What is your third ${dLabel} for this ${miLabel}: "${mi}"?`;
-  }
-
+  return `What is ${dLabel} ${count} for ${miLabel} ${i + 1}: "${mi}"?`;
+}
+  
   if (s.pending?.type === "confirmDetails") {
     const i = Number(s.pending.index);
     const mi = s.frame.mainIdeas?.[i] || "";
@@ -1715,13 +1779,14 @@ if (s.pending?.type === "writeNeedEvidenceDetail") {
   const combined = mechanism ? `${mechanism} (evidence: ${evidence})` : evidence;
 
   const arr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
-  if (arr.length < 2 && !isNegative(evidence)) {
-    s.frame.details[idx] = [...arr, combined];
-    if (s.frame.details[idx].length === 2) {
-      s.pending = { type: "offerThirdDetail", index: idx };
-      return s;
-    }
+if (arr.length < 2 && !isNegative(evidence)) {
+  s.frame.details[idx] = [...arr, combined];
+  clearMatchingSkip(s, `details:${idx}`);
+  if (s.frame.details[idx].length === 2) {
+    s.pending = { type: "offerAnotherDetail", index: idx };
+    return s;
   }
+}
 
   s.pending = null;
   return s;
@@ -1859,6 +1924,7 @@ if (s.pending?.type === "stuckNudge") {
     if (stage === "isAbout") {
       if (!s.frame.isAbout) {
         applyIsAboutCapture(s, msg);
+        clearMatchingSkip(s, "isAbout");
         return s;
       }
       s.pending = null;
@@ -1868,9 +1934,10 @@ if (s.pending?.type === "stuckNudge") {
     if (stage === "mainIdeas") {
       if (s.frame.mainIdeas.length < 2 && !isNegative(msg)) {
         s.frame.mainIdeas.push(msg);
+        clearMatchingSkip(s, "mainIdeas");
         if (!Array.isArray(s.frame.details[s.frame.mainIdeas.length - 1])) s.frame.details[s.frame.mainIdeas.length - 1] = [];
         if (s.frame.mainIdeas.length === 2) {
-          s.pending = { type: "offerThirdMainIdea" };
+          s.pending = { type: "offerAnotherMainIdea" };
           return s;
         }
       }
@@ -1887,8 +1954,9 @@ if (s.pending?.type === "stuckNudge") {
           return s;
         }
         s.frame.details[idx] = [...arr, msg];
+        clearMatchingSkip(s, `details:${idx}`);
         if (s.frame.details[idx].length === 2) {
-          s.pending = { type: "offerThirdDetail", index: idx };
+          s.pending = { type: "offerAnotherDetail", index: idx };
           return s;
         }
       }
@@ -1899,6 +1967,7 @@ if (s.pending?.type === "stuckNudge") {
     if (stage === "soWhat") {
       if (!s.frame.soWhat && !isNegative(msg)) {
         s.frame.soWhat = msg;
+        clearMatchingSkip(s, "soWhat");
         s.pending = { type: "offerMoreSoWhat" };
         return s;
       }
@@ -1911,15 +1980,26 @@ if (s.pending?.type === "stuckNudge") {
   }
 
   if (s.pending?.type === "confirmIsAbout") {
-    const normalized = msg.toLowerCase().trim();
-    if (isAffirmative(normalized)) {
-      s.pending = null;
-      return s;
-    }
-    // revise
-    applyIsAboutCapture(s, msg);
+  const normalized = msg.toLowerCase().trim();
+
+  if (isAffirmative(normalized)) {
+    s.pending = null;
     return s;
   }
+
+  if (normalized === "revise" || normalized === "change") {
+    s.pending = { type: "reviseIsAbout" };
+    return s;
+  }
+
+  applyIsAboutCapture(s, msg);
+  return s;
+}
+
+if (s.pending?.type === "reviseIsAbout") {
+  applyIsAboutCapture(s, msg);
+  return s;
+}
 
   if (s.pending?.type === "confirmMainIdeas") {
     const normalized = msg.toLowerCase().trim();
@@ -1930,39 +2010,61 @@ if (s.pending?.type === "stuckNudge") {
     return s;
   }
 
-  if (s.pending?.type === "offerThirdMainIdea") {
+ if (s.pending?.type === "offerAnotherMainIdea") {
     const normalized = msg.toLowerCase().trim();
+
     if (isAffirmative(normalized)) {
-      s.pending = { type: "collectThirdMainIdea" };
+      if ((s.frame.mainIdeas || []).length >= 5) {
+        s.pending = { type: "confirmMainIdeas" };
+        return s;
+      }
+      s.pending = { type: "collectAnotherMainIdea" };
       return s;
     }
+
     s.pending = { type: "confirmMainIdeas" };
     return s;
   }
 
-  if (s.pending?.type === "collectThirdMainIdea") {
+  if (s.pending?.type === "collectAnotherMainIdea") {
     if (!isNegative(msg)) {
       s.frame.mainIdeas.push(msg);
-      if (!Array.isArray(s.frame.details[s.frame.mainIdeas.length - 1])) s.frame.details[s.frame.mainIdeas.length - 1] = [];
+      if (!Array.isArray(s.frame.details[s.frame.mainIdeas.length - 1])) {
+        s.frame.details[s.frame.mainIdeas.length - 1] = [];
+      }
     }
-    s.pending = { type: "confirmMainIdeas" };
+
+    if ((s.frame.mainIdeas || []).length >= 5) {
+      s.pending = { type: "confirmMainIdeas" };
+      return s;
+    }
+
+    s.pending = { type: "offerAnotherMainIdea" };
     return s;
   }
 
-  if (s.pending?.type === "offerThirdDetail") {
+  if (s.pending?.type === "offerAnotherDetail") {
     const normalized = msg.toLowerCase().trim();
     const idx = Number(s.pending.index);
+
     if (isAffirmative(normalized)) {
-      s.pending = { type: "collectThirdDetail", index: idx };
+      const arr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
+      if (arr.length >= 5) {
+        s.pending = { type: "confirmDetails", index: idx };
+        return s;
+      }
+      s.pending = { type: "collectAnotherDetail", index: idx };
       return s;
     }
+
     s.pending = { type: "confirmDetails", index: idx };
     return s;
   }
 
-  if (s.pending?.type === "collectThirdDetail") {
+  if (s.pending?.type === "collectAnotherDetail") {
     const idx = Number(s.pending.index);
     if (!Array.isArray(s.frame.details[idx])) s.frame.details[idx] = [];
+
     if (!isNegative(msg)) {
       if (shouldRequestEvidenceDetail(s, msg)) {
         s.pending = { type: "writeNeedEvidenceDetail", index: idx, mechanism: msg };
@@ -1970,7 +2072,14 @@ if (s.pending?.type === "stuckNudge") {
       }
       s.frame.details[idx] = [...s.frame.details[idx], msg];
     }
-    s.pending = { type: "confirmDetails", index: idx };
+
+    const arr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
+    if (arr.length >= 5) {
+      s.pending = { type: "confirmDetails", index: idx };
+      return s;
+    }
+
+    s.pending = { type: "offerAnotherDetail", index: idx };
     return s;
   }
 
@@ -2076,7 +2185,7 @@ if (s.pending?.type === "stuckNudge") {
       s.frame.mainIdeas.push(msg);
       clearMatchingSkip(s, "mainIdeas");
       if (!Array.isArray(s.frame.details[s.frame.mainIdeas.length - 1])) s.frame.details[s.frame.mainIdeas.length - 1] = [];
-      if (s.frame.mainIdeas.length === 2) s.pending = { type: "offerThirdMainIdea" };
+      if (s.frame.mainIdeas.length === 2) s.pending = { type: "offerAnotherMainIdea" };
     }
     return s;
   }
@@ -2110,7 +2219,7 @@ if (s.pending?.type === "stuckNudge") {
 
       const updated = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
       if (updated.length === 2) {
-        s.pending = { type: "offerThirdDetail", index: i };
+        s.pending = { type: "offerAnotherDetail", index: i };
       }
       return s;
     }
