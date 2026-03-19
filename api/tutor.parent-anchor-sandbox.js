@@ -1124,6 +1124,36 @@ function getFrameLabel(state, structuralStage) {
   return adapter.getLabel(structuralStage, state);
 }
 
+// ---------------------
+// PARENT ANCHOR OBSERVATION HELPERS
+// ---------------------
+// These helpers are read-only and sandbox-only in purpose.
+// They exist to make the engine easier to inspect structurally.
+// They must not be used to alter routing or progression behavior.
+
+function getParentAnchorDisplayLabel(state) {
+  const context = getParentAnchorContext(state);
+  return getFrameLabel(state, context.ownerStructuralStage);
+}
+
+function getParentAnchorObservation(state) {
+  const context = getParentAnchorContext(state);
+  const frameType = state?.frameMeta?.frameType || "";
+  const purpose = state?.frameMeta?.purpose || "";
+  const ownerLabel = getFrameLabel(state, context.ownerStructuralStage);
+  const stageLabel = getFrameLabel(state, context.structuralStage);
+
+  return {
+    ...context,
+    frameType,
+    purpose,
+    ownerLabel,
+    stageLabel,
+
+    summary: `${context.ownerStructuralStage} | ${context.loopType} | ${ownerLabel}`,
+  };
+}
+
 function buildMiniQuestion(state) {
   const stage = state?.pending?.stage || getStage(state);
   const baseStage = getBaseStage(stage);
@@ -1458,7 +1488,18 @@ function applyIsAboutCapture(s, msg) {
 // ---------------------
 function computeNextQuestion(state) {
   const s = state;
-
+  
+  // ---------------------
+  // PARENT ANCHOR OBSERVATION HOOK (SANDBOX ONLY)
+  // ---------------------
+  // Leave this disabled until you are intentionally validating sandbox flows.
+  // This hook exists so Parent Anchor can explain the engine in motion
+  // without becoming part of the engine.
+  //
+  // Example temporary use later:
+  // const paObs = getParentAnchorObservation(s);
+  // console.log("[PA OBS]", paObs.summary, paObs);
+  
   if (s.pending?.type === "confirmLanguageSwitch") {
     const candNative = s.pending?.candidateNativeName || s.pending?.candidateName || "that language";
     const candName = s.pending?.candidateName || "that language";
