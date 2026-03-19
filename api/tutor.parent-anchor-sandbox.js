@@ -1201,15 +1201,17 @@ function buildMiniQuestion(state) {
     }
     return `You identified this main idea:\n\n"${mi}"\n\nNow think about how that connects to your topic.\n\nWhat ${framePromptTerm} or example could help explain it?`;
   }
-
+   
   if (baseStage === "details") {
-    const idx = Number(stage.split(":")[1]);
-    const mi = state.frame?.mainIdeas?.[idx] || "this main idea";
+  const idx = Number(stage.split(":")[1]);
+  const mi = state.frame?.mainIdeas?.[idx] || "this main idea";
 
-     if (isCE) {
-  return `You identified this cause:\n\n"${mi}"\n\nNow think about how that leads to this effect:\n\n"${effect}"\n\nWhat detail or example shows how this cause produces the effect?`;
-}  
+  if (isCE) {
+    return `You identified this cause:\n\n"${mi}"\n\nNow think about how that leads to this effect:\n\n"${effect}"\n\nWhat detail or example shows how this cause produces the effect?`;
   }
+
+  return `You identified this main idea:\n\n"${mi}"\n\nNow think about how that connects to your topic.\n\nWhat ${framePromptTerm} or example could help explain it?`;
+}
 
   if (stage === "soWhat") {
     if (isCE) {
