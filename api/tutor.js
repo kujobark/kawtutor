@@ -1625,7 +1625,7 @@ if (s.pending?.type === "collectAnotherDetail") {
 if (!s.frameMeta?.frameType) {
   return (
     "Let’s stay aligned with the frame you’re using in class.\n" +
-    "Which type of frame is your teacher using?\n" +
+    "Select the type of frame your teacher is using.\n" +
     "1) Cause & Effect (Explain how/why something happens)\n" +
     "2) Theme (Explain a big idea or message)\n" +
     "3) Reading Frame (Organize ideas from a text or source)\n" +
