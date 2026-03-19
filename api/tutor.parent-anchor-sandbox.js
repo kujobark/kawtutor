@@ -1158,6 +1158,14 @@ function buildMiniQuestion(state) {
   const stage = state?.pending?.stage || getStage(state);
   const baseStage = getBaseStage(stage);
 
+  // ---------------------
+  // PARENT ANCHOR LABEL (READ-ONLY)
+  // ---------------------
+  // This derives the structural label for the current stage
+  // but does NOT control prompt selection in this phase.
+
+  const paContext = getParentAnchorContext(state);
+  const paLabel = getFrameLabel(state, paContext.ownerStructuralStage);
   const keyTopic = state.frame?.keyTopic || "your topic";
   const effect = state.frame?.effect || state.frame?.isAbout || "the effect";
   const isCE = state.frameMeta?.frameType === "causeEffect";
@@ -1202,7 +1210,7 @@ function buildMiniQuestion(state) {
     return `Your frame is about this topic:\n\n"${keyTopic}"\n\nNow think about why this matters.\n\nWhat should people really understand about it?`;
   }
 
-  return "What part feels easiest to improve right now: Key Topic, Is About, Main Ideas, Details, or So What?";
+  return `What part of your ${paLabel.toLowerCase()} feels easiest to improve right now: Key Topic, Is About, Main Ideas, Details, or So What?`;
 }
 
 function normalizeStuckChoice(msg) {
@@ -1496,9 +1504,11 @@ function computeNextQuestion(state) {
   // This hook exists so Parent Anchor can explain the engine in motion
   // without becoming part of the engine.
   //
-  // Example temporary use later:
-  // const paObs = getParentAnchorObservation(s);
-  // console.log("[PA OBS]", paObs.summary, paObs);
+  // Gated sandbox-only observation:
+  if (s?.settings?.debugParentAnchor) {
+    const paObs = getParentAnchorObservation(s);
+    console.log("[PA OBS]", paObs.summary, paObs);
+  }
   
   if (s.pending?.type === "confirmLanguageSwitch") {
     const candNative = s.pending?.candidateNativeName || s.pending?.candidateName || "that language";
