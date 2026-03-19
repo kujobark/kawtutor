@@ -1105,6 +1105,10 @@ const CauseEffectFrame = {
         return structuralStage;
     }
   },
+
+  getPromptTerm(structuralStage, state) {
+    return this.getLabel(structuralStage, state).toLowerCase();
+  },
 };
 
 function getFrameAdapter(state) {
@@ -1122,6 +1126,11 @@ function getFrameAdapter(state) {
 function getFrameLabel(state, structuralStage) {
   const adapter = getFrameAdapter(state);
   return adapter.getLabel(structuralStage, state);
+}
+
+function getFramePromptTerm(state, structuralStage) {
+  const adapter = getFrameAdapter(state);
+  return adapter.getPromptTerm(structuralStage, state);
 }
 
 // ---------------------
@@ -1165,7 +1174,8 @@ function buildMiniQuestion(state) {
   // but does NOT control prompt selection in this phase.
 
   const paContext = getParentAnchorContext(state);
-  const paLabel = getFrameLabel(state, paContext.ownerStructuralStage);
+  const frameLabel = getFrameLabel(state, paContext.ownerStructuralStage);
+  const framePromptTerm = getFramePromptTerm(state, paContext.ownerStructuralStage);
   const keyTopic = state.frame?.keyTopic || "your topic";
   const effect = state.frame?.effect || state.frame?.isAbout || "the effect";
   const isCE = state.frameMeta?.frameType === "causeEffect";
@@ -1189,7 +1199,7 @@ function buildMiniQuestion(state) {
     if (isCE) {
  return `You identified this effect:\n\n"${effect}"\n\nWhat are the main causes that lead to this effect?`;
     }
-    return `You identified this main idea:\n\n"${effect}"\n\nNow think about what important idea supports it.\n\nWhat is one main idea that could help explain it?`;
+    return `You identified this main idea:\n\n"${mi}"\n\nNow think about how that connects to your topic.\n\nWhat ${framePromptTerm} or example could help explain it?`;
   }
 
   if (baseStage === "details") {
@@ -1198,9 +1208,7 @@ function buildMiniQuestion(state) {
 
      if (isCE) {
   return `You identified this cause:\n\n"${mi}"\n\nNow think about how that leads to this effect:\n\n"${effect}"\n\nWhat detail or example shows how this cause produces the effect?`;
-}
-  
-    return `You identified this main idea:\n\n"${mi}"\n\nNow think about how that connects to your topic.\n\nWhat detail or example could help explain it?`;
+}  
   }
 
   if (stage === "soWhat") {
@@ -1210,7 +1218,7 @@ function buildMiniQuestion(state) {
     return `Your frame is about this topic:\n\n"${keyTopic}"\n\nNow think about why this matters.\n\nWhat should people really understand about it?`;
   }
 
-  return `What part of your ${paLabel.toLowerCase()} feels easiest to improve right now: Key Topic, Is About, Main Ideas, Details, or So What?`;
+  return `What part of your ${framePromptTerm} feels easiest to improve right now: Key Topic, Is About, Main Ideas, Details, or So What?`;
 }
 
 function normalizeStuckChoice(msg) {
