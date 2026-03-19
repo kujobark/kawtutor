@@ -934,11 +934,11 @@ const PARENT_ANCHOR_BRIDGE = {
  *
  * 4) Post-completion raw stages like "refine" are interpreted
  *    structurally as "export".
- */
+ *
  * Sandbox guardrail:
  * This helper explains the current engine structurally.
  * It must not become a new progression controller in this phase.
-   
+ */
 function getParentAnchorStage(state) {
   const pendingType = state?.pending?.type || null;
 
