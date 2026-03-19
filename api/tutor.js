@@ -1623,15 +1623,16 @@ if (s.pending?.type === "collectAnotherDetail") {
   }
 
   if (!s.frameMeta?.frameType) {
-    return (
-      "What kind of thinking are you doing.\n" +
-      "1) Explain how/why something happens (Linear & Cause-and-Effect Relationships)\n" +
-      "2) Explain a big idea or theme (Framing Themes)\n" +
-      "3) Organize ideas from a text or source (Reading Frames)\n" +
-      "4) Organize my thinking (General Frame)\n" +
-      "Reply with 1, 2, 3, or 4?"
-    );
-  }
+  return (
+    "TEST NEW BLOCK\n" +
+    "Which type of frame is your teacher using?\n" +
+    "1) Cause & Effect\n" +
+    "2) Theme\n" +
+    "3) Reading Frame\n" +
+    "4) General Frame\n" +
+    "Reply with 1, 2, 3, or 4?"
+  );
+}
 
   if (!s.frame.keyTopic) return "What is your Key Topic? (2–5 words)";
 
