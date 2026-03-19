@@ -790,7 +790,25 @@ function getBaseStage(stage) {
 // ---------------------
 // PARENT ANCHOR BRIDGE
 // ---------------------
+//// PARENT ANCHOR SANDBOX GUARDRAIL
+// -------------------------------
+// The Parent Anchor should first become the system's best explanation
+// of the engine before it becomes the system's new engine.
 //
+// In this sandbox phase, Parent Anchor improves observability,
+// interpretation, and structural clarity — not runtime authority.
+// This layer is strictly read-only in this phase. 
+// In this phase, this layer must:
+// - not change progression logic
+// - not replace getStage()
+// - not alter pending-state semantics
+// - not become a competing controller
+//
+// Runtime control and state mutation remain with:
+// - getStage(state)
+// - computeNextQuestion(state)
+// - updateStateFromStudent(state)
+
 // This bridge does NOT change progression logic.
 // It interprets the current tutor.js workflow through the
 // Parent Anchor structural stage model.
@@ -917,6 +935,10 @@ const PARENT_ANCHOR_BRIDGE = {
  * 4) Post-completion raw stages like "refine" are interpreted
  *    structurally as "export".
  */
+ * Sandbox guardrail:
+ * This helper explains the current engine structurally.
+ * It must not become a new progression controller in this phase.
+   
 function getParentAnchorStage(state) {
   const pendingType = state?.pending?.type || null;
 
@@ -946,6 +968,160 @@ function getParentAnchorStage(state) {
   // underlying Parent Anchor stage. Fall back to the raw current stage.
   const rawStage = getStage(state);
   return PARENT_ANCHOR_BRIDGE.structuralStageByRawStage(rawStage);
+}
+
+/**
+ * Returns the structural Parent Anchor stage that owns the current moment.
+ *
+ * This is a read-only interpretation helper.
+ * It does NOT advance stages, mutate state, or replace getStage().
+ *
+ * Difference from getParentAnchorStage(state):
+ * - getParentAnchorStage(state) returns the currently interpreted structural stage
+ * - getParentAnchorOwnerStage(state) returns the structural owner of the
+ *   current pending flow, including interrupt and overlay cases
+ */
+function getParentAnchorOwnerStage(state) {
+  const pendingType = state?.pending?.type || null;
+
+  // Confirmation/export pending states explicitly own the current moment.
+  if (pendingType && PARENT_ANCHOR_BRIDGE.confirmationStageByPending[pendingType]) {
+    return PARENT_ANCHOR_BRIDGE.confirmationStageByPending[pendingType];
+  }
+
+  // Interrupt pending states belong to an underlying structural stage.
+  if (pendingType && PARENT_ANCHOR_BRIDGE.interruptStageByPending[pendingType]) {
+    return PARENT_ANCHOR_BRIDGE.interruptStageByPending[pendingType];
+  }
+
+  // Overlay helper flows do not create a new structural stage.
+  // If they saved a raw resume stage, map that back to its structural owner.
+  if (pendingType && PARENT_ANCHOR_BRIDGE.overlayPendingTypes.has(pendingType)) {
+    const savedStage = state?.pending?.stage || null;
+    if (savedStage) {
+      const mappedSavedStage = PARENT_ANCHOR_BRIDGE.structuralStageByRawStage(savedStage);
+      if (mappedSavedStage) return mappedSavedStage;
+    }
+  }
+
+  // Otherwise, the owner is the current interpreted Parent Anchor stage.
+  return getParentAnchorStage(state);
+}
+
+/**
+ * Returns the normalized Parent Anchor loop/mode type for the current moment.
+ *
+ * This helper is read-only and classification-only.
+ * It does NOT alter routing behavior.
+ */
+function getParentAnchorLoopType(state) {
+  const pendingType = state?.pending?.type || null;
+  const structuralStage = getParentAnchorStage(state);
+
+  if (structuralStage === "export") return "export";
+
+  if (pendingType && PARENT_ANCHOR_BRIDGE.overlayPendingTypes.has(pendingType)) {
+    return "overlay";
+  }
+
+  if (pendingType && PARENT_ANCHOR_BRIDGE.interruptStageByPending[pendingType]) {
+    return "interrupt";
+  }
+
+  if (pendingType && PARENT_ANCHOR_BRIDGE.confirmationStageByPending[pendingType]) {
+    return "confirm";
+  }
+
+  return "capture";
+}
+
+/**
+ * Returns a consolidated read-only Parent Anchor structural snapshot.
+ *
+ * This helper exists for observability, logging, debugging, and later
+ * architectural extraction. It must not be used to change runtime behavior
+ * in the sandbox phase.
+ */
+function getParentAnchorContext(state) {
+  const rawStage = getStage(state);
+  const structuralStage = getParentAnchorStage(state);
+  const ownerStructuralStage = getParentAnchorOwnerStage(state);
+  const pendingType = state?.pending?.type || null;
+  const savedStage = state?.pending?.stage || null;
+  const loopType = getParentAnchorLoopType(state);
+
+  return {
+    rawStage,
+    structuralStage,
+    ownerStructuralStage,
+    pendingType,
+    savedStage,
+    loopType,
+
+    isCapture: loopType === "capture",
+    isConfirmation: loopType === "confirm",
+    isInterrupt: loopType === "interrupt",
+    isOverlay: loopType === "overlay",
+    isExport: loopType === "export",
+  };
+}
+
+// ---------------------
+// CHILD ANCHOR ADAPTERS
+// ---------------------
+// In the sandbox phase, child anchors are a thin structural seam only.
+// They do not own progression, pending-state routing, or loop control.
+// The runtime engine remains owned by getStage(), computeNextQuestion(),
+// and updateStateFromStudent().
+
+const CauseEffectFrame = {
+  id: "causeEffect",
+
+  getLabel(structuralStage, state) {
+    switch (structuralStage) {
+      case "purpose":
+        return "Purpose";
+      case "frameType":
+        return "Frame Type";
+      case "keyTopic":
+        return "Key Topic";
+      case "isAbout":
+      case "isAboutConfirm":
+        return "Is About";
+      case "mainIdeas":
+      case "mainIdeasConfirm":
+        return "Cause";
+      case "detailsLoop":
+      case "detailsConfirmLoop":
+        return state?.frameMeta?.purpose === "read"
+          ? "Text Evidence"
+          : "Supporting Detail";
+      case "soWhat":
+      case "soWhatConfirm":
+        return "So What";
+      case "export":
+        return "Export";
+      default:
+        return structuralStage;
+    }
+  },
+};
+
+function getFrameAdapter(state) {
+  const frameType =
+    state?.frameMeta?.frameType || state?.frameType || "causeEffect";
+
+  switch (frameType) {
+    case "causeEffect":
+      return CauseEffectFrame;
+    default:
+      return CauseEffectFrame;
+  }
+}
+
+function getFrameLabel(state, structuralStage) {
+  const adapter = getFrameAdapter(state);
+  return adapter.getLabel(structuralStage, state);
 }
 
 function buildMiniQuestion(state) {
