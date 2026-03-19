@@ -1624,12 +1624,12 @@ if (s.pending?.type === "collectAnotherDetail") {
 
   if (!s.frameMeta?.frameType) {
   return (
-    "TEST NEW BLOCK\n" +
-    "Which type of frame is your teacher using?\n" +
-    "1) Cause & Effect\n" +
-    "2) Theme\n" +
-    "3) Reading Frame\n" +
-    "4) General Frame\n" +
+  "Let’s stay aligned with the frame you’re working on.\n" +
+  "Which type of frame is your teacher using?\n" +
+  "1) Cause & Effect (Explain how/why something happens)\n" +
+  "2) Theme (Explain a big idea or message)\n" +
+  "3) Reading Frame (Organize ideas from a text or source)\n" +
+  "4) General Frame (Organize your thinking)\n" +
     "Reply with 1, 2, 3, or 4?"
   );
 }
