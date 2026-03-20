@@ -1195,12 +1195,13 @@ function buildMiniQuestion(state) {
     return `Your frame starts with this Key Topic:\n\n"${keyTopic}"\n\nNow think about what this topic is mostly about.\n\nWhat is the main idea your frame is trying to explain?`;
   }
 
-  if (stage === "mainIdeas") {
-    if (isCE) {
- return `You identified this effect:\n\n"${effect}"\n\nWhat are the main causes that lead to this effect?`;
-    }
-    return `You identified this main idea:\n\n"${mi}"\n\nNow think about how that connects to your topic.\n\nWhat ${framePromptTerm} or example could help explain it?`;
+ if (stage === "mainIdeas") {
+  if (isCE) {
+    return `You identified this effect:\n\n"${effect}"\n\nWhat are the main causes that lead to this effect?`;
   }
+
+  return `What is one main idea that helps explain your topic?`;
+}
    
   if (baseStage === "details") {
   const idx = Number(stage.split(":")[1]);
@@ -1396,9 +1397,10 @@ function buildFrameText(s) {
   lines.push(isCE ? "CAUSES + SUPPORTING DETAILS:" : "MAIN IDEAS + SUPPORTING DETAILS:");
 
   s.frame.mainIdeas.forEach((mi, i) => {
-    lines.push(`Cause ${i + 1}: ${mi}`);
+    lines.push(`${isCE ? "Cause" : "Main Idea"} ${i + 1}: ${mi}`);
     const details = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
-    details.forEach((d, k) => lines.push(`   - Supporting Detail ${k + 1}: ${d}`));
+    const detailLabel = s.frameMeta?.purpose === "read" ? "Text Evidence" : "Supporting Detail";
+    details.forEach((d, k) => lines.push(`  - ${detailLabel} ${k + 1}: ${d}`));
     lines.push("");
   });
 
@@ -1698,14 +1700,16 @@ if (
   let label = "a part of the frame";
 if (skipped.stage === "mainIdeas") {
   const nextCauseNumber = (Array.isArray(s.frame.mainIdeas) ? s.frame.mainIdeas.length : 0) + 1;
-  label = `Cause ${nextCauseNumber}`;
+  label = `${s.frameMeta?.frameType === "causeEffect" ? "Cause" : "Main Idea"} ${nextCauseNumber}`; 
 }
 
 if (skipped.stage === "soWhat") label = "the So What statement";
 
 if (skipped.stage?.startsWith("details")) {
   const idx = Number(skipped.stage.split(":")[1]);
-  label = `Supporting Detail for Cause ${idx + 1}`;
+  const labelBase = s.frameMeta?.frameType === "causeEffect" ? "Cause" : "Main Idea";
+  const detailLabel = s.frameMeta?.purpose === "read" ? "Text Evidence" : "Supporting Detail";
+  label = `${detailLabel} for ${labelBase} ${idx + 1}`;
 }
 
   // Keep the skip for now; remove it after the student completes this stage.
@@ -1779,13 +1783,18 @@ Is that correct, or would you like to revise it?`;
 }
 }
     
-  if (s.pending?.type === "confirmMainIdeas") {
-    const lines = (s.frame.mainIdeas || []).map((mi, i) => `Cause ${i + 1}: ${mi}`).join("\n");
-    const isCE = s.frameMeta?.frameType === "causeEffect";
-    const label = isCE ? "Causes" : "Main Ideas";
-    return `You have identified the following ${label}:\n${lines}\nIs that correct, or would you like to revise one?`;
-  }
+if (s.pending?.type === "confirmMainIdeas") {
+  const isCE = s.frameMeta?.frameType === "causeEffect";
 
+  const lines = (s.frame.mainIdeas || []).map((mi, i) =>
+    `${isCE ? "Cause" : "Main Idea"} ${i + 1}: ${mi}`
+  ).join("\n");
+
+  const label = isCE ? "Causes" : "Main Ideas";
+
+  return `You have identified the following ${label}:\n${lines}\n\nIs that correct, or would you like to revise one?`;
+}
+  
 if (s.pending?.type === "offerAnotherMainIdea") {
   const isCE = s.frameMeta?.frameType === "causeEffect";
   const count = (s.frame.mainIdeas || []).length;
