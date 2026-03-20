@@ -1068,6 +1068,24 @@ function getParentAnchorContext(state) {
   };
 }
 
+/**
+ * Read-only structural helper.
+ * Returns true if the Parent Anchor owner stage matches
+ * the requested structural stage.
+ */
+function isParentAnchorInStage(state, structuralStage) {
+  return getParentAnchorOwnerStage(state) === structuralStage;
+}
+
+/**
+ * Read-only structural helper.
+ * Returns true if the Parent Anchor loop type matches
+ * the requested loop classification.
+ */
+function isParentAnchorLoopType(state, loopType) {
+  return getParentAnchorLoopType(state) === loopType;
+}
+
 // ---------------------
 // CHILD ANCHOR ADAPTERS
 // ---------------------
@@ -1203,8 +1221,9 @@ function buildMiniQuestion(state) {
 
   return `What is one main idea that helps explain your topic?`;
 }
-   
-  if (baseStage === "details") {
+
+ const isDetailsStage = isParentAnchorInStage(state, "detailsLoop");
+  if (isDetailsStage) {
   const idx = Number(stage.split(":")[1]);
   const mi = state.frame?.mainIdeas?.[idx] || "this main idea";
 
@@ -1518,10 +1537,23 @@ function computeNextQuestion(state) {
   // without becoming part of the engine.
   //
   // Gated sandbox-only observation:
-  if (s?.settings?.debugParentAnchor) {
-    const paObs = getParentAnchorObservation(s);
-    console.log("[PA OBS]", paObs.summary, paObs);
-  }
+if (s?.settings?.debugParentAnchor) {
+  const paObs = getParentAnchorObservation(s);
+  const isInDetails = isParentAnchorInStage(s, "detailsLoop");
+
+  const stage = s.pending?.stage || getStage(s);
+  const baseStage = getBaseStage(stage);
+  const engineIsDetails = baseStage === "details";
+
+  const isAligned = isInDetails === engineIsDetails;
+
+  console.log("[PA OBS]", paObs.summary, {
+    isInDetails,
+    engineIsDetails,
+    isAligned,
+    ...paObs
+  });
+}
   
   if (s.pending?.type === "confirmLanguageSwitch") {
     const candNative = s.pending?.candidateNativeName || s.pending?.candidateName || "that language";
