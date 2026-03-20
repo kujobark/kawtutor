@@ -790,15 +790,17 @@ function getBaseStage(stage) {
 // ---------------------
 // PARENT ANCHOR BRIDGE
 // ---------------------
-//// PARENT ANCHOR SANDBOX GUARDRAIL
+
+// PARENT ANCHOR SANDBOX GUARDRAIL
 // -------------------------------
 // The Parent Anchor should first become the system's best explanation
 // of the engine before it becomes the system's new engine.
 //
 // In this sandbox phase, Parent Anchor improves observability,
 // interpretation, and structural clarity — not runtime authority.
-// This layer is strictly read-only in this phase. 
-// In this phase, this layer must:
+// This layer is strictly read-only in this phase.
+//
+// That means this layer must:
 // - not change progression logic
 // - not replace getStage()
 // - not alter pending-state semantics
@@ -1174,7 +1176,6 @@ function buildMiniQuestion(state) {
   // but does NOT control prompt selection in this phase.
 
   const paContext = getParentAnchorContext(state);
-  const frameLabel = getFrameLabel(state, paContext.ownerStructuralStage);
   const framePromptTerm = getFramePromptTerm(state, paContext.ownerStructuralStage);
   const keyTopic = state.frame?.keyTopic || "your topic";
   const effect = state.frame?.effect || state.frame?.isAbout || "the effect";
@@ -1840,8 +1841,9 @@ if (s.pending?.type === "collectAnotherDetail") {
     const i = Number(s.pending.index);
     const mi = s.frame.mainIdeas?.[i] || "";
     const arr = Array.isArray(s.frame.details?.[i]) ? s.frame.details[i] : [];
-    const lines = arr.map((d, k) => `Supporting Detail ${k + 1}: ${d}`).join("\n");
-
+    const lineLabel = s.frameMeta?.purpose === "read" ? "Text Evidence" : "Supporting Detail";
+    const lines = arr.map((d, k) => `${lineLabel} ${k + 1}: ${d}`).join("\n");
+    
     const isCE = s.frameMeta?.frameType === "causeEffect";
     const miLabel = isCE ? "Cause" : "Main Idea";
     const dLabel = isCE && s.frameMeta?.purpose === "read" ? "Text Evidence" : "Supporting Details";
