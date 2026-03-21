@@ -1307,7 +1307,11 @@ function normalizeIncomingState(raw) {
   base.frame.keyTopic = cleanText(frame.keyTopic || s.keyTopic || "");
   base.frame.isAbout = cleanText(frame.isAbout || s.isAbout || "");
 
-  base.frame.cause = cleanText(frame.cause || s.cause || "");
+  base.frame.causes = Array.isArray(frame.causes)
+  ? frame.causes.map(cleanText).filter(Boolean)
+  : cleanText(frame.cause || s.cause || "")
+    ? [cleanText(frame.cause || s.cause || "")]
+    : [];
   base.frame.effect = cleanText(frame.effect || s.effect || "");
 
   base.frame.mainIdeas = Array.isArray(frame.mainIdeas) ? frame.mainIdeas.map(cleanText).filter(Boolean) : [];
