@@ -2243,9 +2243,9 @@ if (s.pending?.type === "stuckNudge") {
       return s;
     }
 
-  if (stage === "mainIdeas") {
+if (stage === "mainIdeas") {
   if (!Array.isArray(s.frame.causes)) s.frame.causes = [];
-  if (s.frame.causes.length < 2 && !isNegative(msg)) {
+  if (!isNegative(msg)) {
     s.frame.causes.push(msg);
     clearMatchingSkip(s, "mainIdeas");
     if (!Array.isArray(s.frame.details[s.frame.causes.length - 1])) s.frame.details[s.frame.causes.length - 1] = [];
