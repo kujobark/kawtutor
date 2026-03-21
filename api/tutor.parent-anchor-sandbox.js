@@ -2353,22 +2353,46 @@ if (s.pending?.type === "reviseIsAbout") {
     return s;
   }
 
-  if (s.pending?.type === "collectAnotherMainIdea") {
-    if (!isNegative(msg)) {
+ if (s.pending?.type === "collectAnotherMainIdea") {
+  if (!isNegative(msg)) {
+    const isCE = s.frameMeta?.frameType === "causeEffect";
+
+    if (isCE) {
+      if (!Array.isArray(s.frame.causes)) s.frame.causes = [];
+      if (!Array.isArray(s.frame.mainIdeas)) s.frame.mainIdeas = [];
+      if (!Array.isArray(s.frame.details)) s.frame.details = [];
+
+      s.frame.causes.push(msg);
+      s.frame.mainIdeas.push(msg); // TEMP sync for legacy paths still reading mainIdeas
+
+      if (!Array.isArray(s.frame.details[s.frame.causes.length - 1])) {
+        s.frame.details[s.frame.causes.length - 1] = [];
+      }
+    } else {
+      if (!Array.isArray(s.frame.mainIdeas)) s.frame.mainIdeas = [];
+      if (!Array.isArray(s.frame.details)) s.frame.details = [];
+
       s.frame.mainIdeas.push(msg);
+
       if (!Array.isArray(s.frame.details[s.frame.mainIdeas.length - 1])) {
         s.frame.details[s.frame.mainIdeas.length - 1] = [];
       }
     }
+  }
 
-    if ((s.frame.mainIdeas || []).length >= 5) {
-      s.pending = { type: "confirmMainIdeas" };
-      return s;
-    }
+  const count =
+    s.frameMeta?.frameType === "causeEffect"
+      ? (s.frame.causes || []).length
+      : (s.frame.mainIdeas || []).length;
 
-    s.pending = { type: "offerAnotherMainIdea" };
+  if (count >= 5) {
+    s.pending = { type: "confirmMainIdeas" };
     return s;
   }
+
+  s.pending = { type: "offerAnotherMainIdea" };
+  return s;
+}
 
   if (s.pending?.type === "offerAnotherDetail") {
     const normalized = msg.toLowerCase().trim();
