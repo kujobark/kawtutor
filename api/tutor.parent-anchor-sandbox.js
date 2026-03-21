@@ -1421,11 +1421,26 @@ function buildFrameText(s) {
 
   lines.push(`KEY TOPIC: ${s.frame.keyTopic}`);
   lines.push(`IS ABOUT: ${s.frame.isAbout}`);
+  // Cause & Effect export (supports multiple causes)
+if (isCE) {
+  const causes = s.frame.causes || [];
+
+  if (causes.length) {
+    causes.forEach((c, i) => {
+      lines.push(`CAUSE ${i + 1}: ${c}`);
+    });
+  }
+
+  if (s.frame.effect) {
+    lines.push(`EFFECT: ${s.frame.effect}`);
+  }
+} else {
+  // fallback for non-CE frames (unchanged behavior)
   if (s.frame.cause || s.frame.effect) {
     lines.push(`CAUSE: ${s.frame.cause || ""}`);
     lines.push(`EFFECT: ${s.frame.effect || ""}`);
   }
-  lines.push("");
+}
 
   // Surface-labeling only (structure unchanged)
   lines.push(isCE ? "CAUSES + SUPPORTING DETAILS:" : "MAIN IDEAS + SUPPORTING DETAILS:");
@@ -1848,14 +1863,14 @@ if (s.pending?.type === "confirmMainIdeas") {
   
 if (s.pending?.type === "offerAnotherMainIdea") {
   const isCE = s.frameMeta?.frameType === "causeEffect";
-  const count = (s.frame.mainIdeas || []).length;
+  const count = (s.frame.causes || []).length;
   const label = isCE ? "Cause" : "Main Idea";
   return `You currently have ${count} ${label}${count > 1 ? "s" : ""}. Would you like to add another ${label}? (yes/no)`;
 }
 
 if (s.pending?.type === "collectAnotherMainIdea") {
   const isCE = s.frameMeta?.frameType === "causeEffect";
-  const count = (s.frame.mainIdeas || []).length + 1;
+  const count = (s.frame.causes || []).length + 1;
   return isCE
     ? `What is Cause ${count} that helps explain ${s.frame.keyTopic}?`
     : `What is Main Idea ${count} that helps explain ${s.frame.keyTopic}?`;
@@ -1863,7 +1878,7 @@ if (s.pending?.type === "collectAnotherMainIdea") {
   
  if (s.pending?.type === "offerAnotherDetail") {
   const i = Number(s.pending.index);
-  const mi = s.frame.mainIdeas?.[i] || "";
+  const mi = s.frame.causes?.[i] || s.frame.mainIdeas?.[i] || "";
 
   const isCE = s.frameMeta?.frameType === "causeEffect";
   const miLabel = isCE ? "Cause" : "Main Idea";
@@ -1876,7 +1891,8 @@ if (s.pending?.type === "collectAnotherMainIdea") {
   
 if (s.pending?.type === "collectAnotherDetail") {
   const i = Number(s.pending.index);
-  const mi = s.frame.mainIdeas?.[i] || "";
+  const mi = s.frame.causes?.[i] || s.frame.mainIdeas?.[i] || "";
+  
 
   const isCE = s.frameMeta?.frameType === "causeEffect";
   const miLabel = isCE ? "Cause" : "Main Idea";
@@ -2229,19 +2245,20 @@ if (s.pending?.type === "stuckNudge") {
       return s;
     }
 
-    if (stage === "mainIdeas") {
-      if (s.frame.mainIdeas.length < 2 && !isNegative(msg)) {
-        s.frame.mainIdeas.push(msg);
-        clearMatchingSkip(s, "mainIdeas");
-        if (!Array.isArray(s.frame.details[s.frame.mainIdeas.length - 1])) s.frame.details[s.frame.mainIdeas.length - 1] = [];
-        if (s.frame.mainIdeas.length === 2) {
-          s.pending = { type: "offerAnotherMainIdea" };
-          return s;
-        }
-      }
-      s.pending = null;
+  if (stage === "mainIdeas") {
+  if (!Array.isArray(s.frame.causes)) s.frame.causes = [];
+  if (s.frame.causes.length < 2 && !isNegative(msg)) {
+    s.frame.causes.push(msg);
+    clearMatchingSkip(s, "mainIdeas");
+    if (!Array.isArray(s.frame.details[s.frame.causes.length - 1])) s.frame.details[s.frame.causes.length - 1] = [];
+    if (s.frame.causes.length === 2) {
+      s.pending = { type: "offerAnotherMainIdea" };
       return s;
     }
+  }
+  s.pending = null;
+  return s;
+}
 
     if (stage.startsWith("details:")) {
       const idx = Number(stage.split(":")[1]);
