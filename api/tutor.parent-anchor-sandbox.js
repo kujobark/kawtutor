@@ -1312,7 +1312,7 @@ function normalizeIncomingState(raw) {
   : cleanText(frame.cause || s.cause || "")
     ? [cleanText(frame.cause || s.cause || "")]
     : [];
-}
+
   base.frame.effect = cleanText(frame.effect || s.effect || "");
 
 base.frame.mainIdeas = Array.isArray(frame.mainIdeas)
