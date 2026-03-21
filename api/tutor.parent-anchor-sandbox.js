@@ -1510,7 +1510,7 @@ function applyIsAboutCapture(s, msg) {
       s.pending = { type: "needWriteCauseEffectStem" };
       return s;
     }
-    if (parsed.cause) s.frame.cause = parsed.cause;
+    if (parsed.cause) s.frame.causes = [parsed.cause];
     if (parsed.effect) s.frame.effect = parsed.effect;
   }
 
