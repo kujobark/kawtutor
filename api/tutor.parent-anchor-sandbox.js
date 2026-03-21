@@ -1184,7 +1184,12 @@ function getParentAnchorObservation(state) {
 }
 
 function buildMiniQuestion(state) {
-  const stage = state?.pending?.stage || getStage(state);
+  let stage = state?.pending?.stage || getStage(state);
+
+  if (state?.pending?.type === "collectAnotherMainIdea") {
+    stage = "mainIdeas";
+  }
+
   const baseStage = getBaseStage(stage);
 
   // ---------------------
