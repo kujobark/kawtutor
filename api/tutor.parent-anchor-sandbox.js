@@ -2245,15 +2245,24 @@ if (s.pending?.type === "stuckNudge") {
 
 if (stage === "mainIdeas") {
   if (!Array.isArray(s.frame.causes)) s.frame.causes = [];
-  if (!isNegative(msg)) {
-    s.frame.causes.push(msg);
+
+  const cleanMsg = cleanText(msg);
+
+  if (cleanMsg) {
+    s.frame.causes.push(cleanMsg);
+
     clearMatchingSkip(s, "mainIdeas");
-    if (!Array.isArray(s.frame.details[s.frame.causes.length - 1])) s.frame.details[s.frame.causes.length - 1] = [];
+
+    if (!Array.isArray(s.frame.details[s.frame.causes.length - 1])) {
+      s.frame.details[s.frame.causes.length - 1] = [];
+    }
+
     if (s.frame.causes.length === 2) {
       s.pending = { type: "offerAnotherMainIdea" };
       return s;
     }
   }
+
   s.pending = null;
   return s;
 }
