@@ -1274,7 +1274,7 @@ function defaultState() {
     frame: {
       keyTopic: "",
       isAbout: "",
-      causes: []
+      causes: [],
       effect: "",
       mainIdeas: [],
       details: [],
