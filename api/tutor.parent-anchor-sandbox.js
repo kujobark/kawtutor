@@ -1324,8 +1324,6 @@ if (base.frame.causes.length && base.frame.mainIdeas.length === 0) {
   base.frame.mainIdeas = [...base.frame.causes];
 }
 
-  base.frame.mainIdeas = Array.isArray(frame.mainIdeas) ? frame.mainIdeas.map(cleanText).filter(Boolean) : [];
-
   if (Array.isArray(frame.details)) {
     base.frame.details = frame.details.map((bucket) => (Array.isArray(bucket) ? bucket.map(cleanText).filter(Boolean) : []));
   } else if (frame.details && typeof frame.details === "object") {
