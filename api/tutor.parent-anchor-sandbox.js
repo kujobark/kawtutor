@@ -1312,7 +1312,17 @@ function normalizeIncomingState(raw) {
   : cleanText(frame.cause || s.cause || "")
     ? [cleanText(frame.cause || s.cause || "")]
     : [];
+}
   base.frame.effect = cleanText(frame.effect || s.effect || "");
+
+base.frame.mainIdeas = Array.isArray(frame.mainIdeas)
+  ? frame.mainIdeas.map(cleanText).filter(Boolean)
+  : [];
+
+// 🔥 TEMP SYNC (Phase 1 only)
+if (base.frame.causes.length && base.frame.mainIdeas.length === 0) {
+  base.frame.mainIdeas = [...base.frame.causes];
+}
 
   base.frame.mainIdeas = Array.isArray(frame.mainIdeas) ? frame.mainIdeas.map(cleanText).filter(Boolean) : [];
 
@@ -1512,6 +1522,10 @@ function applyIsAboutCapture(s, msg) {
     }
     if (parsed.cause) s.frame.causes = [parsed.cause];
     if (parsed.effect) s.frame.effect = parsed.effect;
+    if (parsed.cause) {
+  s.frame.causes = [parsed.cause];
+  s.frame.mainIdeas = [parsed.cause]; // 🔥 KEEP ENGINE IN SYNC
+}
   }
 
   // Study/Read + causeEffect: treat the isAbout response as the central effect/result
