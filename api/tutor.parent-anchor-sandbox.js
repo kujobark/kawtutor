@@ -1336,12 +1336,8 @@ function normalizeIncomingState(raw) {
 
   base.frame.effect = cleanText(frame.effect || s.effect || "");
 
-  // Ensure effect is derived from isAbout for Cause & Effect
-if (
-  base.frameMeta?.frameType === "causeEffect" &&
-  !base.frame.effect &&
-  base.frame.isAbout
-) {
+  // Ensure effect is derived from isAbout when missing
+if (!base.frame.effect && base.frame.isAbout) {
   base.frame.effect = base.frame.isAbout;
 }
   
