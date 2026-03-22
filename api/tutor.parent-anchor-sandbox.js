@@ -1387,11 +1387,12 @@ base.frame.details = ideaSeed.map((mi) => {
       .filter((x) => x.stage);
   }
 
-  // ensure detail buckets exist for each main idea
-  const ideaSeed =
-  rawFrameType === "causeEffect"
-    ? base.frame.causes
-    : base.frame.mainIdeas;
+// ensure detail buckets exist for each idea
+const isCE = base.frameMeta?.frameType === "causeEffect";
+
+const ideaSeed = isCE
+  ? base.frame.causes
+  : base.frame.mainIdeas;
 
 for (let i = 0; i < ideaSeed.length; i++) {
   if (!Array.isArray(base.frame.details[i])) {
