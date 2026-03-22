@@ -1397,8 +1397,8 @@ base.frame.details = ideaSeed.map((mi) => {
 const isCE = base.frameMeta?.frameType === "causeEffect";
 
 const ideaSeed = isCE
-  ? base.frame.causes
-  : base.frame.mainIdeas;
+  ? (base.frame.causes || [])
+  : (base.frame.mainIdeas || []);
 
 for (let i = 0; i < ideaSeed.length; i++) {
   if (!Array.isArray(base.frame.details[i])) {
