@@ -786,10 +786,16 @@ function getBaseStage(stage) {
 
 function getIdeaList(state) {
   const isCE = state?.frameMeta?.frameType === "causeEffect";
+
   if (isCE) {
-    return Array.isArray(state?.frame?.causes) ? state.frame.causes : [];
+    return Array.isArray(state?.frame?.causes)
+      ? state.frame.causes
+      : [];
   }
-  return Array.isArray(state?.frame?.mainIdeas) ? state.frame.mainIdeas : [];
+
+  return Array.isArray(state?.frame?.mainIdeas)
+    ? state.frame.mainIdeas
+    : [];
 }
 
 // ---------------------
