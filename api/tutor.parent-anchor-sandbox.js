@@ -2805,8 +2805,9 @@ export default async function handler(req, res) {
       state.exports = null;
     }
 
-    return res.status(200).json({ reply, state });
-catch (err) {
+return res.status(200).json({ reply, state });
+    
+} catch (err) {
   console.error("Tutor API error:", err);
   return res.status(500).json({
     error: err.message,
