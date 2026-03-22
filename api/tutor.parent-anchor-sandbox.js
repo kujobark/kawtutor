@@ -2806,11 +2806,10 @@ export default async function handler(req, res) {
     }
 
     return res.status(200).json({ reply, state });
-  } catch (err) {
-    console.error("Tutor API error:", err);
-    return res.status(200).json({
-      reply: "Hmm — I had trouble processing that. Can you try again?",
-      state: normalizeIncomingState({}),
-    });
-  }
+catch (err) {
+  console.error("Tutor API error:", err);
+  return res.status(500).json({
+    error: err.message,
+    stack: err.stack
+  });
 }
