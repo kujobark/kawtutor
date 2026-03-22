@@ -2151,10 +2151,8 @@ if (s.pending?.type === "writeNeedEvidenceDetail") {
 if (arr.length < 2 && !isNegative(evidence)) {
   s.frame.details[idx] = [...arr, combined];
   clearMatchingSkip(s, `details:${idx}`);
-  if (s.frame.details[idx].length === 2) {
-    s.pending = { type: "offerAnotherDetail", index: idx };
-    return s;
-  }
+  s.pending = { type: "offerAnotherDetail", index: idx };
+return s;
 }
 
   s.pending = null;
@@ -2642,9 +2640,7 @@ for (let i = 0; i < ideas.length; i++) {
       }
 
       const updated = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
-      if (updated.length === 2) {
-        s.pending = { type: "offerAnotherDetail", index: i };
-      }
+      s.pending = { type: "offerAnotherDetail", index: i };
       return s;
     }
   }
