@@ -1336,6 +1336,15 @@ function normalizeIncomingState(raw) {
 
   base.frame.effect = cleanText(frame.effect || s.effect || "");
 
+  // Ensure effect is derived from isAbout for Cause & Effect
+if (
+  base.frameMeta?.frameType === "causeEffect" &&
+  !base.frame.effect &&
+  base.frame.isAbout
+) {
+  base.frame.effect = base.frame.isAbout;
+}
+  
 base.frame.mainIdeas = Array.isArray(frame.mainIdeas)
   ? frame.mainIdeas.map(cleanText).filter(Boolean)
   : [];
@@ -2309,13 +2318,10 @@ if (stage === "mainIdeas") {
       s.frame.details[s.frame.causes.length - 1] = [];
     }
 
-    if (s.frame.causes.length === 2) {
-      s.pending = { type: "offerAnotherMainIdea" };
-      return s;
-    }
+   // Always ask after adding a cause
+s.pending = { type: "offerAnotherMainIdea" };
   }
 
-  s.pending = null;
   return s;
 }
 
@@ -2591,8 +2597,8 @@ if (ideas.length < 2) {
         s.frame.details[s.frame.causes.length - 1] = [];
       }
 
-      if (s.frame.causes.length === 2) {
-        s.pending = { type: "offerAnotherMainIdea" };
+      // Always ask after adding a cause
+      s.pending = { type: "offerAnotherMainIdea" };
       }
     } else {
       if (!Array.isArray(s.frame.mainIdeas)) s.frame.mainIdeas = [];
