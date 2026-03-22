@@ -1603,6 +1603,7 @@ function applyIsAboutCapture(s, msg) {
 // ---------------------
 function computeNextQuestion(state) {
   const s = state;
+  ensureBuckets(s); //
   
   // ---------------------
   // PARENT ANCHOR OBSERVATION HOOK (SANDBOX ONLY)
