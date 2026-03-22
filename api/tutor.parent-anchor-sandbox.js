@@ -1398,7 +1398,10 @@ for (let i = 0; i < ideaSeed.length; i++) {
     base.frame.details[i] = [];
   }
 }
-
+  
+return base;
+}
+  
 function ensureBuckets(s) {
   if (!Array.isArray(s.frame.details)) s.frame.details = [];
 
@@ -2371,16 +2374,14 @@ if (s.pending?.type === "reviseIsAbout") {
  if (s.pending?.type === "offerAnotherMainIdea") {
     const normalized = msg.toLowerCase().trim();
 
-    if (isAffirmative(normalized)) {
-      const count =
-  s.frameMeta?.frameType === "causeEffect"
-    ? (s.frame.causes || []).length
-    : (s.frame.mainIdeas || []).length;
+ if (isAffirmative(normalized)) {
+  const count = getIdeaList(s).length;
 
-if (count >= 5) {  
-        s.pending = { type: "confirmMainIdeas" };
-        return s;
-      }
+  if (count >= 5) {
+    s.pending = { type: "confirmMainIdeas" };
+    return s;
+  }
+   
       s.pending = { type: "collectAnotherMainIdea" };
       return s;
     }
@@ -2389,32 +2390,19 @@ if (count >= 5) {
     return s;
   }
 
- if (s.pending?.type === "collectAnotherMainIdea") {
+if (s.pending?.type === "collectAnotherMainIdea") {
   if (!isNegative(msg)) {
     const isCE = s.frameMeta?.frameType === "causeEffect";
 
     if (isCE) {
-    if (stage === "mainIdeas") {
-  if (s.frameMeta?.frameType === "causeEffect") {
-    if (!Array.isArray(s.frame.causes)) s.frame.causes = [];
-    if (!Array.isArray(s.frame.details)) s.frame.details = [];
+      if (!Array.isArray(s.frame.causes)) s.frame.causes = [];
+      if (!Array.isArray(s.frame.details)) s.frame.details = [];
 
-    s.frame.causes.push(msg);
+      s.frame.causes.push(msg);
 
-    if (!Array.isArray(s.frame.details[s.frame.causes.length - 1])) {
-      s.frame.details[s.frame.causes.length - 1] = [];
-    }
-  } else {
-    if (!Array.isArray(s.frame.mainIdeas)) s.frame.mainIdeas = [];
-    if (!Array.isArray(s.frame.details)) s.frame.details = [];
-
-    s.frame.mainIdeas.push(msg);
-
-    if (!Array.isArray(s.frame.details[s.frame.mainIdeas.length - 1])) {
-      s.frame.details[s.frame.mainIdeas.length - 1] = [];
-    }
-  }
-}
+      if (!Array.isArray(s.frame.details[s.frame.causes.length - 1])) {
+        s.frame.details[s.frame.causes.length - 1] = [];
+      }
     } else {
       if (!Array.isArray(s.frame.mainIdeas)) s.frame.mainIdeas = [];
       if (!Array.isArray(s.frame.details)) s.frame.details = [];
@@ -2427,10 +2415,7 @@ if (count >= 5) {
     }
   }
 
-  const count =
-    s.frameMeta?.frameType === "causeEffect"
-      ? (s.frame.causes || []).length
-      : (s.frame.mainIdeas || []).length;
+  const count = getIdeaList(s).length;
 
   if (count >= 5) {
     s.pending = { type: "confirmMainIdeas" };
@@ -2440,6 +2425,7 @@ if (count >= 5) {
   s.pending = { type: "offerAnotherMainIdea" };
   return s;
 }
+  }
 
   if (s.pending?.type === "offerAnotherDetail") {
     const normalized = msg.toLowerCase().trim();
@@ -2616,7 +2602,6 @@ if (ideas.length < 2) {
 }
 
    // 5) Details capture
-  const ideas = getIdeaList(s);
 
 for (let i = 0; i < ideas.length; i++) {
     const arr = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
