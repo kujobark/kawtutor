@@ -575,7 +575,7 @@ Ask yourself: what cause might help explain that effect?`,
   if (typeof stage === "string" && stage.startsWith("details:")) {
     const rawIndex = stage.split(":")[1];
     const idx = Number(rawIndex);
-    const selectedMainIdea = Number.isInteger(idx) ? (mainIdeas[idx] || "") : "";
+    const selectedMainIdea = Number.isInteger(idx) ? (ideas[idx] || "") : "";
 
     if (frameType === "causeEffect") {
 
@@ -609,7 +609,7 @@ Now help the reader understand how that cause connects to your frame.`,
   if (stage === "soWhat") {
     if (frameType === "causeEffect") {
 
-      if (mainIdeas.length > 1 && effect && keyTopic) {
+      if (ideas.length > 1 && effect && keyTopic) {  
         return [
 `You identified causes that lead to ${effect}.
 
@@ -619,7 +619,7 @@ Now think about the bigger meaning of that pattern in ${keyTopic}.`,
         ];
       }
 
-      if (mainIdeas.length > 0 && effect) {
+      if (ideas.length > 0 && effect) {  
         return [
 `You identified causes that lead to ${effect}.
 
@@ -1763,7 +1763,7 @@ if (s.pending?.type === "stuckReask") {
 
   if (s.pending?.type === "writeNeedEvidenceDetail") {
     const i = Number(s.pending.index);
-    const mi = s.frame.mainIdeas?.[i] || "this Cause";
+    const mi = getIdeaList(s)[i] || "this Cause";
     const eff = s.frame.effect || "the effect";
     const mech = cleanText(s.pending.mechanism || "");
     const ctx = mech ? `You're explaining how it works: "${mech}". ` : "";
@@ -1791,7 +1791,10 @@ if (
 
   let label = "a part of the frame";
 if (skipped.stage === "mainIdeas") {
-  const nextCauseNumber = (Array.isArray(s.frame.mainIdeas) ? s.frame.mainIdeas.length : 0) + 1;
+  const nextCauseNumber =
+  (s.frameMeta?.frameType === "causeEffect"
+    ? (s.frame.causes || []).length
+    : (s.frame.mainIdeas || []).length) + 1;
   label = `${s.frameMeta?.frameType === "causeEffect" ? "Cause" : "Main Idea"} ${nextCauseNumber}`; 
 }
 
@@ -1931,7 +1934,7 @@ if (s.pending?.type === "collectAnotherDetail") {
   
   if (s.pending?.type === "confirmDetails") {
     const i = Number(s.pending.index);
-    const mi = s.frame.mainIdeas?.[i] || "";
+    const mi = getIdeaList(s)[i] || "";
     const arr = Array.isArray(s.frame.details?.[i]) ? s.frame.details[i] : [];
     const lineLabel = s.frameMeta?.purpose === "read" ? "Text Evidence" : "Supporting Detail";
     const lines = arr.map((d, k) => `${lineLabel} ${k + 1}: ${d}`).join("\n");
@@ -1980,9 +1983,11 @@ if (s.pending?.type === "collectAnotherDetail") {
     return pb || `Finish this sentence: "${s.frame.keyTopic} is about ____."`;
   }
 
-  if (s.frame.mainIdeas.length < 2) {
-    let pb = getPromptForStage(s, "mainIdeas");
-    const c = s.frame.mainIdeas.length; // 0 or 1
+  const ideas = getIdeaList(s);
+
+if (ideas.length < 2) {
+  let pb = getPromptForStage(s, "mainIdeas");
+  const c = ideas.length;
 
     const isCE = s.frameMeta?.frameType === "causeEffect";
     const label = isCE ? "Cause" : "Main Idea";
@@ -2004,8 +2009,8 @@ if (s.pending?.type === "collectAnotherDetail") {
   }
 
   // DETAILS LOOP (CLEANED — no duplicate fallback / brace drift)
-  for (let i = 0; i < s.frame.mainIdeas.length; i++) {
-    const mi = s.frame.mainIdeas[i];
+   for (let i = 0; i < ideas.length; i++) {
+    const mi = ideas[i];
     const arr = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
     if (arr.length < 2) {
       const pb = getPromptForStage(s, `details:${i}`);
