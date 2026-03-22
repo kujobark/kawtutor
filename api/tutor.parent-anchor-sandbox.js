@@ -1907,14 +1907,14 @@ if (s.pending?.type === "confirmMainIdeas") {
   
 if (s.pending?.type === "offerAnotherMainIdea") {
   const isCE = s.frameMeta?.frameType === "causeEffect";
-  const count = (s.frame.causes || []).length;
+  const count = getIdeaList(s).length;
   const label = isCE ? "Cause" : "Main Idea";
   return `You currently have ${count} ${label}${count > 1 ? "s" : ""}. Would you like to add another ${label}? (yes/no)`;
 }
 
 if (s.pending?.type === "collectAnotherMainIdea") {
   const isCE = s.frameMeta?.frameType === "causeEffect";
-  const count = (s.frame.causes || []).length + 1;
+  const count = getIdeaList(s).length + 1;
   return isCE
     ? `What is Cause ${count} that helps explain ${s.frame.keyTopic}?`
     : `What is Main Idea ${count} that helps explain ${s.frame.keyTopic}?`;
@@ -2433,7 +2433,6 @@ if (s.pending?.type === "collectAnotherMainIdea") {
   s.pending = { type: "offerAnotherMainIdea" };
   return s;
 }
-  }
 
   if (s.pending?.type === "offerAnotherDetail") {
     const normalized = msg.toLowerCase().trim();
