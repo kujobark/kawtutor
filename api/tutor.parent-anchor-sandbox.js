@@ -2670,7 +2670,8 @@ export default async function handler(req, res) {
     const body = req.body && typeof req.body === "object" ? req.body : {};
     const message = cleanText(body.message || "");
 
-  let state = body.state || body.vercelState || body.framing || defaultState();
+  let incoming = body.state || body.vercelState || body.framing || {};
+  let state = normalizeIncomingState(incoming);
     
     // Safety
     if (message) {
