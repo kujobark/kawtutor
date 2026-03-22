@@ -2597,9 +2597,7 @@ if (ideas.length < 2) {
         s.frame.details[s.frame.causes.length - 1] = [];
       }
 
-      // Always ask after adding a cause
       s.pending = { type: "offerAnotherMainIdea" };
-      }
     } else {
       if (!Array.isArray(s.frame.mainIdeas)) s.frame.mainIdeas = [];
       if (!Array.isArray(s.frame.details)) s.frame.details = [];
