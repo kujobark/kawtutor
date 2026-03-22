@@ -2669,8 +2669,8 @@ export default async function handler(req, res) {
     const body = req.body && typeof req.body === "object" ? req.body : {};
     const message = cleanText(body.message || "");
 
-    let state = normalizeIncomingState(body.state || body.vercelState || body.framing || {});
-
+  let state = body.state || body.vercelState || body.framing || defaultState();
+    
     // Safety
     if (message) {
       const safety = await classifyMessage(message);
