@@ -385,20 +385,18 @@ function applyPromptTokens(template, state) {
   let out = template || "";
   const kt = state?.frame?.keyTopic || "";
   const eff = state?.frame?.effect || "";
-  const mainIdeas = Array.isArray(state?.frame?.mainIdeas)
-    ? state.frame.mainIdeas.filter(Boolean)
-    : [];
+const ideas = getIdeaList(state).filter(Boolean);
 
-  const activeStage = state?.pending?.stage || getStage(state) || "";
-  let cause = mainIdeas.length ? mainIdeas[mainIdeas.length - 1] : "";
+const activeStage = state?.pending?.stage || getStage(state) || "";
+let cause = ideas.length ? ideas[ideas.length - 1] : "";
 
-  if (typeof activeStage === "string" && activeStage.startsWith("details:")) {
-    const rawIndex = activeStage.split(":")[1];
-    const idx = Number(rawIndex);
-    if (Number.isInteger(idx) && mainIdeas[idx]) {
-      cause = mainIdeas[idx];
-    }
+if (typeof activeStage === "string" && activeStage.startsWith("details:")) {
+  const rawIndex = activeStage.split(":")[1];
+  const idx = Number(rawIndex);
+  if (Number.isInteger(idx) && ideas[idx]) {
+    cause = ideas[idx];
   }
+}
 
   // Key Topic token
   if (kt) out = out.replace(/\[Key Topic\]/g, kt);
@@ -496,12 +494,10 @@ function buildStuckNudges(state, stage) {
     state?.frame?.result ||
     "";
 
-  const mainIdeas = Array.isArray(state?.frame?.mainIdeas)
-    ? state.frame.mainIdeas.filter(Boolean)
-    : [];
+const ideas = getIdeaList(state).filter(Boolean);
 
-  const mostRecentCause =
-    mainIdeas.length > 0 ? mainIdeas[mainIdeas.length - 1] : "";
+const mostRecentCause =
+  ideas.length > 0 ? ideas[ideas.length - 1] : "";
 
   const genericMainIdeas = [
     "What is one main idea you could add?",
@@ -765,14 +761,15 @@ const FRAME_STAGE_SEQUENCE = [
 function getStage(state) {
   const f = state.frame;
   const m = state.frameMeta || {};
+  const ideas = getIdeaList(state);
 
   if (!m.purpose) return "purpose";
   if (!m.frameType) return "frameType";
   if (!f.keyTopic) return "keyTopic";
   if (!f.isAbout) return "isAbout";
-  if ((f.mainIdeas || []).length < 2) return "mainIdeas";
+  if (ideas.length < 2) return "mainIdeas";
 
-  for (let i = 0; i < (f.mainIdeas || []).length; i++) {
+  for (let i = 0; i < ideas.length; i++) {
     const arr = Array.isArray(f.details?.[i]) ? f.details[i] : [];
     if (arr.length < 2) return `details:${i}`;
   }
@@ -785,6 +782,14 @@ function getBaseStage(stage) {
   if (!stage) return "";
   if (stage.startsWith("details:")) return "details";
   return stage;
+}
+
+function getIdeaList(state) {
+  const isCE = state?.frameMeta?.frameType === "causeEffect";
+  if (isCE) {
+    return Array.isArray(state?.frame?.causes) ? state.frame.causes : [];
+  }
+  return Array.isArray(state?.frame?.mainIdeas) ? state.frame.mainIdeas : [];
 }
 
 // ---------------------
@@ -1230,7 +1235,7 @@ function buildMiniQuestion(state) {
  const isDetailsStage = isParentAnchorInStage(state, "detailsLoop");
   if (isDetailsStage) {
   const idx = Number(stage.split(":")[1]);
-  const mi = state.frame?.mainIdeas?.[idx] || "this main idea";
+  const mi = getIdeaList(state)[idx] || "this main idea";
 
   if (isCE) {
     return `You identified this cause:\n\n"${mi}"\n\nNow think about how that leads to this effect:\n\n"${effect}"\n\nWhat detail or example shows how this cause produces the effect?`;
@@ -1324,20 +1329,25 @@ base.frame.mainIdeas = Array.isArray(frame.mainIdeas)
   ? frame.mainIdeas.map(cleanText).filter(Boolean)
   : [];
 
-// 🔥 TEMP SYNC (Phase 1 only)
-if (base.frame.causes.length && base.frame.mainIdeas.length === 0) {
-  base.frame.mainIdeas = [...base.frame.causes];
-}
-
   if (Array.isArray(frame.details)) {
     base.frame.details = frame.details.map((bucket) => (Array.isArray(bucket) ? bucket.map(cleanText).filter(Boolean) : []));
   } else if (frame.details && typeof frame.details === "object") {
     // legacy object form
-    const obj = frame.details;
-    base.frame.details = base.frame.mainIdeas.map((mi) => {
-      const bucket = obj[mi];
-      return Array.isArray(bucket) ? bucket.map(cleanText).filter(Boolean) : [];
-    });
+   const obj = frame.details;
+const rawFrameType =
+  s?.frameMeta && typeof s.frameMeta === "object"
+    ? cleanText(s.frameMeta.frameType || "")
+    : "";
+
+const ideaSeed =
+  rawFrameType === "causeEffect"
+    ? base.frame.causes
+    : base.frame.mainIdeas;
+
+base.frame.details = ideaSeed.map((mi) => {
+  const bucket = obj[mi];
+  return Array.isArray(bucket) ? bucket.map(cleanText).filter(Boolean) : [];
+});
   } else {
     base.frame.details = [];
   }
@@ -1387,9 +1397,24 @@ if (base.frame.causes.length && base.frame.mainIdeas.length === 0) {
 
 function ensureBuckets(s) {
   if (!Array.isArray(s.frame.details)) s.frame.details = [];
+
+  if (s.frameMeta?.frameType === "causeEffect") {
+    if (!Array.isArray(s.frame.causes)) s.frame.causes = [];
+
+    for (let i = 0; i < s.frame.causes.length; i++) {
+      if (!Array.isArray(s.frame.details[i])) {
+        s.frame.details[i] = [];
+      }
+    }
+    return;
+  }
+
   if (!Array.isArray(s.frame.mainIdeas)) s.frame.mainIdeas = [];
+
   for (let i = 0; i < s.frame.mainIdeas.length; i++) {
-    if (!Array.isArray(s.frame.details[i])) s.frame.details[i] = [];
+    if (!Array.isArray(s.frame.details[i])) {
+      s.frame.details[i] = [];
+    }
   }
 }
 
@@ -1402,11 +1427,13 @@ function appendTurn(s, role, text) {
 }
 
 function isFrameComplete(s) {
+  const ideas = getIdeaList(s);
+
   if (!s.frame.keyTopic) return false;
   if (!s.frame.isAbout) return false;
-  if (!Array.isArray(s.frame.mainIdeas) || s.frame.mainIdeas.length < 2) return false;
+  if (ideas.length < 2) return false;
 
-  for (let i = 0; i < s.frame.mainIdeas.length; i++) {
+  for (let i = 0; i < ideas.length; i++) {
     const arr = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
     if (arr.length < 2) return false;
   }
@@ -1448,7 +1475,8 @@ if (isCE) {
   // Surface-labeling only (structure unchanged)
   lines.push(isCE ? "CAUSES + SUPPORTING DETAILS:" : "MAIN IDEAS + SUPPORTING DETAILS:");
 
-  s.frame.mainIdeas.forEach((mi, i) => {
+  const ideas = getIdeaList(s);
+  ideas.forEach((mi, i) => {
     lines.push(`${isCE ? "Cause" : "Main Idea"} ${i + 1}: ${mi}`);
     const details = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
     const detailLabel = s.frameMeta?.purpose === "read" ? "Text Evidence" : "Supporting Detail";
@@ -1540,10 +1568,7 @@ function applyIsAboutCapture(s, msg) {
     }
     if (parsed.cause) s.frame.causes = [parsed.cause];
     if (parsed.effect) s.frame.effect = parsed.effect;
-    if (parsed.cause) {
-  s.frame.causes = [parsed.cause];
-  s.frame.mainIdeas = [parsed.cause]; // 🔥 KEEP ENGINE IN SYNC
-}
+   
   }
 
   // Study/Read + causeEffect: treat the isAbout response as the central effect/result
@@ -1630,18 +1655,16 @@ if (s.pending?.type === "stuckReask") {
     s?.frame?.result ||
     "";
 
-  const mainIdeas = Array.isArray(s?.frame?.mainIdeas)
-    ? s.frame.mainIdeas.filter(Boolean)
-    : [];
+ const ideas = getIdeaList(s).filter(Boolean);
 
-  let selectedMainIdea = "";
+   let selectedMainIdea = "";
   if (typeof stage === "string" && stage.startsWith("details:")) {
     const rawIndex = stage.split(":")[1];
     const idx = Number(rawIndex);
-    selectedMainIdea = Number.isInteger(idx) ? (mainIdeas[idx] || "") : "";
-  } else if (mainIdeas.length > 0) {
-    selectedMainIdea = mainIdeas[mainIdeas.length - 1] || "";
-  }
+    selectedMainIdea = Number.isInteger(idx) ? (ideas[idx] || "") : "";
+  } else if (ideas.length > 0) {
+    selectedMainIdea = ideas[ideas.length - 1] || "";
+}
 
   if (s.pending.mode === "directions") {
     if (typeof stage === "string" && stage.startsWith("details:")) {
@@ -1855,7 +1878,7 @@ Is that correct, or would you like to revise it?`;
 if (s.pending?.type === "confirmMainIdeas") {
   const isCE = s.frameMeta?.frameType === "causeEffect";
 
-  const lines = (s.frame.mainIdeas || []).map((mi, i) =>
+  const lines = getIdeaList(s).map((mi, i) =>
     `${isCE ? "Cause" : "Main Idea"} ${i + 1}: ${mi}`
   ).join("\n");
 
@@ -2341,7 +2364,12 @@ if (s.pending?.type === "reviseIsAbout") {
     const normalized = msg.toLowerCase().trim();
 
     if (isAffirmative(normalized)) {
-      if ((s.frame.mainIdeas || []).length >= 5) {
+      const count =
+  s.frameMeta?.frameType === "causeEffect"
+    ? (s.frame.causes || []).length
+    : (s.frame.mainIdeas || []).length;
+
+if (count >= 5) {  
         s.pending = { type: "confirmMainIdeas" };
         return s;
       }
@@ -2359,11 +2387,9 @@ if (s.pending?.type === "reviseIsAbout") {
 
     if (isCE) {
       if (!Array.isArray(s.frame.causes)) s.frame.causes = [];
-      if (!Array.isArray(s.frame.mainIdeas)) s.frame.mainIdeas = [];
       if (!Array.isArray(s.frame.details)) s.frame.details = [];
 
       s.frame.causes.push(msg);
-      s.frame.mainIdeas.push(msg); // TEMP sync for legacy paths still reading mainIdeas
 
       if (!Array.isArray(s.frame.details[s.frame.causes.length - 1])) {
         s.frame.details[s.frame.causes.length - 1] = [];
@@ -2531,15 +2557,42 @@ if (s.pending?.type === "reviseIsAbout") {
   }
 
   // 4) Main Ideas capture
-  if (s.frame.mainIdeas.length < 2) {
-    if (!isNegative(msg)) {
+  const ideas = getIdeaList(s);
+
+if (ideas.length < 2) {
+  if (!isNegative(msg)) {
+    if (s.frameMeta?.frameType === "causeEffect") {
+      if (!Array.isArray(s.frame.causes)) s.frame.causes = [];
+      if (!Array.isArray(s.frame.details)) s.frame.details = [];
+
+      s.frame.causes.push(msg);
+      clearMatchingSkip(s, "mainIdeas");
+
+      if (!Array.isArray(s.frame.details[s.frame.causes.length - 1])) {
+        s.frame.details[s.frame.causes.length - 1] = [];
+      }
+
+      if (s.frame.causes.length === 2) {
+        s.pending = { type: "offerAnotherMainIdea" };
+      }
+    } else {
+      if (!Array.isArray(s.frame.mainIdeas)) s.frame.mainIdeas = [];
+      if (!Array.isArray(s.frame.details)) s.frame.details = [];
+
       s.frame.mainIdeas.push(msg);
       clearMatchingSkip(s, "mainIdeas");
-      if (!Array.isArray(s.frame.details[s.frame.mainIdeas.length - 1])) s.frame.details[s.frame.mainIdeas.length - 1] = [];
-      if (s.frame.mainIdeas.length === 2) s.pending = { type: "offerAnotherMainIdea" };
+
+      if (!Array.isArray(s.frame.details[s.frame.mainIdeas.length - 1])) {
+        s.frame.details[s.frame.mainIdeas.length - 1] = [];
+      }
+
+      if (s.frame.mainIdeas.length === 2) {
+        s.pending = { type: "offerAnotherMainIdea" };
+      }
     }
-    return s;
   }
+  return s;
+}
 
    // 5) Details capture
   for (let i = 0; i < s.frame.mainIdeas.length; i++) {
