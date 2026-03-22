@@ -1388,11 +1388,15 @@ base.frame.details = ideaSeed.map((mi) => {
   }
 
   // ensure detail buckets exist for each main idea
-  for (let i = 0; i < base.frame.mainIdeas.length; i++) {
-    if (!Array.isArray(base.frame.details[i])) base.frame.details[i] = [];
-  }
+  const ideaSeed =
+  rawFrameType === "causeEffect"
+    ? base.frame.causes
+    : base.frame.mainIdeas;
 
-  return base;
+for (let i = 0; i < ideaSeed.length; i++) {
+  if (!Array.isArray(base.frame.details[i])) {
+    base.frame.details[i] = [];
+  }
 }
 
 function ensureBuckets(s) {
@@ -1907,7 +1911,7 @@ if (s.pending?.type === "collectAnotherMainIdea") {
   
  if (s.pending?.type === "offerAnotherDetail") {
   const i = Number(s.pending.index);
-  const mi = s.frame.causes?.[i] || s.frame.mainIdeas?.[i] || "";
+  const mi = getIdeaList(s)[i] || "";
 
   const isCE = s.frameMeta?.frameType === "causeEffect";
   const miLabel = isCE ? "Cause" : "Main Idea";
@@ -1920,8 +1924,7 @@ if (s.pending?.type === "collectAnotherMainIdea") {
   
 if (s.pending?.type === "collectAnotherDetail") {
   const i = Number(s.pending.index);
-  const mi = s.frame.causes?.[i] || s.frame.mainIdeas?.[i] || "";
-  
+  const mi = getIdeaList(s)[i] || "";  
 
   const isCE = s.frameMeta?.frameType === "causeEffect";
   const miLabel = isCE ? "Cause" : "Main Idea";
@@ -2391,14 +2394,27 @@ if (count >= 5) {
     const isCE = s.frameMeta?.frameType === "causeEffect";
 
     if (isCE) {
-      if (!Array.isArray(s.frame.causes)) s.frame.causes = [];
-      if (!Array.isArray(s.frame.details)) s.frame.details = [];
+    if (stage === "mainIdeas") {
+  if (s.frameMeta?.frameType === "causeEffect") {
+    if (!Array.isArray(s.frame.causes)) s.frame.causes = [];
+    if (!Array.isArray(s.frame.details)) s.frame.details = [];
 
-      s.frame.causes.push(msg);
+    s.frame.causes.push(msg);
 
-      if (!Array.isArray(s.frame.details[s.frame.causes.length - 1])) {
-        s.frame.details[s.frame.causes.length - 1] = [];
-      }
+    if (!Array.isArray(s.frame.details[s.frame.causes.length - 1])) {
+      s.frame.details[s.frame.causes.length - 1] = [];
+    }
+  } else {
+    if (!Array.isArray(s.frame.mainIdeas)) s.frame.mainIdeas = [];
+    if (!Array.isArray(s.frame.details)) s.frame.details = [];
+
+    s.frame.mainIdeas.push(msg);
+
+    if (!Array.isArray(s.frame.details[s.frame.mainIdeas.length - 1])) {
+      s.frame.details[s.frame.mainIdeas.length - 1] = [];
+    }
+  }
+}
     } else {
       if (!Array.isArray(s.frame.mainIdeas)) s.frame.mainIdeas = [];
       if (!Array.isArray(s.frame.details)) s.frame.details = [];
@@ -2600,7 +2616,9 @@ if (ideas.length < 2) {
 }
 
    // 5) Details capture
-  for (let i = 0; i < s.frame.mainIdeas.length; i++) {
+  const ideas = getIdeaList(s);
+
+for (let i = 0; i < ideas.length; i++) {
     const arr = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
 
     if (arr.length < 2) {
