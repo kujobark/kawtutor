@@ -919,7 +919,7 @@ const PARENT_ANCHOR_BRIDGE = {
     if (rawStage === "frameType") return "frameType";
     if (rawStage === "keyTopic") return "keyTopic";
     if (rawStage === "isAbout") return "isAbout";
-    if (rawStage === "mainIdeas") return "mainIdeas";
+    if (rawStage === "mainIdeas") return "parentItems";
     if (typeof rawStage === "string" && rawStage.startsWith("details:")) return "detailsLoop";
     if (rawStage === "soWhat") return "soWhat";
     if (rawStage === "refine") return "export";
@@ -1124,9 +1124,9 @@ const CauseEffectFrame = {
       case "isAbout":
       case "isAboutConfirm":
         return "Is About";
-      case "mainIdeas":
-      case "mainIdeasConfirm":
-        return "Cause";
+     case "parentItems":
+        case "parentItemsConfirm":
+    return "Cause";
       case "detailsLoop":
       case "detailsConfirmLoop":
         return state?.frameMeta?.purpose === "read"
@@ -1614,6 +1614,8 @@ function applyIsAboutCapture(s, msg) {
 function computeNextQuestion(state) {
   const s = state;
   ensureBuckets(s); //
+
+  const paContext = getParentAnchorContext(s);
   
   // ---------------------
   // PARENT ANCHOR OBSERVATION HOOK (SANDBOX ONLY)
@@ -1625,9 +1627,10 @@ function computeNextQuestion(state) {
   // Gated sandbox-only observation:
 if (s?.settings?.debugParentAnchor) {
   const paObs = getParentAnchorObservation(s);
-  const isInDetails = isParentAnchorInStage(s, "detailsLoop");
+  const isInDetails = paContext.ownerStructuralStage === "detailsLoop";
 
   const stage = s.pending?.stage || getStage(s);
+  const paStage = paContext.ownerStructuralStage;
   const baseStage = getBaseStage(stage);
   const engineIsDetails = baseStage === "details";
 
