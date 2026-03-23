@@ -850,8 +850,8 @@ const PARENT_ANCHOR_BRIDGE = {
     "keyTopic",
     "isAbout",
     "isAboutConfirm",
-    "mainIdeas",
-    "mainIdeasConfirm",
+    "parentItems",
+    "parentItemsConfirm",
     "detailsLoop",
     "detailsConfirmLoop",
     "soWhat",
@@ -867,9 +867,9 @@ const PARENT_ANCHOR_BRIDGE = {
   confirmationStageByPending: {
     confirmIsAbout: "isAboutConfirm",
 
-    offerAnotherMainIdea: "mainIdeasConfirm",
-    collectAnotherMainIdea: "mainIdeasConfirm",
-    confirmMainIdeas: "mainIdeasConfirm",
+     offerAnotherMainIdea: "parentItemsConfirm",
+     collectAnotherMainIdea: "parentItemsConfirm",
+     confirmMainIdeas: "parentItemsConfirm",
 
     offerAnotherDetail: "detailsConfirmLoop",
     collectAnotherDetail: "detailsConfirmLoop",
