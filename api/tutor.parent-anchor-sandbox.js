@@ -2302,44 +2302,14 @@ if (s.pending?.type === "stuckNudge") {
     }
 
 if (stage === "mainIdeas") {
-  if (!Array.isArray(s.frame.causes)) s.frame.causes = [];
-
-  const cleanMsg = cleanText(msg);
-
-  if (cleanMsg) {
-    s.frame.causes.push(cleanMsg);
-
-    clearMatchingSkip(s, "mainIdeas");
-
-    if (!Array.isArray(s.frame.details[s.frame.causes.length - 1])) {
-      s.frame.details[s.frame.causes.length - 1] = [];
-    }
-
-   // Always ask after adding a cause
-s.pending = { type: "offerAnotherMainIdea" };
-  }
-
-  return s;
+  s.pending = null;
+  return updateStateFromStudent(s, msg);
 }
 
     if (stage.startsWith("details:")) {
-      const idx = Number(stage.split(":")[1]);
-      const arr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
-      if (arr.length < 2 && !isNegative(msg)) {
-        if (shouldRequestEvidenceDetail(s, msg)) {
-          s.pending = { type: "writeNeedEvidenceDetail", index: idx, mechanism: msg };
-          return s;
-        }
-        s.frame.details[idx] = [...arr, msg];
-        clearMatchingSkip(s, `details:${idx}`);
-        if (s.frame.details[idx].length === 2) {
-          s.pending = { type: "offerAnotherDetail", index: idx };
-          return s;
-        }
-      }
-      s.pending = null;
-      return s;
-    }
+  s.pending = null;
+  return updateStateFromStudent(s, msg);
+}
 
     if (stage === "soWhat") {
       if (!s.frame.soWhat && !isNegative(msg)) {
