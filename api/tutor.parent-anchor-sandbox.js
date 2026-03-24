@@ -1215,6 +1215,7 @@ function buildMiniQuestion(state) {
   // but does NOT control prompt selection in this phase.
 
   const paContext = getParentAnchorContext(state);
+  const paStage = paContext.ownerStructuralStage;
   const framePromptTerm = getFramePromptTerm(state, paContext.ownerStructuralStage);
   const keyTopic = state.frame?.keyTopic || "your topic";
   const effect = state.frame?.effect || state.frame?.isAbout || "the effect";
@@ -2012,7 +2013,7 @@ if (s.pending?.type === "collectAnotherDetail") {
 
   const ideas = getIdeaList(s);
 
-if (ideas.length < 2) {
+if (paStage === "parentItems") {
   let pb = getPromptForStage(s, "mainIdeas");
   const c = ideas.length;
 
