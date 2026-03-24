@@ -2013,7 +2013,7 @@ if (s.pending?.type === "collectAnotherDetail") {
 
   const ideas = getIdeaList(s);
 
-if (paStage === "parentItems") {
+if (paStage === "parentItems" || ideas.length < 2) {
   let pb = getPromptForStage(s, "mainIdeas");
   const c = ideas.length;
 
