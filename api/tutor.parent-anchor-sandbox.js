@@ -2040,7 +2040,7 @@ if (paStage === "parentItems" || ideas.length < 2) {
    for (let i = 0; i < ideas.length; i++) {
     const mi = ideas[i];
     const arr = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
-    if (arr.length < 2) {
+    if (paStage === "detailsLoop" && arr.length < 2) {
       const pb = getPromptForStage(s, `details:${i}`);
       const detailNum = arr.length + 1; // 1 or 2
 
