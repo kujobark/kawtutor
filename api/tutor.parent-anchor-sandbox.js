@@ -1110,9 +1110,58 @@ function isParentAnchorLoopType(state, loopType) {
 // The runtime engine remains owned by getStage(), computeNextQuestion(),
 // and updateStateFromStudent().
 
+// ---------------------
+// CHILD ANCHOR CONTRACT
+// ---------------------
+// Child anchors are frame-specific instructional adapters that plug into
+// the Parent Anchor structure.
+//
+// Parent Anchor owns:
+// - invariant structure
+// - structural stage ownership
+// - loop ownership
+//
+// Child Anchor owns:
+// - frame-specific instructional language
+// - mapping structural slots to frame language
+//   (for example: parentItems -> causes / themes / main ideas)
+// - prompt wording and coaching tone
+// - frame-specific parsing hooks, if needed
+// - frame-specific sufficiency rules for a structural slot, if needed
+//
+// In this phase, child anchors should not replace Parent Anchor stage
+// control. They translate Parent Anchor structure into the frame's
+// instructional voice and behavior.
+
+// ---------------------
+// CHILD ADAPTER SHAPE (MINIMUM EXPECTATION)
+// ---------------------
+// Each child anchor should provide:
+//
+// - id:
+//   unique frame identifier (e.g., "causeEffect", "themes")
+//
+// - getLabel(structuralStage, state):
+//   returns the student-facing label for a structural stage
+//   (e.g., "Cause", "Theme", "Main Idea")
+//
+// - getPromptTerm(structuralStage, state):
+//   returns the term used inside prompts for that stage
+//   (keeps Kaw's instructional language frame-specific)
+//
+// Optional (frame-specific, not always needed):
+// - parsing behavior for student input
+// - sufficiency rules if they differ from defaults
+// - export labeling adjustments
+//
+// Child adapters do NOT:
+// - control progression
+// - control loop ownership
+// - override Parent Anchor stage decisions
+
 const CauseEffectFrame = {
   id: "causeEffect",
-
+  
   getLabel(structuralStage, state) {
     switch (structuralStage) {
       case "purpose":
@@ -1124,9 +1173,9 @@ const CauseEffectFrame = {
       case "isAbout":
       case "isAboutConfirm":
         return "Is About";
-     case "parentItems":
-        case "parentItemsConfirm":
-    return "Cause";
+      case "parentItems":
+      case "parentItemsConfirm":
+        return "Cause";
       case "detailsLoop":
       case "detailsConfirmLoop":
         return state?.frameMeta?.purpose === "read"
@@ -1147,16 +1196,22 @@ const CauseEffectFrame = {
   },
 };
 
+// ---------------------
+// CHILD FRAME REGISTRY
+// ---------------------
+// Central place to register all child anchors.
+// This allows new frames to plug into the system
+// without modifying Parent Anchor logic.
+
+const CHILD_FRAMES = {
+  causeEffect: CauseEffectFrame
+};
+
 function getFrameAdapter(state) {
   const frameType =
     state?.frameMeta?.frameType || state?.frameType || "causeEffect";
 
-  switch (frameType) {
-    case "causeEffect":
-      return CauseEffectFrame;
-    default:
-      return CauseEffectFrame;
-  }
+  return CHILD_FRAMES[frameType] || CHILD_FRAMES["causeEffect"];
 }
 
 function getFrameLabel(state, structuralStage) {
