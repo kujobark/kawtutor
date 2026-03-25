@@ -2453,14 +2453,28 @@ if (s.pending?.type === "collectAnotherMainIdea") {
     return s;
   }
 
-  if (s.pending?.type === "confirmDetails") {
-    const normalized = msg.toLowerCase().trim();
-    if (isAffirmative(normalized)) {
-      s.pending = null;
-      return s;
-    }
+if (s.pending?.type === "confirmDetails") {
+  const normalized = msg.toLowerCase().trim();
+  const idx = Number(s.pending.index);
+  const arr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
+
+  if (isAffirmative(normalized)) {
+    s.pending = null;
     return s;
   }
+
+  if (isNegative(normalized)) {
+    if (arr.length < 2) {
+      s.pending = { type: "collectAnotherDetail", index: idx };
+      return s;
+    }
+
+    s.pending = null;
+    return s;
+  }
+
+  return s;
+}
 
   if (s.pending?.type === "offerMoreSoWhat") {
     const normalized = msg.toLowerCase().trim();
