@@ -1337,6 +1337,43 @@ function evaluateThemesIsAbout(state, response) {
   };
 }
 
+function evaluateThemesSoWhat(state, response) {
+  const text = (response || "").toLowerCase().trim();
+  const isAbout = (state?.frame?.isAbout || "").toLowerCase().trim();
+
+  // 1. Empty / too short
+  if (!text || text.length < 10) {
+    return { sufficient: false, category: "too_short" };
+  }
+
+  // 2. Just repeating isAbout
+  if (isAbout && text.includes(isAbout.slice(0, 20))) {
+    return { sufficient: false, category: "restate" };
+  }
+
+  // 3. Vague language
+  const vaguePatterns = [
+    "this is important",
+    "this shows that",
+    "this means that",
+    "it is important",
+    "this tells us"
+  ];
+
+  if (vaguePatterns.some(p => text.startsWith(p))) {
+    return { sufficient: false, category: "vague" };
+  }
+
+  // 4. Looks like summary (mentions topic directly)
+  const topic = (state?.frame?.keyTopic || "").toLowerCase();
+  if (topic && text.includes(topic)) {
+    return { sufficient: false, category: "summary" };
+  }
+
+  // Otherwise acceptable
+  return { sufficient: true };
+}
+
 // ---------------------
 // CHILD FRAME REGISTRY
 // ---------------------
@@ -2562,7 +2599,19 @@ if (stage === "mainIdeas") {
 
     if (stage === "soWhat") {
       if (!s.frame.soWhat && !isNegative(msg)) {
-        s.frame.soWhat = msg;
+if (s.frameMeta?.frameType === "themes") {
+  const evaluation = evaluateThemesSoWhat(s, msg);
+
+  if (!evaluation.sufficient) {
+    s.pending = {
+      type: "reviseThemesSoWhat",
+      category: evaluation.category
+    };
+    return s;
+  }
+}
+
+s.frame.soWhat = msg;
         clearMatchingSkip(s, "soWhat");
         s.pending = { type: "offerMoreSoWhat" };
         return s;
@@ -2579,7 +2628,26 @@ if (stage === "mainIdeas") {
   s.pending = null;
   return applyIsAboutCapture(s, msg);
 }
+if (s.pending?.type === "reviseThemesSoWhat") {
+  if (!isNegative(msg)) {
+    const evaluation = evaluateThemesSoWhat(s, msg);
 
+    if (!evaluation.sufficient) {
+      s.pending = {
+        type: "reviseThemesSoWhat",
+        category: evaluation.category
+      };
+      return s;
+    }
+
+    s.frame.soWhat = msg;
+    s.pending = { type: "offerMoreSoWhat" };
+    return s;
+  }
+
+  return s;
+}
+  
   if (s.pending?.type === "confirmIsAbout") {
   const normalized = msg.toLowerCase().trim();
 
