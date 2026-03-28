@@ -1276,9 +1276,15 @@ function buildMiniQuestion(state) {
   const effect = state.frame?.effect || state.frame?.isAbout || "the effect";
   const isCE = state.frameMeta?.frameType === "causeEffect";
 
-  if (stage === "purpose") {
-    return "Which one: 1) study/review, 2) write/create, or 3) reading/source notes (1–3)?";
-  }
+if (stage === "purpose") {
+  return (
+    "How will you use this Frame?\n" +
+    "1) Study — think through and organize your ideas\n" +
+    "2) Write — build a claim and support it\n" +
+    "3) Read — pull key ideas from a text or source\n\n" +
+    "Reply with 1, 2, or 3."
+  );
+}
 
   if (stage === "keyTopic") {
     return `Your frame begins with the Key Topic.\n\nIn just a few words, what is the name of the topic you are exploring?`;
@@ -2039,14 +2045,14 @@ if (s.pending?.type === "collectAnotherDetail") {
 
   // Base progression
   if (!s.frameMeta?.purpose) {
-    return (
-      "How will you use this Frame.\n" +
-      "1) Study / review\n" +
-      "2) Write / create\n" +
-      "3) Create notes from a reading or source\n" +
-      "Reply with 1, 2, or 3?"
-    );
-  }
+  return (
+    "How will you use this Frame?\n" +
+    "1) Study — think through and organize your ideas\n" +
+    "2) Write — build a claim and support it\n" +
+    "3) Read — pull key ideas from a text or source\n" +
+    "Reply with 1, 2, or 3."
+  );
+}
 
   if (!s.frameMeta?.frameType) {
     return (
