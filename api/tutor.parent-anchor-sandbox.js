@@ -1381,7 +1381,6 @@ function evaluateThemesSoWhat(state, response) {
 const CHILD_FRAMES = {
   causeEffect: CauseEffectFrame,
   themes: ThemesFrame
-  newFrameType: NewFrameFrame
 };
 
 function getFrameAdapter(state) {
@@ -2594,33 +2593,6 @@ if (stage === "mainIdeas") {
   s.pending = null;
   return updateStateFromStudent(s, msg);
 }
-
-    if (stage === "soWhat") {
-      if (!s.frame.soWhat && !isNegative(msg)) {
-if (s.frameMeta?.frameType === "themes") {
-  const evaluation = evaluateThemesSoWhat(s, msg);
-
-  if (!evaluation.sufficient) {
-    s.pending = {
-      type: "reviseThemesSoWhat",
-      category: evaluation.category
-    };
-    return s;
-  }
-}
-
-s.frame.soWhat = msg;
-        clearMatchingSkip(s, "soWhat");
-        s.pending = { type: "offerMoreSoWhat" };
-        return s;
-      }
-      s.pending = null;
-      return s;
-    }
-
-    s.pending = null;
-    return s;
-  }
 
  if (s.pending?.type === "reviseThemesIsAbout") {
   s.pending = null;
