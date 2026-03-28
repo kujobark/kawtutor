@@ -798,8 +798,8 @@ function getIdeaList(state) {
       : [];
   }
 
-  return Array.isArray(state?.frame?.mainIdeas)
-    ? state.frame.mainIdeas
+  return Array.isArray(state?.frame?.parentItems)
+    ? state.frame.parentItems
     : [];
 }
 
