@@ -1562,7 +1562,7 @@ const rawFrameType =
 const ideaSeed =
   rawFrameType === "causeEffect"
     ? base.frame.causes
-    : base.frame.mainIdeas;
+    : base.frame.parentItems;
 
 base.frame.details = ideaSeed.map((mi) => {
   const bucket = obj[mi];
@@ -1612,7 +1612,7 @@ const isCE = base.frameMeta?.frameType === "causeEffect";
 
 const ideaSeed = isCE
   ? (base.frame.causes || [])
-  : (base.frame.mainIdeas || []);
+  : (base.frame.parentItems || []);
 
 for (let i = 0; i < ideaSeed.length; i++) {
   if (!Array.isArray(base.frame.details[i])) {
@@ -1637,9 +1637,9 @@ function ensureBuckets(s) {
     return;
   }
 
-  if (!Array.isArray(s.frame.mainIdeas)) s.frame.mainIdeas = [];
+  if (!Array.isArray(s.frame.parentItems)) s.frame.parentItems = [];
 
-  for (let i = 0; i < s.frame.mainIdeas.length; i++) {
+  for (let i = 0; i < s.frame.parentItems.length; i++) {
     if (!Array.isArray(s.frame.details[i])) {
       s.frame.details[i] = [];
     }
@@ -2831,21 +2831,43 @@ if (ideas.length < 2) {
       if (!Array.isArray(s.frame.mainIdeas)) s.frame.mainIdeas = [];
       if (!Array.isArray(s.frame.details)) s.frame.details = [];
 
-      s.frame.mainIdeas.push(msg);
-      clearMatchingSkip(s, "mainIdeas");
+if (s.pending?.type === "collectAnotherMainIdea") {
+  if (!isNegative(msg)) {
+    const isCE = s.frameMeta?.frameType === "causeEffect";
 
-      if (!Array.isArray(s.frame.details[s.frame.mainIdeas.length - 1])) {
-        s.frame.details[s.frame.mainIdeas.length - 1] = [];
+    if (isCE) {
+      if (!Array.isArray(s.frame.causes)) s.frame.causes = [];
+      if (!Array.isArray(s.frame.details)) s.frame.details = [];
+
+      s.frame.causes.push(msg);
+
+      if (!Array.isArray(s.frame.details[s.frame.causes.length - 1])) {
+        s.frame.details[s.frame.causes.length - 1] = [];
       }
+    } else {
+      if (!Array.isArray(s.frame.parentItems)) s.frame.parentItems = [];
+      if (!Array.isArray(s.frame.details)) s.frame.details = [];
 
-      if (s.frame.mainIdeas.length === 2) {
-        s.pending = { type: "offerAnotherMainIdea" };
+      s.frame.parentItems.push(msg);
+
+      if (!Array.isArray(s.frame.details[s.frame.parentItems.length - 1])) {
+        s.frame.details[s.frame.parentItems.length - 1] = [];
       }
     }
   }
+
+  const count = getIdeaList(s).length;
+
+  if (count >= 5) {
+    s.pending = { type: "confirmMainIdeas" };
+    return s;
+  }
+
+  s.pending = { type: "offerAnotherMainIdea" };
   return s;
 }
 
+      
    // 5) Details capture
 
 for (let i = 0; i < ideas.length; i++) {
