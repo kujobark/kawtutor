@@ -1835,6 +1835,7 @@ function computeNextQuestion(state) {
   ensureBuckets(s); //
 
   const paContext = getParentAnchorContext(s);
+  const paStage = paContext.ownerStructuralStage;
   
   // ---------------------
   // PARENT ANCHOR OBSERVATION HOOK (SANDBOX ONLY)
