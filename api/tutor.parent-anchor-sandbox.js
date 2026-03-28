@@ -2627,39 +2627,36 @@ if (s.pending?.type === "reviseIsAbout") {
     return s;
   }
 
-if (s.pending?.type === "collectAnotherMainIdea") {
+if (ideas.length < 2) {
   if (!isNegative(msg)) {
-    const isCE = s.frameMeta?.frameType === "causeEffect";
-
-    if (isCE) {
+    if (s.frameMeta?.frameType === "causeEffect") {
       if (!Array.isArray(s.frame.causes)) s.frame.causes = [];
       if (!Array.isArray(s.frame.details)) s.frame.details = [];
 
       s.frame.causes.push(msg);
+      clearMatchingSkip(s, "mainIdeas");
 
       if (!Array.isArray(s.frame.details[s.frame.causes.length - 1])) {
         s.frame.details[s.frame.causes.length - 1] = [];
       }
+
+      s.pending = { type: "offerAnotherMainIdea" };
     } else {
-      if (!Array.isArray(s.frame.mainIdeas)) s.frame.mainIdeas = [];
+      if (!Array.isArray(s.frame.parentItems)) s.frame.parentItems = [];
       if (!Array.isArray(s.frame.details)) s.frame.details = [];
 
-      s.frame.mainIdeas.push(msg);
+      s.frame.parentItems.push(msg);
+      clearMatchingSkip(s, "mainIdeas");
 
-      if (!Array.isArray(s.frame.details[s.frame.mainIdeas.length - 1])) {
-        s.frame.details[s.frame.mainIdeas.length - 1] = [];
+      if (!Array.isArray(s.frame.details[s.frame.parentItems.length - 1])) {
+        s.frame.details[s.frame.parentItems.length - 1] = [];
+      }
+
+      if (s.frame.parentItems.length === 2) {
+        s.pending = { type: "offerAnotherMainIdea" };
       }
     }
   }
-
-  const count = getIdeaList(s).length;
-
-  if (count >= 5) {
-    s.pending = { type: "confirmMainIdeas" };
-    return s;
-  }
-
-  s.pending = { type: "offerAnotherMainIdea" };
   return s;
 }
 
