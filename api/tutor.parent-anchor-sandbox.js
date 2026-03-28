@@ -1352,14 +1352,11 @@ function evaluateThemesSoWhat(state, response) {
   }
 
   // 3. Vague language
-  const vaguePatterns = [
-    "this is important",
-    "this shows that",
-    "this means that",
-    "it is important",
-    "this tells us"
-  ];
-
+ const vaguePatterns = [
+  "this is important",
+  "it is important"
+];
+  
   if (vaguePatterns.some(p => text.startsWith(p))) {
     return { sufficient: false, category: "vague" };
   }
