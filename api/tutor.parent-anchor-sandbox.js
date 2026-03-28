@@ -1230,7 +1230,7 @@ const ThemesFrame = {
     switch (structuralStage) {
       case "parentItems":
         return "theme support";
-      case "details":
+      case "detailsLoop":
         return "evidence and explanation";
       default:
         return this.getLabel(structuralStage, state).toLowerCase();
@@ -2610,6 +2610,7 @@ if (s.pending?.type === "reviseThemesSoWhat") {
       return s;
     }
 
+    // VALID SAVE PATH 2: revision handler save (after successful revision)
     s.frame.soWhat = msg;
     s.pending = { type: "offerMoreSoWhat" };
     return s;
@@ -2794,6 +2795,7 @@ if (s.pending?.type === "confirmDetails") {
       }
       return s;
     }
+    // VALID SAVE PATH 3: confirm fallback (user typed revision instead of yes/no)
     s.frame.soWhat = msg;
     s.pending = null;
     return s;
@@ -2940,6 +2942,7 @@ if (!s.frame.soWhat) {
       }
     }
 
+    // VALID SAVE PATH 1: normal So What capture (after evaluation)
     s.frame.soWhat = msg;
     clearMatchingSkip(s, "soWhat");
     s.pending = { type: "offerMoreSoWhat" };
