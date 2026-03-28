@@ -2958,8 +2958,21 @@ for (let i = 0; i < ideas.length; i++) {
 // 6) So What capture
 if (!s.frame.soWhat) {
   if (!isNegative(msg)) {
+    if (s.frameMeta?.frameType === "themes") {
+      const evaluation = evaluateThemesSoWhat(s, msg);
+
+      if (!evaluation.sufficient) {
+        s.pending = {
+          type: "reviseThemesSoWhat",
+          category: evaluation.category
+        };
+        return s;
+      }
+    }
+
     s.frame.soWhat = msg;
     clearMatchingSkip(s, "soWhat");
+    s.pending = { type: "offerMoreSoWhat" };
   }
   return s;
 }
