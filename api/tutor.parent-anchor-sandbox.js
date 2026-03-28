@@ -2066,8 +2066,7 @@ if (skipped.stage?.startsWith("details")) {
   return intro + s.pending.miniQuestion;
 }
  
-  if (s.pending?.type === "confirmIsAbout") {
-    if (s.pending?.type === "reviseThemesIsAbout") {
+if (s.pending?.type === "reviseThemesIsAbout") {
   const parts = [
     s.pending.feedback,
     s.pending.revisionPrompt,
@@ -2075,6 +2074,9 @@ if (skipped.stage?.startsWith("details")) {
   ].filter(Boolean);
 
   return parts.join("\n\n");
+}
+
+if (s.pending?.type === "confirmIsAbout") {
 }
     
     // Write + causeEffect gets a teacher-voice confirmation
@@ -2096,6 +2098,18 @@ Is About
 ${cleaned}
 
 Is that correct, or would you like to revise it?`;
+
+  if (s.frameMeta?.frameType === "themes") {
+      return `Using your ideas, your frame now reads:
+
+Key Topic
+${s.frame.keyTopic}
+
+Is About
+${s.frame.isAbout}
+
+Is that correct, or would you like to revise it?`;
+    }
     }
 
     // Study + causeEffect gets a structural confirmation (main effect/result)
@@ -2129,6 +2143,23 @@ how ${topic} leads to ${eff}
 
 Is that correct, or would you like to revise it?`;
 }
+  ...read + causeEffect return...
+  }
+
+  if (s.frameMeta?.frameType === "themes") {
+    return `Using your ideas, your frame now reads:
+
+Key Topic
+${s.frame.keyTopic}
+
+Is About
+${s.frame.isAbout}
+
+Is that correct, or would you like to revise it?`;
+  }
+}
+    
+if (s.pending?.type === "confirmMainIdeas") {
 }
     
 if (s.pending?.type === "confirmMainIdeas") {
