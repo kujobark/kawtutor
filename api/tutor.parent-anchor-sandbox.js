@@ -1381,6 +1381,7 @@ function evaluateThemesSoWhat(state, response) {
 const CHILD_FRAMES = {
   causeEffect: CauseEffectFrame,
   themes: ThemesFrame
+  newFrameType: NewFrameFrame
 };
 
 function getFrameAdapter(state) {
