@@ -2666,18 +2666,6 @@ if (s.pending?.type === "collectAnotherMainIdea") {
   s.pending = { type: "offerAnotherMainIdea" };
   return s;
 }
-if (ideas.length < 2) {
-  if (!isNegative(msg)) {
-    if (s.frameMeta?.frameType === "causeEffect") {
-      if (!Array.isArray(s.frame.causes)) s.frame.causes = [];
-      if (!Array.isArray(s.frame.details)) s.frame.details = [];
-
-      s.frame.causes.push(msg);
-      clearMatchingSkip(s, "mainIdeas");
-
-      if (!Array.isArray(s.frame.details[s.frame.causes.length - 1])) {
-        s.frame.details[s.frame.causes.length - 1] = [];
-      }
 
   if (s.pending?.type === "offerAnotherDetail") {
     const normalized = msg.toLowerCase().trim();
