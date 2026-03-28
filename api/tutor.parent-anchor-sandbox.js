@@ -1196,6 +1196,143 @@ const CauseEffectFrame = {
   },
 };
 
+const ThemesFrame = {
+  id: "themes",
+
+  getLabel(structuralStage, state) {
+    switch (structuralStage) {
+      case "purpose":
+        return "Purpose";
+      case "frameType":
+        return "Frame Type";
+      case "keyTopic":
+        return "Key Topic";
+      case "isAbout":
+        return "Is About";
+      case "parentItems":
+        return "Theme Supports";
+      case "details":
+        return "Details";
+      case "soWhat":
+        return "So What";
+      case "export":
+        return "Export";
+      default:
+        return structuralStage;
+    }
+  },
+
+  getPromptTerm(structuralStage, state) {
+    switch (structuralStage) {
+      case "parentItems":
+        return "theme support";
+      case "details":
+        return "evidence and explanation";
+      default:
+        return this.getLabel(structuralStage, state).toLowerCase();
+    }
+  }
+};
+
+function evaluateThemesIsAbout(state, response) {
+  const keyTopic = cleanText(state?.frame?.keyTopic || "").toLowerCase();
+  const text = cleanText(response || "");
+  const lower = text.toLowerCase();
+
+  if (!text) {
+    return {
+      sufficient: false,
+      category: "vague",
+      feedback: "That is a good start, but your theme needs to be more specific.",
+      revisionPrompt: "Can you revise it so it clearly shows a message about life?",
+      scaffold: null,
+    };
+  }
+
+  const wordCount = lower.split(/\s+/).filter(Boolean).length;
+
+  // Topic only
+  if (wordCount <= 3 && /^[a-z\s]+$/.test(lower) && !lower.includes(" is ")) {
+    return {
+      sufficient: false,
+      category: "topic",
+      feedback: "That sounds more like a topic than a theme.",
+      revisionPrompt: "Can you turn it into a full idea about what it says about life?",
+      scaffold: 'You might start with: "This shows that..."',
+    };
+  }
+
+  // Advice / moral
+  if (
+    lower.startsWith("you should") ||
+    lower.startsWith("people should") ||
+    lower.includes("should always") ||
+    lower.includes("should never")
+  ) {
+    return {
+      sufficient: false,
+      category: "advice",
+      feedback: "That sounds more like advice than a message about life.",
+      revisionPrompt: "Can you revise it so it states a message about life instead of telling what someone should do?",
+      scaffold: 'You might start with: "This shows that..."',
+    };
+  }
+
+  // Summary
+  if (
+    lower.startsWith("this story is about") ||
+    lower.startsWith("this text is about") ||
+    lower.startsWith("the story is about") ||
+    lower.startsWith("the text is about") ||
+    lower.includes("character") ||
+    lower.includes("the author shows how")
+  ) {
+    return {
+      sufficient: false,
+      category: "summary",
+      feedback: "That sounds more like a summary of what happens than a message about life.",
+      revisionPrompt: "Can you revise it so it focuses on the message, not just what happens?",
+      scaffold: 'You might start with: "This shows that..."',
+    };
+  }
+
+  // Vague
+  if (
+    lower === "friendship is important" ||
+    lower === "love is important" ||
+    lower === "courage is important" ||
+    lower.endsWith("is important") ||
+    lower.endsWith("matters")
+  ) {
+    return {
+      sufficient: false,
+      category: "vague",
+      feedback: "That is a good start, but your theme needs to be more specific.",
+      revisionPrompt: "Can you make your idea more specific about what it shows about life?",
+      scaffold: 'You might start with: "This shows that..."',
+    };
+  }
+
+  // // Misaligned (temporarily disabled — too strict for first pass)
+// if (keyTopic && !lower.includes(keyTopic)) {
+//   return {
+//     sufficient: false,
+//     category: "misaligned",
+//     feedback: "That idea does not clearly connect to your Key Topic.",
+//     revisionPrompt: "Can you revise your statement so it shows what this topic says about life?",
+//     scaffold: `Try connecting it back to "${state?.frame?.keyTopic || "your topic"}".`,
+//   };
+// }
+
+  return {
+    sufficient: true,
+    category: null,
+    feedback: null,
+    revisionPrompt: null,
+    scaffold: null,
+  };
+}
+
 // ---------------------
 // CHILD FRAME REGISTRY
 // ---------------------
@@ -1204,7 +1341,8 @@ const CauseEffectFrame = {
 // without modifying Parent Anchor logic.
 
 const CHILD_FRAMES = {
-  causeEffect: CauseEffectFrame
+  causeEffect: CauseEffectFrame,
+  themes: ThemesFrame
 };
 
 function getFrameAdapter(state) {
@@ -1645,6 +1783,21 @@ function parseCauseEffectFromLeadsTo(msg) {
 }
 
 function applyIsAboutCapture(s, msg) {
+  if (s.frameMeta?.frameType === "themes") {
+    const result = evaluateThemesIsAbout(s, msg);
+
+    if (!result.sufficient) {
+      s.pending = {
+        type: "reviseThemesIsAbout",
+        category: result.category,
+        feedback: result.feedback,
+        revisionPrompt: result.revisionPrompt,
+        scaffold: result.scaffold,
+      };
+      return s;
+    }
+  }
+  
   // Write + causeEffect must include "leads to" and we parse/store cause/effect
   if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
     const parsed = parseCauseEffectFromLeadsTo(msg);
@@ -1914,6 +2067,16 @@ if (skipped.stage?.startsWith("details")) {
 }
  
   if (s.pending?.type === "confirmIsAbout") {
+    if (s.pending?.type === "reviseThemesIsAbout") {
+  const parts = [
+    s.pending.feedback,
+    s.pending.revisionPrompt,
+    s.pending.scaffold
+  ].filter(Boolean);
+
+  return parts.join("\n\n");
+}
+    
     // Write + causeEffect gets a teacher-voice confirmation
     if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
       const raw = (s.frame.isAbout || "").trim();
@@ -2387,6 +2550,11 @@ if (stage === "mainIdeas") {
     s.pending = null;
     return s;
   }
+
+ if (s.pending?.type === "reviseThemesIsAbout") {
+  s.pending = null;
+  return applyIsAboutCapture(s, msg);
+}
 
   if (s.pending?.type === "confirmIsAbout") {
   const normalized = msg.toLowerCase().trim();
