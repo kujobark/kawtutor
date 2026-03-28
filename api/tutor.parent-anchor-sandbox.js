@@ -2149,22 +2149,6 @@ Is that correct, or would you like to revise it?`;
   }
 }
 
-  // Read + causeEffect gets a structural confirmation (central effect/result)
-  if (s.frameMeta?.purpose === "read" && s.frameMeta?.frameType === "causeEffect") {
-    const topic = (s.frame.keyTopic || "").trim();
-    const eff = (s.frame.effect || "").trim().replace(/\.$/, "");
-
-    return `Using your ideas from the text, your frame now reads:
-
-Key Topic
-${topic}
-
-Is About
-how ${topic} leads to ${eff}
-
-Is that correct, or would you like to revise it?`;
-  }
-
   // Themes confirmation
   if (s.frameMeta?.frameType === "themes") {
     return `Using your ideas, your frame now reads:
