@@ -1199,28 +1199,32 @@ const CauseEffectFrame = {
 const ThemesFrame = {
   id: "themes",
 
-  getLabel(structuralStage, state) {
-    switch (structuralStage) {
-      case "purpose":
-        return "Purpose";
-      case "frameType":
-        return "Frame Type";
-      case "keyTopic":
-        return "Key Topic";
-      case "isAbout":
-        return "Is About";
-      case "parentItems":
-        return "Theme Supports";
-      case "details":
-        return "Details";
-      case "soWhat":
-        return "So What";
-      case "export":
-        return "Export";
-      default:
-        return structuralStage;
-    }
-  },
+ getLabel(structuralStage, state) {
+  switch (structuralStage) {
+    case "purpose":
+      return "Purpose";
+    case "frameType":
+      return "Frame Type";
+    case "keyTopic":
+      return "Key Topic";
+    case "isAbout":
+    case "isAboutConfirm":
+      return "Is About";
+    case "parentItems":
+    case "parentItemsConfirm":
+      return "Theme Supports";
+    case "detailsLoop":
+    case "detailsConfirmLoop":
+      return "Details";
+    case "soWhat":
+    case "soWhatConfirm":
+      return "So What";
+    case "export":
+      return "Export";
+    default:
+      return structuralStage;
+  }
+},
 
   getPromptTerm(structuralStage, state) {
     switch (structuralStage) {
@@ -2077,25 +2081,103 @@ if (s.pending?.type === "reviseThemesIsAbout") {
 }
 
 if (s.pending?.type === "confirmIsAbout") {
-}
-    
-    // Write + causeEffect gets a teacher-voice confirmation
-    if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
-      const raw = (s.frame.isAbout || "").trim();
-      const cleaned = raw.replace(/^this topic is about\s+/i, "").replace(/\.$/, "").trim();
 
-      const keyTopic =
-        s.frame.keyTopic && s.frame.keyTopic.length
-          ? s.frame.keyTopic.charAt(0).toUpperCase() + s.frame.keyTopic.slice(1)
-          : s.frame.keyTopic;
+  // Write + causeEffect
+  if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
+    const raw = (s.frame.isAbout || "").trim();
+    const cleaned = raw.replace(/^this topic is about\s+/i, "").replace(/\.$/, "").trim();
 
-      return `Using your ideas, your frame now reads:
+    const keyTopic =
+      s.frame.keyTopic && s.frame.keyTopic.length
+        ? s.frame.keyTopic.charAt(0).toUpperCase() + s.frame.keyTopic.slice(1)
+        : s.frame.keyTopic;
+
+    return `Using your ideas, your frame now reads:
 
 Key Topic
 ${keyTopic}
 
 Is About
 ${cleaned}
+
+Is that correct, or would you like to revise it?`;
+  }
+
+  // Study + causeEffect
+  if (s.frameMeta?.purpose === "study" && s.frameMeta?.frameType === "causeEffect") {
+    const topic = (s.frame.keyTopic || "").trim();
+    const eff = (s.frame.effect || "").trim().replace(/\.$/, "");
+
+    return `Using your ideas, your frame now reads:
+
+Key Topic
+${topic}
+
+Is About
+how ${topic} leads to ${eff}
+
+Is that correct, or would you like to revise it?`;
+  }
+
+  // Read + causeEffect
+  if (s.frameMeta?.purpose === "read" && s.frameMeta?.frameType === "causeEffect") {
+    const topic = (s.frame.keyTopic || "").trim();
+    const eff = (s.frame.effect || "").trim().replace(/\.$/, "");
+
+    return `Using your ideas from the text, your frame now reads:
+
+Key Topic
+${topic}
+
+Is About
+how ${topic} leads to ${eff}
+
+Is that correct, or would you like to revise it?`;
+  }
+
+  // Themes
+  if (s.frameMeta?.frameType === "themes") {
+    return `Using your ideas, your frame now reads:
+
+Key Topic
+${s.frame.keyTopic}
+
+Is About
+${s.frame.isAbout}
+
+Is that correct, or would you like to revise it?`;
+  }
+}
+
+  // Read + causeEffect gets a structural confirmation (central effect/result)
+  if (s.frameMeta?.purpose === "read" && s.frameMeta?.frameType === "causeEffect") {
+    const topic = (s.frame.keyTopic || "").trim();
+    const eff = (s.frame.effect || "").trim().replace(/\.$/, "");
+
+    return `Using your ideas from the text, your frame now reads:
+
+Key Topic
+${topic}
+
+Is About
+how ${topic} leads to ${eff}
+
+Is that correct, or would you like to revise it?`;
+  }
+
+  // Themes confirmation
+  if (s.frameMeta?.frameType === "themes") {
+    return `Using your ideas, your frame now reads:
+
+Key Topic
+${s.frame.keyTopic}
+
+Is About
+${s.frame.isAbout}
+
+Is that correct, or would you like to revise it?`;
+  }
+}
 
 Is that correct, or would you like to revise it?`;
 
@@ -2595,10 +2677,12 @@ if (stage === "mainIdeas") {
     return s;
   }
 
-  if (normalized === "revise" || normalized === "change") {
-    s.pending = { type: "reviseIsAbout" };
-    return s;
-  }
+ if (normalized === "revise" || normalized === "change") {
+  s.pending = {
+    type: s.frameMeta?.frameType === "themes" ? "reviseThemesIsAbout" : "reviseIsAbout"
+  };
+  return s;
+}
 
   applyIsAboutCapture(s, msg);
   return s;
