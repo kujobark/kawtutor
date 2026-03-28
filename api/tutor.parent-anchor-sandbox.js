@@ -2846,10 +2846,25 @@ if (ideas.length < 2) {
       }
 
       s.pending = { type: "offerAnotherMainIdea" };
-  } else {
+    } else {
       if (!Array.isArray(s.frame.parentItems)) s.frame.parentItems = [];
       if (!Array.isArray(s.frame.details)) s.frame.details = [];
-      
+
+      s.frame.parentItems.push(msg);
+      clearMatchingSkip(s, "mainIdeas");
+
+      if (!Array.isArray(s.frame.details[s.frame.parentItems.length - 1])) {
+        s.frame.details[s.frame.parentItems.length - 1] = [];
+      }
+
+      if (s.frame.parentItems.length === 2) {
+        s.pending = { type: "offerAnotherMainIdea" };
+      }
+    }
+  }
+  return s;
+}
+
    // 5) Details capture
 
 for (let i = 0; i < ideas.length; i++) {
