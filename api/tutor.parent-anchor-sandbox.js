@@ -1,11 +1,6 @@
 import OpenAI from "openai";
-const SAFETY_RESPONSES = {
-  default: "I can’t help with that. Can you ask something else?",
-};
-
-async function classifyMessage() {
-  return { blocked: false };
-}
+import { SAFETY_RESPONSES } from "../lib/safetyResponses.js";
+import { classifyMessage } from "../lib/safetyCheck.js";
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -3103,11 +3098,11 @@ export default async function handler(req, res) {
 
 return res.status(200).json({ reply, state });
     
-} catch (err) {
-  console.error("Tutor API error:", err);
-  return res.status(500).json({
-    error: err.message,
-    stack: err.stack
-  });
-}
+  } catch (err) {
+    console.error("Tutor API error:", err);
+    return res.status(200).json({
+      reply: "Hmm — I had trouble processing that. Can you try again?",
+      state: normalizeIncomingState({}),
+    });
+  }
 }
