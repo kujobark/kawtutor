@@ -420,20 +420,22 @@ if (typeof activeStage === "string" && activeStage.startsWith("details:")) {
 // PROMPT BANK
 // ---------------------
 const PROMPT_BANK = {
- study: {
-  causeEffect: {
-    isAbout: 'Your Key Topic is:\n\n"[Key Topic]"\n\nNow let\'s think about what happens with this topic.\n\nIn your own words, what is the main effect or result?',
-    mainIdea: 'Your frame explains this effect:\n\n"[EFFECT]"\n\nWhat are the main causes that lead to this effect?',
-    detail: 'You identified this cause:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nNow let\'s explain how that cause works.\n\nWhat detail or example shows how this contributes to the effect?',
-    soWhat: 'Your frame shows that:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nLooking at this explanation,\n\nwhat important takeaway should someone understand about "[Key Topic]"?',
-  },
+
+  study: {
+    causeEffect: {
+      isAbout: 'Your Key Topic is:\n\n"[Key Topic]"\n\nNow let\'s think about what happens with this topic.\n\nIn your own words, what is the main effect or result?',
+      mainIdea: 'Your frame explains this effect:\n\n"[EFFECT]"\n\nWhat are the main causes that lead to this effect?',
+      detail: 'You identified this cause:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nNow let\'s explain how that cause works.\n\nWhat detail or example shows how this contributes to the effect?',
+      soWhat: 'Your frame shows that:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nLooking at this explanation,\n\nwhat important takeaway should someone understand about "[Key Topic]"?',
+    },
     themes: {
-    isAbout: 'Your Key Topic is:\n\n"[Key Topic]"\n\nNow think about the deeper meaning.\n\nWhat message about life does this topic reveal?',
-    mainIdea: 'What theme supports help show this message?',
-    detail: 'What specific example or explanation helps show this theme support?',
-    soWhat: 'Why does this theme matter beyond this one example or text?'
+      isAbout: 'Your Key Topic is:\n\n"[Key Topic]"\n\nNow think about the deeper meaning.\n\nWhat message about life does this topic reveal?',
+      mainIdea: 'What theme supports help show this message?',
+      detail: 'What specific example or explanation helps show this theme support?',
+      soWhat: 'Why does this theme matter beyond this one example or text?'
+    }
   },
- 
+
   write: {
     causeEffect: {
       isAbout: 'Your Key Topic is:\n\n"[Key Topic]"\n\nNow let\'s think about what happens in this topic.\n\nFinish this sentence:\n"This topic is about how ____ leads to ____."',
@@ -442,10 +444,11 @@ const PROMPT_BANK = {
       soWhat: 'Your frame shows that:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nLooking at this explanation,\n\nwhat does this explanation help us understand about this effect?',
     },
     themes: {
-    isAbout: 'Your Key Topic is:\n\n"[Key Topic]"\n\nNow think about the deeper meaning.\n\nWhat message about life do you want your reader to understand?',
-    mainIdea: 'What theme supports will help develop this message?',
-    detail: 'What example or explanation helps show this theme support?',
-    soWhat: 'Why does this theme matter, and what should your reader understand?'
+      isAbout: 'Your Key Topic is:\n\n"[Key Topic]"\n\nNow think about the deeper meaning.\n\nWhat message about life do you want your reader to understand?',
+      mainIdea: 'What theme supports will help develop this message?',
+      detail: 'What example or explanation helps show this theme support?',
+      soWhat: 'Why does this theme matter, and what should your reader understand?'
+    }
   },
 
   read: {
@@ -462,6 +465,7 @@ const PROMPT_BANK = {
       soWhat: 'Why does this theme matter beyond the text?'
     }
   }
+
 };
 
 function getPromptForStage(state, stage) {
