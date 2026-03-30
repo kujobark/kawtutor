@@ -1372,39 +1372,64 @@ function evaluateThemesIsAbout(state, response) {
 }
 
 function evaluateThemesSoWhat(state, response) {
-  const text = (response || "").toLowerCase().trim();
-  const isAbout = (state?.frame?.isAbout || "").toLowerCase().trim();
+  const text = cleanText(response || "");
+  const lower = text.toLowerCase();
+  const isAbout = cleanText(state?.frame?.isAbout || "").toLowerCase();
+  const topic = cleanText(state?.frame?.keyTopic || "").toLowerCase();
 
-  // 1. Empty / too short
   if (!text || text.length < 10) {
-    return { sufficient: false, category: "too_short" };
+    return {
+      sufficient: false,
+      category: "too_short",
+      feedback: "That’s a start, but your response is too short.",
+      revisionPrompt: "Can you explain more clearly what someone should understand from this theme?",
+      scaffold: 'You might start with: "This theme matters because..."',
+    };
   }
 
-  // 2. Just repeating isAbout
-  if (isAbout && text.includes(isAbout.slice(0, 20))) {
-    return { sufficient: false, category: "restate" };
+  if (isAbout && lower.includes(isAbout.slice(0, 20))) {
+    return {
+      sufficient: false,
+      category: "restate",
+      feedback: "That mostly repeats your message instead of explaining why it matters.",
+      revisionPrompt: "Can you go beyond repeating the message and explain what someone should understand from it?",
+      scaffold: 'You might start with: "This matters because..."',
+    };
   }
 
-  // 3. Vague language
- const vaguePatterns = [
-  "this is important",
-  "it is important"
-];
-  
-  if (vaguePatterns.some(p => text.startsWith(p))) {
-    return { sufficient: false, category: "vague" };
+  const vaguePatterns = [
+    "this is important",
+    "it is important"
+  ];
+
+  if (vaguePatterns.some(p => lower.startsWith(p))) {
+    return {
+      sufficient: false,
+      category: "vague",
+      feedback: "That’s a good start, but it’s too general.",
+      revisionPrompt: "What lesson or understanding should someone take away from this theme?",
+      scaffold: 'You might start with: "This theme matters because it shows that..."',
+    };
   }
 
-  // 4. Looks like summary (mentions topic directly)
-  const topic = (state?.frame?.keyTopic || "").toLowerCase();
-  if (topic && text.includes(topic)) {
-    return { sufficient: false, category: "summary" };
+  if (topic && lower.includes(topic)) {
+    return {
+      sufficient: false,
+      category: "summary",
+      feedback: "That sounds more like returning to the topic than explaining why the theme matters.",
+      revisionPrompt: "Can you explain the bigger lesson or takeaway instead?",
+      scaffold: 'You might start with: "This teaches that..."',
+    };
   }
 
-  // Otherwise acceptable
-  return { sufficient: true };
+  return {
+    sufficient: true,
+    category: null,
+    feedback: null,
+    revisionPrompt: null,
+    scaffold: null,
+  };
 }
-
 // ---------------------
 // CHILD FRAME REGISTRY
 // ---------------------
@@ -3030,14 +3055,16 @@ function updateStateFromStudent(state, message) {
       if (s.frameMeta?.frameType === "themes") {
         const evaluation = evaluateThemesSoWhat(s, msg);
 
-        if (!evaluation.sufficient) {
-          s.pending = {
-            type: "reviseThemesSoWhat",
-            category: evaluation.category,
-          };
-          return s;
-        }
-      }
+      if (!evaluation.sufficient) {
+    s.pending = {
+      type: "reviseThemesSoWhat",
+      category: evaluation.category,
+      feedback: evaluation.feedback,
+      revisionPrompt: evaluation.revisionPrompt,
+      scaffold: evaluation.scaffold,
+  };
+  return s;
+}
 
       // VALID SAVE PATH 1: normal So What capture (after evaluation)
       s.frame.soWhat = msg;
