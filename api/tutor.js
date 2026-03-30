@@ -448,19 +448,21 @@ const PROMPT_BANK = {
     soWhat: 'Why does this theme matter, and what should your reader understand?'
   },
 
-   read: {
-  causeEffect: {
-    isAbout: 'The text is about:\n\n"[Key Topic]"\n\nNow let\'s think about what happens in this topic.\n\nWhat main effect or result does the author emphasize?',
-    mainIdea: 'The text explains this effect:\n\n"[EFFECT]"\n\nWhat are the main causes the author presents that lead to this effect?',
-    detail: 'You identified this cause in the text:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nNow let\'s look at how the text supports that cause.\n\nWhat evidence or example does the author give that shows how this cause produces the effect?',
-    soWhat: 'The text shows that:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nLooking at this explanation,\n\nwhy does this effect matter beyond the text?',
-  },
-   themes: {
-    isAbout: 'The text focuses on:\n\n"[Key Topic]"\n\nWhat message about life does the author reveal through this topic?',
-    mainIdea: 'What theme supports in the text help reveal that message?',
-    detail: 'What evidence or explanation supports this theme support?',
-    soWhat: 'Why does this theme matter beyond the text?'
-  },
+  read: {
+    causeEffect: {
+      isAbout: 'The text is about:\n\n"[Key Topic]"\n\nNow let\'s think about what happens in this topic.\n\nWhat main effect or result does the author emphasize?',
+      mainIdea: 'The text explains this effect:\n\n"[EFFECT]"\n\nWhat are the main causes the author presents that lead to this effect?',
+      detail: 'You identified this cause in the text:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nNow let\'s look at how the text supports that cause.\n\nWhat evidence or example does the author give that shows how this cause produces the effect?',
+      soWhat: 'The text shows that:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nLooking at this explanation,\n\nwhy does this effect matter beyond the text?',
+    },
+    themes: {
+      isAbout: 'The text focuses on:\n\n"[Key Topic]"\n\nWhat message about life does the author reveal through this topic?',
+      mainIdea: 'What theme supports in the text help reveal that message?',
+      detail: 'What evidence or explanation supports this theme support?',
+      soWhat: 'Why does this theme matter beyond the text?'
+    }
+  }
+};
 
 function getPromptForStage(state, stage) {
   const purpose = state.frameMeta?.purpose || "";
