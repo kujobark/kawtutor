@@ -98,6 +98,25 @@ function isBadKeyTopic(keyTopic) {
   return false;
 }
 
+function getKeyTopicFeedback(input) {
+  const text = cleanText(input);
+  const wc = text.split(/\s+/).filter(Boolean).length;
+
+  if (!text || isBadKeyTopic(text)) {
+    return "That’s a good start, but your Key Topic should name the topic clearly, not use a generic word like “topic” or “my essay.”";
+  }
+
+  if (wc < 2) {
+    return "That’s a good start, but your Key Topic should be a short phrase (2–5 words), not just one word.";
+  }
+
+  if (wc > 5) {
+    return "That’s a strong idea, but your Key Topic should be a short phrase (2–5 words). Try shortening it.";
+  }
+
+  return null;
+}
+
 // Parse pattern: "X is about Y"
 function parseKeyTopicIsAbout(msg) {
   const m = cleanText(msg);
@@ -1924,6 +1943,10 @@ if (s?.settings?.debugParentAnchor) {
     return `I notice you’re writing in ${candName}. Would you like to continue in ${candNative}? (yes/no)`;
   }
 
+  if (s.pending?.type === "reviseKeyTopic") {
+  return `${s.pending.feedback}\n\nWhat is your Key Topic? (2–5 words)`;
+}
+  
   if (s.pending?.type === "stuckConfirm") return "Sounds like you’re stuck. Want a quick help move? (yes/no)";
 
 if (s.pending?.type === "stuckMenu") {
@@ -2594,14 +2617,19 @@ function updateStateFromStudent(state, message) {
       return s;
     }
 
-    if (stage === "keyTopic") {
-      const wc = msg.split(/\s+/).filter(Boolean).length;
-      if (!s.frame.keyTopic && !isBadKeyTopic(msg) && wc >= 2 && wc <= 5) {
-        s.frame.keyTopic = msg;
-      }
-      s.pending = null;
+   if (!s.frame.keyTopic) {
+    const wc = msg.split(/\s+/).filter(Boolean).length;
+    if (!isBadKeyTopic(msg) && wc >= 2 && wc <= 5) {
+      s.frame.keyTopic = msg;
       return s;
-    }
+  }
+
+    s.pending = {
+      type: "reviseKeyTopic",
+      feedback: getKeyTopicFeedback(msg),
+    };
+    return s;
+}
 
     if (stage === "isAbout") {
       if (!s.frame.isAbout) {
@@ -2891,9 +2919,14 @@ function updateStateFromStudent(state, message) {
     if (!isBadKeyTopic(msg) && wc >= 2 && wc <= 5) {
       s.frame.keyTopic = msg;
       return s;
-    }
-    return s;
   }
+
+  s.pending = {
+    type: "reviseKeyTopic",
+    feedback: getKeyTopicFeedback(msg),
+  };
+  return s;
+}
 
   // 3) Is About capture + checkpoint
   if (!s.frame.isAbout) {
