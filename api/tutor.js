@@ -2915,17 +2915,19 @@ function updateStateFromStudent(state, message) {
 
   // 2) Key Topic capture (plain 2–5 words) — return after capturing
   if (!s.frame.keyTopic) {
-    const wc = msg.split(/\s+/).filter(Boolean).length;
-    if (!isBadKeyTopic(msg) && wc >= 2 && wc <= 5) {
-      s.frame.keyTopic = msg;
+    const cleaned = cleanText(msg);
+    const wc = cleaned.split(/\s+/).filter(Boolean).length;
+  
+    if (!isBadKeyTopic(cleaned) && wc >= 2 && wc <= 5) {
+      s.frame.keyTopic = cleaned;
       return s;
-  }
-
-  s.pending = {
-    type: "reviseKeyTopic",
-    feedback: getKeyTopicFeedback(msg),
-  };
-  return s;
+    }
+  
+    s.pending = {
+      type: "reviseKeyTopic",
+      feedback: getKeyTopicFeedback(cleaned),
+    };
+    return s;
 }
 
   // 3) Is About capture + checkpoint
