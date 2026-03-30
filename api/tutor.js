@@ -385,18 +385,20 @@ function applyPromptTokens(template, state) {
   let out = template || "";
   const kt = state?.frame?.keyTopic || "";
   const eff = state?.frame?.effect || "";
-const ideas = getIdeaList(state).filter(Boolean);
+  const mainIdeas = Array.isArray(state?.frame?.mainIdeas)
+    ? state.frame.mainIdeas.filter(Boolean)
+    : [];
 
-const activeStage = state?.pending?.stage || getStage(state) || "";
-let cause = ideas.length ? ideas[ideas.length - 1] : "";
+  const activeStage = state?.pending?.stage || getStage(state) || "";
+  let cause = mainIdeas.length ? mainIdeas[mainIdeas.length - 1] : "";
 
-if (typeof activeStage === "string" && activeStage.startsWith("details:")) {
-  const rawIndex = activeStage.split(":")[1];
-  const idx = Number(rawIndex);
-  if (Number.isInteger(idx) && ideas[idx]) {
-    cause = ideas[idx];
+  if (typeof activeStage === "string" && activeStage.startsWith("details:")) {
+    const rawIndex = activeStage.split(":")[1];
+    const idx = Number(rawIndex);
+    if (Number.isInteger(idx) && mainIdeas[idx]) {
+      cause = mainIdeas[idx];
+    }
   }
-}
 
   // Key Topic token
   if (kt) out = out.replace(/\[Key Topic\]/g, kt);
@@ -494,10 +496,12 @@ function buildStuckNudges(state, stage) {
     state?.frame?.result ||
     "";
 
-const ideas = getIdeaList(state).filter(Boolean);
+  const mainIdeas = Array.isArray(state?.frame?.mainIdeas)
+    ? state.frame.mainIdeas.filter(Boolean)
+    : [];
 
-const mostRecentCause =
-  ideas.length > 0 ? ideas[ideas.length - 1] : "";
+  const mostRecentCause =
+    mainIdeas.length > 0 ? mainIdeas[mainIdeas.length - 1] : "";
 
   const genericMainIdeas = [
     "What is one main idea you could add?",
@@ -575,7 +579,7 @@ Ask yourself: what cause might help explain that effect?`,
   if (typeof stage === "string" && stage.startsWith("details:")) {
     const rawIndex = stage.split(":")[1];
     const idx = Number(rawIndex);
-    const selectedMainIdea = Number.isInteger(idx) ? (ideas[idx] || "") : "";
+    const selectedMainIdea = Number.isInteger(idx) ? (mainIdeas[idx] || "") : "";
 
     if (frameType === "causeEffect") {
 
@@ -609,7 +613,7 @@ Now help the reader understand how that cause connects to your frame.`,
   if (stage === "soWhat") {
     if (frameType === "causeEffect") {
 
-      if (ideas.length > 1 && effect && keyTopic) {  
+      if (mainIdeas.length > 1 && effect && keyTopic) {
         return [
 `You identified causes that lead to ${effect}.
 
@@ -619,7 +623,7 @@ Now think about the bigger meaning of that pattern in ${keyTopic}.`,
         ];
       }
 
-      if (ideas.length > 0 && effect) {  
+      if (mainIdeas.length > 0 && effect) {
         return [
 `You identified causes that lead to ${effect}.
 
@@ -761,15 +765,14 @@ const FRAME_STAGE_SEQUENCE = [
 function getStage(state) {
   const f = state.frame;
   const m = state.frameMeta || {};
-  const ideas = getIdeaList(state);
 
   if (!m.purpose) return "purpose";
   if (!m.frameType) return "frameType";
   if (!f.keyTopic) return "keyTopic";
   if (!f.isAbout) return "isAbout";
-  if (ideas.length < 2) return "mainIdeas";
+  if ((f.mainIdeas || []).length < 2) return "mainIdeas";
 
-  for (let i = 0; i < ideas.length; i++) {
+  for (let i = 0; i < (f.mainIdeas || []).length; i++) {
     const arr = Array.isArray(f.details?.[i]) ? f.details[i] : [];
     if (arr.length < 2) return `details:${i}`;
   }
@@ -784,44 +787,10 @@ function getBaseStage(stage) {
   return stage;
 }
 
-function getIdeaList(state) {
-  const isCE = state?.frameMeta?.frameType === "causeEffect";
-
-  if (isCE) {
-    return Array.isArray(state?.frame?.causes)
-      ? state.frame.causes
-      : [];
-  }
-
-  return Array.isArray(state?.frame?.parentItems)
-    ? state.frame.parentItems
-    : [];
-}
-
 // ---------------------
 // PARENT ANCHOR BRIDGE
 // ---------------------
-
-// PARENT ANCHOR SANDBOX GUARDRAIL
-// -------------------------------
-// The Parent Anchor should first become the system's best explanation
-// of the engine before it becomes the system's new engine.
 //
-// In this sandbox phase, Parent Anchor improves observability,
-// interpretation, and structural clarity — not runtime authority.
-// This layer is strictly read-only in this phase.
-//
-// That means this layer must:
-// - not change progression logic
-// - not replace getStage()
-// - not alter pending-state semantics
-// - not become a competing controller
-//
-// Runtime control and state mutation remain with:
-// - getStage(state)
-// - computeNextQuestion(state)
-// - updateStateFromStudent(state)
-
 // This bridge does NOT change progression logic.
 // It interprets the current tutor.js workflow through the
 // Parent Anchor structural stage model.
@@ -845,8 +814,8 @@ const PARENT_ANCHOR_BRIDGE = {
     "keyTopic",
     "isAbout",
     "isAboutConfirm",
-    "parentItems",
-    "parentItemsConfirm",
+    "mainIdeas",
+    "mainIdeasConfirm",
     "detailsLoop",
     "detailsConfirmLoop",
     "soWhat",
@@ -862,9 +831,9 @@ const PARENT_ANCHOR_BRIDGE = {
   confirmationStageByPending: {
     confirmIsAbout: "isAboutConfirm",
 
-     offerAnotherMainIdea: "parentItemsConfirm",
-     collectAnotherMainIdea: "parentItemsConfirm",
-     confirmMainIdeas: "parentItemsConfirm",
+    offerAnotherMainIdea: "mainIdeasConfirm",
+    collectAnotherMainIdea: "mainIdeasConfirm",
+    confirmMainIdeas: "mainIdeasConfirm",
 
     offerAnotherDetail: "detailsConfirmLoop",
     collectAnotherDetail: "detailsConfirmLoop",
@@ -914,7 +883,7 @@ const PARENT_ANCHOR_BRIDGE = {
     if (rawStage === "frameType") return "frameType";
     if (rawStage === "keyTopic") return "keyTopic";
     if (rawStage === "isAbout") return "isAbout";
-    if (rawStage === "mainIdeas") return "parentItems";
+    if (rawStage === "mainIdeas") return "mainIdeas";
     if (typeof rawStage === "string" && rawStage.startsWith("details:")) return "detailsLoop";
     if (rawStage === "soWhat") return "soWhat";
     if (rawStage === "refine") return "export";
@@ -947,10 +916,6 @@ const PARENT_ANCHOR_BRIDGE = {
  *
  * 4) Post-completion raw stages like "refine" are interpreted
  *    structurally as "export".
- *
- * Sandbox guardrail:
- * This helper explains the current engine structurally.
- * It must not become a new progression controller in this phase.
  */
 function getParentAnchorStage(state) {
   const pendingType = state?.pending?.type || null;
@@ -983,479 +948,17 @@ function getParentAnchorStage(state) {
   return PARENT_ANCHOR_BRIDGE.structuralStageByRawStage(rawStage);
 }
 
-/**
- * Returns the structural Parent Anchor stage that owns the current moment.
- *
- * This is a read-only interpretation helper.
- * It does NOT advance stages, mutate state, or replace getStage().
- *
- * Difference from getParentAnchorStage(state):
- * - getParentAnchorStage(state) returns the currently interpreted structural stage
- * - getParentAnchorOwnerStage(state) returns the structural owner of the
- *   current pending flow, including interrupt and overlay cases
- */
-function getParentAnchorOwnerStage(state) {
-  const pendingType = state?.pending?.type || null;
-
-  // Confirmation/export pending states explicitly own the current moment.
-  if (pendingType && PARENT_ANCHOR_BRIDGE.confirmationStageByPending[pendingType]) {
-    return PARENT_ANCHOR_BRIDGE.confirmationStageByPending[pendingType];
-  }
-
-  // Interrupt pending states belong to an underlying structural stage.
-  if (pendingType && PARENT_ANCHOR_BRIDGE.interruptStageByPending[pendingType]) {
-    return PARENT_ANCHOR_BRIDGE.interruptStageByPending[pendingType];
-  }
-
-  // Overlay helper flows do not create a new structural stage.
-  // If they saved a raw resume stage, map that back to its structural owner.
-  if (pendingType && PARENT_ANCHOR_BRIDGE.overlayPendingTypes.has(pendingType)) {
-    const savedStage = state?.pending?.stage || null;
-    if (savedStage) {
-      const mappedSavedStage = PARENT_ANCHOR_BRIDGE.structuralStageByRawStage(savedStage);
-      if (mappedSavedStage) return mappedSavedStage;
-    }
-  }
-
-  // Otherwise, the owner is the current interpreted Parent Anchor stage.
-  return getParentAnchorStage(state);
-}
-
-/**
- * Returns the normalized Parent Anchor loop/mode type for the current moment.
- *
- * This helper is read-only and classification-only.
- * It does NOT alter routing behavior.
- */
-function getParentAnchorLoopType(state) {
-  const pendingType = state?.pending?.type || null;
-  const structuralStage = getParentAnchorStage(state);
-
-  if (structuralStage === "export") return "export";
-
-  if (pendingType && PARENT_ANCHOR_BRIDGE.overlayPendingTypes.has(pendingType)) {
-    return "overlay";
-  }
-
-  if (pendingType && PARENT_ANCHOR_BRIDGE.interruptStageByPending[pendingType]) {
-    return "interrupt";
-  }
-
-  if (pendingType && PARENT_ANCHOR_BRIDGE.confirmationStageByPending[pendingType]) {
-    return "confirm";
-  }
-
-  return "capture";
-}
-
-/**
- * Returns a consolidated read-only Parent Anchor structural snapshot.
- *
- * This helper exists for observability, logging, debugging, and later
- * architectural extraction. It must not be used to change runtime behavior
- * in the sandbox phase.
- */
-function getParentAnchorContext(state) {
-  const rawStage = getStage(state);
-  const structuralStage = getParentAnchorStage(state);
-  const ownerStructuralStage = getParentAnchorOwnerStage(state);
-  const pendingType = state?.pending?.type || null;
-  const savedStage = state?.pending?.stage || null;
-  const loopType = getParentAnchorLoopType(state);
-
-  return {
-    rawStage,
-    structuralStage,
-    ownerStructuralStage,
-    pendingType,
-    savedStage,
-    loopType,
-
-    isCapture: loopType === "capture",
-    isConfirmation: loopType === "confirm",
-    isInterrupt: loopType === "interrupt",
-    isOverlay: loopType === "overlay",
-    isExport: loopType === "export",
-  };
-}
-
-/**
- * Read-only structural helper.
- * Returns true if the Parent Anchor owner stage matches
- * the requested structural stage.
- */
-function isParentAnchorInStage(state, structuralStage) {
-  return getParentAnchorOwnerStage(state) === structuralStage;
-}
-
-/**
- * Read-only structural helper.
- * Returns true if the Parent Anchor loop type matches
- * the requested loop classification.
- */
-function isParentAnchorLoopType(state, loopType) {
-  return getParentAnchorLoopType(state) === loopType;
-}
-
-// ---------------------
-// CHILD ANCHOR ADAPTERS
-// ---------------------
-// In the sandbox phase, child anchors are a thin structural seam only.
-// They do not own progression, pending-state routing, or loop control.
-// The runtime engine remains owned by getStage(), computeNextQuestion(),
-// and updateStateFromStudent().
-
-// ---------------------
-// CHILD ANCHOR CONTRACT
-// ---------------------
-// Child anchors are frame-specific instructional adapters that plug into
-// the Parent Anchor structure.
-//
-// Parent Anchor owns:
-// - invariant structure
-// - structural stage ownership
-// - loop ownership
-//
-// Child Anchor owns:
-// - frame-specific instructional language
-// - mapping structural slots to frame language
-//   (for example: parentItems -> causes / themes / main ideas)
-// - prompt wording and coaching tone
-// - frame-specific parsing hooks, if needed
-// - frame-specific sufficiency rules for a structural slot, if needed
-//
-// In this phase, child anchors should not replace Parent Anchor stage
-// control. They translate Parent Anchor structure into the frame's
-// instructional voice and behavior.
-
-// ---------------------
-// CHILD ADAPTER SHAPE (MINIMUM EXPECTATION)
-// ---------------------
-// Each child anchor should provide:
-//
-// - id:
-//   unique frame identifier (e.g., "causeEffect", "themes")
-//
-// - getLabel(structuralStage, state):
-//   returns the student-facing label for a structural stage
-//   (e.g., "Cause", "Theme", "Main Idea")
-//
-// - getPromptTerm(structuralStage, state):
-//   returns the term used inside prompts for that stage
-//   (keeps Kaw's instructional language frame-specific)
-//
-// Optional (frame-specific, not always needed):
-// - parsing behavior for student input
-// - sufficiency rules if they differ from defaults
-// - export labeling adjustments
-//
-// Child adapters do NOT:
-// - control progression
-// - control loop ownership
-// - override Parent Anchor stage decisions
-
-const CauseEffectFrame = {
-  id: "causeEffect",
-  
-  getLabel(structuralStage, state) {
-    switch (structuralStage) {
-      case "purpose":
-        return "Purpose";
-      case "frameType":
-        return "Frame Type";
-      case "keyTopic":
-        return "Key Topic";
-      case "isAbout":
-      case "isAboutConfirm":
-        return "Is About";
-      case "parentItems":
-      case "parentItemsConfirm":
-        return "Cause";
-      case "detailsLoop":
-      case "detailsConfirmLoop":
-        return state?.frameMeta?.purpose === "read"
-          ? "Text Evidence"
-          : "Supporting Detail";
-      case "soWhat":
-      case "soWhatConfirm":
-        return "So What";
-      case "export":
-        return "Export";
-      default:
-        return structuralStage;
-    }
-  },
-
-  getPromptTerm(structuralStage, state) {
-    return this.getLabel(structuralStage, state).toLowerCase();
-  },
-};
-
-const ThemesFrame = {
-  id: "themes",
-
- getLabel(structuralStage, state) {
-  switch (structuralStage) {
-    case "purpose":
-      return "Purpose";
-    case "frameType":
-      return "Frame Type";
-    case "keyTopic":
-      return "Key Topic";
-    case "isAbout":
-    case "isAboutConfirm":
-      return "Is About";
-    case "parentItems":
-    case "parentItemsConfirm":
-      return "Theme Supports";
-    case "detailsLoop":
-    case "detailsConfirmLoop":
-      return "Details";
-    case "soWhat":
-    case "soWhatConfirm":
-      return "So What";
-    case "export":
-      return "Export";
-    default:
-      return structuralStage;
-  }
-},
-
-  getPromptTerm(structuralStage, state) {
-    switch (structuralStage) {
-      case "parentItems":
-        return "theme support";
-      case "detailsLoop":
-        return "evidence and explanation";
-      default:
-        return this.getLabel(structuralStage, state).toLowerCase();
-    }
-  }
-};
-
-function evaluateThemesIsAbout(state, response) {
-  const keyTopic = cleanText(state?.frame?.keyTopic || "").toLowerCase();
-  const text = cleanText(response || "");
-  const lower = text.toLowerCase();
-
-  if (!text) {
-    return {
-      sufficient: false,
-      category: "vague",
-      feedback: "That is a good start, but your theme needs to be more specific.",
-      revisionPrompt: "Can you revise it so it clearly shows a message about life?",
-      scaffold: null,
-    };
-  }
-
-  const wordCount = lower.split(/\s+/).filter(Boolean).length;
-
-  // Topic only
-  if (wordCount <= 3 && /^[a-z\s]+$/.test(lower) && !lower.includes(" is ")) {
-    return {
-      sufficient: false,
-      category: "topic",
-      feedback: "That sounds more like a topic than a theme.",
-      revisionPrompt: "Can you turn it into a full idea about what it says about life?",
-      scaffold: 'You might start with: "This shows that..."',
-    };
-  }
-
-  // Advice / moral
-  if (
-    lower.startsWith("you should") ||
-    lower.startsWith("people should") ||
-    lower.includes("should always") ||
-    lower.includes("should never")
-  ) {
-    return {
-      sufficient: false,
-      category: "advice",
-      feedback: "That sounds more like advice than a message about life.",
-      revisionPrompt: "Can you revise it so it states a message about life instead of telling what someone should do?",
-      scaffold: 'You might start with: "This shows that..."',
-    };
-  }
-
-  // Summary
-  if (
-    lower.startsWith("this story is about") ||
-    lower.startsWith("this text is about") ||
-    lower.startsWith("the story is about") ||
-    lower.startsWith("the text is about") ||
-    lower.includes("character") ||
-    lower.includes("the author shows how")
-  ) {
-    return {
-      sufficient: false,
-      category: "summary",
-      feedback: "That sounds more like a summary of what happens than a message about life.",
-      revisionPrompt: "Can you revise it so it focuses on the message, not just what happens?",
-      scaffold: 'You might start with: "This shows that..."',
-    };
-  }
-
-  // Vague
-  if (
-    lower === "friendship is important" ||
-    lower === "love is important" ||
-    lower === "courage is important" ||
-    lower.endsWith("is important") ||
-    lower.endsWith("matters")
-  ) {
-    return {
-      sufficient: false,
-      category: "vague",
-      feedback: "That is a good start, but your theme needs to be more specific.",
-      revisionPrompt: "Can you make your idea more specific about what it shows about life?",
-      scaffold: 'You might start with: "This shows that..."',
-    };
-  }
-
-  // // Misaligned (temporarily disabled — too strict for first pass)
-// if (keyTopic && !lower.includes(keyTopic)) {
-//   return {
-//     sufficient: false,
-//     category: "misaligned",
-//     feedback: "That idea does not clearly connect to your Key Topic.",
-//     revisionPrompt: "Can you revise your statement so it shows what this topic says about life?",
-//     scaffold: `Try connecting it back to "${state?.frame?.keyTopic || "your topic"}".`,
-//   };
-// }
-
-  return {
-    sufficient: true,
-    category: null,
-    feedback: null,
-    revisionPrompt: null,
-    scaffold: null,
-  };
-}
-
-function evaluateThemesSoWhat(state, response) {
-  const text = (response || "").toLowerCase().trim();
-  const isAbout = (state?.frame?.isAbout || "").toLowerCase().trim();
-
-  // 1. Empty / too short
-  if (!text || text.length < 10) {
-    return { sufficient: false, category: "too_short" };
-  }
-
-  // 2. Just repeating isAbout
-  if (isAbout && text.includes(isAbout.slice(0, 20))) {
-    return { sufficient: false, category: "restate" };
-  }
-
-  // 3. Vague language
- const vaguePatterns = [
-  "this is important",
-  "it is important"
-];
-  
-  if (vaguePatterns.some(p => text.startsWith(p))) {
-    return { sufficient: false, category: "vague" };
-  }
-
-  // 4. Looks like summary (mentions topic directly)
-  const topic = (state?.frame?.keyTopic || "").toLowerCase();
-  if (topic && text.includes(topic)) {
-    return { sufficient: false, category: "summary" };
-  }
-
-  // Otherwise acceptable
-  return { sufficient: true };
-}
-
-// ---------------------
-// CHILD FRAME REGISTRY
-// ---------------------
-// Central place to register all child anchors.
-// This allows new frames to plug into the system
-// without modifying Parent Anchor logic.
-
-const CHILD_FRAMES = {
-  causeEffect: CauseEffectFrame,
-  themes: ThemesFrame
-};
-
-function getFrameAdapter(state) {
-  const frameType =
-    state?.frameMeta?.frameType || state?.frameType || "causeEffect";
-
-  return CHILD_FRAMES[frameType] || CHILD_FRAMES["causeEffect"];
-}
-
-function getFrameLabel(state, structuralStage) {
-  const adapter = getFrameAdapter(state);
-  return adapter.getLabel(structuralStage, state);
-}
-
-function getFramePromptTerm(state, structuralStage) {
-  const adapter = getFrameAdapter(state);
-  return adapter.getPromptTerm(structuralStage, state);
-}
-
-// ---------------------
-// PARENT ANCHOR OBSERVATION HELPERS
-// ---------------------
-// These helpers are read-only and sandbox-only in purpose.
-// They exist to make the engine easier to inspect structurally.
-// They must not be used to alter routing or progression behavior.
-
-function getParentAnchorDisplayLabel(state) {
-  const context = getParentAnchorContext(state);
-  return getFrameLabel(state, context.ownerStructuralStage);
-}
-
-function getParentAnchorObservation(state) {
-  const context = getParentAnchorContext(state);
-  const frameType = state?.frameMeta?.frameType || "";
-  const purpose = state?.frameMeta?.purpose || "";
-  const ownerLabel = getFrameLabel(state, context.ownerStructuralStage);
-  const stageLabel = getFrameLabel(state, context.structuralStage);
-
-  return {
-    ...context,
-    frameType,
-    purpose,
-    ownerLabel,
-    stageLabel,
-
-    summary: `${context.ownerStructuralStage} | ${context.loopType} | ${ownerLabel}`,
-  };
-}
-
 function buildMiniQuestion(state) {
-  let stage = state?.pending?.stage || getStage(state);
-
-  if (state?.pending?.type === "collectAnotherMainIdea") {
-    stage = "mainIdeas";
-  }
-
+  const stage = state?.pending?.stage || getStage(state);
   const baseStage = getBaseStage(stage);
 
-  // ---------------------
-  // PARENT ANCHOR LABEL (READ-ONLY)
-  // ---------------------
-  // This derives the structural label for the current stage
-  // but does NOT control prompt selection in this phase.
-
-  const paContext = getParentAnchorContext(state);
-  const paStage = paContext.ownerStructuralStage;
-  const framePromptTerm = getFramePromptTerm(state, paContext.ownerStructuralStage);
   const keyTopic = state.frame?.keyTopic || "your topic";
   const effect = state.frame?.effect || state.frame?.isAbout || "the effect";
   const isCE = state.frameMeta?.frameType === "causeEffect";
 
-if (stage === "purpose") {
-  return (
-    "How will you use this Frame?\n" +
-    "1) Study — think through and organize your ideas\n" +
-    "2) Write — build a claim and support it\n" +
-    "3) Read — pull key ideas from a text or source\n\n" +
-    "Reply with 1, 2, or 3."
-  );
-}
+  if (stage === "purpose") {
+    return "Which one: 1) study/review, 2) write/create, or 3) reading/source notes (1–3)?";
+  }
 
   if (stage === "keyTopic") {
     return `Your frame begins with the Key Topic.\n\nIn just a few words, what is the name of the topic you are exploring?`;
@@ -1468,25 +971,23 @@ if (stage === "purpose") {
     return `Your frame starts with this Key Topic:\n\n"${keyTopic}"\n\nNow think about what this topic is mostly about.\n\nWhat is the main idea your frame is trying to explain?`;
   }
 
- if (stage === "mainIdeas") {
-  if (isCE) {
-    return `You identified this effect:\n\n"${effect}"\n\nWhat are the main causes that lead to this effect?`;
+  if (stage === "mainIdeas") {
+    if (isCE) {
+ return `You identified this effect:\n\n"${effect}"\n\nWhat are the main causes that lead to this effect?`;
+    }
+    return `You identified this main idea:\n\n"${effect}"\n\nNow think about what important idea supports it.\n\nWhat is one main idea that could help explain it?`;
   }
 
-  return `What is one main idea that helps explain your topic?`;
+  if (baseStage === "details") {
+    const idx = Number(stage.split(":")[1]);
+    const mi = state.frame?.mainIdeas?.[idx] || "this main idea";
+
+     if (isCE) {
+  return `You identified this cause:\n\n"${mi}"\n\nNow think about how that leads to this effect:\n\n"${effect}"\n\nWhat detail or example shows how this cause produces the effect?`;
 }
-
- const isDetailsStage = isParentAnchorInStage(state, "detailsLoop");
-  if (isDetailsStage) {
-  const idx = Number(stage.split(":")[1]);
-  const mi = getIdeaList(state)[idx] || "this main idea";
-
-  if (isCE) {
-    return `You identified this cause:\n\n"${mi}"\n\nNow think about how that leads to this effect:\n\n"${effect}"\n\nWhat detail or example shows how this cause produces the effect?`;
+  
+    return `You identified this main idea:\n\n"${mi}"\n\nNow think about how that connects to your topic.\n\nWhat detail or example could help explain it?`;
   }
-
-  return `You identified this main idea:\n\n"${mi}"\n\nNow think about how that connects to your topic.\n\nWhat ${framePromptTerm} or example could help explain it?`;
-}
 
   if (stage === "soWhat") {
     if (isCE) {
@@ -1495,7 +996,7 @@ if (stage === "purpose") {
     return `Your frame is about this topic:\n\n"${keyTopic}"\n\nNow think about why this matters.\n\nWhat should people really understand about it?`;
   }
 
-  return `What part of your ${framePromptTerm} feels easiest to improve right now: Key Topic, Is About, Main Ideas, Details, or So What?`;
+  return "What part feels easiest to improve right now: Key Topic, Is About, Main Ideas, Details, or So What?";
 }
 
 function normalizeStuckChoice(msg) {
@@ -1528,13 +1029,12 @@ function defaultState() {
     frame: {
       keyTopic: "",
       isAbout: "",
-      causes: [],
+      cause: "",
       effect: "",
-      parentItems: [],
       mainIdeas: [],
       details: [],
       soWhat: "",
-},
+    },
     pending: null,
     settings: {
       language: "en",
@@ -1562,46 +1062,20 @@ function normalizeIncomingState(raw) {
   base.frame.keyTopic = cleanText(frame.keyTopic || s.keyTopic || "");
   base.frame.isAbout = cleanText(frame.isAbout || s.isAbout || "");
 
-  base.frame.causes = Array.isArray(frame.causes)
-  ? frame.causes.map(cleanText).filter(Boolean)
-  : cleanText(frame.cause || s.cause || "")
-    ? [cleanText(frame.cause || s.cause || "")]
-    : [];
-
+  base.frame.cause = cleanText(frame.cause || s.cause || "");
   base.frame.effect = cleanText(frame.effect || s.effect || "");
 
-  // Ensure effect is derived from isAbout when missing
-if (!base.frame.effect && base.frame.isAbout) {
-  base.frame.effect = base.frame.isAbout;
-}
-
-base.frame.parentItems = Array.isArray(frame.parentItems)
-  ? frame.parentItems.map(cleanText).filter(Boolean)
-  : [];
-
-base.frame.mainIdeas = Array.isArray(frame.mainIdeas)
-  ? frame.mainIdeas.map(cleanText).filter(Boolean)
-  : [];
+  base.frame.mainIdeas = Array.isArray(frame.mainIdeas) ? frame.mainIdeas.map(cleanText).filter(Boolean) : [];
 
   if (Array.isArray(frame.details)) {
     base.frame.details = frame.details.map((bucket) => (Array.isArray(bucket) ? bucket.map(cleanText).filter(Boolean) : []));
   } else if (frame.details && typeof frame.details === "object") {
     // legacy object form
-   const obj = frame.details;
-const rawFrameType =
-  s?.frameMeta && typeof s.frameMeta === "object"
-    ? cleanText(s.frameMeta.frameType || "")
-    : "";
-
-const ideaSeed =
-  rawFrameType === "causeEffect"
-    ? base.frame.causes
-    : base.frame.parentItems;
-
-base.frame.details = ideaSeed.map((mi) => {
-  const bucket = obj[mi];
-  return Array.isArray(bucket) ? bucket.map(cleanText).filter(Boolean) : [];
-});
+    const obj = frame.details;
+    base.frame.details = base.frame.mainIdeas.map((mi) => {
+      const bucket = obj[mi];
+      return Array.isArray(bucket) ? bucket.map(cleanText).filter(Boolean) : [];
+    });
   } else {
     base.frame.details = [];
   }
@@ -1641,42 +1115,19 @@ base.frame.details = ideaSeed.map((mi) => {
       .filter((x) => x.stage);
   }
 
-// ensure detail buckets exist for each idea
-const isCE = base.frameMeta?.frameType === "causeEffect";
-
-const ideaSeed = isCE
-  ? (base.frame.causes || [])
-  : (base.frame.parentItems || []);
-
-for (let i = 0; i < ideaSeed.length; i++) {
-  if (!Array.isArray(base.frame.details[i])) {
-    base.frame.details[i] = [];
+  // ensure detail buckets exist for each main idea
+  for (let i = 0; i < base.frame.mainIdeas.length; i++) {
+    if (!Array.isArray(base.frame.details[i])) base.frame.details[i] = [];
   }
+
+  return base;
 }
-  
-return base;
-}
-  
+
 function ensureBuckets(s) {
   if (!Array.isArray(s.frame.details)) s.frame.details = [];
-
-  if (s.frameMeta?.frameType === "causeEffect") {
-    if (!Array.isArray(s.frame.causes)) s.frame.causes = [];
-
-    for (let i = 0; i < s.frame.causes.length; i++) {
-      if (!Array.isArray(s.frame.details[i])) {
-        s.frame.details[i] = [];
-      }
-    }
-    return;
-  }
-
-  if (!Array.isArray(s.frame.parentItems)) s.frame.parentItems = [];
-
-  for (let i = 0; i < s.frame.parentItems.length; i++) {
-    if (!Array.isArray(s.frame.details[i])) {
-      s.frame.details[i] = [];
-    }
+  if (!Array.isArray(s.frame.mainIdeas)) s.frame.mainIdeas = [];
+  for (let i = 0; i < s.frame.mainIdeas.length; i++) {
+    if (!Array.isArray(s.frame.details[i])) s.frame.details[i] = [];
   }
 }
 
@@ -1689,13 +1140,11 @@ function appendTurn(s, role, text) {
 }
 
 function isFrameComplete(s) {
-  const ideas = getIdeaList(s);
-
   if (!s.frame.keyTopic) return false;
   if (!s.frame.isAbout) return false;
-  if (ideas.length < 2) return false;
+  if (!Array.isArray(s.frame.mainIdeas) || s.frame.mainIdeas.length < 2) return false;
 
-  for (let i = 0; i < ideas.length; i++) {
+  for (let i = 0; i < s.frame.mainIdeas.length; i++) {
     const arr = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
     if (arr.length < 2) return false;
   }
@@ -1713,36 +1162,19 @@ function buildFrameText(s) {
 
   lines.push(`KEY TOPIC: ${s.frame.keyTopic}`);
   lines.push(`IS ABOUT: ${s.frame.isAbout}`);
-  // Cause & Effect export (supports multiple causes)
-if (isCE) {
-  const causes = s.frame.causes || [];
-
-  if (causes.length) {
-    causes.forEach((c, i) => {
-      lines.push(`CAUSE ${i + 1}: ${c}`);
-    });
-  }
-
-  if (s.frame.effect) {
-    lines.push(`EFFECT: ${s.frame.effect}`);
-  }
-} else {
-  // fallback for non-CE frames (unchanged behavior)
   if (s.frame.cause || s.frame.effect) {
     lines.push(`CAUSE: ${s.frame.cause || ""}`);
     lines.push(`EFFECT: ${s.frame.effect || ""}`);
   }
-}
+  lines.push("");
 
   // Surface-labeling only (structure unchanged)
   lines.push(isCE ? "CAUSES + SUPPORTING DETAILS:" : "MAIN IDEAS + SUPPORTING DETAILS:");
 
-  const ideas = getIdeaList(s);
-  ideas.forEach((mi, i) => {
-    lines.push(`${isCE ? "Cause" : "Main Idea"} ${i + 1}: ${mi}`);
+  s.frame.mainIdeas.forEach((mi, i) => {
+    lines.push(`Cause ${i + 1}: ${mi}`);
     const details = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
-    const detailLabel = s.frameMeta?.purpose === "read" ? "Text Evidence" : "Supporting Detail";
-    details.forEach((d, k) => lines.push(`  - ${detailLabel} ${k + 1}: ${d}`));
+    details.forEach((d, k) => lines.push(`   - Supporting Detail ${k + 1}: ${d}`));
     lines.push("");
   });
 
@@ -1821,21 +1253,6 @@ function parseCauseEffectFromLeadsTo(msg) {
 }
 
 function applyIsAboutCapture(s, msg) {
-  if (s.frameMeta?.frameType === "themes") {
-    const result = evaluateThemesIsAbout(s, msg);
-
-    if (!result.sufficient) {
-      s.pending = {
-        type: "reviseThemesIsAbout",
-        category: result.category,
-        feedback: result.feedback,
-        revisionPrompt: result.revisionPrompt,
-        scaffold: result.scaffold,
-      };
-      return s;
-    }
-  }
-  
   // Write + causeEffect must include "leads to" and we parse/store cause/effect
   if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
     const parsed = parseCauseEffectFromLeadsTo(msg);
@@ -1843,9 +1260,8 @@ function applyIsAboutCapture(s, msg) {
       s.pending = { type: "needWriteCauseEffectStem" };
       return s;
     }
-    if (parsed.cause) s.frame.causes = [parsed.cause];
+    if (parsed.cause) s.frame.cause = parsed.cause;
     if (parsed.effect) s.frame.effect = parsed.effect;
-   
   }
 
   // Study/Read + causeEffect: treat the isAbout response as the central effect/result
@@ -1866,38 +1282,7 @@ function applyIsAboutCapture(s, msg) {
 // ---------------------
 function computeNextQuestion(state) {
   const s = state;
-  ensureBuckets(s); //
 
-  const paContext = getParentAnchorContext(s);
-  const paStage = paContext.ownerStructuralStage;
-  
-  // ---------------------
-  // PARENT ANCHOR OBSERVATION HOOK (SANDBOX ONLY)
-  // ---------------------
-  // Leave this disabled until you are intentionally validating sandbox flows.
-  // This hook exists so Parent Anchor can explain the engine in motion
-  // without becoming part of the engine.
-  //
-  // Gated sandbox-only observation:
-if (s?.settings?.debugParentAnchor) {
-  const paObs = getParentAnchorObservation(s);
-  const isInDetails = paContext.ownerStructuralStage === "detailsLoop";
-
-  const stage = s.pending?.stage || getStage(s);
-  const paStage = paContext.ownerStructuralStage;
-  const baseStage = getBaseStage(stage);
-  const engineIsDetails = baseStage === "details";
-
-  const isAligned = isInDetails === engineIsDetails;
-
-  console.log("[PA OBS]", paObs.summary, {
-    isInDetails,
-    engineIsDetails,
-    isAligned,
-    ...paObs
-  });
-}
-  
   if (s.pending?.type === "confirmLanguageSwitch") {
     const candNative = s.pending?.candidateNativeName || s.pending?.candidateName || "that language";
     const candName = s.pending?.candidateName || "that language";
@@ -1937,16 +1322,18 @@ if (s.pending?.type === "stuckReask") {
     s?.frame?.result ||
     "";
 
- const ideas = getIdeaList(s).filter(Boolean);
+  const mainIdeas = Array.isArray(s?.frame?.mainIdeas)
+    ? s.frame.mainIdeas.filter(Boolean)
+    : [];
 
-   let selectedMainIdea = "";
+  let selectedMainIdea = "";
   if (typeof stage === "string" && stage.startsWith("details:")) {
     const rawIndex = stage.split(":")[1];
     const idx = Number(rawIndex);
-    selectedMainIdea = Number.isInteger(idx) ? (ideas[idx] || "") : "";
-  } else if (ideas.length > 0) {
-    selectedMainIdea = ideas[ideas.length - 1] || "";
-}
+    selectedMainIdea = Number.isInteger(idx) ? (mainIdeas[idx] || "") : "";
+  } else if (mainIdeas.length > 0) {
+    selectedMainIdea = mainIdeas[mainIdeas.length - 1] || "";
+  }
 
   if (s.pending.mode === "directions") {
     if (typeof stage === "string" && stage.startsWith("details:")) {
@@ -2045,7 +1432,7 @@ if (s.pending?.type === "stuckReask") {
 
   if (s.pending?.type === "writeNeedEvidenceDetail") {
     const i = Number(s.pending.index);
-    const mi = getIdeaList(s)[i] || "this Cause";
+    const mi = s.frame.mainIdeas?.[i] || "this Cause";
     const eff = s.frame.effect || "the effect";
     const mech = cleanText(s.pending.mechanism || "");
     const ctx = mech ? `You're explaining how it works: "${mech}". ` : "";
@@ -2073,20 +1460,15 @@ if (
 
   let label = "a part of the frame";
 if (skipped.stage === "mainIdeas") {
-  const nextCauseNumber =
-  (s.frameMeta?.frameType === "causeEffect"
-    ? (s.frame.causes || []).length
-    : (s.frame.mainIdeas || []).length) + 1;
-  label = `${s.frameMeta?.frameType === "causeEffect" ? "Cause" : "Main Idea"} ${nextCauseNumber}`; 
+  const nextCauseNumber = (Array.isArray(s.frame.mainIdeas) ? s.frame.mainIdeas.length : 0) + 1;
+  label = `Cause ${nextCauseNumber}`;
 }
 
 if (skipped.stage === "soWhat") label = "the So What statement";
 
 if (skipped.stage?.startsWith("details")) {
   const idx = Number(skipped.stage.split(":")[1]);
-  const labelBase = s.frameMeta?.frameType === "causeEffect" ? "Cause" : "Main Idea";
-  const detailLabel = s.frameMeta?.purpose === "read" ? "Text Evidence" : "Supporting Detail";
-  label = `${detailLabel} for ${labelBase} ${idx + 1}`;
+  label = `Supporting Detail for Cause ${idx + 1}`;
 }
 
   // Keep the skip for now; remove it after the student completes this stage.
@@ -2105,29 +1487,18 @@ if (skipped.stage?.startsWith("details")) {
   return intro + s.pending.miniQuestion;
 }
  
-if (s.pending?.type === "reviseThemesIsAbout") {
-  const parts = [
-    s.pending.feedback,
-    s.pending.revisionPrompt,
-    s.pending.scaffold
-  ].filter(Boolean);
+  if (s.pending?.type === "confirmIsAbout") {
+    // Write + causeEffect gets a teacher-voice confirmation
+    if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
+      const raw = (s.frame.isAbout || "").trim();
+      const cleaned = raw.replace(/^this topic is about\s+/i, "").replace(/\.$/, "").trim();
 
-  return parts.join("\n\n");
-}
+      const keyTopic =
+        s.frame.keyTopic && s.frame.keyTopic.length
+          ? s.frame.keyTopic.charAt(0).toUpperCase() + s.frame.keyTopic.slice(1)
+          : s.frame.keyTopic;
 
-if (s.pending?.type === "confirmIsAbout") {
-
-  // Write + causeEffect
-  if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
-    const raw = (s.frame.isAbout || "").trim();
-    const cleaned = raw.replace(/^this topic is about\s+/i, "").replace(/\.$/, "").trim();
-
-    const keyTopic =
-      s.frame.keyTopic && s.frame.keyTopic.length
-        ? s.frame.keyTopic.charAt(0).toUpperCase() + s.frame.keyTopic.slice(1)
-        : s.frame.keyTopic;
-
-    return `Using your ideas, your frame now reads:
+      return `Using your ideas, your frame now reads:
 
 Key Topic
 ${keyTopic}
@@ -2136,30 +1507,14 @@ Is About
 ${cleaned}
 
 Is that correct, or would you like to revise it?`;
-  }
+    }
 
-  // Study + causeEffect
-  if (s.frameMeta?.purpose === "study" && s.frameMeta?.frameType === "causeEffect") {
-    const topic = (s.frame.keyTopic || "").trim();
-    const eff = (s.frame.effect || "").trim().replace(/\.$/, "");
+    // Study + causeEffect gets a structural confirmation (main effect/result)
+   if (s.frameMeta?.purpose === "study" && s.frameMeta?.frameType === "causeEffect") {
+  const topic = (s.frame.keyTopic || "").trim();
+  const eff = (s.frame.effect || "").trim().replace(/\.$/, "");
 
-    return `Using your ideas, your frame now reads:
-
-Key Topic
-${topic}
-
-Is About
-how ${topic} leads to ${eff}
-
-Is that correct, or would you like to revise it?`;
-  }
-
-  // Read + causeEffect
-  if (s.frameMeta?.purpose === "read" && s.frameMeta?.frameType === "causeEffect") {
-    const topic = (s.frame.keyTopic || "").trim();
-    const eff = (s.frame.effect || "").trim().replace(/\.$/, "");
-
-    return `Using your ideas from the text, your frame now reads:
+  return `Using your ideas, your frame now reads:
 
 Key Topic
 ${topic}
@@ -2168,44 +1523,42 @@ Is About
 how ${topic} leads to ${eff}
 
 Is that correct, or would you like to revise it?`;
-  }
+}
 
-  // Themes
-  if (s.frameMeta?.frameType === "themes") {
-    return `Using your ideas, your frame now reads:
+    // Read + causeEffect gets a structural confirmation (central effect/result)
+   if (s.frameMeta?.purpose === "read" && s.frameMeta?.frameType === "causeEffect") {
+  const topic = (s.frame.keyTopic || "").trim();
+  const eff = (s.frame.effect || "").trim().replace(/\.$/, "");
+
+  return `Using your ideas from the text, your frame now reads:
 
 Key Topic
-${s.frame.keyTopic}
+${topic}
 
 Is About
-${s.frame.isAbout}
+how ${topic} leads to ${eff}
 
 Is that correct, or would you like to revise it?`;
-  }
+}
 }
     
-if (s.pending?.type === "confirmMainIdeas") {
-  const isCE = s.frameMeta?.frameType === "causeEffect";
+  if (s.pending?.type === "confirmMainIdeas") {
+    const lines = (s.frame.mainIdeas || []).map((mi, i) => `Cause ${i + 1}: ${mi}`).join("\n");
+    const isCE = s.frameMeta?.frameType === "causeEffect";
+    const label = isCE ? "Causes" : "Main Ideas";
+    return `You have identified the following ${label}:\n${lines}\nIs that correct, or would you like to revise one?`;
+  }
 
-  const lines = getIdeaList(s).map((mi, i) =>
-    `${isCE ? "Cause" : "Main Idea"} ${i + 1}: ${mi}`
-  ).join("\n");
-
-  const label = isCE ? "Causes" : "Main Ideas";
-
-  return `You have identified the following ${label}:\n${lines}\n\nIs that correct, or would you like to revise one?`;
-}
-  
 if (s.pending?.type === "offerAnotherMainIdea") {
   const isCE = s.frameMeta?.frameType === "causeEffect";
-  const count = getIdeaList(s).length;
+  const count = (s.frame.mainIdeas || []).length;
   const label = isCE ? "Cause" : "Main Idea";
   return `You currently have ${count} ${label}${count > 1 ? "s" : ""}. Would you like to add another ${label}? (yes/no)`;
 }
 
 if (s.pending?.type === "collectAnotherMainIdea") {
   const isCE = s.frameMeta?.frameType === "causeEffect";
-  const count = getIdeaList(s).length + 1;
+  const count = (s.frame.mainIdeas || []).length + 1;
   return isCE
     ? `What is Cause ${count} that helps explain ${s.frame.keyTopic}?`
     : `What is Main Idea ${count} that helps explain ${s.frame.keyTopic}?`;
@@ -2213,7 +1566,7 @@ if (s.pending?.type === "collectAnotherMainIdea") {
   
  if (s.pending?.type === "offerAnotherDetail") {
   const i = Number(s.pending.index);
-  const mi = getIdeaList(s)[i] || "";
+  const mi = s.frame.mainIdeas?.[i] || "";
 
   const isCE = s.frameMeta?.frameType === "causeEffect";
   const miLabel = isCE ? "Cause" : "Main Idea";
@@ -2226,7 +1579,7 @@ if (s.pending?.type === "collectAnotherMainIdea") {
   
 if (s.pending?.type === "collectAnotherDetail") {
   const i = Number(s.pending.index);
-  const mi = getIdeaList(s)[i] || "";  
+  const mi = s.frame.mainIdeas?.[i] || "";
 
   const isCE = s.frameMeta?.frameType === "causeEffect";
   const miLabel = isCE ? "Cause" : "Main Idea";
@@ -2239,11 +1592,10 @@ if (s.pending?.type === "collectAnotherDetail") {
   
   if (s.pending?.type === "confirmDetails") {
     const i = Number(s.pending.index);
-    const mi = getIdeaList(s)[i] || "";
+    const mi = s.frame.mainIdeas?.[i] || "";
     const arr = Array.isArray(s.frame.details?.[i]) ? s.frame.details[i] : [];
-    const lineLabel = s.frameMeta?.purpose === "read" ? "Text Evidence" : "Supporting Detail";
-    const lines = arr.map((d, k) => `${lineLabel} ${k + 1}: ${d}`).join("\n");
-    
+    const lines = arr.map((d, k) => `Supporting Detail ${k + 1}: ${d}`).join("\n");
+
     const isCE = s.frameMeta?.frameType === "causeEffect";
     const miLabel = isCE ? "Cause" : "Main Idea";
     const dLabel = isCE && s.frameMeta?.purpose === "read" ? "Text Evidence" : "Supporting Details";
@@ -2261,25 +1613,26 @@ if (s.pending?.type === "collectAnotherDetail") {
 
   // Base progression
   if (!s.frameMeta?.purpose) {
-  return (
-    "How will you use this Frame?\n" +
-    "1) Study — think through and organize your ideas\n" +
-    "2) Write — build a claim and support it\n" +
-    "3) Read — pull key ideas from a text or source\n" +
-    "Reply with 1, 2, or 3."
-  );
-}
-
-  if (!s.frameMeta?.frameType) {
     return (
-      "What kind of thinking are you doing.\n" +
-      "1) Explain how/why something happens (Linear & Cause-and-Effect Relationships)\n" +
-      "2) Explain a big idea or theme (Framing Themes)\n" +
-      "3) Organize ideas from a text or source (Reading Frames)\n" +
-      "4) Organize my thinking (General Frame)\n" +
-      "Reply with 1, 2, 3, or 4?"
+      "How will you use this Frame.\n" +
+      "1) Study / review\n" +
+      "2) Write / create\n" +
+      "3) Create notes from a reading or source\n" +
+      "Reply with 1, 2, or 3?"
     );
   }
+
+if (!s.frameMeta?.frameType) {
+  return (
+    "Let’s stay aligned with the frame you’re using in class.\n" +
+    "Select the type of frame your teacher is using.\n" +
+    "1) Cause & Effect (Explain how/why something happens)\n" +
+    "2) Theme (Explain a big idea or message)\n" +
+    "3) Reading Frame (Organize ideas from a text or source)\n" +
+    "4) General Frame (Organize your thinking)\n" +
+    "Reply with 1, 2, 3, or 4?"
+  );
+}
 
   if (!s.frame.keyTopic) return "What is your Key Topic? (2–5 words)";
 
@@ -2288,11 +1641,9 @@ if (s.pending?.type === "collectAnotherDetail") {
     return pb || `Finish this sentence: "${s.frame.keyTopic} is about ____."`;
   }
 
-  const ideas = getIdeaList(s);
-
-if (paStage === "parentItems" || ideas.length < 2) {
-  let pb = getPromptForStage(s, "mainIdeas");
-  const c = ideas.length;
+  if (s.frame.mainIdeas.length < 2) {
+    let pb = getPromptForStage(s, "mainIdeas");
+    const c = s.frame.mainIdeas.length; // 0 or 1
 
     const isCE = s.frameMeta?.frameType === "causeEffect";
     const label = isCE ? "Cause" : "Main Idea";
@@ -2314,10 +1665,10 @@ if (paStage === "parentItems" || ideas.length < 2) {
   }
 
   // DETAILS LOOP (CLEANED — no duplicate fallback / brace drift)
-   for (let i = 0; i < ideas.length; i++) {
-    const mi = ideas[i];
+  for (let i = 0; i < s.frame.mainIdeas.length; i++) {
+    const mi = s.frame.mainIdeas[i];
     const arr = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
-    if (paStage === "detailsLoop" && arr.length < 2) {
+    if (arr.length < 2) {
       const pb = getPromptForStage(s, `details:${i}`);
       const detailNum = arr.length + 1; // 1 or 2
 
@@ -2432,8 +1783,10 @@ if (s.pending?.type === "writeNeedEvidenceDetail") {
 if (arr.length < 2 && !isNegative(evidence)) {
   s.frame.details[idx] = [...arr, combined];
   clearMatchingSkip(s, `details:${idx}`);
-  s.pending = { type: "offerAnotherDetail", index: idx };
-return s;
+  if (s.frame.details[idx].length === 2) {
+    s.pending = { type: "offerAnotherDetail", index: idx };
+    return s;
+  }
 }
 
   s.pending = null;
@@ -2579,41 +1932,54 @@ if (s.pending?.type === "stuckNudge") {
       return s;
     }
 
-if (stage === "mainIdeas") {
-  s.pending = null;
-  return updateStateFromStudent(s, msg);
-}
-
-    if (stage.startsWith("details:")) {
-  s.pending = null;
-  return updateStateFromStudent(s, msg);
-}
-
- if (s.pending?.type === "reviseThemesIsAbout") {
-  s.pending = null;
-  return applyIsAboutCapture(s, msg);
-}
-if (s.pending?.type === "reviseThemesSoWhat") {
-  if (!isNegative(msg)) {
-    const evaluation = evaluateThemesSoWhat(s, msg);
-
-    if (!evaluation.sufficient) {
-      s.pending = {
-        type: "reviseThemesSoWhat",
-        category: evaluation.category
-      };
+    if (stage === "mainIdeas") {
+      if (s.frame.mainIdeas.length < 2 && !isNegative(msg)) {
+        s.frame.mainIdeas.push(msg);
+        clearMatchingSkip(s, "mainIdeas");
+        if (!Array.isArray(s.frame.details[s.frame.mainIdeas.length - 1])) s.frame.details[s.frame.mainIdeas.length - 1] = [];
+        if (s.frame.mainIdeas.length === 2) {
+          s.pending = { type: "offerAnotherMainIdea" };
+          return s;
+        }
+      }
+      s.pending = null;
       return s;
     }
 
-    // VALID SAVE PATH 2: revision handler save (after successful revision)
-    s.frame.soWhat = msg;
-    s.pending = { type: "offerMoreSoWhat" };
+    if (stage.startsWith("details:")) {
+      const idx = Number(stage.split(":")[1]);
+      const arr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
+      if (arr.length < 2 && !isNegative(msg)) {
+        if (shouldRequestEvidenceDetail(s, msg)) {
+          s.pending = { type: "writeNeedEvidenceDetail", index: idx, mechanism: msg };
+          return s;
+        }
+        s.frame.details[idx] = [...arr, msg];
+        clearMatchingSkip(s, `details:${idx}`);
+        if (s.frame.details[idx].length === 2) {
+          s.pending = { type: "offerAnotherDetail", index: idx };
+          return s;
+        }
+      }
+      s.pending = null;
+      return s;
+    }
+
+    if (stage === "soWhat") {
+      if (!s.frame.soWhat && !isNegative(msg)) {
+        s.frame.soWhat = msg;
+        clearMatchingSkip(s, "soWhat");
+        s.pending = { type: "offerMoreSoWhat" };
+        return s;
+      }
+      s.pending = null;
+      return s;
+    }
+
+    s.pending = null;
     return s;
   }
 
-  return s;
-}
-  
   if (s.pending?.type === "confirmIsAbout") {
   const normalized = msg.toLowerCase().trim();
 
@@ -2622,12 +1988,10 @@ if (s.pending?.type === "reviseThemesSoWhat") {
     return s;
   }
 
- if (normalized === "revise" || normalized === "change") {
-  s.pending = {
-    type: s.frameMeta?.frameType === "themes" ? "reviseThemesIsAbout" : "reviseIsAbout"
-  };
-  return s;
-}
+  if (normalized === "revise" || normalized === "change") {
+    s.pending = { type: "reviseIsAbout" };
+    return s;
+  }
 
   applyIsAboutCapture(s, msg);
   return s;
@@ -2650,14 +2014,11 @@ if (s.pending?.type === "reviseIsAbout") {
  if (s.pending?.type === "offerAnotherMainIdea") {
     const normalized = msg.toLowerCase().trim();
 
- if (isAffirmative(normalized)) {
-  const count = getIdeaList(s).length;
-
-  if (count >= 5) {
-    s.pending = { type: "confirmMainIdeas" };
-    return s;
-  }
-   
+    if (isAffirmative(normalized)) {
+      if ((s.frame.mainIdeas || []).length >= 5) {
+        s.pending = { type: "confirmMainIdeas" };
+        return s;
+      }
       s.pending = { type: "collectAnotherMainIdea" };
       return s;
     }
@@ -2665,41 +2026,23 @@ if (s.pending?.type === "reviseIsAbout") {
     s.pending = { type: "confirmMainIdeas" };
     return s;
   }
-if (s.pending?.type === "collectAnotherMainIdea") {
-  if (!isNegative(msg)) {
-    const isCE = s.frameMeta?.frameType === "causeEffect";
 
-    if (isCE) {
-      if (!Array.isArray(s.frame.causes)) s.frame.causes = [];
-      if (!Array.isArray(s.frame.details)) s.frame.details = [];
-
-      s.frame.causes.push(msg);
-
-      if (!Array.isArray(s.frame.details[s.frame.causes.length - 1])) {
-        s.frame.details[s.frame.causes.length - 1] = [];
-      }
-    } else {
-      if (!Array.isArray(s.frame.parentItems)) s.frame.parentItems = [];
-      if (!Array.isArray(s.frame.details)) s.frame.details = [];
-
-      s.frame.parentItems.push(msg);
-
-      if (!Array.isArray(s.frame.details[s.frame.parentItems.length - 1])) {
-        s.frame.details[s.frame.parentItems.length - 1] = [];
+  if (s.pending?.type === "collectAnotherMainIdea") {
+    if (!isNegative(msg)) {
+      s.frame.mainIdeas.push(msg);
+      if (!Array.isArray(s.frame.details[s.frame.mainIdeas.length - 1])) {
+        s.frame.details[s.frame.mainIdeas.length - 1] = [];
       }
     }
-  }
 
-  const count = getIdeaList(s).length;
+    if ((s.frame.mainIdeas || []).length >= 5) {
+      s.pending = { type: "confirmMainIdeas" };
+      return s;
+    }
 
-  if (count >= 5) {
-    s.pending = { type: "confirmMainIdeas" };
+    s.pending = { type: "offerAnotherMainIdea" };
     return s;
   }
-
-  s.pending = { type: "offerAnotherMainIdea" };
-  return s;
-}
 
   if (s.pending?.type === "offerAnotherDetail") {
     const normalized = msg.toLowerCase().trim();
@@ -2741,28 +2084,14 @@ if (s.pending?.type === "collectAnotherMainIdea") {
     return s;
   }
 
-if (s.pending?.type === "confirmDetails") {
-  const normalized = msg.toLowerCase().trim();
-  const idx = Number(s.pending.index);
-  const arr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
-
-  if (isAffirmative(normalized)) {
-    s.pending = null;
-    return s;
-  }
-
-  if (isNegative(normalized)) {
-    if (arr.length < 2) {
-      s.pending = { type: "collectAnotherDetail", index: idx };
+  if (s.pending?.type === "confirmDetails") {
+    const normalized = msg.toLowerCase().trim();
+    if (isAffirmative(normalized)) {
+      s.pending = null;
       return s;
     }
-
-    s.pending = null;
     return s;
   }
-
-  return s;
-}
 
   if (s.pending?.type === "offerMoreSoWhat") {
     const normalized = msg.toLowerCase().trim();
@@ -2790,7 +2119,6 @@ if (s.pending?.type === "confirmDetails") {
       }
       return s;
     }
-    // VALID SAVE PATH 3: confirm fallback (user typed revision instead of yes/no)
     s.frame.soWhat = msg;
     s.pending = null;
     return s;
@@ -2853,44 +2181,18 @@ if (s.pending?.type === "confirmDetails") {
   }
 
   // 4) Main Ideas capture
-  const ideas = getIdeaList(s);
-
-if (ideas.length < 2) {
-  if (!isNegative(msg)) {
-    if (s.frameMeta?.frameType === "causeEffect") {
-      if (!Array.isArray(s.frame.causes)) s.frame.causes = [];
-      if (!Array.isArray(s.frame.details)) s.frame.details = [];
-
-      s.frame.causes.push(msg);
+  if (s.frame.mainIdeas.length < 2) {
+    if (!isNegative(msg)) {
+      s.frame.mainIdeas.push(msg);
       clearMatchingSkip(s, "mainIdeas");
-
-      if (!Array.isArray(s.frame.details[s.frame.causes.length - 1])) {
-        s.frame.details[s.frame.causes.length - 1] = [];
-      }
-
-      s.pending = { type: "offerAnotherMainIdea" };
-    } else {
-      if (!Array.isArray(s.frame.parentItems)) s.frame.parentItems = [];
-      if (!Array.isArray(s.frame.details)) s.frame.details = [];
-
-      s.frame.parentItems.push(msg);
-      clearMatchingSkip(s, "mainIdeas");
-
-      if (!Array.isArray(s.frame.details[s.frame.parentItems.length - 1])) {
-        s.frame.details[s.frame.parentItems.length - 1] = [];
-      }
-
-      if (s.frame.parentItems.length === 2) {
-        s.pending = { type: "offerAnotherMainIdea" };
-      }
+      if (!Array.isArray(s.frame.details[s.frame.mainIdeas.length - 1])) s.frame.details[s.frame.mainIdeas.length - 1] = [];
+      if (s.frame.mainIdeas.length === 2) s.pending = { type: "offerAnotherMainIdea" };
     }
+    return s;
   }
-  return s;
-}
 
    // 5) Details capture
-
-for (let i = 0; i < ideas.length; i++) {
+  for (let i = 0; i < s.frame.mainIdeas.length; i++) {
     const arr = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
 
     if (arr.length < 2) {
@@ -2917,7 +2219,9 @@ for (let i = 0; i < ideas.length; i++) {
       }
 
       const updated = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
-      s.pending = { type: "offerAnotherDetail", index: i };
+      if (updated.length === 2) {
+        s.pending = { type: "offerAnotherDetail", index: i };
+      }
       return s;
     }
   }
@@ -2925,22 +2229,8 @@ for (let i = 0; i < ideas.length; i++) {
 // 6) So What capture
 if (!s.frame.soWhat) {
   if (!isNegative(msg)) {
-    if (s.frameMeta?.frameType === "themes") {
-      const evaluation = evaluateThemesSoWhat(s, msg);
-
-      if (!evaluation.sufficient) {
-        s.pending = {
-          type: "reviseThemesSoWhat",
-          category: evaluation.category
-        };
-        return s;
-      }
-    }
-
-    // VALID SAVE PATH 1: normal So What capture (after evaluation)
     s.frame.soWhat = msg;
     clearMatchingSkip(s, "soWhat");
-    s.pending = { type: "offerMoreSoWhat" };
   }
   return s;
 }
@@ -2961,9 +2251,8 @@ export default async function handler(req, res) {
     const body = req.body && typeof req.body === "object" ? req.body : {};
     const message = cleanText(body.message || "");
 
-  let incoming = body.state || body.vercelState || body.framing || {};
-  let state = normalizeIncomingState(incoming);
-    
+    let state = normalizeIncomingState(body.state || body.vercelState || body.framing || {});
+
     // Safety
     if (message) {
       const safety = await classifyMessage(message);
@@ -3096,8 +2385,7 @@ export default async function handler(req, res) {
       state.exports = null;
     }
 
-return res.status(200).json({ reply, state });
-    
+    return res.status(200).json({ reply, state });
   } catch (err) {
     console.error("Tutor API error:", err);
     return res.status(200).json({
