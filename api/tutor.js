@@ -2617,18 +2617,21 @@ function updateStateFromStudent(state, message) {
       return s;
     }
 
-   if (!s.frame.keyTopic) {
-    const wc = msg.split(/\s+/).filter(Boolean).length;
-    if (!isBadKeyTopic(msg) && wc >= 2 && wc <= 5) {
-      s.frame.keyTopic = msg;
-      return s;
+ if (stage === "keyTopic") {
+  const cleaned = cleanText(msg);
+  const wc = cleaned.split(/\s+/).filter(Boolean).length;
+
+  if (!s.frame.keyTopic && !isBadKeyTopic(cleaned) && wc >= 2 && wc <= 5) {
+    s.frame.keyTopic = cleaned;
+    s.pending = null;
+    return s;
   }
 
-    s.pending = {
-      type: "reviseKeyTopic",
-      feedback: getKeyTopicFeedback(msg),
-    };
-    return s;
+  s.pending = {
+    type: "reviseKeyTopic",
+    feedback: getKeyTopicFeedback(cleaned),
+  };
+  return s;
 }
 
     if (stage === "isAbout") {
@@ -2914,12 +2917,13 @@ function updateStateFromStudent(state, message) {
   }
 
   // 2) Key Topic capture (plain 2–5 words) — return after capturing
-  if (!s.frame.keyTopic) {
+   if (!s.frame.keyTopic) {
     const cleaned = cleanText(msg);
     const wc = cleaned.split(/\s+/).filter(Boolean).length;
   
     if (!isBadKeyTopic(cleaned) && wc >= 2 && wc <= 5) {
       s.frame.keyTopic = cleaned;
+      s.pending = null;
       return s;
     }
   
