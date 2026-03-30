@@ -2249,18 +2249,19 @@ Is that correct, or would you like to revise it?`;
   }
 
   // Themes
-if (s.frameMeta?.frameType === "themes") {
-  return `Based on your ideas, your frame so far is:
+  if (s.frameMeta?.frameType === "themes") {
+    return `Based on your ideas, your frame so far is:
 
-Key Topic
-${s.frame.keyTopic}
-
-Message About Life
-${s.frame.isAbout}
-
-Does this capture your thinking, or would you like to revise it?`;
+  Key Topic
+  ${s.frame.keyTopic}
+  
+  Message About Life
+  ${s.frame.isAbout}
+  
+  Does this capture your thinking, or would you like to revise it?`;
+  }
 }
-    
+
 if (s.pending?.type === "confirmMainIdeas") {
   const isCE = s.frameMeta?.frameType === "causeEffect";
 
@@ -3055,16 +3056,17 @@ function updateStateFromStudent(state, message) {
       if (s.frameMeta?.frameType === "themes") {
         const evaluation = evaluateThemesSoWhat(s, msg);
 
-      if (!evaluation.sufficient) {
-    s.pending = {
-      type: "reviseThemesSoWhat",
-      category: evaluation.category,
-      feedback: evaluation.feedback,
-      revisionPrompt: evaluation.revisionPrompt,
-      scaffold: evaluation.scaffold,
-  };
-  return s;
-}
+        if (!evaluation.sufficient) {
+          s.pending = {
+            type: "reviseThemesSoWhat",
+            category: evaluation.category,
+            feedback: evaluation.feedback,
+            revisionPrompt: evaluation.revisionPrompt,
+            scaffold: evaluation.scaffold,
+          };
+          return s;
+        }
+      }
 
       // VALID SAVE PATH 1: normal So What capture (after evaluation)
       s.frame.soWhat = msg;
