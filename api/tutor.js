@@ -54,7 +54,7 @@ function isAffirmative(s) {
 // Keep reply as a SINGLE question (but preserve helpful guidance like "(yes/no)")
 function enforceSingleQuestion(text) {
   let out = (text || "").toString().trim();
-  if (!out) return "Can you say more?";
+  if (!out) return "What should someone understand or learn from this idea?";
 
   const firstQ = out.indexOf("?");
   const lastQ = out.lastIndexOf("?");
@@ -2224,17 +2224,16 @@ Is that correct, or would you like to revise it?`;
   }
 
   // Themes
-  if (s.frameMeta?.frameType === "themes") {
-    return `Using your ideas, your frame now reads:
+if (s.frameMeta?.frameType === "themes") {
+  return `Based on your ideas, your frame so far is:
 
 Key Topic
 ${s.frame.keyTopic}
 
-Is About
+Message About Life
 ${s.frame.isAbout}
 
-Is that correct, or would you like to revise it?`;
-  }
+Does this capture your thinking, or would you like to revise it?`;
 }
     
 if (s.pending?.type === "confirmMainIdeas") {
