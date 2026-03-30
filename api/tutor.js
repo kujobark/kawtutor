@@ -2158,6 +2158,16 @@ if (s.pending?.type === "reviseThemesIsAbout") {
   return parts.join("\n\n");
 }
 
+if (s.pending?.type === "reviseThemesSoWhat") {
+  const parts = [
+    s.pending.feedback,
+    s.pending.revisionPrompt,
+    s.pending.scaffold
+  ].filter(Boolean);
+
+  return parts.join("\n\n");
+}
+  
 if (s.pending?.type === "confirmIsAbout") {
 
   // Write + causeEffect
@@ -2674,12 +2684,15 @@ function updateStateFromStudent(state, message) {
       const evaluation = evaluateThemesSoWhat(s, msg);
 
       if (!evaluation.sufficient) {
-        s.pending = {
-          type: "reviseThemesSoWhat",
-          category: evaluation.category,
-        };
-        return s;
-      }
+  s.pending = {
+    type: "reviseThemesSoWhat",
+    category: evaluation.category,
+    feedback: evaluation.feedback,
+    revisionPrompt: evaluation.revisionPrompt,
+    scaffold: evaluation.scaffold,
+  };
+    return s;
+}
 
       // VALID SAVE PATH 2: revision handler save (after successful revision)
       s.frame.soWhat = msg;
