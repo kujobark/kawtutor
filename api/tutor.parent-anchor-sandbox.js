@@ -2358,6 +2358,7 @@ function clearMatchingSkip(state, completedStage) {
     state.skips.shift();
   }
 }
+
 function updateStateFromStudent(state, message) {
   const msg = cleanText(message);
   const s = structuredClone(state);
@@ -2410,36 +2411,36 @@ function updateStateFromStudent(state, message) {
     return s;
   }
 
-// Write-mode cause/effect stem follow-up
-if (s.pending?.type === "needWriteCauseEffectStem") {
-  s.pending = null;
-  applyIsAboutCapture(s, msg);
-  return s;
-}
+  // Write-mode cause/effect stem follow-up
+  if (s.pending?.type === "needWriteCauseEffectStem") {
+    s.pending = null;
+    applyIsAboutCapture(s, msg);
+    return s;
+  }
 
-// Write-mode evidence guardrail follow-up
-if (s.pending?.type === "writeNeedEvidenceDetail") {
-  const idx = Number(s.pending.index);
-  if (!Array.isArray(s.frame.details[idx])) s.frame.details[idx] = [];
+  // Write-mode evidence guardrail follow-up
+  if (s.pending?.type === "writeNeedEvidenceDetail") {
+    const idx = Number(s.pending.index);
+    if (!Array.isArray(s.frame.details[idx])) s.frame.details[idx] = [];
 
-  const mechanism = cleanText(s.pending.mechanism || "");
-  const evidence = msg;
+    const mechanism = cleanText(s.pending.mechanism || "");
+    const evidence = msg;
 
-  // Store a combined detail (mechanism + evidence) so the student's thinking is preserved.
-  const combined = mechanism ? `${mechanism} (evidence: ${evidence})` : evidence;
+    // Store a combined detail (mechanism + evidence) so the student's thinking is preserved.
+    const combined = mechanism ? `${mechanism} (evidence: ${evidence})` : evidence;
 
-  const arr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
-if (arr.length < 2 && !isNegative(evidence)) {
-  s.frame.details[idx] = [...arr, combined];
-  clearMatchingSkip(s, `details:${idx}`);
-  s.pending = { type: "offerAnotherDetail", index: idx };
-return s;
-}
+    const arr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
+    if (arr.length < 2 && !isNegative(evidence)) {
+      s.frame.details[idx] = [...arr, combined];
+      clearMatchingSkip(s, `details:${idx}`);
+      s.pending = { type: "offerAnotherDetail", index: idx };
+      return s;
+    }
 
-  s.pending = null;
-  return s;
-}
- 
+    s.pending = null;
+    return s;
+  }
+
   // STUCK flow
   if (s.pending?.type === "stuckConfirm") {
     const low = msg.toLowerCase().trim();
@@ -2464,35 +2465,37 @@ return s;
     const choice = normalizeStuckChoice(msg);
     if (!choice) return s;
 
-   if (choice === "1") {
-  s.pending = {
-    type: "stuckReask",
-    mode: "directions",
-    stage: s.pending.stage || getStage(s),
-    resumeQuestion: s.pending.resumeQuestion
-  };
-  return s;
-}
+    if (choice === "1") {
+      s.pending = {
+        type: "stuckReask",
+        mode: "directions",
+        stage: s.pending.stage || getStage(s),
+        resumeQuestion: s.pending.resumeQuestion,
+      };
+      return s;
+    }
 
-if (choice === "2") {
-  s.pending = {
-    type: "stuckReask",
-    mode: "reread",
-    stage: s.pending.stage || getStage(s),
-    resumeQuestion: s.pending.resumeQuestion
-  };
-  return s;
-}
-   if (choice === "3") {
-  const stage = s.pending.stage || getStage(s);
-  s.pending = {
-    type: "stuckMini",
-    stage,
-    miniQuestion: buildMiniQuestion(s),
-    resumeQuestion: s.pending.resumeQuestion
-  };
-  return s;
-}
+    if (choice === "2") {
+      s.pending = {
+        type: "stuckReask",
+        mode: "reread",
+        stage: s.pending.stage || getStage(s),
+        resumeQuestion: s.pending.resumeQuestion,
+      };
+      return s;
+    }
+
+    if (choice === "3") {
+      const stage = s.pending.stage || getStage(s);
+      s.pending = {
+        type: "stuckMini",
+        stage,
+        miniQuestion: buildMiniQuestion(s),
+        resumeQuestion: s.pending.resumeQuestion,
+      };
+      return s;
+    }
+
     if (choice === "4") {
       if (!Array.isArray(s.skips)) s.skips = [];
       s.skips.push({ stage: s.pending.stage || getStage(s), at: Date.now() });
@@ -2505,6 +2508,7 @@ if (choice === "2") {
       };
       return s;
     }
+
     return s;
   }
 
@@ -2513,19 +2517,29 @@ if (choice === "2") {
     // fall through
   }
 
-if (s.pending?.type === "stuckNudge") {
-  s.pending = null;
-  // fall through
-} 
-  
+  if (s.pending?.type === "stuckNudge") {
+    s.pending = null;
+    // fall through
+  }
+
   if (s.pending?.type === "stuckSkip") {
     const low = msg.toLowerCase().trim();
     if (isAffirmative(low)) {
-      s.pending = { type: "stuckMini", stage: s.pending.stage || getStage(s), miniQuestion: s.pending.miniQuestion || buildMiniQuestion(s), resumeQuestion: s.pending.resumeQuestion };
+      s.pending = {
+        type: "stuckMini",
+        stage: s.pending.stage || getStage(s),
+        miniQuestion: s.pending.miniQuestion || buildMiniQuestion(s),
+        resumeQuestion: s.pending.resumeQuestion,
+      };
       return s;
     }
     if (isNegative(low)) {
-      s.pending = { type: "stuckConfirm", stage: s.pending.stage || getStage(s), resumeQuestion: s.pending.resumeQuestion, miniQuestion: s.pending.miniQuestion || buildMiniQuestion(s) };
+      s.pending = {
+        type: "stuckConfirm",
+        stage: s.pending.stage || getStage(s),
+        resumeQuestion: s.pending.resumeQuestion,
+        miniQuestion: s.pending.miniQuestion || buildMiniQuestion(s),
+      };
       return s;
     }
     return s;
@@ -2579,64 +2593,75 @@ if (s.pending?.type === "stuckNudge") {
       return s;
     }
 
-if (stage === "mainIdeas") {
-  s.pending = null;
-  return updateStateFromStudent(s, msg);
-}
-
-    if (stage.startsWith("details:")) {
-  s.pending = null;
-  return updateStateFromStudent(s, msg);
-}
-
- if (s.pending?.type === "reviseThemesIsAbout") {
-  s.pending = null;
-  return applyIsAboutCapture(s, msg);
-}
-if (s.pending?.type === "reviseThemesSoWhat") {
-  if (!isNegative(msg)) {
-    const evaluation = evaluateThemesSoWhat(s, msg);
-
-    if (!evaluation.sufficient) {
-      s.pending = {
-        type: "reviseThemesSoWhat",
-        category: evaluation.category
-      };
-      return s;
+    if (stage === "mainIdeas") {
+      s.pending = null;
+      return updateStateFromStudent(s, msg);
     }
 
-    // VALID SAVE PATH 2: revision handler save (after successful revision)
-    s.frame.soWhat = msg;
-    s.pending = { type: "offerMoreSoWhat" };
-    return s;
-  }
+    if (typeof stage === "string" && stage.startsWith("details:")) {
+      s.pending = null;
+      return updateStateFromStudent(s, msg);
+    }
 
-  return s;
-}
-  
-  if (s.pending?.type === "confirmIsAbout") {
-  const normalized = msg.toLowerCase().trim();
+    if (stage === "soWhat") {
+      s.pending = null;
+      return updateStateFromStudent(s, msg);
+    }
 
-  if (isAffirmative(normalized)) {
     s.pending = null;
     return s;
   }
 
- if (normalized === "revise" || normalized === "change") {
-  s.pending = {
-    type: s.frameMeta?.frameType === "themes" ? "reviseThemesIsAbout" : "reviseIsAbout"
-  };
-  return s;
-}
+  if (s.pending?.type === "reviseThemesIsAbout") {
+    s.pending = null;
+    applyIsAboutCapture(s, msg);
+    return s;
+  }
 
-  applyIsAboutCapture(s, msg);
-  return s;
-}
+  if (s.pending?.type === "reviseThemesSoWhat") {
+    if (!isNegative(msg)) {
+      const evaluation = evaluateThemesSoWhat(s, msg);
 
-if (s.pending?.type === "reviseIsAbout") {
-  applyIsAboutCapture(s, msg);
-  return s;
-}
+      if (!evaluation.sufficient) {
+        s.pending = {
+          type: "reviseThemesSoWhat",
+          category: evaluation.category,
+        };
+        return s;
+      }
+
+      // VALID SAVE PATH 2: revision handler save (after successful revision)
+      s.frame.soWhat = msg;
+      s.pending = { type: "offerMoreSoWhat" };
+      return s;
+    }
+
+    return s;
+  }
+
+  if (s.pending?.type === "confirmIsAbout") {
+    const normalized = msg.toLowerCase().trim();
+
+    if (isAffirmative(normalized)) {
+      s.pending = null;
+      return s;
+    }
+
+    if (normalized === "revise" || normalized === "change") {
+      s.pending = {
+        type: s.frameMeta?.frameType === "themes" ? "reviseThemesIsAbout" : "reviseIsAbout",
+      };
+      return s;
+    }
+
+    applyIsAboutCapture(s, msg);
+    return s;
+  }
+
+  if (s.pending?.type === "reviseIsAbout") {
+    applyIsAboutCapture(s, msg);
+    return s;
+  }
 
   if (s.pending?.type === "confirmMainIdeas") {
     const normalized = msg.toLowerCase().trim();
@@ -2647,17 +2672,17 @@ if (s.pending?.type === "reviseIsAbout") {
     return s;
   }
 
- if (s.pending?.type === "offerAnotherMainIdea") {
+  if (s.pending?.type === "offerAnotherMainIdea") {
     const normalized = msg.toLowerCase().trim();
 
- if (isAffirmative(normalized)) {
-  const count = getIdeaList(s).length;
+    if (isAffirmative(normalized)) {
+      const count = getIdeaList(s).length;
 
-  if (count >= 5) {
-    s.pending = { type: "confirmMainIdeas" };
-    return s;
-  }
-   
+      if (count >= 5) {
+        s.pending = { type: "confirmMainIdeas" };
+        return s;
+      }
+
       s.pending = { type: "collectAnotherMainIdea" };
       return s;
     }
@@ -2665,41 +2690,42 @@ if (s.pending?.type === "reviseIsAbout") {
     s.pending = { type: "confirmMainIdeas" };
     return s;
   }
-if (s.pending?.type === "collectAnotherMainIdea") {
-  if (!isNegative(msg)) {
-    const isCE = s.frameMeta?.frameType === "causeEffect";
 
-    if (isCE) {
-      if (!Array.isArray(s.frame.causes)) s.frame.causes = [];
-      if (!Array.isArray(s.frame.details)) s.frame.details = [];
+  if (s.pending?.type === "collectAnotherMainIdea") {
+    if (!isNegative(msg)) {
+      const isCE = s.frameMeta?.frameType === "causeEffect";
 
-      s.frame.causes.push(msg);
+      if (isCE) {
+        if (!Array.isArray(s.frame.causes)) s.frame.causes = [];
+        if (!Array.isArray(s.frame.details)) s.frame.details = [];
 
-      if (!Array.isArray(s.frame.details[s.frame.causes.length - 1])) {
-        s.frame.details[s.frame.causes.length - 1] = [];
-      }
-    } else {
-      if (!Array.isArray(s.frame.parentItems)) s.frame.parentItems = [];
-      if (!Array.isArray(s.frame.details)) s.frame.details = [];
+        s.frame.causes.push(msg);
 
-      s.frame.parentItems.push(msg);
+        if (!Array.isArray(s.frame.details[s.frame.causes.length - 1])) {
+          s.frame.details[s.frame.causes.length - 1] = [];
+        }
+      } else {
+        if (!Array.isArray(s.frame.parentItems)) s.frame.parentItems = [];
+        if (!Array.isArray(s.frame.details)) s.frame.details = [];
 
-      if (!Array.isArray(s.frame.details[s.frame.parentItems.length - 1])) {
-        s.frame.details[s.frame.parentItems.length - 1] = [];
+        s.frame.parentItems.push(msg);
+
+        if (!Array.isArray(s.frame.details[s.frame.parentItems.length - 1])) {
+          s.frame.details[s.frame.parentItems.length - 1] = [];
+        }
       }
     }
-  }
 
-  const count = getIdeaList(s).length;
+    const count = getIdeaList(s).length;
 
-  if (count >= 5) {
-    s.pending = { type: "confirmMainIdeas" };
+    if (count >= 5) {
+      s.pending = { type: "confirmMainIdeas" };
+      return s;
+    }
+
+    s.pending = { type: "offerAnotherMainIdea" };
     return s;
   }
-
-  s.pending = { type: "offerAnotherMainIdea" };
-  return s;
-}
 
   if (s.pending?.type === "offerAnotherDetail") {
     const normalized = msg.toLowerCase().trim();
@@ -2741,28 +2767,28 @@ if (s.pending?.type === "collectAnotherMainIdea") {
     return s;
   }
 
-if (s.pending?.type === "confirmDetails") {
-  const normalized = msg.toLowerCase().trim();
-  const idx = Number(s.pending.index);
-  const arr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
+  if (s.pending?.type === "confirmDetails") {
+    const normalized = msg.toLowerCase().trim();
+    const idx = Number(s.pending.index);
+    const arr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
 
-  if (isAffirmative(normalized)) {
-    s.pending = null;
-    return s;
-  }
-
-  if (isNegative(normalized)) {
-    if (arr.length < 2) {
-      s.pending = { type: "collectAnotherDetail", index: idx };
+    if (isAffirmative(normalized)) {
+      s.pending = null;
       return s;
     }
 
-    s.pending = null;
+    if (isNegative(normalized)) {
+      if (arr.length < 2) {
+        s.pending = { type: "collectAnotherDetail", index: idx };
+        return s;
+      }
+
+      s.pending = null;
+      return s;
+    }
+
     return s;
   }
-
-  return s;
-}
 
   if (s.pending?.type === "offerMoreSoWhat") {
     const normalized = msg.toLowerCase().trim();
@@ -2808,7 +2834,14 @@ if (s.pending?.type === "confirmDetails") {
 
   if (s.pending?.type === "chooseExportType") {
     const normalized = msg.toLowerCase().trim();
-    const choice = normalized.includes("both") ? "both" : normalized.includes("frame") ? "frame" : normalized.includes("transcript") ? "transcript" : null;
+    const choice =
+      normalized.includes("both")
+        ? "both"
+        : normalized.includes("frame")
+          ? "frame"
+          : normalized.includes("transcript")
+            ? "transcript"
+            : null;
     s.flags.exportChoice = choice || "both";
     s.pending = null;
     return s;
@@ -2855,42 +2888,41 @@ if (s.pending?.type === "confirmDetails") {
   // 4) Main Ideas capture
   const ideas = getIdeaList(s);
 
-if (ideas.length < 2) {
-  if (!isNegative(msg)) {
-    if (s.frameMeta?.frameType === "causeEffect") {
-      if (!Array.isArray(s.frame.causes)) s.frame.causes = [];
-      if (!Array.isArray(s.frame.details)) s.frame.details = [];
+  if (ideas.length < 2) {
+    if (!isNegative(msg)) {
+      if (s.frameMeta?.frameType === "causeEffect") {
+        if (!Array.isArray(s.frame.causes)) s.frame.causes = [];
+        if (!Array.isArray(s.frame.details)) s.frame.details = [];
 
-      s.frame.causes.push(msg);
-      clearMatchingSkip(s, "mainIdeas");
+        s.frame.causes.push(msg);
+        clearMatchingSkip(s, "mainIdeas");
 
-      if (!Array.isArray(s.frame.details[s.frame.causes.length - 1])) {
-        s.frame.details[s.frame.causes.length - 1] = [];
-      }
+        if (!Array.isArray(s.frame.details[s.frame.causes.length - 1])) {
+          s.frame.details[s.frame.causes.length - 1] = [];
+        }
 
-      s.pending = { type: "offerAnotherMainIdea" };
-    } else {
-      if (!Array.isArray(s.frame.parentItems)) s.frame.parentItems = [];
-      if (!Array.isArray(s.frame.details)) s.frame.details = [];
-
-      s.frame.parentItems.push(msg);
-      clearMatchingSkip(s, "mainIdeas");
-
-      if (!Array.isArray(s.frame.details[s.frame.parentItems.length - 1])) {
-        s.frame.details[s.frame.parentItems.length - 1] = [];
-      }
-
-      if (s.frame.parentItems.length === 2) {
         s.pending = { type: "offerAnotherMainIdea" };
+      } else {
+        if (!Array.isArray(s.frame.parentItems)) s.frame.parentItems = [];
+        if (!Array.isArray(s.frame.details)) s.frame.details = [];
+
+        s.frame.parentItems.push(msg);
+        clearMatchingSkip(s, "mainIdeas");
+
+        if (!Array.isArray(s.frame.details[s.frame.parentItems.length - 1])) {
+          s.frame.details[s.frame.parentItems.length - 1] = [];
+        }
+
+        if (s.frame.parentItems.length === 2) {
+          s.pending = { type: "offerAnotherMainIdea" };
+        }
       }
     }
+    return s;
   }
-  return s;
-}
 
-   // 5) Details capture
-
-for (let i = 0; i < ideas.length; i++) {
+  // 5) Details capture
+  for (let i = 0; i < ideas.length; i++) {
     const arr = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
 
     if (arr.length < 2) {
@@ -2916,36 +2948,35 @@ for (let i = 0; i < ideas.length; i++) {
         clearMatchingSkip(s, `details:${i}`);
       }
 
-      const updated = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
       s.pending = { type: "offerAnotherDetail", index: i };
       return s;
     }
   }
-  
-// 6) So What capture
-if (!s.frame.soWhat) {
-  if (!isNegative(msg)) {
-    if (s.frameMeta?.frameType === "themes") {
-      const evaluation = evaluateThemesSoWhat(s, msg);
 
-      if (!evaluation.sufficient) {
-        s.pending = {
-          type: "reviseThemesSoWhat",
-          category: evaluation.category
-        };
-        return s;
+  // 6) So What capture
+  if (!s.frame.soWhat) {
+    if (!isNegative(msg)) {
+      if (s.frameMeta?.frameType === "themes") {
+        const evaluation = evaluateThemesSoWhat(s, msg);
+
+        if (!evaluation.sufficient) {
+          s.pending = {
+            type: "reviseThemesSoWhat",
+            category: evaluation.category,
+          };
+          return s;
+        }
       }
+
+      // VALID SAVE PATH 1: normal So What capture (after evaluation)
+      s.frame.soWhat = msg;
+      clearMatchingSkip(s, "soWhat");
+      s.pending = { type: "offerMoreSoWhat" };
     }
-
-    // VALID SAVE PATH 1: normal So What capture (after evaluation)
-    s.frame.soWhat = msg;
-    clearMatchingSkip(s, "soWhat");
-    s.pending = { type: "offerMoreSoWhat" };
+    return s;
   }
-  return s;
-}
 
-return s;
+  return s;
 }
 
 // ---------------------
