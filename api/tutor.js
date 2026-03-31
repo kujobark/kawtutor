@@ -443,14 +443,14 @@ const PROMPT_BANK = {
   study: {
     causeEffect: {
       isAbout: 'Your Key Topic is:\n\n"[Key Topic]"\n\nNow let\'s think about what happens with this topic.\n\nIn your own words, what is the main effect or result?',
-      mainIdea: 'Your frame explains this effect:\n\n"[EFFECT]"\n\nWhat are the main causes that lead to this effect?',
-      detail: 'Here is the cause you are working with:\n\n"[CAUSE]"\n\nWhat detail or example shows how this leads to\n\n"[EFFECT]"?',
-      soWhat: 'Your frame shows that:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nLooking at this explanation,\n\nwhat important takeaway should someone understand about "[Key Topic]"?',
+      mainIdea: 'You are explaining why this happens:\n\n"[EFFECT]"\n\nWhat is one major cause that contributes to it?',
+      detail: 'Here is the cause you are working with:\n\n"[CAUSE]"\n\nWhat is one detail or example that shows how this leads to\n\n"[EFFECT]"?',
+      soWhat: 'Your frame shows that:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nLooking at this pattern,\n\nwhat important takeaway should someone understand about "[Key Topic]"?',
     },
     themes: {
       isAbout: 'Your Key Topic is:\n\n"[Key Topic]"\n\nNow think about the deeper meaning.\n\nWhat message about life does this topic reveal?',
       mainIdea: 'What theme supports help show this message?',
-      detail: 'What specific example or explanation helps show this theme support?',
+      detail: 'What specific example or explanation helps show this theme in action?',
       soWhat: 'Why does this theme matter beyond this one example or text?'
     }
   },
@@ -458,9 +458,9 @@ const PROMPT_BANK = {
   write: {
     causeEffect: {
       isAbout: 'Your Key Topic is:\n\n"[Key Topic]"\n\nNow let\'s think about what happens in this topic.\n\nFinish this sentence:\n"This topic is about how ____ leads to ____."',
-      mainIdea: 'Your frame explains this effect:\n\n"[EFFECT]"\n\nWhat are the main causes that lead to this effect?',
-      detail: 'Here is the cause you are working with:\n\n"[CAUSE]"\n\nWhat detail or example shows how this leads to\n\n"[EFFECT]"?',
-      soWhat: 'Your frame shows that:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nLooking at this explanation,\n\nwhat does this explanation help us understand about this effect?',    
+      mainIdea: 'You are explaining why this happens:\n\n"[EFFECT]"\n\nWhat is one major cause that contributes to it?',
+      detail: 'Here is the cause you are working with:\n\n"[CAUSE]"\n\nWhat is one detail or example that shows how this leads to\n\n"[EFFECT]"?',
+      soWhat: 'Your frame shows that:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nLooking at this pattern,\n\nwhat does this explanation help us understand about this effect?',  
     },
     themes: {
       isAbout: 'Your Key Topic is:\n\n"[Key Topic]"\n\nNow think about the deeper meaning.\n\nWhat message about life do you want your reader to understand?',
@@ -474,7 +474,7 @@ const PROMPT_BANK = {
     causeEffect: {
       isAbout: 'The text is about:\n\n"[Key Topic]"\n\nNow let\'s think about what happens in this topic.\n\nWhat main effect or result does the author emphasize?',
       mainIdea: 'The text explains this effect:\n\n"[EFFECT]"\n\nWhat are the main causes the author presents that lead to this effect?',
-      detail: 'Here is the cause you are working with:\n\n"[CAUSE]"\n\nWhat evidence or example from the text shows how this leads to\n\n"[EFFECT]"?',
+      detail: 'Here is the cause you are working with:\n\n"[CAUSE]"\n\nWhat evidence from the text shows how this leads to\n\n"[EFFECT]"?',
       soWhat: 'Why does understanding this cause-and-effect relationship matter in the text?'
     },
     themes: {
