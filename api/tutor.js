@@ -2228,10 +2228,10 @@ ${cleaned}
 Is that correct, or would you like to revise it?`;
   }
 
-  // Study + causeEffect
+    // Study + causeEffect
   if (s.frameMeta?.purpose === "study" && s.frameMeta?.frameType === "causeEffect") {
     const topic = (s.frame.keyTopic || "").trim();
-    const eff = (s.frame.effect || "").trim().replace(/\.$/, "");
+    const isAbout = (s.frame.isAbout || "").trim().replace(/\.$/, "");
 
     return `Using your ideas, your frame now reads:
 
@@ -2239,15 +2239,15 @@ Key Topic
 ${topic}
 
 Is About
-how ${topic} leads to ${eff}
+${isAbout}
 
 Is that correct, or would you like to revise it?`;
   }
-
+  
   // Read + causeEffect
   if (s.frameMeta?.purpose === "read" && s.frameMeta?.frameType === "causeEffect") {
     const topic = (s.frame.keyTopic || "").trim();
-    const eff = (s.frame.effect || "").trim().replace(/\.$/, "");
+    const isAbout = (s.frame.isAbout || "").trim().replace(/\.$/, "");
 
     return `Using your ideas from the text, your frame now reads:
 
@@ -2255,11 +2255,11 @@ Key Topic
 ${topic}
 
 Is About
-how ${topic} leads to ${eff}
+${isAbout}
 
 Is that correct, or would you like to revise it?`;
   }
-
+  
   // Themes
   if (s.frameMeta?.frameType === "themes") {
     return `Based on your ideas, your frame so far is:
