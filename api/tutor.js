@@ -447,12 +447,12 @@ const PROMPT_BANK = {
       detail: 'Here is the cause you are working with:\n\n"[CAUSE]"\n\nWhat is one detail or example that shows how this leads to\n\n"[EFFECT]"?',
       soWhat: 'Your frame shows that:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nLooking at this pattern,\n\nwhat important takeaway should someone understand about "[Key Topic]"?',
     },
-    themes: {
+     themes: {
       isAbout: 'Your Key Topic is:\n\n"[Key Topic]"\n\nNow think about the deeper meaning.\n\nWhat message about life does this topic reveal?',
-      mainIdea: 'What theme supports help show this message?',
-      detail: 'What specific example or explanation helps show this theme in action?',
-      soWhat: 'Why does this theme matter beyond this one example or text?'
-    }
+      mainIdea: 'You identified this message about life:\n\n"${state.frame?.isAbout || "your message"}"\n\nWhat is one idea, example, or moment that helps show this message about life?',
+      detail: 'What specific example or explanation helps show this message about life in action?',
+      soWhat: 'What should people understand about life or people because of this message?'
+  }
   },
 
   write: {
@@ -462,11 +462,11 @@ const PROMPT_BANK = {
       detail: 'Here is the cause you are working with:\n\n"[CAUSE]"\n\nWhat is one detail or example that shows how this leads to\n\n"[EFFECT]"?',
       soWhat: 'Your frame shows that:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nLooking at this pattern,\n\nwhat does this pattern help us understand about this effect?',  
     },
-    themes: {
+   themes: {
       isAbout: 'Your Key Topic is:\n\n"[Key Topic]"\n\nNow think about the deeper meaning.\n\nWhat message about life do you want your reader to understand?',
-      mainIdea: 'What theme supports will help develop this message?',
-      detail: 'What example or explanation helps show this theme support?',
-      soWhat: 'Why does this theme matter, and what should your reader understand?'
+      mainIdea: 'You want to show this message about life:\n\n"${state.frame?.isAbout || "your message"}"\n\nWhat is one idea, example, or moment you can use to help develop this message?',
+      detail: 'What specific example or explanation helps show this message about life in action?',
+      soWhat: 'What should your reader understand about life or people because of this message?'
     }
   },
 
@@ -477,14 +477,13 @@ const PROMPT_BANK = {
       detail: 'Here is the cause you are working with:\n\n"[CAUSE]"\n\nWhat evidence from the text shows how this leads to\n\n"[EFFECT]"?',
       soWhat: 'Why does understanding this cause-and-effect relationship matter in the text?'
     },
-    themes: {
+     themes: {
       isAbout: 'The text focuses on:\n\n"[Key Topic]"\n\nWhat message about life does the author reveal through this topic?',
-      mainIdea: 'What theme supports in the text help reveal that message?',
-      detail: 'What evidence or explanation supports this theme support?',
-      soWhat: 'Why does this theme matter beyond the text?'
+      mainIdea: 'The text shows this message about life:\n\n"${state.frame?.isAbout || "the message"}"\n\nWhat example, idea, or moment from the text helps reveal this message?',
+      detail: 'What specific evidence or explanation helps show this message about life in action?',
+      soWhat: 'What should the reader understand about life or people because of this message?'
     }
   }
-
 };
 
 function getPromptForStage(state, stage) {
