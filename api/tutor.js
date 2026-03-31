@@ -2418,7 +2418,7 @@ if (paStage === "parentItems" || ideas.length < 2) {
 
       if (pb) {
         const base = pb.replace(/\?\s*$/, "");
-        return `${miLabel} ${i + 1}: ${mi}\n${dLabel} ${detailNum}: ${base}?`;
+        return `${miLabel} ${i + 1}: ${mi}\n${dLabel} ${detailNum}:\n\n${base}?`;
       }
 
       const fallback =
