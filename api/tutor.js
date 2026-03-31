@@ -1647,7 +1647,7 @@ if (stage === "purpose") {
     if (isCE) {
       return `Your frame starts with this Key Topic:\n\n"${keyTopic}"\n\nNow think about what main effect this topic leads to.\n\nWhat effect is your frame trying to explain?`;
     }
-    return `Your frame starts with this Key Topic:\n\n"${keyTopic}"\n\nNow think about what this topic is mostly about.\n\nWhat is the main idea your frame is trying to explain?`;
+    return `Your frame starts with this Key Topic:\n\n"${keyTopic}"\n\nNow think about the deeper meaning of this topic.\n\nWhat message about life or people might this topic be showing?`;
   }
 
  if (stage === "mainIdeas") {
@@ -1655,7 +1655,7 @@ if (stage === "purpose") {
     return `You identified this effect:\n\n"${effect}"\n\nWhat are the main causes that lead to this effect?`;
   }
 
-  return `What is one main idea that helps explain your topic?`;
+  return `You identified this message about life:\n\n"${state.frame?.isAbout || "your theme"}"\n\nWhat is one example, idea, or moment that helps show this message?`;
 }
 
  const isDetailsStage = isParentAnchorInStage(state, "detailsLoop");
@@ -1667,14 +1667,14 @@ if (stage === "purpose") {
     return `You identified this cause:\n\n"${mi}"\n\nNow think about how that leads to this effect:\n\n"${effect}"\n\nWhat detail or example shows how this cause produces the effect?`;
   }
 
-  return `You identified this main idea:\n\n"${mi}"\n\nNow think about how that connects to your topic.\n\nWhat ${framePromptTerm} or example could help explain it?`;
+  return `You identified this theme support:\n\n"${mi}"\n\nNow think about how it connects to this message:\n\n"${state.frame?.isAbout || "your theme"}"\n\nWhat specific detail, example, or explanation helps show this theme in action?`;
 }
 
   if (stage === "soWhat") {
     if (isCE) {
       return `Your frame explains why this happens:\n\n"${effect}"\n\nNow think about why this matters.\n\nWhat should people really understand about this topic?`;
     }
-    return `Your frame is about this topic:\n\n"${keyTopic}"\n\nNow think about why this matters.\n\nWhat should people really understand about it?`;
+    return `Your frame is showing this message about life:\n\n"${state.frame?.isAbout || "your theme"}"\n\nNow think beyond this one example or text.\n\nWhat should people really understand about life or people because of this theme?`;
   }
 
   return `What part of your ${framePromptTerm} feels easiest to improve right now: Key Topic, Is About, Main Ideas, Details, or So What?`;
@@ -2149,81 +2149,119 @@ if (s.pending?.type === "stuckReask") {
 
   if (s.pending.mode === "directions") {
     if (typeof stage === "string" && stage.startsWith("details:")) {
-      if (selectedMainIdea && effect) {
-        return `Let's check what this step is asking you to do.\n\nRight now you're working on the Details part of the Frame.\n\nYour cause is:\n"${selectedMainIdea}"\n\nWhat detail could help explain how that leads to ${effect}?`;
-      }
 
-      if (selectedMainIdea) {
-        return `Let's check what this step is asking you to do.\n\nRight now you're working on the Details part of the Frame.\n\nYour cause is:\n"${selectedMainIdea}"\n\nWhat detail could help someone understand that idea better?`;
-      }
-
-      return `Let's check what this step is asking you to do.\n\nRight now you're working on the Details part of the Frame.\n\nWhat detail could help explain your cause more clearly?`;
-    }
-
-    if (stage === "mainIdeas") {
-      if (effect && keyTopic) {
-        return `Let's check what this step is asking you to do.\n\nRight now you're working on the Main Ideas part of the Frame.\n\nYou're explaining why ${effect} happens in ${keyTopic}.\n\nWhat might be another cause that could lead to ${effect}?`;
-      }
-
-      if (effect) {
-        return `Let's check what this step is asking you to do.\n\nRight now you're working on the Main Ideas part of the Frame.\n\nYou're explaining why ${effect} happens.\n\nWhat might be another cause that could lead to that effect?`;
-      }
-
-      return `Let's check what this step is asking you to do.\n\nRight now you're working on the Main Ideas part of the Frame.\n\nWhat might be another major idea or cause to add?`;
-    }
-
-    if (stage === "soWhat") {
-      if (effect && keyTopic) {
-        return `Let's check what this step is asking you to do.\n\nRight now you're working on the So What part of the Frame.\n\nYou've identified causes that lead to ${effect} in ${keyTopic}.\n\nWhat larger idea should someone understand after seeing those causes?`;
-      }
-
-      if (effect) {
-        return `Let's check what this step is asking you to do.\n\nRight now you're working on the So What part of the Frame.\n\nYou've identified causes that lead to ${effect}.\n\nWhat larger idea should someone understand after seeing those causes?`;
-      }
-
-      return `Let's check what this step is asking you to do.\n\nRight now you're working on the So What part of the Frame.\n\nWhat larger idea or takeaway should someone understand?`;
-    }
-
-    return `Let's check what this step is asking you to do.\n\n${s.pending.resumeQuestion}`;
+  // Cause & Effect (KEEP)
+  if (selectedMainIdea && effect) {
+    return `Let's check what this step is asking you to do.\n\nRight now you're working on the Details part of the Frame.\n\nYour cause is:\n"${selectedMainIdea}"\n\nWhat detail could help explain how that leads to ${effect}?`;
   }
+
+  // Themes (REPLACE EVERYTHING ELSE WITH THIS)
+  if (selectedMainIdea) {
+    return `Let's check what this step is asking you to do.\n\nRight now you're working on the Details part of the Frame.\n\nYour theme support is:\n"${selectedMainIdea}"\n\nWhat detail, example, or explanation could help show how this connects to your theme?`;
+  }
+
+  return `Let's check what this step is asking you to do.\n\nRight now you're working on the Details part of the Frame.\n\nWhat detail, example, or explanation could help show your theme more clearly?`;
+}
+
+  if (stage === "mainIdeas") {
+  if (effect && keyTopic) {
+    return `Let's check what this step is asking you to do.\n\nRight now you're working on the Main Ideas part of the Frame.\n\nYou're explaining why ${effect} happens in ${keyTopic}.\n\nWhat might be another cause that could lead to ${effect}?`;
+  }
+
+  if (effect) {
+    return `Let's check what this step is asking you to do.\n\nRight now you're working on the Main Ideas part of the Frame.\n\nYou're explaining why ${effect} happens.\n\nWhat might be another cause that could lead to that effect?`;
+  }
+
+  const theme = s?.frame?.isAbout || "";
+
+  if (theme && keyTopic) {
+    return `Let's check what this step is asking you to do.\n\nRight now you're working on the Main Ideas part of the Frame.\n\nYou're showing this message about life:\n"${theme}"\n\nWhat idea, example, or moment related to ${keyTopic} could help show that message?`;
+  }
+
+  if (theme) {
+    return `Let's check what this step is asking you to do.\n\nRight now you're working on the Main Ideas part of the Frame.\n\nYou're showing this message about life:\n"${theme}"\n\nWhat idea, example, or moment could help show that message?`;
+  }
+
+  return `Let's check what this step is asking you to do.\n\nRight now you're working on the Main Ideas part of the Frame.\n\nWhat idea, example, or moment could help show your theme?`;
+}
+
+if (stage === "soWhat") {
+  if (effect && keyTopic) {
+    return `Let's check what this step is asking you to do.\n\nRight now you're working on the So What part of the Frame.\n\nYou've identified causes that lead to ${effect} in ${keyTopic}.\n\nWhat larger idea should someone understand after seeing those causes?`;
+  }
+
+  if (effect) {
+    return `Let's check what this step is asking you to do.\n\nRight now you're working on the So What part of the Frame.\n\nYou've identified causes that lead to ${effect}.\n\nWhat larger idea should someone understand after seeing those causes?`;
+  }
+
+  const theme = s?.frame?.isAbout || "";
+
+  if (theme && keyTopic) {
+    return `Let's check what this step is asking you to do.\n\nRight now you're working on the So What part of the Frame.\n\nYou've identified supports that help show this message about life:\n"${theme}"\n\nWhat larger idea should someone understand from this pattern in ${keyTopic}?`;
+  }
+
+  if (theme) {
+    return `Let's check what this step is asking you to do.\n\nRight now you're working on the So What part of the Frame.\n\nYou've identified supports that help show this message about life:\n"${theme}"\n\nWhat larger idea should someone understand from this pattern?`;
+  }
+
+  return `Let's check what this step is asking you to do.\n\nRight now you're working on the So What part of the Frame.\n\nWhat larger idea or takeaway should someone understand from your theme?`;
+}
 
   if (s.pending.mode === "reread") {
     if (typeof stage === "string" && stage.startsWith("details:")) {
-      if (selectedMainIdea && effect) {
-        return `Look back at your notes or source.\n\nFind a sentence that relates to this cause:\n"${selectedMainIdea}"\n\nDoes that sentence help explain how this cause leads to ${effect}?`;
-      }
-
-      if (selectedMainIdea) {
-        return `Look back at your notes or source.\n\nFind a sentence that relates to this cause:\n"${selectedMainIdea}"\n\nCould that sentence help explain that idea more clearly?`;
-      }
-
-      return `Look back at your notes or source.\n\nDo you see a sentence that could help explain your cause more clearly?`;
-    }
-
-    if (stage === "mainIdeas") {
-      if (effect && keyTopic) {
-        return `Look back at your notes or source about ${keyTopic}.\n\nDo you see a sentence that explains another reason why ${effect} happens?\n\nCould that idea become another cause in your Frame?`;
-      }
-
-      if (effect) {
-        return `Look back at your notes or source.\n\nDo you see a sentence that explains another reason why ${effect} happens?\n\nCould that idea become another cause in your Frame?`;
-      }
-
-      return `Look back at your notes or source.\n\nDo you see another important reason or cause you could add to your Frame?`;
-    }
-
-    if (stage === "soWhat") {
-      if (keyTopic) {
-        return `Look back at your notes or source about ${keyTopic}.\n\nDo you see a sentence that connects the causes you found to the bigger issue?\n\nCould that idea help you write the takeaway for your Frame?`;
-      }
-
-      return `Look back at your notes or source.\n\nDo you see a sentence that could help you write the takeaway for your Frame?`;
-    }
-
-    return `Look back at your notes or source.\n\nIs there a sentence or phrase there that could help you answer this step?`;
+  if (selectedMainIdea && effect) {
+    return `Look back at your notes or source.\n\nFind a sentence that relates to this cause:\n"${selectedMainIdea}"\n\nDoes that sentence help explain how this cause leads to ${effect}?`;
   }
 
-  return s.pending.resumeQuestion;
+  if (selectedMainIdea) {
+    return `Look back at your notes or source.\n\nFind a sentence that relates to this theme support:\n"${selectedMainIdea}"\n\nCould that sentence help show how this connects to your theme?`;
+  }
+
+  return `Look back at your notes or source.\n\nDo you see a sentence, example, or detail that could help show your theme more clearly?`;
+}
+
+    if (stage === "mainIdeas") {
+  if (effect && keyTopic) {
+    return `Look back at your notes or source about ${keyTopic}.\n\nDo you see a sentence that explains another reason why ${effect} happens?\n\nCould that idea become another cause in your Frame?`;
+  }
+
+  if (effect) {
+    return `Look back at your notes or source.\n\nDo you see a sentence that explains another reason why ${effect} happens?\n\nCould that idea become another cause in your Frame?`;
+  }
+
+  const theme = s?.frame?.isAbout || "";
+
+  if (theme && keyTopic) {
+    return `Look back at your notes or source about ${keyTopic}.\n\nDo you see an example, idea, or moment that helps show this message about life:\n"${theme}"\n\nCould that become another theme support in your Frame?`;
+  }
+
+  if (theme) {
+    return `Look back at your notes or source.\n\nDo you see an example, idea, or moment that helps show this message about life:\n"${theme}"\n\nCould that become another theme support in your Frame?`;
+  }
+
+  return `Look back at your notes or source.\n\nDo you see another example, idea, or moment you could add to help show your theme?`;
+}
+
+    if (stage === "soWhat") {
+  if (effect && keyTopic) {
+    return `Look back at your notes or source about ${keyTopic}.\n\nDo you see a sentence that connects the causes you found to the bigger issue?\n\nCould that idea help you write the takeaway for your Frame?`;
+  }
+
+  if (effect) {
+    return `Look back at your notes or source.\n\nDo you see a sentence that connects the causes you found to the bigger issue?\n\nCould that idea help you write the takeaway for your Frame?`;
+  }
+
+  const theme = s?.frame?.isAbout || "";
+
+  if (theme && keyTopic) {
+    return `Look back at your notes or source about ${keyTopic}.\n\nDo you see a sentence, idea, or moment that helps show why this message matters:\n"${theme}"\n\nCould that help you explain the bigger takeaway for your Frame?`;
+  }
+
+  if (theme) {
+    return `Look back at your notes or source.\n\nDo you see a sentence, idea, or moment that helps show why this message matters:\n"${theme}"\n\nCould that help you explain the bigger takeaway for your Frame?`;
+  }
+
+  return `Look back at your notes or source.\n\nDo you see something there that could help you explain why your theme matters?`;
 }
  
   if (s.pending?.type === "stuckNudge") {
