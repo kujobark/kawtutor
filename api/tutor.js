@@ -2162,7 +2162,7 @@ if (s.pending?.type === "stuckReask") {
       }
 
       if (isThemes && selectedMainIdea) {
-        return `Let's check what this step is asking you to do.\n\nRight now you're working on the Details part of the Frame.\n\nYour theme support is:\n"${selectedMainIdea}"\n\nWhat detail, example, or explanation could help show how this connects to your theme?`;
+        return `Let's check what this step is asking you to do.\n\nRight now you're working on the Details part of the Frame.\n\nYour theme support is:\n"${selectedMainIdea}"\n\nWhat specific detail, example, or explanation could help show how this connects to your message about life?`;      
       }
 
       if (isCE) {
@@ -2170,7 +2170,7 @@ if (s.pending?.type === "stuckReask") {
       }
 
       if (isThemes) {
-        return `Let's check what this step is asking you to do.\n\nRight now you're working on the Details part of the Frame.\n\nWhat detail, example, or explanation could help show your theme more clearly?`;
+        return `Let's check what this step is asking you to do.\n\nRight now you're working on the Details part of the Frame.\n\nWhat specific detail, example, or explanation could help show your message about life more clearly?`;
       }
 
       return `Let's check what this step is asking you to do.\n\nRight now you're working on the Details part of the Frame.\n\nWhat detail could help explain this part of your frame more clearly?`;
