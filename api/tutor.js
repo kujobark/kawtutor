@@ -607,9 +607,63 @@ Ask yourself: what cause might help explain that effect?`,
       }
     }
 
-    return genericMainIdeas;
-  }
+    if (frameType === "themes") {
+      const theme = state?.frame?.isAbout || "";
 
+      if (mostRecentCause && theme && keyTopic) {
+        return [
+`Your frame is showing this message about life:
+"${theme}"
+
+You already identified this theme support:
+"${mostRecentCause}"
+
+Ask yourself: what other idea, example, or moment related to ${keyTopic} could also help show this message?`,
+
+"What is another theme support?"
+        ];
+      }
+
+      if (mostRecentCause && theme) {
+        return [
+`Your frame is showing this message about life:
+"${theme}"
+
+You already identified this theme support:
+"${mostRecentCause}"
+
+Ask yourself: what other idea, example, or moment could also help show this message?`,
+
+"What is another theme support?"
+        ];
+      }
+
+      if (theme && keyTopic) {
+        return [
+`Your frame is showing this message about life:
+"${theme}"
+
+Ask yourself: what idea, example, or moment related to ${keyTopic} could help show this message?`,
+
+"What is one theme support?"
+        ];
+      }
+
+      if (theme) {
+        return [
+`Your frame is showing this message about life:
+"${theme}"
+
+Ask yourself: what idea, example, or moment could help show this message?`,
+
+"What is one theme support?"
+        ];
+      }
+    }
+
+        return genericMainIdeas;
+  }
+  
   // DETAILS
   if (typeof stage === "string" && stage.startsWith("details:")) {
     const rawIndex = stage.split(":")[1];
@@ -641,9 +695,36 @@ Now help the reader understand how that cause connects to your frame.`,
       }
     }
 
-    return genericDetails;
-  }
+    if (frameType === "themes") {
+      const theme = state?.frame?.isAbout || "";
 
+      if (selectedMainIdea && theme) {
+        return [
+`You already identified this theme support:
+"${selectedMainIdea}"
+
+Now help the reader understand how this shows the message:
+"${theme}"`,
+
+"What specific detail, example, or explanation could help show this theme in action?"
+        ];
+      }
+
+      if (selectedMainIdea) {
+        return [
+`You already identified this theme support:
+"${selectedMainIdea}"
+
+Now help the reader understand how it connects to your frame.`,
+
+"What specific detail, example, or explanation could help explain that support?"
+        ];
+      }
+    }
+
+  return genericDetails;
+  }
+    
   // SO WHAT
   if (stage === "soWhat") {
     if (frameType === "causeEffect") {
@@ -679,10 +760,47 @@ think about the bigger meaning of that connection.`,
       }
     }
 
+    if (frameType === "themes") {
+      const theme = state?.frame?.isAbout || "";
+
+      if (ideas.length > 1 && theme && keyTopic) {
+        return [
+`You identified supports that help show this message:
+"${theme}"
+
+Now think about the bigger meaning of that pattern in ${keyTopic}.`,
+
+"What larger idea or takeaway should someone understand about this theme?"
+        ];
+      }
+
+      if (ideas.length > 0 && theme) {
+        return [
+`You identified supports that help show this message:
+"${theme}"
+
+Now think about the bigger meaning of that pattern.`,
+
+"What larger idea or takeaway should someone understand?"
+        ];
+      }
+
+      if (theme) {
+        return [
+`Your frame is showing this message about life:
+"${theme}"
+
+Now think beyond this one example or text.`,
+
+"What larger idea or takeaway should someone understand?"
+        ];
+      }
+    }
+    
     return genericSoWhat;
   }
 
-  return [
+   return [
     "What is one small next step you could try?",
     "What is one idea you are considering?",
     "What part feels easiest to answer first?"
