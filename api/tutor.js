@@ -2186,7 +2186,8 @@ if (s.pending?.type === "stuckReask") {
       }
 
       if (isThemes && theme && keyTopic) {
-        return `Let's check what this step is asking you to do.\n\nRight now you're working on the Main Ideas part of the Frame.\n\nYou're showing this message about life:\n"${theme}"\n\nWhat idea, example, or moment related to ${keyTopic} could help show that message?`;
+        return `Let's check what this step is asking you to do.\n\nRight now you're working on the Main Ideas part of the Frame.\n\nYou're showing this message about life:\n"${theme}"\n\nWhat is one specific example, idea, or moment that helps show that message about life?`;
+        
       }
 
       if (isThemes && theme) {
@@ -2214,11 +2215,11 @@ if (s.pending?.type === "stuckReask") {
       }
 
       if (isThemes && theme && keyTopic) {
-        return `Let's check what this step is asking you to do.\n\nRight now you're working on the So What part of the Frame.\n\nYou've identified supports that help show this message about life:\n"${theme}"\n\nWhat larger idea should someone understand from this pattern in ${keyTopic}?`;
+        return `Let's check what this step is asking you to do.\n\nRight now you're working on the So What part of the Frame.\n\nYou've shown this message about life:\n"${theme}"\n\nWhat is the most important idea people should understand about life or people because of this message?`;
       }
 
       if (isThemes && theme) {
-        return `Let's check what this step is asking you to do.\n\nRight now you're working on the So What part of the Frame.\n\nYou've identified supports that help show this message about life:\n"${theme}"\n\nWhat larger idea should someone understand from this pattern?`;
+        return `Let's check what this step is asking you to do.\n\nRight now you're working on the So What part of the Frame.\n\nYou've shown this message about life:\n"${theme}"\n\nWhat is the most important idea people should understand about life or people because of this message?`;
       }
 
       if (isCE) {
@@ -2226,7 +2227,7 @@ if (s.pending?.type === "stuckReask") {
       }
 
       if (isThemes) {
-        return `Let's check what this step is asking you to do.\n\nRight now you're working on the So What part of the Frame.\n\nWhat larger idea or takeaway should someone understand from your theme?`;
+        return `Let's check what this step is asking you to do.\n\nRight now you're working on the So What part of the Frame.\n\nWhat should people understand about life or people based on your message?`;
       }
 
       return `Let's check what this step is asking you to do.\n\nRight now you're working on the So What part of the Frame.\n\nWhat larger idea or takeaway should someone understand?`;
