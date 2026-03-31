@@ -460,7 +460,7 @@ const PROMPT_BANK = {
       isAbout: 'Your Key Topic is:\n\n"[Key Topic]"\n\nNow let\'s think about what happens in this topic.\n\nFinish this sentence:\n"This topic is about how ____ leads to ____."',
       mainIdea: 'You are explaining why this happens:\n\n"[EFFECT]"\n\nWhat is one major cause that contributes to it?',
       detail: 'Here is the cause you are working with:\n\n"[CAUSE]"\n\nWhat is one detail or example that shows how this leads to\n\n"[EFFECT]"?',
-      soWhat: 'Your frame shows that:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nLooking at this pattern,\n\nwhat does this explanation help us understand about this effect?',  
+      soWhat: 'Your frame shows that:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nLooking at this pattern,\n\nwhat does this pattern help us understand about this effect?',  
     },
     themes: {
       isAbout: 'Your Key Topic is:\n\n"[Key Topic]"\n\nNow think about the deeper meaning.\n\nWhat message about life do you want your reader to understand?',
