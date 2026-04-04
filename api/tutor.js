@@ -2471,18 +2471,15 @@ ${isAbout}
 Is that correct, or would you like to revise it?`;
   }
   
-  // Themes
-  if (s.frameMeta?.frameType === "themes") {
-    return `Based on your ideas, your frame so far is:
-
-  Key Topic
-  ${s.frame.keyTopic}
-  
-  Message About Life
-  ${s.frame.isAbout}
-  
-  Does this capture your thinking, or would you like to revise it?`;
-  }
+// Themes
+if (s.frameMeta?.frameType === "themes") {
+   return "Using your ideas from the text, your frame now reads:\n\n" +
+"Key Topic\n" +
+s.frame.keyTopic + "\n\n" +
+"Is About\n" +
+s.frame.isAbout + "\n\n" +
+"Is that correct, or would you like to revise it?";
+}
 }
 
 if (s.pending?.type === "confirmMainIdeas") {
