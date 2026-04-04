@@ -2488,6 +2488,8 @@ if (s.frameMeta?.frameType === "themes") {
     s.frame.isAbout + "\n\n" +
     "Is that correct, or would you like to revise it?";
 }
+  }
+  
 if (s.pending?.type === "confirmMainIdeas") {
   const isCE = s.frameMeta?.frameType === "causeEffect";
 
