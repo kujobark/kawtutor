@@ -1925,12 +1925,22 @@ if (isCE) {
   }
 }
 
-  // Surface-labeling only (structure unchanged)
-  lines.push(isCE ? "CAUSES + SUPPORTING DETAILS:" : "MAIN IDEAS + SUPPORTING DETAILS:");
+// Surface-labeling only (structure unchanged)
+const isThemes = s.frameMeta?.frameType === "themes";
 
-  const ideas = getIdeaList(s);
-  ideas.forEach((mi, i) => {
-    lines.push(`${isCE ? "Cause" : "Main Idea"} ${i + 1}: ${mi}`);
+lines.push(
+  isCE
+    ? "CAUSES + SUPPORTING DETAILS:"
+    : isThemes
+      ? "THEME SUPPORTS + SUPPORTING DETAILS:"
+      : "MAIN IDEAS + SUPPORTING DETAILS:"
+);
+
+const ideas = getIdeaList(s);
+ideas.forEach((mi, i) => {
+  lines.push(
+    `${isCE ? "Cause" : isThemes ? "Theme Support" : "Main Idea"} ${i + 1}: ${mi}`
+  );
     const details = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
     const detailLabel = s.frameMeta?.purpose === "read" ? "Text Evidence" : "Supporting Detail";
     details.forEach((d, k) => lines.push(`  - ${detailLabel} ${k + 1}: ${d}`));
@@ -2503,29 +2513,45 @@ if (s.frameMeta?.frameType === "themes") {
   
 if (s.pending?.type === "confirmMainIdeas") {
   const isCE = s.frameMeta?.frameType === "causeEffect";
+  const isThemes = s.frameMeta?.frameType === "themes";
 
   const lines = getIdeaList(s).map((mi, i) =>
-    `${isCE ? "Cause" : "Main Idea"} ${i + 1}: ${mi}`
+    `${isCE ? "Cause" : isThemes ? "Theme Support" : "Main Idea"} ${i + 1}: ${mi}`
   ).join("\n");
 
-  const label = isCE ? "Causes" : "Main Ideas";
+  const label = isCE
+    ? "Causes"
+    : isThemes
+      ? "Theme Supports"
+      : "Main Ideas";
 
   return `You have identified the following ${label}:\n${lines}\n\nIs that correct, or would you like to revise one?`;
 }
   
 if (s.pending?.type === "offerAnotherMainIdea") {
   const isCE = s.frameMeta?.frameType === "causeEffect";
+  const isThemes = s.frameMeta?.frameType === "themes";
   const count = getIdeaList(s).length;
-  const label = isCE ? "Cause" : "Main Idea";
+
+  const label = isCE
+    ? "Cause"
+    : isThemes
+      ? "Theme Support"
+      : "Main Idea";
+
   return `You currently have ${count} ${label}${count > 1 ? "s" : ""}. Would you like to add another ${label}? (yes/no)`;
 }
 
 if (s.pending?.type === "collectAnotherMainIdea") {
   const isCE = s.frameMeta?.frameType === "causeEffect";
+  const isThemes = s.frameMeta?.frameType === "themes";
   const count = getIdeaList(s).length + 1;
+
   return isCE
-  ? `What is another cause that leads to this effect: "${s.frame.effect}"?`
-  : `What is Main Idea ${count} that helps explain ${s.frame.keyTopic}?`;
+    ? `What is another cause that leads to this effect: "${s.frame.effect}"?`
+    : isThemes
+      ? `What is Theme Support ${count} that helps show this message about life?`
+      : `What is Main Idea ${count} that helps explain ${s.frame.keyTopic}?`;
 }
   
  if (s.pending?.type === "offerAnotherDetail") {
