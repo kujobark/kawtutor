@@ -406,12 +406,6 @@ const kt = state?.frame?.keyTopic || "";
 const eff = state?.frame?.effect || "";
 const isAbout = state?.frame?.isAbout || "";
 const ideas = getIdeaList(state).filter(Boolean);
-const frameType = state?.frameMeta?.frameType || "";
-const ideaCount = ideas.length;
-const mainIdeaPrompt =
-  frameType === "themes"
-    ? (ideaCount === 0 ? "one Theme Support" : "another Theme Support")
-    : (ideaCount === 0 ? "one Main Idea" : "another Main Idea");
 
 const activeStage = state?.pending?.stage || getStage(state) || "";
 let cause = ideas.length ? ideas[ideas.length - 1] : "";
@@ -428,7 +422,6 @@ if (typeof activeStage === "string" && activeStage.startsWith("details:")) {
   // Key Topic token
   if (kt) out = out.replace(/\[Key Topic\]/g, kt);
   if (isAbout) out = out.replace(/\[IS_ABOUT\]/g, isAbout);
-  out = out.replace(/\[MAIN_IDEA_PROMPT\]/g, mainIdeaPrompt);
   
   // Cause/Effect tokens / phrases
   if (eff) {
@@ -459,7 +452,7 @@ const PROMPT_BANK = {
     },
      themes: {
       isAbout: 'Your Key Topic is:\n\n"[Key Topic]"\n\nNow think about the deeper meaning.\n\nWhat message about life does this topic reveal?',
-      mainIdea: 'Your message about life is:\n\n[IS_ABOUT]\n\nWhat is [MAIN_IDEA_PROMPT] that helps develop this message about life?',
+      mainIdea: 'You identified this message about life:\n\n"[IS_ABOUT]"\n\nWhat is one Main Idea that helps show this message about life?',
       detail: 'What specific example or explanation helps show this message about life in action?',
       soWhat: 'What should people understand about life or people because of this message?'
   }
@@ -474,7 +467,7 @@ const PROMPT_BANK = {
     },
    themes: {
       isAbout: 'Your Key Topic is:\n\n"[Key Topic]"\n\nNow think about the deeper meaning.\n\nWhat message about life do you want your reader to understand?',
-      mainIdea: 'Your message about life is:\n\n[IS_ABOUT]\n\nWhat is [MAIN_IDEA_PROMPT] that helps develop this message about life?',
+      mainIdea: 'You want to show this message about life:\n\n"[IS_ABOUT]"\n\nWhat is one Main Idea you can use to help develop this message?',
       detail: 'What specific example or explanation helps show this message about life in action?',
       soWhat: 'What should your reader understand about life or people because of this message?'
     }
@@ -489,7 +482,7 @@ const PROMPT_BANK = {
     },
      themes: {
       isAbout: 'The text focuses on:\n\n"[Key Topic]"\n\nWhat message about life does the author reveal through this topic?',
-      mainIdea: 'Your message about life is:\n\n[IS_ABOUT]\n\nWhat is [MAIN_IDEA_PROMPT] that helps develop this message about life?',
+      mainIdea: 'The text shows this message about life:\n\n"[IS_ABOUT]"\n\nWhat Main Idea from the text helps reveal this message?',
       detail: 'What specific evidence or explanation helps show this message about life in action?',
       soWhat: 'What should the reader understand about life or people because of this message?'
     }
@@ -1373,7 +1366,7 @@ const ThemesFrame = {
       return "Is About";
     case "parentItems":
     case "parentItemsConfirm":
-      return "Theme Supports";
+      return "Main Ideas";
     case "detailsLoop":
     case "detailsConfirmLoop":
       return "Details";
@@ -1390,7 +1383,7 @@ const ThemesFrame = {
   getPromptTerm(structuralStage, state) {
     switch (structuralStage) {
       case "parentItems":
-        return "theme support";
+        return "Main Ideas";
       case "detailsLoop":
         return "evidence and explanation";
       default:
@@ -1926,27 +1919,17 @@ if (isCE) {
 }
 
 // Surface-labeling only (structure unchanged)
-const isThemes = s.frameMeta?.frameType === "themes";
-
-lines.push(
-  isCE
-    ? "CAUSES + SUPPORTING DETAILS:"
-    : isThemes
-      ? "THEME SUPPORTS + SUPPORTING DETAILS:"
-      : "MAIN IDEAS + SUPPORTING DETAILS:"
-);
+lines.push(isCE ? "CAUSES + SUPPORTING DETAILS:" : "MAIN IDEAS + SUPPORTING DETAILS:");
 
 const ideas = getIdeaList(s);
 ideas.forEach((mi, i) => {
-  lines.push(
-    `${isCE ? "Cause" : isThemes ? "Theme Support" : "Main Idea"} ${i + 1}: ${mi}`
-  );
-    const details = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
-    const detailLabel = s.frameMeta?.purpose === "read" ? "Text Evidence" : "Supporting Detail";
-    details.forEach((d, k) => lines.push(`  - ${detailLabel} ${k + 1}: ${d}`));
-    lines.push("");
-  });
-
+  lines.push(`${isCE ? "Cause" : "Main Idea"} ${i + 1}: ${mi}`);
+  const details = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
+  const detailLabel = s.frameMeta?.purpose === "read" ? "Text Evidence" : "Supporting Detail";
+  details.forEach((d, k) => lines.push(`  - ${detailLabel} ${k + 1}: ${d}`));
+  lines.push("");
+});
+  
   lines.push(`SO WHAT: ${s.frame.soWhat}`);
   return lines.join("\n").trim();
 }
@@ -2513,45 +2496,29 @@ if (s.frameMeta?.frameType === "themes") {
   
 if (s.pending?.type === "confirmMainIdeas") {
   const isCE = s.frameMeta?.frameType === "causeEffect";
-  const isThemes = s.frameMeta?.frameType === "themes";
 
   const lines = getIdeaList(s).map((mi, i) =>
-    `${isCE ? "Cause" : isThemes ? "Theme Support" : "Main Idea"} ${i + 1}: ${mi}`
+    `${isCE ? "Cause" : "Main Idea"} ${i + 1}: ${mi}`
   ).join("\n");
 
-  const label = isCE
-    ? "Causes"
-    : isThemes
-      ? "Theme Supports"
-      : "Main Ideas";
+  const label = isCE ? "Causes" : "Main Ideas";
 
   return `You have identified the following ${label}:\n${lines}\n\nIs that correct, or would you like to revise one?`;
 }
   
 if (s.pending?.type === "offerAnotherMainIdea") {
   const isCE = s.frameMeta?.frameType === "causeEffect";
-  const isThemes = s.frameMeta?.frameType === "themes";
   const count = getIdeaList(s).length;
-
-  const label = isCE
-    ? "Cause"
-    : isThemes
-      ? "Theme Support"
-      : "Main Idea";
-
+  const label = isCE ? "Cause" : "Main Idea";
   return `You currently have ${count} ${label}${count > 1 ? "s" : ""}. Would you like to add another ${label}? (yes/no)`;
 }
 
 if (s.pending?.type === "collectAnotherMainIdea") {
   const isCE = s.frameMeta?.frameType === "causeEffect";
-  const isThemes = s.frameMeta?.frameType === "themes";
   const count = getIdeaList(s).length + 1;
-
   return isCE
     ? `What is another cause that leads to this effect: "${s.frame.effect}"?`
-    : isThemes
-      ? `What is Theme Support ${count} that helps show this message about life?`
-      : `What is Main Idea ${count} that helps explain ${s.frame.keyTopic}?`;
+    : `What is Main Idea ${count} that helps explain ${s.frame.keyTopic}?`;
 }
   
  if (s.pending?.type === "offerAnotherDetail") {
