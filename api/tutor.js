@@ -402,8 +402,9 @@ function fillTopic(template, keyTopic) {
 
 function applyPromptTokens(template, state) {
   let out = template || "";
-  const kt = state?.frame?.keyTopic || "";
-  const eff = state?.frame?.effect || "";
+const kt = state?.frame?.keyTopic || "";
+const eff = state?.frame?.effect || "";
+const isAbout = state?.frame?.isAbout || "";
 const ideas = getIdeaList(state).filter(Boolean);
 
 const activeStage = state?.pending?.stage || getStage(state) || "";
@@ -419,7 +420,8 @@ if (typeof activeStage === "string" && activeStage.startsWith("details:")) {
 
   // Key Topic token
   if (kt) out = out.replace(/\[Key Topic\]/g, kt);
-
+  if (isAbout) out = out.replace(/\[IS_ABOUT\]/g, isAbout);
+  
   // Cause/Effect tokens / phrases
   if (eff) {
     out = out.replace(/\[EFFECT\]/g, eff);
@@ -449,8 +451,7 @@ const PROMPT_BANK = {
     },
      themes: {
       isAbout: 'Your Key Topic is:\n\n"[Key Topic]"\n\nNow think about the deeper meaning.\n\nWhat message about life does this topic reveal?',
-      mainIdea: 'You identified this message about life:\n\n"${state.frame?.isAbout || "your message"}"\n\nWhat is one idea, example, or moment that helps show this message about life?',
-      detail: 'What specific example or explanation helps show this message about life in action?',
+      mainIdea: 'You identified this message about life:\n\n"[IS_ABOUT]"\n\nWhat is one idea, example, or moment that helps show this message about life?',      detail: 'What specific example or explanation helps show this message about life in action?',
       soWhat: 'What should people understand about life or people because of this message?'
   }
   },
@@ -464,8 +465,7 @@ const PROMPT_BANK = {
     },
    themes: {
       isAbout: 'Your Key Topic is:\n\n"[Key Topic]"\n\nNow think about the deeper meaning.\n\nWhat message about life do you want your reader to understand?',
-      mainIdea: 'You want to show this message about life:\n\n"${state.frame?.isAbout || "your message"}"\n\nWhat is one idea, example, or moment you can use to help develop this message?',
-      detail: 'What specific example or explanation helps show this message about life in action?',
+      mainIdea: 'You want to show this message about life:\n\n"[IS_ABOUT]"\n\nWhat is one idea, example, or moment you can use to help develop this message?',      detail: 'What specific example or explanation helps show this message about life in action?',
       soWhat: 'What should your reader understand about life or people because of this message?'
     }
   },
@@ -479,8 +479,7 @@ const PROMPT_BANK = {
     },
      themes: {
       isAbout: 'The text focuses on:\n\n"[Key Topic]"\n\nWhat message about life does the author reveal through this topic?',
-      mainIdea: 'The text shows this message about life:\n\n"${state.frame?.isAbout || "the message"}"\n\nWhat example, idea, or moment from the text helps reveal this message?',
-      detail: 'What specific evidence or explanation helps show this message about life in action?',
+      mainIdea: 'The text shows this message about life:\n\n"[IS_ABOUT]"\n\nWhat example, idea, or moment from the text helps reveal this message?',      detail: 'What specific evidence or explanation helps show this message about life in action?',
       soWhat: 'What should the reader understand about life or people because of this message?'
     }
   }
