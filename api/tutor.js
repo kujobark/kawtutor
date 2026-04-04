@@ -406,9 +406,16 @@ const kt = state?.frame?.keyTopic || "";
 const eff = state?.frame?.effect || "";
 const isAbout = state?.frame?.isAbout || "";
 const ideas = getIdeaList(state).filter(Boolean);
+const frameType = state?.frameMeta?.frameType || "";
+const ideaCount = ideas.length;
+const mainIdeaPrompt =
+  frameType === "themes"
+    ? (ideaCount === 0 ? "one Theme Support" : "another Theme Support")
+    : (ideaCount === 0 ? "one Main Idea" : "another Main Idea");
 
 const activeStage = state?.pending?.stage || getStage(state) || "";
 let cause = ideas.length ? ideas[ideas.length - 1] : "";
+
 
 if (typeof activeStage === "string" && activeStage.startsWith("details:")) {
   const rawIndex = activeStage.split(":")[1];
@@ -421,6 +428,7 @@ if (typeof activeStage === "string" && activeStage.startsWith("details:")) {
   // Key Topic token
   if (kt) out = out.replace(/\[Key Topic\]/g, kt);
   if (isAbout) out = out.replace(/\[IS_ABOUT\]/g, isAbout);
+  out = out.replace(/\[MAIN_IDEA_PROMPT\]/g, mainIdeaPrompt);
   
   // Cause/Effect tokens / phrases
   if (eff) {
@@ -451,7 +459,8 @@ const PROMPT_BANK = {
     },
      themes: {
       isAbout: 'Your Key Topic is:\n\n"[Key Topic]"\n\nNow think about the deeper meaning.\n\nWhat message about life does this topic reveal?',
-      mainIdea: 'You identified this message about life:\n\n"[IS_ABOUT]"\n\nWhat is one idea, example, or moment that helps show this message about life?',      detail: 'What specific example or explanation helps show this message about life in action?',
+      mainIdea: 'Your message about life is:\n\n[IS_ABOUT]\n\nWhat is [MAIN_IDEA_PROMPT] that helps develop this message about life?',
+      detail: 'What specific example or explanation helps show this message about life in action?',
       soWhat: 'What should people understand about life or people because of this message?'
   }
   },
@@ -465,7 +474,8 @@ const PROMPT_BANK = {
     },
    themes: {
       isAbout: 'Your Key Topic is:\n\n"[Key Topic]"\n\nNow think about the deeper meaning.\n\nWhat message about life do you want your reader to understand?',
-      mainIdea: 'You want to show this message about life:\n\n"[IS_ABOUT]"\n\nWhat is one idea, example, or moment you can use to help develop this message?',      detail: 'What specific example or explanation helps show this message about life in action?',
+      mainIdea: 'Your message about life is:\n\n[IS_ABOUT]\n\nWhat is [MAIN_IDEA_PROMPT] that helps develop this message about life?',
+      detail: 'What specific example or explanation helps show this message about life in action?',
       soWhat: 'What should your reader understand about life or people because of this message?'
     }
   },
@@ -479,7 +489,8 @@ const PROMPT_BANK = {
     },
      themes: {
       isAbout: 'The text focuses on:\n\n"[Key Topic]"\n\nWhat message about life does the author reveal through this topic?',
-      mainIdea: 'The text shows this message about life:\n\n"[IS_ABOUT]"\n\nWhat example, idea, or moment from the text helps reveal this message?',      detail: 'What specific evidence or explanation helps show this message about life in action?',
+      mainIdea: 'Your message about life is:\n\n[IS_ABOUT]\n\nWhat is [MAIN_IDEA_PROMPT] that helps develop this message about life?',
+      detail: 'What specific evidence or explanation helps show this message about life in action?',
       soWhat: 'What should the reader understand about life or people because of this message?'
     }
   }
@@ -3044,23 +3055,50 @@ function updateStateFromStudent(state, message) {
     return s;
   }
 
-  if (s.pending?.type === "offerAnotherDetail") {
-    const normalized = msg.toLowerCase().trim();
-    const idx = Number(s.pending.index);
+if (s.pending?.type === "offerAnotherDetail") {
+  const normalized = msg.toLowerCase().trim();
+  const idx = Number(s.pending.index);
+  const arr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
 
-    if (isAffirmative(normalized)) {
-      const arr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
-      if (arr.length >= 5) {
-        s.pending = { type: "confirmDetails", index: idx };
-        return s;
-      }
-      s.pending = { type: "collectAnotherDetail", index: idx };
+  if (isAffirmative(normalized)) {
+    if (arr.length >= 5) {
+      s.pending = { type: "confirmDetails", index: idx };
       return s;
     }
+    s.pending = { type: "collectAnotherDetail", index: idx };
+    return s;
+  }
 
+  if (!normalized) {
+    return s;
+  }
+
+  if (isNegative(normalized)) {
     s.pending = { type: "confirmDetails", index: idx };
     return s;
   }
+
+  if (arr.length >= 5) {
+    s.pending = { type: "confirmDetails", index: idx };
+    return s;
+  }
+
+  if (shouldRequestEvidenceDetail(s, msg)) {
+    s.pending = { type: "writeNeedEvidenceDetail", index: idx, mechanism: msg };
+    return s;
+  }
+
+  s.frame.details[idx] = [...arr, msg];
+
+  const updatedArr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
+  if (updatedArr.length >= 5) {
+    s.pending = { type: "confirmDetails", index: idx };
+    return s;
+  }
+
+  s.pending = { type: "offerAnotherDetail", index: idx };
+  return s;
+}
 
   if (s.pending?.type === "collectAnotherDetail") {
     const idx = Number(s.pending.index);
