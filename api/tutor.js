@@ -2472,15 +2472,22 @@ Is that correct, or would you like to revise it?`;
   
 // Themes
 if (s.frameMeta?.frameType === "themes") {
-   return "Using your ideas from the text, your frame now reads:\n\n" +
-"Key Topic\n" +
-s.frame.keyTopic + "\n\n" +
-"Is About\n" +
-s.frame.isAbout + "\n\n" +
-"Is that correct, or would you like to revise it?";
-}
-}
+  if (s.frameMeta?.purpose === "read") {
+    return "Using your ideas from the text, your frame now reads:\n\n" +
+      "Key Topic\n" +
+      s.frame.keyTopic + "\n\n" +
+      "Is About\n" +
+      s.frame.isAbout + "\n\n" +
+      "Is that correct, or would you like to revise it?";
+  }
 
+  return "Using your ideas, your frame now reads:\n\n" +
+    "Key Topic\n" +
+    s.frame.keyTopic + "\n\n" +
+    "Is About\n" +
+    s.frame.isAbout + "\n\n" +
+    "Is that correct, or would you like to revise it?";
+}
 if (s.pending?.type === "confirmMainIdeas") {
   const isCE = s.frameMeta?.frameType === "causeEffect";
 
