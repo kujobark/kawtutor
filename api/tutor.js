@@ -2617,7 +2617,7 @@ if (paStage === "parentItems" || ideas.length < 2) {
 
   if (!isCE) {
     if (c === 1) {
-      pb = pb.replace(/^What is one Main Idea/i, "What is another Main Idea");
+      pb = pb.replace(/What is one Main Idea/i, "What is another Main Idea");
     }
   }
     
