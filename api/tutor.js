@@ -2518,7 +2518,9 @@ if (s.pending?.type === "collectAnotherMainIdea") {
   const count = getIdeaList(s).length + 1;
   return isCE
     ? `What is another cause that leads to this effect: "${s.frame.effect}"?`
-    : `What is Main Idea ${count} that helps explain ${s.frame.keyTopic}?`;
+    : `${count === 1
+    ? "What is one Main Idea that helps show this message about life?"
+    : "What is another Main Idea that helps show this message about life?"}`;
 }
   
  if (s.pending?.type === "offerAnotherDetail") {
@@ -2607,13 +2609,20 @@ if (paStage === "parentItems" || ideas.length < 2) {
     const isCE = s.frameMeta?.frameType === "causeEffect";
     const label = isCE ? "Cause" : "Main Idea";
 
-    if (pb) {
-      if (/^What is one major cause or effect/i.test(pb) || /^What is one major cause/i.test(pb)) {
-        const ord = c === 0 ? "first" : c === 1 ? "second" : "next";
-        pb = pb.replace(/^What is one/i, `What is your ${ord}`);
-      }
-      return `${label} ${c + 1}:\n${pb}`;
+  if (pb) {
+  if (/^What is one major cause or effect/i.test(pb) || /^What is one major cause/i.test(pb)) {
+    const ord = c === 0 ? "first" : c === 1 ? "second" : "next";
+    pb = pb.replace(/^What is one/i, `What is your ${ord}`);
+  }
+
+  if (!isCE) {
+    if (c === 1) {
+      pb = pb.replace(/^What is one Main Idea/i, "What is another Main Idea");
     }
+  }
+
+  return `${label} ${c + 1}:\n${pb}`;
+}
 
     const fallback =
       c === 0
