@@ -617,7 +617,7 @@ Ask yourself: what cause might help explain that effect?`,
 `Your frame is showing this message about life:
 "${theme}"
 
-You already identified this theme support:
+You already identified this main idea:
 "${mostRecentCause}"
 
 Ask yourself: what other idea, example, or moment related to ${keyTopic} could also help show this message?`,
@@ -631,7 +631,7 @@ Ask yourself: what other idea, example, or moment related to ${keyTopic} could a
 `Your frame is showing this message about life:
 "${theme}"
 
-You already identified this theme support:
+You already identified this main idea:
 "${mostRecentCause}"
 
 Ask yourself: what other idea, example, or moment could also help show this message?`,
@@ -702,7 +702,7 @@ Now help the reader understand how that cause connects to your frame.`,
 
       if (selectedMainIdea && theme) {
         return [
-`You already identified this theme support:
+`You already identified this main idea:
 "${selectedMainIdea}"
 
 Now help the reader understand how this shows the message:
@@ -714,7 +714,7 @@ Now help the reader understand how this shows the message:
 
       if (selectedMainIdea) {
         return [
-`You already identified this theme support:
+`You already identified this main idea:
 "${selectedMainIdea}"
 
 Now help the reader understand how it connects to your frame.`,
@@ -1366,7 +1366,7 @@ const ThemesFrame = {
       return "Is About";
     case "parentItems":
     case "parentItemsConfirm":
-      return "Main Ideas";
+      return "Main Idea";
     case "detailsLoop":
     case "detailsConfirmLoop":
       return "Details";
@@ -1383,7 +1383,7 @@ const ThemesFrame = {
   getPromptTerm(structuralStage, state) {
     switch (structuralStage) {
       case "parentItems":
-        return "Main Ideas";
+        return "Main Idea";
       case "detailsLoop":
         return "evidence and explanation";
       default:
@@ -1669,7 +1669,7 @@ if (stage === "purpose") {
     return `You identified this cause:\n\n"${mi}"\n\nNow think about how that leads to this effect:\n\n"${effect}"\n\nWhat detail or example shows how this cause produces the effect?`;
   }
 
-  return `You identified this theme support:\n\n"${mi}"\n\nNow think about how it connects to this message:\n\n"${state.frame?.isAbout || "your theme"}"\n\nWhat specific detail, example, or explanation helps show this theme in action?`;
+  return `You identified this main idea:\n\n"${mi}"\n\nNow think about how it connects to this message:\n\n"${state.frame?.isAbout || "your theme"}"\n\nWhat specific detail, example, or explanation helps show this theme in action?`;
 }
 
   if (stage === "soWhat") {
@@ -2245,7 +2245,7 @@ if (s.pending?.type === "stuckReask") {
       }
 
       if (isThemes && selectedMainIdea) {
-        return `Look back at your notes or source.\n\nFind a sentence that relates to this theme support:\n"${selectedMainIdea}"\n\nCould that sentence help show how this connects to your theme?`;
+        return `Look back at your notes or source.\n\nFind a sentence that relates to this main idea:\n"${selectedMainIdea}"\n\nCould that sentence help show how this connects to your theme?`;
       }
 
       if (isCE) {
