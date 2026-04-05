@@ -622,7 +622,7 @@ You already identified this main idea:
 
 Ask yourself: what other idea, example, or moment related to ${keyTopic} could also help show this message?`,
 
-"What is another theme support?"
+"What is another main idea?"
         ];
       }
 
@@ -636,7 +636,7 @@ You already identified this main idea:
 
 Ask yourself: what other idea, example, or moment could also help show this message?`,
 
-"What is another theme support?"
+"What is another main idea?"
         ];
       }
 
@@ -647,7 +647,7 @@ Ask yourself: what other idea, example, or moment could also help show this mess
 
 Ask yourself: what idea, example, or moment related to ${keyTopic} could help show this message?`,
 
-"What is one theme support?"
+"What is one main idea?"
         ];
       }
 
@@ -658,7 +658,7 @@ Ask yourself: what idea, example, or moment related to ${keyTopic} could help sh
 
 Ask yourself: what idea, example, or moment could help show this message?`,
 
-"What is one theme support?"
+"What is one main idea?"
         ];
       }
     }
