@@ -2620,9 +2620,14 @@ if (paStage === "parentItems" || ideas.length < 2) {
       pb = pb.replace(/^What is one Main Idea/i, "What is another Main Idea");
     }
   }
-
-  return `${label} ${c + 1}:\n${pb}`;
+    
+if (!isCE && c > 0) {
+  const prev = ideas[c - 1];
+  return `${label} ${c + 1}:\nOne Main Idea you already identified is:\n\n"${prev}"\n\n${pb}`;
 }
+
+return `${label} ${c + 1}:\n${pb}`;
+  }
 
     const fallback =
       c === 0
