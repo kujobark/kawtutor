@@ -2164,7 +2164,7 @@ if (s.pending?.type === "stuckReask") {
       }
 
       if (isThemes && selectedMainIdea) {
-        return `Let's check what this step is asking you to do.\n\nRight now you're working on the Details part of the Frame.\n\nYour theme support is:\n"${selectedMainIdea}"\n\nWhat specific detail, example, or explanation could help show how this connects to your message about life?`;      
+        return `Let's check what this step is asking you to do.\n\nRight now you're working on the Details part of the Frame.\n\nYour main idea is:\n"${selectedMainIdea}"\n\nWhat specific detail, example, or explanation could help show how this connects to your message about life?`;      
       }
 
       if (isCE) {
@@ -2269,11 +2269,11 @@ if (s.pending?.type === "stuckReask") {
       }
 
       if (isThemes && theme && keyTopic) {
-        return `Look back at your notes or source about ${keyTopic}.\n\nDo you see an example, idea, or moment that helps show this message about life:\n"${theme}"\n\nCould that become another theme support in your Frame?`;
+        return `Look back at your notes or source about ${keyTopic}.\n\nDo you see an example, idea, or moment that helps show this message about life:\n"${theme}"\n\nCould that become another main idea in your Frame?`;
       }
 
       if (isThemes && theme) {
-        return `Look back at your notes or source.\n\nDo you see an example, idea, or moment that helps show this message about life:\n"${theme}"\n\nCould that become another theme support in your Frame?`;
+        return `Look back at your notes or source.\n\nDo you see an example, idea, or moment that helps show this message about life:\n"${theme}"\n\nCould that become another main idea in your Frame?`;
       }
 
       if (isCE) {
