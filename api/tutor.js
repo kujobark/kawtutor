@@ -957,6 +957,34 @@ function getIdeaList(state) {
     : [];
 }
 
+// -------------------------------------
+// INTERACTION OWNERSHIP PRINCIPLE
+// -------------------------------------
+//
+// Only one instructional mode may own
+// the conversation at a time.
+//
+// Build Mode owns frame construction.
+//
+// Feedback Mode owns revision and coaching.
+//
+// Modes must not compete for progression,
+// prompting, state mutation, or stage ownership.
+//
+// Transition between modes must occur
+// explicitly through user choice.
+//
+// BUILD MODE
+// Goal: Create a Frame
+//
+// FEEDBACK MODE
+// Goal: Improve a Frame
+//
+// This principle preserves instructional
+// clarity and mirrors teacher practice
+// within the KUCRL Framing Routine.
+//
+
 // ---------------------
 // PARENT ANCHOR BRIDGE
 // ---------------------
