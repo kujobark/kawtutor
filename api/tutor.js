@@ -560,17 +560,16 @@ const FEEDBACK_GAP_BANK = {
   }
 
   if (
-    section === "isAbout" &&
-    state?.frameMeta?.frameType === "themes" &&
-    (
-      lower.startsWith("you should") ||
-      lower.startsWith("people should") ||
-      lower.includes("should always") ||
-      lower.includes("should never")
-    )
-  ) {
-    detectedGaps.push("adviceInsteadOfInsight");
-  }
+  state?.frameMeta?.frameType === "themes" &&
+  (
+    lower.startsWith("you should") ||
+    lower.startsWith("people should") ||
+    lower.includes("should always") ||
+    lower.includes("should never")
+  )
+) {
+  detectedGaps.push("adviceInsteadOfInsight");
+}
 
   if (
     section === "isAbout" &&
