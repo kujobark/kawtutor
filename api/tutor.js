@@ -1825,15 +1825,6 @@ return {
     pendingStep: null,
   },
 
-  frame: {
-    ...
-  },
-
-  pending: null,
-  settings: {
-    ...
-  }
-}
     frame: {
       keyTopic: "",
       isAbout: "",
@@ -2872,10 +2863,11 @@ function updateStateFromStudent(state, message) {
   }
 
   // Frame type selection
-  if (s.frameMeta?.purpose && !s.frameMeta.frameType && !(s.pending && s.pending.type)) {
+    if (s.frameMeta?.purpose && !s.frameMeta.frameType && !(s.pending && s.pending.type)) {
     const ft = normalizeFrameTypeSelection(msg);
     if (ft) {
       s.frameMeta.frameType = ft;
+      s.pending = { type: "chooseWorkflow" };
       return s;
     }
   }
@@ -2883,6 +2875,28 @@ function updateStateFromStudent(state, message) {
   // ----------------
   // Pending handlers
   // ----------------
+ if (s.pending?.type === "chooseWorkflow") {
+  const choice = msg.toLowerCase().trim();
+
+  if (choice === "1" || choice.includes("build")) {
+    s.interactionMode = "build";
+    s.feedback.active = false;
+    s.pending = null;
+    return s;
+  }
+
+  if (choice === "2" || choice.includes("feedback")) {
+    s.interactionMode = "feedback";
+    s.feedback.active = true;
+    s.feedback.origin = "standalone";
+    s.feedback.pendingStep = "selectSection";
+    s.pending = { type: "feedbackSelectSection" };
+    return s;
+  }
+
+  return s;
+}
+   
   if (s.pending?.type === "confirmLanguageSwitch") {
     const normalized = msg.toLowerCase().trim();
 
