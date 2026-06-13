@@ -985,6 +985,24 @@ function getIdeaList(state) {
 // within the KUCRL Framing Routine.
 //
 
+// ---------------------
+// EXPLICIT MODE SWITCH PRINCIPLE
+// ---------------------
+//
+// If a student appears to request a mode
+// change during an active interaction,
+// Kaw must confirm before switching.
+//
+// Feedback Mode may not silently become
+// Build Mode.
+//
+// Build Mode may not silently become
+// Feedback Mode.
+//
+// Mode switching requires explicit
+// student confirmation.
+//
+
 // -------------------------------------
 // INSTRUCTIONAL GOAL PRIORITY PRINCIPLE
 // -------------------------------------
