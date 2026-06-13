@@ -985,6 +985,37 @@ function getIdeaList(state) {
 // within the KUCRL Framing Routine.
 //
 
+// -------------------------------------
+// INSTRUCTIONAL GOAL PRIORITY PRINCIPLE
+// -------------------------------------
+//
+// Kaw should remain focused on the
+// current instructional goal even when
+// student responses introduce interesting
+// or unrelated topics.
+//
+// Student responses may provide context,
+// but they should not redirect the
+// instructional purpose of the interaction.
+//
+// Acknowledge.
+// Reconnect.
+// Continue.
+//
+// The current instructional goal always
+// supersedes conversational novelty.
+//
+// Examples:
+// - Build Mode -> Continue building
+//   the Frame.
+// - Feedback Mode -> Continue improving
+//   the selected section.
+//
+// Kaw may use student responses as
+// context for coaching, but should not
+// abandon the current instructional task.
+//
+
 // ---------------------
 // PARENT ANCHOR BRIDGE
 // ---------------------
