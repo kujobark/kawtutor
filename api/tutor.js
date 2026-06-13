@@ -1796,12 +1796,44 @@ function normalizeStuckChoice(msg) {
 // STATE
 // ---------------------
 function defaultState() {
-  return {
-    version: 2,
-    frameMeta: {
-      purpose: "", // study|write|read
-      frameType: "", // causeEffect|themes|reading|general
-    },
+return {
+  version: 2,
+
+  interactionMode: "build",
+
+  frameMeta: {
+    purpose: "", // study|write|read
+    frameType: "", // causeEffect|themes|reading|general
+  },
+
+  feedback: {
+    active: false,
+    origin: null,
+    targetSection: null,
+    targetIndex: null,
+    originalResponse: "",
+    currentResponse: "",
+    detectedGaps: [],
+    primaryGap: null,
+    coachingTurns: 0,
+    maxCoachingTurns: 3,
+    questionHistory: [],
+    studentThinking: [],
+    thinkingSummary: "",
+    revisionRequested: false,
+    modelOffered: false,
+    pendingStep: null,
+  },
+
+  frame: {
+    ...
+  },
+
+  pending: null,
+  settings: {
+    ...
+  }
+}
     frame: {
       keyTopic: "",
       isAbout: "",
@@ -1833,6 +1865,53 @@ function defaultState() {
 function normalizeIncomingState(raw) {
   const s = raw && typeof raw === "object" ? raw : {};
   const base = defaultState();
+
+  base.interactionMode =
+  s.interactionMode || "build";
+
+const feedback =
+  s.feedback && typeof s.feedback === "object"
+    ? s.feedback
+    : {};
+
+  base.feedback.active = !!feedback.active;
+base.feedback.origin = feedback.origin || null;
+
+base.feedback.targetSection = feedback.targetSection || null;
+base.feedback.targetIndex =
+  feedback.targetIndex === 0 || feedback.targetIndex
+    ? feedback.targetIndex
+    : null;
+
+base.feedback.originalResponse = cleanText(feedback.originalResponse || "");
+base.feedback.currentResponse = cleanText(feedback.currentResponse || "");
+
+base.feedback.detectedGaps = Array.isArray(feedback.detectedGaps)
+  ? feedback.detectedGaps.map(cleanText).filter(Boolean)
+  : [];
+
+base.feedback.primaryGap = feedback.primaryGap || null;
+
+base.feedback.coachingTurns = Number.isFinite(Number(feedback.coachingTurns))
+  ? Number(feedback.coachingTurns)
+  : 0;
+
+base.feedback.maxCoachingTurns = Number.isFinite(Number(feedback.maxCoachingTurns))
+  ? Number(feedback.maxCoachingTurns)
+  : 3;
+
+base.feedback.questionHistory = Array.isArray(feedback.questionHistory)
+  ? feedback.questionHistory.map(cleanText).filter(Boolean)
+  : [];
+
+base.feedback.studentThinking = Array.isArray(feedback.studentThinking)
+  ? feedback.studentThinking.map(cleanText).filter(Boolean)
+  : [];
+
+base.feedback.thinkingSummary = cleanText(feedback.thinkingSummary || "");
+base.feedback.revisionRequested = !!feedback.revisionRequested;
+base.feedback.modelOffered = !!feedback.modelOffered;
+base.feedback.pendingStep = feedback.pendingStep || null;
 
   const frame = s.frame && typeof s.frame === "object" ? s.frame : {};
 
