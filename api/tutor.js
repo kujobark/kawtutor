@@ -500,42 +500,50 @@ const FEEDBACK_GAP_BANK = {
 
   offTopic: {
     priority: 1,
-    description: "The response does not clearly connect to the selected Frame section."
+    description:
+      "The response does not clearly connect to the selected Frame section."
   },
 
   tooShort: {
     priority: 2,
-    description: "The response is too brief to evaluate or develop."
-  },
-
-  tooBroad: {
-    priority: 3,
-    description: "The response is generally correct but too broad."
-  },
-
-  vague: {
-    priority: 4,
-    description: "The response is unclear or uses general language."
-  },
-
-  needsSpecificity: {
-    priority: 5,
-    description: "The response needs a more specific example, detail, or explanation."
-  },
-
-  missingConnection: {
-    priority: 6,
-    description: "The response needs a clearer connection to the Key Topic, Is About, Main Idea/Cause, or Detail."
-  },
-
-  summaryInsteadOfThinking: {
-    priority: 7,
-    description: "The response summarizes what happened instead of explaining the deeper thinking."
+    description:
+      "The response is too brief to evaluate or develop."
   },
 
   adviceInsteadOfInsight: {
+    priority: 3,
+    description:
+      "The response gives advice instead of explaining an insight or message."
+  },
+
+  summaryInsteadOfThinking: {
+    priority: 4,
+    description:
+      "The response summarizes what happened instead of explaining deeper thinking."
+  },
+
+  missingConnection: {
+    priority: 5,
+    description:
+      "The response needs a clearer connection to the Key Topic, Is About, Main Idea/Cause, or Detail."
+  },
+
+  tooBroad: {
+    priority: 6,
+    description:
+      "The response is generally correct but too broad."
+  },
+
+  vague: {
+    priority: 7,
+    description:
+      "The response is unclear or uses general language."
+  },
+
+  needsSpecificity: {
     priority: 8,
-    description: "The response gives advice instead of explaining an insight or message."
+    description:
+      "The response needs a more specific example, detail, or explanation."
   }
 
 };
@@ -3187,6 +3195,38 @@ if (s.pending?.type === "feedbackThinkingSummary") {
   s.pending = { type: "feedbackComplete" };
   return s;
 }
+
+  if (s.pending?.type === "feedbackComplete") {
+  const choice = msg.toLowerCase().trim();
+
+  if (choice === "1" || choice.includes("another") || choice.includes("revise")) {
+    s.feedback.targetSection = null;
+    s.feedback.targetIndex = null;
+    s.feedback.originalResponse = "";
+    s.feedback.currentResponse = "";
+    s.feedback.detectedGaps = [];
+    s.feedback.primaryGap = null;
+    s.feedback.coachingTurns = 0;
+    s.feedback.questionHistory = [];
+    s.feedback.studentThinking = [];
+    s.feedback.thinkingSummary = "";
+    s.feedback.revisionRequested = false;
+    s.feedback.modelOffered = false;
+    s.feedback.pendingStep = "selectSection";
+    s.pending = { type: "feedbackSelectSection" };
+    return s;
+  }
+
+  if (choice === "2" || choice.includes("return") || choice.includes("frame")) {
+    s.interactionMode = "build";
+    s.feedback.active = false;
+    s.feedback.pendingStep = null;
+    s.pending = null;
+    return s;
+  }
+
+  return s;
+}
   
   if (s.pending?.type === "confirmLanguageSwitch") {
     const normalized = msg.toLowerCase().trim();
@@ -3913,13 +3953,20 @@ export default async function handler(req, res) {
       // STUCK detector (global interrupt) — do not interrupt protected pending flows
       const pendingType = state.pending?.type || null;
       const inProtectedPending =
-        pendingType === "confirmLanguageSwitch" ||
-        pendingType === "stuckConfirm" ||
-        pendingType === "stuckMenu" ||
-        pendingType === "stuckReask" ||
-        pendingType === "stuckNudge" ||
-        pendingType === "stuckMini" ||
-        pendingType === "stuckSkip";
+      pendingType === "confirmLanguageSwitch" ||
+      pendingType === "chooseWorkflow" ||
+      pendingType === "feedbackSelectSection" ||
+      pendingType === "feedbackCollectResponse" ||
+      pendingType === "feedbackCoach" ||
+      pendingType === "feedbackThinkingSummary" ||
+      pendingType === "feedbackRevise" ||
+      pendingType === "feedbackComplete" ||
+      pendingType === "stuckConfirm" ||
+      pendingType === "stuckMenu" ||
+      pendingType === "stuckReask" ||
+      pendingType === "stuckNudge" ||
+      pendingType === "stuckMini" ||
+      pendingType === "stuckSkip";
 
       if (!inProtectedPending && isStuckMessage(message)) {
         const stage = getStage(state);
