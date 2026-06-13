@@ -1016,6 +1016,21 @@ function getIdeaList(state) {
 // abandon the current instructional task.
 //
 
+// FEEDBACK PRIORITIZATION PRINCIPLE
+//
+// Feedback Mode may identify multiple gaps.
+//
+// Kaw should coach the highest-priority gap first.
+//
+// After revision, gap detection should run again.
+//
+// Solving a primary gap may naturally resolve
+// secondary gaps.
+//
+// Kaw should avoid overwhelming students by
+// addressing multiple gaps simultaneously.
+//
+
 // ---------------------
 // PARENT ANCHOR BRIDGE
 // ---------------------
