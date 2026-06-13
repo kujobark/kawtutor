@@ -489,6 +489,122 @@ const PROMPT_BANK = {
   }
 };
 
+// ---------------------
+// FEEDBACK GAP BANK
+// ---------------------
+// Controlled internal categories Kaw can choose from.
+// Student-facing questions should be generated from the
+// gap + section + frame type + purpose + student response.
+
+const FEEDBACK_GAP_BANK = {
+
+  offTopic: {
+    priority: 1,
+    description: "The response does not clearly connect to the selected Frame section."
+  },
+
+  tooShort: {
+    priority: 2,
+    description: "The response is too brief to evaluate or develop."
+  },
+
+  tooBroad: {
+    priority: 3,
+    description: "The response is generally correct but too broad."
+  },
+
+  vague: {
+    priority: 4,
+    description: "The response is unclear or uses general language."
+  },
+
+  needsSpecificity: {
+    priority: 5,
+    description: "The response needs a more specific example, detail, or explanation."
+  },
+
+  missingConnection: {
+    priority: 6,
+    description: "The response needs a clearer connection to the Key Topic, Is About, Main Idea/Cause, or Detail."
+  },
+
+  summaryInsteadOfThinking: {
+    priority: 7,
+    description: "The response summarizes what happened instead of explaining the deeper thinking."
+  },
+
+  adviceInsteadOfInsight: {
+    priority: 8,
+    description: "The response gives advice instead of explaining an insight or message."
+  }
+
+};
+
+  function analyzeFeedbackResponse(state) {
+  const response = cleanText(state?.feedback?.currentResponse || "");
+  const section = state?.feedback?.targetSection || "";
+  const lower = response.toLowerCase();
+
+  const detectedGaps = [];
+
+  if (!response || response.split(/\s+/).filter(Boolean).length < 3) {
+    detectedGaps.push("tooShort");
+  }
+
+  if (
+    section === "isAbout" &&
+    state?.frameMeta?.frameType === "themes" &&
+    (
+      lower.startsWith("you should") ||
+      lower.startsWith("people should") ||
+      lower.includes("should always") ||
+      lower.includes("should never")
+    )
+  ) {
+    detectedGaps.push("adviceInsteadOfInsight");
+  }
+
+  if (
+    section === "isAbout" &&
+    (
+      lower.startsWith("this story is about") ||
+      lower.startsWith("the story is about") ||
+      lower.startsWith("this text is about") ||
+      lower.startsWith("the text is about")
+    )
+  ) {
+    detectedGaps.push("summaryInsteadOfThinking");
+  }
+
+  if (
+    lower.includes("stuff") ||
+    lower.includes("things") ||
+    lower.includes("something") ||
+    lower.includes("important")
+  ) {
+    detectedGaps.push("vague");
+  }
+
+  if (response.split(/\s+/).filter(Boolean).length < 8) {
+    detectedGaps.push("needsSpecificity");
+  }
+
+  const uniqueGaps = [...new Set(detectedGaps)];
+
+  const primaryGap = uniqueGaps
+    .slice()
+    .sort((a, b) => {
+      const pa = FEEDBACK_GAP_BANK[a]?.priority ?? 999;
+      const pb = FEEDBACK_GAP_BANK[b]?.priority ?? 999;
+      return pa - pb;
+    })[0] || null;
+
+  return {
+    detectedGaps: uniqueGaps,
+    primaryGap
+  };
+}
+
 function getPromptForStage(state, stage) {
   const purpose = state.frameMeta?.purpose || "";
   const frameType = state.frameMeta?.frameType || "";
@@ -2257,7 +2373,111 @@ if (s?.settings?.debugParentAnchor) {
     ...paObs
   });
 }
-  
+
+  if (s.pending?.type === "chooseWorkflow") {
+  return (
+    "Would you like to:\n" +
+    "1) Build a Frame\n" +
+    "2) Get feedback on part of a Frame\n\n" +
+    "Reply with 1 or 2."
+  );
+}
+
+  if (s.pending?.type === "feedbackSelectSection") {
+  return (
+    "Which part of your Frame would you like feedback on?\n\n" +
+    "1) Key Topic\n" +
+    "2) Is About\n" +
+    "3) Main Idea / Cause\n" +
+    "4) Detail / Evidence\n" +
+    "5) Entire Frame\n\n" +
+    "Reply with 1-5."
+  );
+}
+
+  if (s.pending?.type === "feedbackCollectResponse") {
+  const sectionLabels = {
+    keyTopic: "Key Topic",
+    isAbout: "Is About",
+    parentItems: "Main Idea / Cause",
+    details: "Detail / Evidence",
+    entireFrame: "Entire Frame",
+  };
+
+  const label =
+    sectionLabels[s.feedback.targetSection] ||
+    "that section";
+
+  return (
+    `Please paste your ${label} response.\n\n` +
+    "Kaw will review it and help strengthen your thinking."
+  );
+}
+
+  if (s.pending?.type === "feedbackCoach") {
+  const gap = s.feedback?.primaryGap;
+
+  if (gap === "tooShort") {
+    return "What additional detail could you add to help explain your thinking more clearly?";
+  }
+
+  if (gap === "tooBroad") {
+    return "Which part of your response could be made more specific?";
+  }
+
+  if (gap === "vague") {
+    return "What words or ideas in your response could be more precise?";
+  }
+
+  if (gap === "needsSpecificity") {
+    return "Can you add a specific example, detail, or explanation to support your idea?";
+  }
+
+  if (gap === "missingConnection") {
+    return "How does your response connect to the main idea or message you are trying to communicate?";
+  }
+
+  if (gap === "summaryInsteadOfThinking") {
+    return "What deeper idea or message does this information help reveal?";
+  }
+
+  if (gap === "adviceInsteadOfInsight") {
+    return "What lesson or insight does this suggest, rather than advice someone should follow?";
+  }
+
+  if (gap === "offTopic") {
+    return "How does your response connect to the section you selected for feedback?";
+  }
+
+  return "Tell me more about your thinking.";
+}
+
+  if (s.pending?.type === "feedbackThinkingSummary") {
+
+  return (
+    "Let's summarize your thinking.\n\n" +
+    "What is your strongest insight or takeaway now?"
+  );
+
+}
+
+  if (s.pending?.type === "feedbackRevise") {
+  return (
+    "Based on your thinking, how would you revise that part of your Frame?"
+  );
+}
+
+  if (s.pending?.type === "feedbackComplete") {
+  return (
+    "Nice work.\n\n" +
+    "Your feedback session is complete.\n\n" +
+    "Would you like to:\n" +
+    "1) Revise another part of your Frame\n" +
+    "2) Return to your Frame\n\n" +
+    "Reply with 1 or 2."
+  );
+}
+
   if (s.pending?.type === "confirmLanguageSwitch") {
     const candNative = s.pending?.candidateNativeName || s.pending?.candidateName || "that language";
     const candName = s.pending?.candidateName || "that language";
@@ -2896,7 +3116,78 @@ function updateStateFromStudent(state, message) {
 
   return s;
 }
-   
+
+  if (s.pending?.type === "feedbackSelectSection") {
+  const choice = msg.toLowerCase().trim();
+
+  const sectionMap = {
+    "1": "keyTopic",
+    "2": "isAbout",
+    "3": "parentItems",
+    "4": "details",
+    "5": "entireFrame",
+  };
+
+  const targetSection =
+    sectionMap[choice] ||
+    (choice.includes("key") ? "keyTopic" : null) ||
+    (choice.includes("about") ? "isAbout" : null) ||
+    (choice.includes("main") || choice.includes("cause") ? "parentItems" : null) ||
+    (choice.includes("detail") || choice.includes("evidence") ? "details" : null) ||
+    (choice.includes("entire") || choice.includes("whole") ? "entireFrame" : null);
+
+  if (!targetSection) return s;
+
+  s.feedback.targetSection = targetSection;
+  s.feedback.pendingStep = "collectResponse";
+  s.pending = { type: "feedbackCollectResponse" };
+  return s;
+}
+
+  if (s.pending?.type === "feedbackCollectResponse") {
+  s.feedback.originalResponse = msg;
+  s.feedback.currentResponse = msg;
+
+  const analysis = analyzeFeedbackResponse(s);
+
+  s.feedback.detectedGaps = analysis.detectedGaps;
+  s.feedback.primaryGap = analysis.primaryGap;
+
+  s.feedback.pendingStep = "coach";
+  s.pending = { type: "feedbackCoach" };
+
+  return s;
+}
+
+  if (s.pending?.type === "feedbackCoach") {
+  s.feedback.studentThinking.push(msg);
+  s.feedback.coachingTurns += 1;
+
+  if (s.feedback.coachingTurns < s.feedback.maxCoachingTurns) {
+    s.pending = { type: "feedbackCoach" };
+    return s;
+  }
+
+  s.feedback.pendingStep = "thinkingSummary";
+  s.pending = { type: "feedbackThinkingSummary" };
+  return s;
+}
+
+if (s.pending?.type === "feedbackThinkingSummary") {
+  s.feedback.thinkingSummary = msg;
+  s.feedback.pendingStep = "revise";
+  s.pending = { type: "feedbackRevise" };
+  return s;
+}
+
+  if (s.pending?.type === "feedbackRevise") {
+  s.feedback.currentResponse = msg;
+  s.feedback.revisionRequested = true;
+  s.feedback.pendingStep = "complete";
+  s.pending = { type: "feedbackComplete" };
+  return s;
+}
+  
   if (s.pending?.type === "confirmLanguageSwitch") {
     const normalized = msg.toLowerCase().trim();
 
