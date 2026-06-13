@@ -1034,8 +1034,9 @@ function getIdeaList(state) {
 // abandon the current instructional task.
 //
 
+// -------------------------------------
 // FEEDBACK PRIORITIZATION PRINCIPLE
-//
+// -------------------------------------
 // Feedback Mode may identify multiple gaps.
 //
 // Kaw should coach the highest-priority gap first.
