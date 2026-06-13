@@ -2449,9 +2449,20 @@ if (s?.settings?.debugParentAnchor) {
     return "What deeper idea or message does this information help reveal?";
   }
 
-  if (gap === "adviceInsteadOfInsight") {
+if (gap === "adviceInsteadOfInsight") {
+
+  const turn = s.feedback?.coachingTurns || 0;
+
+  if (turn === 0) {
     return "What lesson or insight does this suggest, rather than advice someone should follow?";
   }
+
+  if (turn === 1) {
+    return "Good. What does this teach readers about people, life, or relationships?";
+  }
+
+    return "How could you turn that idea into a complete theme statement in your own words?";
+}
 
   if (gap === "offTopic") {
     return "How does your response connect to the section you selected for feedback?";
