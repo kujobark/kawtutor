@@ -562,16 +562,27 @@ const FEEDBACK_GAP_BANK = {
 }
 
   if (
-    section === "isAbout" &&
+  (
+    lower.startsWith("this story is about") ||
+    lower.startsWith("the story is about") ||
+    lower.startsWith("this text is about") ||
+    lower.startsWith("the text is about")
+  ) ||
+  (
+    state?.frameMeta?.frameType === "themes" &&
     (
-      lower.startsWith("this story is about") ||
-      lower.startsWith("the story is about") ||
-      lower.startsWith("this text is about") ||
-      lower.startsWith("the text is about")
+      lower.includes("first ") ||
+      lower.includes("then ") ||
+      lower.includes("next ") ||
+      lower.includes("finally ") ||
+      lower.includes("moved to") ||
+      lower.includes("made friends") ||
+      lower.includes("joined")
     )
-  ) {
-    detectedGaps.push("summaryInsteadOfThinking");
-  }
+  )
+) {
+  detectedGaps.push("summaryInsteadOfThinking");
+}
 
   if (
     lower.includes("stuff") ||
