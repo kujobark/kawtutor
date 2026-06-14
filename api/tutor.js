@@ -2437,8 +2437,19 @@ if (s?.settings?.debugParentAnchor) {
   }
 
   if (gap === "needsSpecificity") {
-    return "Can you add a specific example, detail, or explanation to support your idea?";
+
+  const turn = s.feedback?.coachingTurns || 0;
+
+  if (turn === 0) {
+    return "What is one detail that would help a reader understand your idea better?";
   }
+
+  if (turn === 1) {
+    return "Can you describe one example or situation that shows what you mean?";
+  }
+
+  return "How does that example support your main idea or claim?";
+}
 
   if (gap === "missingConnection") {
     return "How does your response connect to the main idea or message you are trying to communicate?";
