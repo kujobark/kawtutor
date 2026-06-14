@@ -505,37 +505,37 @@ const FEEDBACK_GAP_BANK = {
   },
 
    adviceInsteadOfInsight: {
-    priority: 3,
+    priority: 2,
     description:
       "The response gives advice instead of explaining an insight or message."
   },
 
   summaryInsteadOfThinking: {
-    priority: 4,
+    priority: 3,
     description:
       "The response summarizes what happened instead of explaining deeper thinking."
   },
 
   missingConnection: {
-    priority: 5,
+    priority: 4,
     description:
       "The response needs a clearer connection to the Key Topic, Is About, Main Idea/Cause, or Detail."
   },
 
   tooBroad: {
-    priority: 6,
+    priority: 5,
     description:
       "The response is generally correct but too broad."
   },
 
   vague: {
-    priority: 7,
+    priority: 6,
     description:
       "The response is unclear or uses general language."
   },
 
   needsSpecificity: {
-    priority: 8,
+    priority: 7,
     description:
       "The response needs a more specific example, detail, or explanation."
   }
