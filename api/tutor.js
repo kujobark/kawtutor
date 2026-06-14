@@ -560,7 +560,8 @@ const FEEDBACK_GAP_BANK = {
 ) {
   detectedGaps.push("adviceInsteadOfInsight");
 }
-
+    
+if (
   state?.frameMeta?.frameType === "themes" &&
   (
     lower.startsWith("this story is about") ||
