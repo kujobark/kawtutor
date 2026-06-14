@@ -2428,9 +2428,23 @@ if (s?.settings?.debugParentAnchor) {
   return "How does that example, event, or situation help explain your main idea or claim?";
 }
 
-  if (gap === "vague") {
-    return "What words or ideas in your response could be more precise?";
+ if (gap === "vague") {
+  const turn = s.feedback?.coachingTurns || 0;
+
+  if (turn === 0) {
+    return (
+      "Your response is very general right now.\n\n" +
+      "What specific event, action, or situation are you thinking about?"
+      
+    );
   }
+
+  if (turn === 1) {
+    return "Can you describe that event, action, or situation in more detail?";
+  }
+
+  return "How does that event, action, or situation connect to your main idea or claim?";
+}
 
   if (gap === "needsSpecificity") {
 
