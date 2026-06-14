@@ -2462,8 +2462,18 @@ if (s?.settings?.debugParentAnchor) {
 }
 
   if (gap === "missingConnection") {
-    return "How does your response connect to the main idea or message you are trying to communicate?";
+  const turn = s.feedback?.coachingTurns || 0;
+
+  if (turn === 0) {
+    return "How does your response connect to your main idea or topic?";
   }
+
+  if (turn === 1) {
+    return "What part of your response connects to that idea?";
+  }
+
+  return "How does that part support or connect to your idea?";
+}
 
   if (gap === "summaryInsteadOfThinking") {
     return "What deeper idea or message does this information help reveal?";
