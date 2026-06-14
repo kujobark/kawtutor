@@ -504,13 +504,7 @@ const FEEDBACK_GAP_BANK = {
       "The response does not clearly connect to the selected Frame section."
   },
 
-  tooShort: {
-    priority: 2,
-    description:
-      "The response is too brief to evaluate or develop."
-  },
-
-  adviceInsteadOfInsight: {
+   adviceInsteadOfInsight: {
     priority: 3,
     description:
       "The response gives advice instead of explaining an insight or message."
@@ -554,10 +548,6 @@ const FEEDBACK_GAP_BANK = {
   const lower = response.toLowerCase();
 
   const detectedGaps = [];
-
-  if (!response || response.split(/\s+/).filter(Boolean).length < 3) {
-    detectedGaps.push("tooShort");
-  }
 
   if (
   state?.frameMeta?.frameType === "themes" &&
