@@ -2476,10 +2476,23 @@ if (s?.settings?.debugParentAnchor) {
 }
 
   if (gap === "summaryInsteadOfThinking") {
-    return "What deeper idea or message does this information help reveal?";
+  const turn = s.feedback?.coachingTurns || 0;
+
+  if (turn === 0) {
+    return (
+      "Right now, your response tells what happened.\n\n" +
+      "What do you think this shows or helps us understand?"
+    );
   }
 
-if (gap === "adviceInsteadOfInsight") {
+  if (turn === 1) {
+    return "What can we learn from that?";
+  }
+
+  return "How would you explain that lesson in your own words?";
+}
+
+  if (gap === "adviceInsteadOfInsight") {
 
   const turn = s.feedback?.coachingTurns || 0;
 
