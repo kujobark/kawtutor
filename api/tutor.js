@@ -2424,13 +2424,19 @@ if (s?.settings?.debugParentAnchor) {
   if (s.pending?.type === "feedbackCoach") {
   const gap = s.feedback?.primaryGap;
 
-  if (gap === "tooShort") {
+ if (gap === "tooBroad") {
+  const turn = s.feedback?.coachingTurns || 0;
+
+  if (turn === 0) {
     return "What additional detail could you add to help explain your thinking more clearly?";
   }
 
-  if (gap === "tooBroad") {
-    return "Which part of your response could be made more specific?";
+  if (turn === 1) {
+    return "What is one specific example, event, or situation that helps illustrate your idea?";
   }
+
+  return "How does that example, event, or situation help explain your main idea or claim?";
+}
 
   if (gap === "vague") {
     return "What words or ideas in your response could be more precise?";
