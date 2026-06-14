@@ -586,7 +586,7 @@ if (
     detectedGaps.push("vague");
   }
 
-  if (response.split(/\s+/).filter(Boolean).length < 8) {
+  if (response.split(/\s+/).filter(Boolean).length < 5) {
     detectedGaps.push("needsSpecificity");
   }
 
