@@ -1014,6 +1014,70 @@ function shouldRequestEvidenceDetail(state, detailText) {
 }
 
 // ---------------------
+// BUILD MODE LANE GUARDRAILS
+// ---------------------
+// Light checks only.
+// Purpose: keep students in the correct section/lane while building.
+// This is NOT Feedback Mode.
+
+function looksLikeSequenceSummary(text) {
+  const t = cleanText(text).toLowerCase();
+  if (!t) return false;
+
+  return (
+    /\bfirst\b/.test(t) ||
+    /\bthen\b/.test(t) ||
+    /\bnext\b/.test(t) ||
+    /\bfinally\b/.test(t) ||
+    t.startsWith("the story is about") ||
+    t.startsWith("this story is about") ||
+    t.startsWith("the text is about") ||
+    t.startsWith("this text is about")
+  );
+}
+
+function looksLikeAdvice(text) {
+  const t = cleanText(text).toLowerCase();
+  if (!t) return false;
+
+  return (
+    t.startsWith("you should") ||
+    t.startsWith("people should") ||
+    t.includes("should always") ||
+    t.includes("should never")
+  );
+}
+
+function analyzeBuildLane(state, stage, response) {
+  const frameType = state?.frameMeta?.frameType || "";
+  const text = cleanText(response);
+
+  if (!text) return null;
+
+  if (frameType === "themes" && stage === "mainIdeas") {
+    if (looksLikeAdvice(text)) {
+      return {
+        type: "reviseBuildLane",
+        stage: "mainIdeas",
+        feedback: "That sounds more like advice than a Main Idea.",
+        revisionPrompt: "What idea, example, or moment helps show your message about life?"
+      };
+    }
+
+    if (looksLikeSequenceSummary(text)) {
+      return {
+        type: "reviseBuildLane",
+        stage: "mainIdeas",
+        feedback: "That tells what happened.",
+        revisionPrompt: "What idea does this experience help show?"
+      };
+    }
+  }
+
+  return null;
+}
+
+// ---------------------
 // STAGE
 // ---------------------
 // --------------------------------------------------
@@ -2571,6 +2635,11 @@ if (s?.settings?.debugParentAnchor) {
 
   if (s.pending?.type === "reviseKeyTopic") {
   return `${s.pending.feedback}\n\nWhat is your Key Topic? (2–5 words)`;
+  if (s.pending?.type === "reviseBuildLane") {
+  return [
+    s.pending.feedback,
+    s.pending.revisionPrompt
+  ].filter(Boolean).join("\n\n");
 }
   
   if (s.pending?.type === "stuckConfirm") return "Sounds like you’re stuck. Want a quick help move? (yes/no)";
@@ -3329,12 +3398,18 @@ if (s.pending?.type === "feedbackThinkingSummary") {
     return s;
   }
 
-  // Write-mode cause/effect stem follow-up
-  if (s.pending?.type === "needWriteCauseEffectStem") {
-    s.pending = null;
-    applyIsAboutCapture(s, msg);
-    return s;
-  }
+  // Build Mode lane correction follow-up
+if (s.pending?.type === "reviseBuildLane") {
+  s.pending = null;
+  return updateStateFromStudent(s, msg);
+}
+
+// Write-mode cause/effect stem follow-up
+if (s.pending?.type === "needWriteCauseEffectStem") {
+  s.pending = null;
+  applyIsAboutCapture(s, msg);
+  return s;
+}
 
   // Write-mode evidence guardrail follow-up
   if (s.pending?.type === "writeNeedEvidenceDetail") {
@@ -3624,6 +3699,12 @@ if (s.pending?.type === "feedbackThinkingSummary") {
     if (!isNegative(msg)) {
       const isCE = s.frameMeta?.frameType === "causeEffect";
 
+            const laneCheck = analyzeBuildLane(s, "mainIdeas", msg);
+      if (laneCheck) {
+        s.pending = laneCheck;
+        return s;
+      }
+      
       if (isCE) {
         if (!Array.isArray(s.frame.causes)) s.frame.causes = [];
         if (!Array.isArray(s.frame.details)) s.frame.details = [];
@@ -3857,6 +3938,13 @@ if (s.pending?.type === "offerAnotherDetail") {
 
   if (ideas.length < 2) {
     if (!isNegative(msg)) {
+
+        const laneCheck = analyzeBuildLane(s, "mainIdeas", msg);
+      if (laneCheck) {
+        s.pending = laneCheck;
+        return s;
+      }
+      
       if (s.frameMeta?.frameType === "causeEffect") {
         if (!Array.isArray(s.frame.causes)) s.frame.causes = [];
         if (!Array.isArray(s.frame.details)) s.frame.details = [];
