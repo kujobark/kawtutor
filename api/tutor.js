@@ -4136,6 +4136,12 @@ if (s.pending?.type === "confirmDetails") {
           return s;
         }
 
+        const laneCheck = analyzeBuildLane(s, "details", msg);
+if (laneCheck) {
+  s.pending = laneCheck;
+  return s;
+}
+        
         s.frame.details[i] = [...arr, msg];
         clearMatchingSkip(s, `details:${i}`);
       }
