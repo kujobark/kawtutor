@@ -3089,7 +3089,25 @@ if (s.pending?.type === "confirmMainIdeas") {
 
   return `You have identified the following ${label}:\n${lines}\n\nIs that correct, or would you like to revise one?`;
 }
-  
+
+if (s.pending?.type === "chooseMainIdeaToRevise") {
+  const isCE = s.frameMeta?.frameType === "causeEffect";
+
+  const lines = getIdeaList(s).map((mi, i) =>
+    `${i + 1}) ${isCE ? "Cause" : "Main Idea"} ${i + 1}: ${mi}`
+  ).join("\n");
+
+  return `Which ${isCE ? "Cause" : "Main Idea"} would you like to revise?\n\n${lines}\n\nReply with the number.`;
+}
+
+if (s.pending?.type === "reviseMainIdeaAt") {
+  const isCE = s.frameMeta?.frameType === "causeEffect";
+  const idx = Number(s.pending.index);
+  const current = getIdeaList(s)[idx] || "";
+
+  return `Revise ${isCE ? "Cause" : "Main Idea"} ${idx + 1}:\n\n"${current}"\n\nWhat should it say instead?`;
+}
+
 if (s.pending?.type === "offerAnotherMainIdea") {
   const isCE = s.frameMeta?.frameType === "causeEffect";
   const count = getIdeaList(s).length;
@@ -3725,14 +3743,58 @@ if (s.pending?.type === "needWriteCauseEffectStem") {
     return s;
   }
 
-  if (s.pending?.type === "confirmMainIdeas") {
-    const normalized = msg.toLowerCase().trim();
-    if (isAffirmative(normalized)) {
-      s.pending = null;
-      return s;
-    }
+if (s.pending?.type === "confirmMainIdeas") {
+  const normalized = msg.toLowerCase().trim();
+
+  if (isAffirmative(normalized)) {
+    s.pending = null;
     return s;
   }
+
+  if (
+    normalized === "revise" ||
+    normalized === "revise one" ||
+    normalized === "change" ||
+    normalized === "edit"
+  ) {
+    s.pending = { type: "chooseMainIdeaToRevise" };
+    return s;
+  }
+
+  return s;
+}
+
+  if (s.pending?.type === "chooseMainIdeaToRevise") {
+  const normalized = msg.toLowerCase().trim();
+  const match = normalized.match(/\d+/);
+  const idx = match ? Number(match[0]) - 1 : NaN;
+  const ideas = getIdeaList(s);
+
+  if (Number.isInteger(idx) && idx >= 0 && idx < ideas.length) {
+    s.pending = { type: "reviseMainIdeaAt", index: idx };
+    return s;
+  }
+
+  return s;
+}
+
+if (s.pending?.type === "reviseMainIdeaAt") {
+  const idx = Number(s.pending.index);
+  const isCE = s.frameMeta?.frameType === "causeEffect";
+
+  if (isCE) {
+    if (Array.isArray(s.frame.causes) && s.frame.causes[idx] !== undefined) {
+      s.frame.causes[idx] = msg;
+    }
+  } else {
+    if (Array.isArray(s.frame.parentItems) && s.frame.parentItems[idx] !== undefined) {
+      s.frame.parentItems[idx] = msg;
+    }
+  }
+
+  s.pending = { type: "confirmMainIdeas" };
+  return s;
+}
 
   if (s.pending?.type === "offerAnotherMainIdea") {
     const normalized = msg.toLowerCase().trim();
