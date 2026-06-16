@@ -32,6 +32,23 @@ function cleanText(s) {
   return (s || "").toString().trim().replace(/\s+/g, " ");
 }
 
+function cleanFrameText(s) {
+  let text = cleanText(s);
+
+  // Common typo cleanup for demo / obvious spelling
+  text = text.replace(/\bmovimng\b/gi, "moving");
+
+  // Capitalize first letter
+  text = text.charAt(0).toUpperCase() + text.slice(1);
+
+  // Add period for sentence-like responses
+  if (text && !/[.!?]$/.test(text)) {
+    text += ".";
+  }
+
+  return text;
+}
+
 function isNegative(s) {
   const t = cleanText(s).toLowerCase();
   return t === "no" || t === "nope" || t === "nah" || t === "n/a" || t === "none";
@@ -2321,19 +2338,19 @@ function applyIsAboutCapture(s, msg) {
 
     if (parsed?.effect) {
       s.frame.effect = parsed.effect;
-      s.frame.isAbout = `how ${parsed.cause} leads to ${parsed.effect}`;
+      s.frame.isAbout = cleanFrameText(`how ${parsed.cause} leads to ${parsed.effect}`);
       s.pending = { type: "confirmIsAbout" };
       return s;
     }
 
     const effectOnly = cleanText(msg).replace(/[.?!]+$/g, "");
     s.frame.effect = effectOnly;
-    s.frame.isAbout = `how ${s.frame.keyTopic} leads to ${effectOnly}`;
+    s.frame.isAbout = cleanFrameText(`how ${s.frame.keyTopic} leads to ${effectOnly}`);
     s.pending = { type: "confirmIsAbout" };
     return s;
   }
 
-  s.frame.isAbout = msg;
+  s.frame.isAbout = cleanFrameText(msg);
   s.pending = { type: "confirmIsAbout" };
   return s;
 }
@@ -3478,7 +3495,7 @@ if (s.pending?.type === "feedbackThinkingSummary") {
   const wc = cleaned.split(/\s+/).filter(Boolean).length;
 
   if (!s.frame.keyTopic && !isBadKeyTopic(cleaned) && wc >= 2 && wc <= 5) {
-    s.frame.keyTopic = cleaned;
+    s.frame.keyTopic = cleanFrameText(cleaned).replace(/[.!?]$/, "");
     s.pending = null;
     return s;
   }
@@ -3791,7 +3808,10 @@ if (s.pending?.type === "offerAnotherDetail") {
   // 1) Extraction rule: "X is about Y"
   const parsed = parseKeyTopicIsAbout(msg);
   if (parsed) {
-    if (!s.frame.keyTopic) s.frame.keyTopic = parsed.keyTopic;
+    if (!s.frame.keyTopic) {
+  s.frame.keyTopic = cleanFrameText(parsed.keyTopic).replace(/[.!?]$/, "");
+}
+  
     if (!s.frame.isAbout) {
       // If write+c/e, enforce leads-to when capturing isAbout
       applyIsAboutCapture(s, parsed.isAbout);
