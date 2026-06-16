@@ -3046,6 +3046,7 @@ return "Using your ideas, your frame now reads:\n\n" +
   isAboutText.replace(/\.$/, "") + ".\n\n" +
   "Is that correct, or would you like to revise it?";
   }
+  }
   
 if (s.pending?.type === "confirmMainIdeas") {
   const isCE = s.frameMeta?.frameType === "causeEffect";
