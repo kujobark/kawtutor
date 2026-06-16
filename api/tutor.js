@@ -3828,7 +3828,7 @@ if (s.pending?.type === "offerAnotherDetail") {
     const wc = cleaned.split(/\s+/).filter(Boolean).length;
   
     if (!isBadKeyTopic(cleaned) && wc >= 2 && wc <= 5) {
-      s.frame.keyTopic = cleaned;
+      s.frame.keyTopic = cleanFrameText(cleaned).replace(/[.!?]$/, "");
       s.pending = null;
       return s;
     }
