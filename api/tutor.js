@@ -591,9 +591,11 @@ const FEEDBACK_GAP_BANK = {
   detectedGaps.push("adviceInsteadOfInsight");
 }
     
-if (
-  state?.frameMeta?.frameType === "themes" &&
-  (
+if (state?.frameMeta?.frameType === "themes") {
+  const looksLikeEventSummary =
+    /\b(moved|joined|went|met|lost|found|started|stopped)\b.*\band\b.*\b(moved|joined|went|met|lost|found|started|stopped)\b/i.test(lower);
+
+  if (
     lower.startsWith("this story is about") ||
     lower.startsWith("the story is about") ||
     lower.startsWith("this text is about") ||
@@ -601,10 +603,11 @@ if (
     lower.includes("first ") ||
     lower.includes("then ") ||
     lower.includes("next ") ||
-    lower.includes("finally ")
-  )
-) {
-  detectedGaps.push("summaryInsteadOfThinking");
+    lower.includes("finally ") ||
+    looksLikeEventSummary
+  ) {
+    detectedGaps.push("summaryInsteadOfThinking");
+  }
 }
 
   if (
