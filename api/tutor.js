@@ -3381,8 +3381,24 @@ function updateStateFromStudent(state, message) {
   return s;
 }
 
-  if (s.pending?.type === "feedbackCoach") {
+ if (s.pending?.type === "feedbackCoach") {
   s.feedback.studentThinking.push(msg);
+
+  const previousGap = s.feedback.primaryGap;
+  s.feedback.currentResponse = msg;
+
+  const analysis = analyzeFeedbackResponse(s);
+  const stillHasSameGap = analysis.detectedGaps.includes(previousGap);
+
+  s.feedback.detectedGaps = analysis.detectedGaps;
+  s.feedback.primaryGap = analysis.primaryGap;
+
+  if (!stillHasSameGap) {
+    s.feedback.pendingStep = "complete";
+    s.pending = { type: "feedbackComplete" };
+    return s;
+  }
+
   s.feedback.coachingTurns += 1;
 
   if (s.feedback.coachingTurns < s.feedback.maxCoachingTurns) {
