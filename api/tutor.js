@@ -2633,9 +2633,11 @@ if (s?.settings?.debugParentAnchor) {
     return `I notice you’re writing in ${candName}. Would you like to continue in ${candNative}? (yes/no)`;
   }
 
-  if (s.pending?.type === "reviseKeyTopic") {
+ if (s.pending?.type === "reviseKeyTopic") {
   return `${s.pending.feedback}\n\nWhat is your Key Topic? (2–5 words)`;
-  if (s.pending?.type === "reviseBuildLane") {
+}
+
+if (s.pending?.type === "reviseBuildLane") {
   return [
     s.pending.feedback,
     s.pending.revisionPrompt
