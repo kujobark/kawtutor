@@ -1025,10 +1025,10 @@ function looksLikeSequenceSummary(text) {
   if (!t) return false;
 
   return (
-    /\bfirst\b/.test(t) ||
-    /\bthen\b/.test(t) ||
-    /\bnext\b/.test(t) ||
-    /\bfinally\b/.test(t) ||
+    t.startsWith("first ") ||
+    t.startsWith("then ") ||
+    t.startsWith("next ") ||
+    t.startsWith("finally ") ||
     t.startsWith("the story is about") ||
     t.startsWith("this story is about") ||
     t.startsWith("the text is about") ||
@@ -3025,11 +3025,9 @@ if (s.frameMeta?.frameType === "themes") {
   }
 
   return "Using your ideas, your frame now reads:\n\n" +
-    "Key Topic\n" +
-    s.frame.keyTopic + "\n\n" +
-    "Is About\n" +
-    s.frame.isAbout + "\n\n" +
-    "Is that correct, or would you like to revise it?";
+  s.frame.keyTopic + " is about how " +
+  s.frame.isAbout.replace(/\.$/, "") + ".\n\n" +
+  "Is that correct, or would you like to revise it?";
 }
   }
   
