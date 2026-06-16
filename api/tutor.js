@@ -3026,7 +3026,7 @@ if (s.frameMeta?.frameType === "themes") {
 
   return "Using your ideas, your frame now reads:\n\n" +
   s.frame.keyTopic + " is about how " +
-  s.frame.isAbout.replace(/\.$/, "") + ".\n\n" +
+  isAbout.replace(/\.$/, "") + ".\n\n" +
   "Is that correct, or would you like to revise it?";
 }
   }
