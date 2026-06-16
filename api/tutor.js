@@ -2040,8 +2040,10 @@ base.feedback.pendingStep = feedback.pendingStep || null;
 
   const frame = s.frame && typeof s.frame === "object" ? s.frame : {};
 
-  base.frame.keyTopic = cleanText(frame.keyTopic || s.keyTopic || "");
-  base.frame.isAbout = cleanText(frame.isAbout || s.isAbout || "");
+  base.frame.keyTopic =
+  cleanFrameText(frame.keyTopic || s.keyTopic || "")
+    .replace(/[.!?]$/, "");
+  base.frame.isAbout = cleanFrameText(frame.isAbout || s.isAbout || "");
 
   base.frame.causes = Array.isArray(frame.causes)
   ? frame.causes.map(cleanText).filter(Boolean)
