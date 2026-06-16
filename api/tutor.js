@@ -68,6 +68,19 @@ function isAffirmative(s) {
   );
 }
 
+function isMetaResponse(s) {
+  const t = cleanText(s).toLowerCase();
+
+  return (
+    isAffirmative(t) ||
+    isNegative(t) ||
+    t === "maybe" ||
+    t === "i think so" ||
+    t === "kind of" ||
+    t === "sort of"
+  );
+}
+
 // Keep reply as a SINGLE question (but preserve helpful guidance like "(yes/no)")
 function enforceSingleQuestion(text) {
   let out = (text || "").toString().trim();
@@ -3024,11 +3037,14 @@ if (s.frameMeta?.frameType === "themes") {
       "Is that correct, or would you like to revise it?";
   }
 
-  return "Using your ideas, your frame now reads:\n\n" +
+  const isAboutText =
+  (s.frame.isAbout || "").charAt(0).toLowerCase() +
+  (s.frame.isAbout || "").slice(1);
+
+return "Using your ideas, your frame now reads:\n\n" +
   s.frame.keyTopic + " is about how " +
-  isAbout.replace(/\.$/, "") + ".\n\n" +
+  isAboutText.replace(/\.$/, "") + ".\n\n" +
   "Is that correct, or would you like to revise it?";
-}
   }
   
 if (s.pending?.type === "confirmMainIdeas") {
@@ -3599,10 +3615,21 @@ if (s.pending?.type === "needWriteCauseEffectStem") {
       return updateStateFromStudent(s, msg);
     }
 
-    if (typeof stage === "string" && stage.startsWith("details:")) {
-      s.pending = null;
-      return updateStateFromStudent(s, msg);
-    }
+  if (typeof stage === "string" && stage.startsWith("details:")) {
+
+  if (isMetaResponse(msg)) {
+    s.pending = {
+      type: "stuckMini",
+      stage,
+      miniQuestion: "Great — now write the actual detail, example, or explanation in your own words.",
+      resumeQuestion: s.pending.resumeQuestion,
+    };
+    return s;
+  }
+
+  s.pending = null;
+  return updateStateFromStudent(s, msg);
+}
 
     if (stage === "soWhat") {
       s.pending = null;
@@ -3804,29 +3831,39 @@ if (s.pending?.type === "offerAnotherDetail") {
     return s;
   }
 
-  if (s.pending?.type === "confirmDetails") {
-    const normalized = msg.toLowerCase().trim();
-    const idx = Number(s.pending.index);
-    const arr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
+if (s.pending?.type === "confirmDetails") {
+  const normalized = msg.toLowerCase().trim();
+  const idx = Number(s.pending.index);
+  const arr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
 
-    if (isAffirmative(normalized)) {
-      s.pending = null;
-      return s;
-    }
-
-    if (isNegative(normalized)) {
-      if (arr.length < 2) {
-        s.pending = { type: "collectAnotherDetail", index: idx };
-        return s;
-      }
-
-      s.pending = null;
-      return s;
-    }
-
+  if (isAffirmative(normalized)) {
+    s.pending = null;
     return s;
   }
 
+  if (
+    normalized === "revise" ||
+    normalized === "revise one" ||
+    normalized === "change" ||
+    normalized === "edit"
+  ) {
+    s.pending = { type: "collectAnotherDetail", index: idx };
+    return s;
+  }
+
+  if (isNegative(normalized)) {
+    if (arr.length < 2) {
+      s.pending = { type: "collectAnotherDetail", index: idx };
+      return s;
+    }
+
+    s.pending = null;
+    return s;
+  }
+
+  return s;
+}
+  
   if (s.pending?.type === "offerMoreSoWhat") {
     const normalized = msg.toLowerCase().trim();
     if (isAffirmative(normalized)) {
