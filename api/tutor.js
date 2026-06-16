@@ -1077,7 +1077,14 @@ function analyzeBuildLane(state, stage, response) {
       };
     }
 
-    if (looksLikeSequenceSummary(text)) {
+   const summaryPatterns = [
+  /\b(moved|joined|went|met|lost|found|started|stopped)\b.*\band\b.*\b(moved|joined|went|met|lost|found|started|stopped)\b/i
+];
+
+const looksLikeEventSummary =
+  summaryPatterns.some(pattern => pattern.test(text));
+
+    if (looksLikeSequenceSummary(text) || looksLikeEventSummary) {
       return {
         type: "reviseBuildLane",
         stage: "mainIdeas",
@@ -1087,6 +1094,29 @@ function analyzeBuildLane(state, stage, response) {
     }
   }
 
+  if (frameType === "themes" && stage === "details") {
+  const lower = text.toLowerCase();
+
+  const soundsBroad =
+    lower === cleanText(state?.frame?.isAbout || "").toLowerCase() ||
+    lower.includes("people often") ||
+    lower.includes("can be difficult") ||
+    lower.includes("is important") ||
+    lower.includes("matters") ||
+    lower.startsWith("people ") ||
+    lower.startsWith("someone ") ||
+    lower.startsWith("everyone ");
+
+  if (soundsBroad) {
+    return {
+      type: "reviseBuildLane",
+      stage: "details",
+      feedback: "That is a good idea, but it sounds broad for a Supporting Detail.",
+      revisionPrompt: "What specific example, event, or explanation helps show this idea in action?"
+    };
+  }
+}
+  
   return null;
 }
 
@@ -3814,13 +3844,20 @@ if (s.pending?.type === "offerAnotherDetail") {
     const idx = Number(s.pending.index);
     if (!Array.isArray(s.frame.details[idx])) s.frame.details[idx] = [];
 
-    if (!isNegative(msg)) {
-      if (shouldRequestEvidenceDetail(s, msg)) {
-        s.pending = { type: "writeNeedEvidenceDetail", index: idx, mechanism: msg };
-        return s;
-      }
-      s.frame.details[idx] = [...s.frame.details[idx], msg];
-    }
+   if (!isNegative(msg)) {
+  if (shouldRequestEvidenceDetail(s, msg)) {
+    s.pending = { type: "writeNeedEvidenceDetail", index: idx, mechanism: msg };
+    return s;
+  }
+
+  const laneCheck = analyzeBuildLane(s, "details", msg);
+  if (laneCheck) {
+    s.pending = laneCheck;
+    return s;
+  }
+
+  s.frame.details[idx] = [...s.frame.details[idx], msg];
+}
 
     const arr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
     if (arr.length >= 5) {
