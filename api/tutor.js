@@ -3464,7 +3464,7 @@ function clearMatchingSkip(state, completedStage) {
   }
 }
 
-async function await updateStateFromStudent(state, message) {
+async function updateStateFromStudent(state, message) {
   const msg = cleanText(message);
   const s = structuredClone(state);
   ensureBuckets(s);
@@ -3496,16 +3496,6 @@ if (!s.frameMeta.assignmentContext) {
     clarificationCount: 0,
   };
 }
-
-// Assignment Understanding clarification
-if (s.pending?.type === "clarifyAssignmentUnderstanding") {
-
-  updateAssignmentUnderstanding(s, msg);
-
-  s.pending = null;
-
-  return s;
-}
   
 // Assignment Understanding capture
 if (!s.frameMeta.assignmentContext.raw && !(s.pending && s.pending.type)) {
@@ -3516,8 +3506,9 @@ if (!s.frameMeta.assignmentContext.raw && !(s.pending && s.pending.type)) {
 
   await updateAssignmentUnderstanding(s, msg);
   return s;
-  
-  // Purpose capture
+  }
+
+// Purpose capture
   if (!s.frameMeta.purpose && !(s.pending && s.pending.type)) {
     const p = normalizePurpose(msg);
     if (p) {
