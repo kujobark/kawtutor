@@ -1168,9 +1168,9 @@ base.frameMeta.assignmentContext = {
       : true,
   inferredPurpose: cleanText(assignmentContext.inferredPurpose || ""),
   childAnchor: cleanText(assignmentContext.childAnchor || ""),
-  const clarificationCount = Number(assignmentContext.clarificationCount);  
-    ? Number(assignmentContext.clarificationCount)
-    : 0,
+  clarificationCount: Number.isFinite(Number(assignmentContext.clarificationCount))
+  ? Number(assignmentContext.clarificationCount)
+  : 0,
 };
 
   base.pending = s.pending && typeof s.pending === "object" ? s.pending : null;
