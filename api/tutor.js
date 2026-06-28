@@ -2670,15 +2670,26 @@ if (s?.settings?.debugParentAnchor) {
   });
 }
 
-  if (s.pending?.type === "chooseWorkflow") {
+if (s.pending?.type === "chooseWorkflow") {
   return (
-    "Would you like to:\n" +
-    "1) Build a Frame\n" +
-    "2) Get feedback on part of a Frame\n\n" +
+    "How can I support your work today?\n" +
+    "1) Build a new Frame\n" +
+    "2) Get feedback on an existing Frame\n" +
     "Reply with 1 or 2."
   );
 }
 
+  if (s.pending?.type === "choosePurpose") {
+  return (
+    "Great! Let's build a new Frame together.\n\n" +
+    "How will you use this Frame to support your work?\n" +
+    "1) Study — organize and strengthen your thinking\n" +
+    "2) Write — develop a response, essay, or project\n" +
+    "3) Read — organize ideas from a text or source\n" +
+    "Reply with 1, 2, or 3."
+  );
+}
+  
   if (s.pending?.type === "feedbackSelectSection") {
   return (
     "Which part of your Frame would you like feedback on?\n\n" +
@@ -3551,12 +3562,12 @@ if (!s.frameMeta.assignmentContext.raw && !(s.pending && s.pending.type)) {
  if (s.pending?.type === "chooseWorkflow") {
   const choice = msg.toLowerCase().trim();
 
-  if (choice === "1" || choice.includes("build")) {
-    s.interactionMode = "build";
-    s.feedback.active = false;
-    s.pending = { type: "choosePurpose" };
-    return s;
-  }
+if (choice === "1" || choice.includes("build")) {
+  s.interactionMode = "build";
+  s.feedback.active = false;
+  s.pending = { type: "choosePurpose" };
+  return s;
+}
 
   if (choice === "2" || choice.includes("feedback")) {
     s.interactionMode = "feedback";
@@ -4528,6 +4539,7 @@ export default async function handler(req, res) {
       const inProtectedPending =
       pendingType === "confirmLanguageSwitch" ||
       pendingType === "chooseWorkflow" ||
+      pendingType === "choosePurpose" ||
       pendingType === "feedbackSelectSection" ||
       pendingType === "feedbackCollectResponse" ||
       pendingType === "feedbackCoach" ||
