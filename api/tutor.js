@@ -730,16 +730,45 @@ function shouldRequestEvidenceDetail(state, detailText) {
 
 function evaluateAssignmentUnderstanding(rawAssignment) {
   const assignment = cleanText(rawAssignment);
+  const lower = assignment.toLowerCase();
+  const words = assignment.split(/\s+/).filter(Boolean);
+  
+  const hasEnoughWords = words.length >= 6;
+
+  const hasTaskSignal =
+    lower.includes("explain") ||
+    lower.includes("describe") ||
+    lower.includes("compare") ||
+    lower.includes("contrast") ||
+    lower.includes("analyze") ||
+    lower.includes("argue") ||
+    lower.includes("show") ||
+    lower.includes("identify") ||
+    lower.includes("write") ||
+    lower.includes("read");
+
+  const hasTopicSignal = words.length >= 3;
+
+  const needsClarification = !(hasEnoughWords && hasTaskSignal && hasTopicSignal);
 
   return {
     raw: assignment,
     understanding: assignment,
-    confidence: assignment.length >= 40 ? "high" : "low",
-    needsClarification: assignment.length < 40,
+    confidence: needsClarification ? "low" : "high",
+    needsClarification,
     inferredPurpose: "",
     childAnchor: "",
     clarificationCount: 0,
   };
+}
+
+function hasSufficientAssignmentUnderstanding(state) {
+  const context = state?.frameMeta?.assignmentContext || {};
+
+  return (
+    !!context.raw &&
+    context.needsClarification === false
+  );
 }
 
 function updateAssignmentUnderstanding(state, rawAssignment) {
@@ -1055,11 +1084,14 @@ function defaultState() {
     purpose: "", // study|write|read
     frameType: "", // causeEffect|themes|reading|general
   
-    assignmentContext: {
-      raw: "",
-      inferredPurpose: "",
-      confidence: null,
-    },
+assignmentContext: {
+  raw: "",
+  understanding: "",
+  confidence: "low",
+  needsClarification: true,
+  inferredPurpose: "",
+  childAnchor: "",
+  clarificationCount: 0,
   },
     frame: {
       keyTopic: "",
@@ -1126,12 +1158,19 @@ const assignmentContext =
     ? frameMeta.assignmentContext
     : {};
 
-const confidence = Number(assignmentContext.confidence);
-
 base.frameMeta.assignmentContext = {
   raw: cleanText(assignmentContext.raw || ""),
+  understanding: cleanText(assignmentContext.understanding || ""),
+  confidence: cleanText(assignmentContext.confidence || "low") || "low",
+  needsClarification:
+    typeof assignmentContext.needsClarification === "boolean"
+      ? assignmentContext.needsClarification
+      : true,
   inferredPurpose: cleanText(assignmentContext.inferredPurpose || ""),
-  confidence: Number.isFinite(confidence) ? confidence : null,
+  childAnchor: cleanText(assignmentContext.childAnchor || ""),
+  const clarificationCount = Number(assignmentContext.clarificationCount);  
+    ? Number(assignmentContext.clarificationCount)
+    : 0,
 };
 
   base.pending = s.pending && typeof s.pending === "object" ? s.pending : null;
@@ -1660,12 +1699,15 @@ if (s.pending?.type === "collectAnotherDetail") {
     return "What would you like to save/print: frame, transcript, or both? (frame/transcript/both)";
 
   // Base progression
-  if (!s.frameMeta?.assignmentContext?.raw) {
+if (!s.frameMeta?.assignmentContext?.raw) {
   return (
     "Before we begin, tell me a little about the task you are working on.\n\n" +
-    "What is your assignment asking you to do?\n\n" +
-    "In one or two sentences, describe what you are being asked to think about, explain, or show."
+    "In one or two sentences, what is your assignment asking you to think about, explain, or show?"
   );
+}
+
+if (!hasSufficientAssignmentUnderstanding(s)) {
+  return "Tell me a little more about what your teacher is asking you to think about, explain, or show?";
 }
   
   if (!s.frameMeta?.purpose) {
