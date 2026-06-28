@@ -54,6 +54,18 @@ function isNegative(s) {
   return t === "no" || t === "nope" || t === "nah" || t === "n/a" || t === "none";
 }
 
+function isStartupCommand(text) {
+  const t = cleanText(text).toLowerCase();
+
+  return (
+    t === "framing routine" ||
+    t === "start" ||
+    t === "begin" ||
+    t === "new frame" ||
+    t === "build a new frame"
+  );
+}
+
 function isAffirmative(s) {
   const t = cleanText(s).toLowerCase();
   return (
@@ -1124,6 +1136,61 @@ const looksLikeEventSummary =
 }
 
 // ---------------------
+// ASSIGNMENT UNDERSTANDING ENGINE
+// ---------------------
+
+function evaluateAssignmentUnderstanding(rawAssignment) {
+  const assignment = cleanText(rawAssignment);
+  const lower = assignment.toLowerCase();
+  const words = assignment.split(/\s+/).filter(Boolean);
+
+  const hasEnoughWords = words.length >= 6;
+
+  const hasTaskSignal =
+    lower.includes("explain") ||
+    lower.includes("describe") ||
+    lower.includes("compare") ||
+    lower.includes("contrast") ||
+    lower.includes("analyze") ||
+    lower.includes("argue") ||
+    lower.includes("show") ||
+    lower.includes("identify") ||
+    lower.includes("write") ||
+    lower.includes("read");
+
+  const hasTopicSignal = words.length >= 3;
+
+  const needsClarification = !(hasEnoughWords && hasTaskSignal && hasTopicSignal);
+
+  return {
+    raw: assignment,
+    understanding: assignment,
+    confidence: needsClarification ? "low" : "high",
+    needsClarification,
+    inferredPurpose: "",
+    childAnchor: "",
+    clarificationCount: 0,
+  };
+}
+
+function hasSufficientAssignmentUnderstanding(state) {
+  const context = state?.frameMeta?.assignmentContext || {};
+
+  return (
+    !!context.raw &&
+    context.needsClarification === false
+  );
+}
+
+function updateAssignmentUnderstanding(state, rawAssignment) {
+  const understanding = evaluateAssignmentUnderstanding(rawAssignment);
+
+  state.frameMeta.assignmentContext = understanding;
+
+  return understanding;
+}
+
+// ---------------------
 // STAGE
 // ---------------------
 // --------------------------------------------------
@@ -1166,7 +1233,8 @@ function getStage(state) {
   const m = state.frameMeta || {};
   const ideas = getIdeaList(state);
 
-  if (!m.purpose) return "purpose";
+  if (!m.assignmentContext?.raw) return "assignmentContext";
+  if (!m.purpose) return "purpose";  
   if (!m.frameType) return "frameType";
   if (!f.keyTopic) return "keyTopic";
   if (!f.isAbout) return "isAbout";
@@ -2046,9 +2114,19 @@ return {
   interactionMode: "build",
 
   frameMeta: {
-    purpose: "", // study|write|read
-    frameType: "", // causeEffect|themes|reading|general
-  },
+    purpose: "",
+    frameType: "",
+
+    assignmentContext: {
+        raw: "",
+        understanding: "",
+        confidence: "low",
+        needsClarification: true,
+        inferredPurpose: "",
+        childAnchor: "",
+        clarificationCount: 0,
+    },
+},
 
   feedback: {
     active: false,
@@ -2204,6 +2282,26 @@ base.frame.details = ideaSeed.map((mi) => {
   const frameMeta = s.frameMeta && typeof s.frameMeta === "object" ? s.frameMeta : {};
   base.frameMeta.purpose = cleanText(frameMeta.purpose || "") || "";
   base.frameMeta.frameType = cleanText(frameMeta.frameType || "") || "";
+
+  const assignmentContext =
+  frameMeta.assignmentContext && typeof frameMeta.assignmentContext === "object"
+    ? frameMeta.assignmentContext
+    : {};
+
+base.frameMeta.assignmentContext = {
+  raw: cleanText(assignmentContext.raw || ""),
+  understanding: cleanText(assignmentContext.understanding || ""),
+  confidence: cleanText(assignmentContext.confidence || "low") || "low",
+  needsClarification:
+    typeof assignmentContext.needsClarification === "boolean"
+      ? assignmentContext.needsClarification
+      : true,
+  inferredPurpose: cleanText(assignmentContext.inferredPurpose || ""),
+  childAnchor: cleanText(assignmentContext.childAnchor || ""),
+  clarificationCount: Number.isFinite(Number(assignmentContext.clarificationCount))
+    ? Number(assignmentContext.clarificationCount)
+    : 0,
+};
 
   base.pending = s.pending && typeof s.pending === "object" ? s.pending : null;
 
@@ -3177,6 +3275,17 @@ if (s.pending?.type === "collectAnotherDetail") {
     return "What would you like to save/print: frame, transcript, or both? (frame/transcript/both)";
 
   // Base progression
+  if (!s.frameMeta?.assignmentContext?.raw) {
+  return (
+    "Before we begin, tell me a little about the task you are working on.\n\n" +
+    "In one or two sentences, what is your assignment asking you to think about, explain, or show?"
+  );
+}
+
+if (!hasSufficientAssignmentUnderstanding(s)) {
+  return "Tell me a little more about what your teacher is asking you to think about, explain, or show?";
+}
+  
   if (!s.frameMeta?.purpose) {
   return (
     "How will you use this Frame?\n" +
@@ -3293,8 +3402,45 @@ function updateStateFromStudent(state, message) {
   const s = structuredClone(state);
   ensureBuckets(s);
 
-  if (!s.frameMeta) s.frameMeta = { purpose: "", frameType: "" };
+if (!s.frameMeta) {
+  s.frameMeta = {
+    purpose: "",
+    frameType: "",
+    assignmentContext: {
+      raw: "",
+      understanding: "",
+      confidence: "low",
+      needsClarification: true,
+      inferredPurpose: "",
+      childAnchor: "",
+      clarificationCount: 0,
+    },
+  };
+}
 
+if (!s.frameMeta.assignmentContext) {
+  s.frameMeta.assignmentContext = {
+    raw: "",
+    understanding: "",
+    confidence: "low",
+    needsClarification: true,
+    inferredPurpose: "",
+    childAnchor: "",
+    clarificationCount: 0,
+  };
+}
+  
+// Assignment Understanding capture
+if (!s.frameMeta.assignmentContext.raw && !(s.pending && s.pending.type)) {
+
+  if (isStartupCommand(msg)) {
+    return s;
+  }
+
+  updateAssignmentUnderstanding(s, msg);
+  return s;
+}
+  
   // Purpose capture
   if (!s.frameMeta.purpose && !(s.pending && s.pending.type)) {
     const p = normalizePurpose(msg);
