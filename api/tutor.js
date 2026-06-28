@@ -725,6 +725,32 @@ function shouldRequestEvidenceDetail(state, detailText) {
 }
 
 // ---------------------
+// ASSIGNMENT UNDERSTANDING ENGINE
+// ---------------------
+
+function evaluateAssignmentUnderstanding(rawAssignment) {
+  const assignment = cleanText(rawAssignment);
+
+  return {
+    raw: assignment,
+    understanding: assignment,
+    confidence: assignment.length >= 40 ? "high" : "low",
+    needsClarification: assignment.length < 40,
+    inferredPurpose: "",
+    childAnchor: "",
+    clarificationCount: 0,
+  };
+}
+
+function updateAssignmentUnderstanding(state, rawAssignment) {
+  const understanding = evaluateAssignmentUnderstanding(rawAssignment);
+
+  state.frameMeta.assignmentContext = understanding;
+
+  return understanding;
+}
+
+// ---------------------
 // STAGE
 // ---------------------
 // --------------------------------------------------
@@ -766,7 +792,8 @@ function getStage(state) {
   const f = state.frame;
   const m = state.frameMeta || {};
 
-  if (!m.purpose) return "purpose";
+  if (!m.assignmentContext?.raw) return "assignmentContext";
+  if (!m.purpose) return "purpose";  
   if (!m.frameType) return "frameType";
   if (!f.keyTopic) return "keyTopic";
   if (!f.isAbout) return "isAbout";
@@ -809,8 +836,9 @@ function getBaseStage(stage) {
 
 const PARENT_ANCHOR_BRIDGE = {
   structuralStages: [
-    "purpose",
-    "frameType",
+  "assignmentContext",
+  "purpose",
+  "frameType",
     "keyTopic",
     "isAbout",
     "isAboutConfirm",
@@ -879,6 +907,7 @@ const PARENT_ANCHOR_BRIDGE = {
   // so the Parent Anchor endpoint stays stable even if tutor.js
   // continues to expose completion/refine behavior around export.
   structuralStageByRawStage(rawStage) {
+    if (rawStage === "assignmentContext") return "assignmentContext";
     if (rawStage === "purpose") return "purpose";
     if (rawStage === "frameType") return "frameType";
     if (rawStage === "keyTopic") return "keyTopic";
@@ -1631,6 +1660,14 @@ if (s.pending?.type === "collectAnotherDetail") {
     return "What would you like to save/print: frame, transcript, or both? (frame/transcript/both)";
 
   // Base progression
+  if (!s.frameMeta?.assignmentContext?.raw) {
+  return (
+    "Before we begin, tell me a little about the task you are working on.\n\n" +
+    "What is your assignment asking you to do?\n\n" +
+    "In one or two sentences, describe what you are being asked to think about, explain, or show."
+  );
+}
+  
   if (!s.frameMeta?.purpose) {
     return (
       "How will you use this Frame.\n" +
@@ -1733,7 +1770,39 @@ function updateStateFromStudent(state, message) {
   const s = structuredClone(state);
   ensureBuckets(s);
 
-  if (!s.frameMeta) s.frameMeta = { purpose: "", frameType: "" };
+if (!s.frameMeta) {
+  s.frameMeta = {
+    purpose: "",
+    frameType: "",
+    assignmentContext: {
+      raw: "",
+      understanding: "",
+      confidence: "low",
+      needsClarification: true,
+      inferredPurpose: "",
+      childAnchor: "",
+      clarificationCount: 0,
+    },
+  };
+}
+
+if (!s.frameMeta.assignmentContext) {
+  s.frameMeta.assignmentContext = {
+    raw: "",
+    understanding: "",
+    confidence: "low",
+    needsClarification: true,
+    inferredPurpose: "",
+    childAnchor: "",
+    clarificationCount: 0,
+  };
+}
+
+// Assignment Understanding capture
+if (!s.frameMeta.assignmentContext.raw && !(s.pending && s.pending.type)) {
+  updateAssignmentUnderstanding(s, msg);
+  return s;
+}
 
   // Purpose capture
   if (!s.frameMeta.purpose && !(s.pending && s.pending.type)) {
