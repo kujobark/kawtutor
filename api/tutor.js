@@ -1133,8 +1133,9 @@ function defaultState() {
   };
 }
 
-  const s = raw && typeof raw === "object" ? raw : {};
-  const base = defaultState();
+  function normalizeIncomingState(raw) {
+    const s = raw && typeof raw === "object" ? raw : {};
+    const base = defaultState();
 
   const frame = s.frame && typeof s.frame === "object" ? s.frame : {};
 
