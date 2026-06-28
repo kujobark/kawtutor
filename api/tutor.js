@@ -1147,16 +1147,16 @@ function evaluateAssignmentUnderstanding(rawAssignment) {
   const hasEnoughWords = words.length >= 6;
 
   const hasTaskSignal =
-    lower.includes("explain") ||
-    lower.includes("describe") ||
-    lower.includes("compare") ||
-    lower.includes("contrast") ||
-    lower.includes("analyze") ||
-    lower.includes("argue") ||
-    lower.includes("show") ||
-    lower.includes("identify") ||
-    lower.includes("write") ||
-    lower.includes("read");
+      lower.includes("explain") ||
+      lower.includes("describ") ||
+      lower.includes("compar") ||
+      lower.includes("contrast") ||
+      lower.includes("analy") ||
+      lower.includes("argu") ||
+      lower.includes("show") ||
+      lower.includes("identif") ||
+      lower.includes("writ") ||
+      lower.includes("read");
 
   const hasTopicSignal = words.length >= 3;
 
