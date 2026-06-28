@@ -1189,18 +1189,26 @@ Rules:
 - Only determine whether the assignment context is understandable enough to continue coaching.
 - Return ONLY compact JSON.`;
 
-  const user = `Student assignment:
+ const user = `Student assignment:
 "${assignment}"
 
-Return JSON:
+When creating studentSummary:
+- Write as if Kaw is speaking directly to the student.
+- Begin with "you're..."
+- Preserve important topics: people, places, concepts, books, scientific ideas, etc.
+- Preserve the student's thinking task: compare, explain, argue, analyze, identify, evaluate, create, etc.
+- Never refer to "the student" or "the assignment."
+- Keep it to one conversational sentence.
+
+Return ONLY valid JSON in this format:
 {
-  "studentSummary": "student-friendly restatement of the assignment",
-  "understanding": "what the student is being asked to think about, explain, compare, show, or organize",
-  "confidence": "high" or "low",
-  "needsClarification": true or false,
-  "inferredPurpose": "study" or "write" or "read" or "",
-  "childAnchor": "themes" or "reading" or "causeEffect" or "compareContrast" or "claimSupport" or "conceptDevelopment" or "general" or "",
-  "reasoningType": "compare" or "causeEffect" or "theme" or "claimSupport" or "concept" or "reading" or "general" or ""
+  "studentSummary": "",
+  "understanding": "",
+  "confidence": "high",
+  "needsClarification": false,
+  "inferredPurpose": "",
+  "childAnchor": "",
+  "reasoningType": ""
 }`;
 
   try {
@@ -3348,14 +3356,13 @@ if (!hasSufficientAssignmentUnderstanding(s)) {
   
 if (!s.frameMeta?.purpose) {
   const assignment =
-    s.frameMeta?.assignmentContext?.understanding ||
+    s.frameMeta?.assignmentContext?.studentSummary ||
     s.frameMeta?.assignmentContext?.raw;
 
   return (
     "Thanks—that gives me a better picture of what you're working on.\n\n" +
-    "Here's what I understand so far:\n" +
-    `${assignment}\n\n` +
-    "How will you use this assignment today?\n" +
+    `It sounds like ${assignment}.\n\n` +
+    "How would you like to use this Frame today?\n" +
     "1) Study — organize and strengthen your thinking\n" +
     "2) Write — develop a response, essay, or project\n" +
     "3) Read — organize ideas from a text or source\n" +
