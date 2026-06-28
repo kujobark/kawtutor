@@ -1218,6 +1218,7 @@ function updateAssignmentUnderstanding(state, rawAssignment) {
 // single source of truth for frame progression.
 
 const FRAME_STAGE_SEQUENCE = [
+  "assignmentContext",
   "purpose",
   "frameType",
   "keyTopic",
@@ -1473,7 +1474,8 @@ const PARENT_ANCHOR_BRIDGE = {
   // Post-completion states are interpreted structurally as "export"
   // so the Parent Anchor endpoint stays stable even if tutor.js
   // continues to expose completion/refine behavior around export.
-  structuralStageByRawStage(rawStage) {
+ structuralStageByRawStage(rawStage) {
+    if (rawStage === "assignmentContext") return "assignmentContext";
     if (rawStage === "purpose") return "purpose";
     if (rawStage === "frameType") return "frameType";
     if (rawStage === "keyTopic") return "keyTopic";
