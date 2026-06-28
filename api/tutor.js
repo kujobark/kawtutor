@@ -2838,6 +2838,15 @@ if (s?.settings?.debugParentAnchor) {
     "Reply with 1 or 2."
   );
 }
+
+  if (s.pending?.type === "chooseWorkflow") {
+  return (
+    "How can I support your work today?\n" +
+    "1) Build a new Frame\n" +
+    "2) Get feedback on an existing Frame\n" +
+    "Reply with 1 or 2."
+  );
+}
   
   if (s.pending?.type === "confirmLanguageSwitch") {
     const candNative = s.pending?.candidateNativeName || s.pending?.candidateName || "that language";
@@ -3358,16 +3367,18 @@ if (!s.frameMeta?.purpose) {
   const assignment =
     s.frameMeta?.assignmentContext?.studentSummary ||
     s.frameMeta?.assignmentContext?.raw;
+    s.pending = {
+      type: "chooseWorkflow"
+    };
 
   return (
-    "Thanks—that gives me a better picture of what you're working on.\n\n" +
-    `It sounds like ${assignment}.\n\n` +
-    "How would you like to use this Frame to help with your assignment today?\n" +
-    "1) Study — organize and strengthen your thinking\n" +
-    "2) Write — develop a response, essay, or project\n" +
-    "3) Read — organize ideas from a text or source\n" +
-    "Reply with 1, 2, or 3."
-  );
+  "Thanks—that gives me a better picture of what you're working on.\n\n" +
+  `It sounds like ${assignment}.\n\n` +
+  "How can I support your work today?\n" +
+  "1) Build a new Frame\n" +
+  "2) Get feedback on an existing Frame\n" +
+  "Reply with 1 or 2."
+);
 }
 
   if (!s.frameMeta?.frameType) {
@@ -3559,6 +3570,18 @@ if (!s.frameMeta.assignmentContext.raw && !(s.pending && s.pending.type)) {
   return s;
 }
 
+  if (s.pending?.type === "choosePurpose") {
+  const p = normalizePurpose(msg);
+
+  if (p) {
+    s.frameMeta.purpose = p;
+    s.pending = null;
+    return s;
+  }
+
+  return s;
+}
+  
   if (s.pending?.type === "feedbackSelectSection") {
   const choice = msg.toLowerCase().trim();
 
