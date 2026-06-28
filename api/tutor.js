@@ -3362,7 +3362,7 @@ if (!s.frameMeta?.purpose) {
   return (
     "Thanks—that gives me a better picture of what you're working on.\n\n" +
     `It sounds like ${assignment}.\n\n` +
-    "How would you like to use this Frame today?\n" +
+    "How would you like to use this Frame to help with your assignment today?\n" +
     "1) Study — organize and strengthen your thinking\n" +
     "2) Write — develop a response, essay, or project\n" +
     "3) Read — organize ideas from a text or source\n" +
