@@ -1173,6 +1173,63 @@ function evaluateAssignmentUnderstanding(rawAssignment) {
   };
 }
 
+async function evaluateAssignmentUnderstandingAI(rawAssignment) {
+  const assignment = cleanText(rawAssignment);
+
+  if (!assignment) {
+    return evaluateAssignmentUnderstanding(rawAssignment);
+  }
+
+  const system = `You analyze a student's assignment description for an AI companion supporting the KU Framing Routine.
+
+Rules:
+- Do not teach content.
+- Do not answer the assignment.
+- Do not create the student's Frame.
+- Only determine whether the assignment context is understandable enough to continue coaching.
+- Return ONLY compact JSON.`;
+
+  const user = `Student assignment:
+"${assignment}"
+
+Return JSON:
+{
+  "studentSummary": "student-friendly restatement of the assignment",
+  "understanding": "what the student is being asked to think about, explain, compare, show, or organize",
+  "confidence": "high" or "low",
+  "needsClarification": true or false,
+  "inferredPurpose": "study" or "write" or "read" or "",
+  "childAnchor": "themes" or "reading" or "causeEffect" or "compareContrast" or "claimSupport" or "conceptDevelopment" or "general" or "",
+  "reasoningType": "compare" or "causeEffect" or "theme" or "claimSupport" or "concept" or "reading" or "general" or ""
+}`;
+
+  try {
+    const resp = await client.chat.completions.create({
+      model: DEFAULT_MODEL,
+      temperature: 0,
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: user },
+      ],
+    });
+
+    const parsed = JSON.parse(resp?.choices?.[0]?.message?.content || "{}");
+
+    return {
+      raw: assignment,
+      studentSummary: cleanText(parsed.studentSummary || assignment),
+      understanding: cleanText(parsed.understanding || parsed.studentSummary || assignment),
+      confidence: parsed.confidence === "high" ? "high" : "low",
+      needsClarification: parsed.needsClarification === false ? false : true,
+      inferredPurpose: cleanText(parsed.inferredPurpose || ""),
+      childAnchor: cleanText(parsed.childAnchor || ""),
+      reasoningType: cleanText(parsed.reasoningType || ""),
+      clarificationCount: 0,
+    };
+  } catch {
+    return evaluateAssignmentUnderstanding(rawAssignment);
+  }
+}
 function hasSufficientAssignmentUnderstanding(state) {
   const context = state?.frameMeta?.assignmentContext || {};
 
@@ -1182,12 +1239,13 @@ function hasSufficientAssignmentUnderstanding(state) {
   );
 }
 
-function updateAssignmentUnderstanding(state, rawAssignment) {
-  const understanding = evaluateAssignmentUnderstanding(rawAssignment);
+async function updateAssignmentUnderstanding(state, rawAssignment) {
+    const understanding =
+        await evaluateAssignmentUnderstandingAI(rawAssignment);
 
-  state.frameMeta.assignmentContext = understanding;
+    state.frameMeta.assignmentContext = understanding;
 
-  return understanding;
+    return understanding;
 }
 
 // ---------------------
@@ -1385,7 +1443,7 @@ function getIdeaList(state) {
 // Runtime control and state mutation remain with:
 // - getStage(state)
 // - computeNextQuestion(state)
-// - updateStateFromStudent(state)
+// - await updateStateFromStudent(state)
 
 // This bridge does NOT change progression logic.
 // It interprets the current tutor.js workflow through the
@@ -1669,7 +1727,7 @@ function isParentAnchorLoopType(state, loopType) {
 // In the sandbox phase, child anchors are a thin structural seam only.
 // They do not own progression, pending-state routing, or loop control.
 // The runtime engine remains owned by getStage(), computeNextQuestion(),
-// and updateStateFromStudent().
+// and await updateStateFromStudent().
 
 // ---------------------
 // CHILD ANCHOR CONTRACT
@@ -2772,7 +2830,7 @@ if (s?.settings?.debugParentAnchor) {
     "Reply with 1 or 2."
   );
 }
-
+  
   if (s.pending?.type === "confirmLanguageSwitch") {
     const candNative = s.pending?.candidateNativeName || s.pending?.candidateName || "that language";
     const candName = s.pending?.candidateName || "that language";
@@ -3288,12 +3346,19 @@ if (!hasSufficientAssignmentUnderstanding(s)) {
   return "Tell me a little more about what your teacher is asking you to think about, explain, or show?";
 }
   
-  if (!s.frameMeta?.purpose) {
+if (!s.frameMeta?.purpose) {
+  const assignment =
+    s.frameMeta?.assignmentContext?.understanding ||
+    s.frameMeta?.assignmentContext?.raw;
+
   return (
-    "How will you use this Frame?\n" +
-    "1) Study — think through and organize your ideas\n" +
-    "2) Write — build a claim and support it\n" +
-    "3) Read — pull key ideas from a text or source\n" +
+    "Thanks—that gives me a better picture of what you're working on.\n\n" +
+    "Here's what I understand so far:\n" +
+    `${assignment}\n\n` +
+    "How will you use this assignment today?\n" +
+    "1) Study — organize and strengthen your thinking\n" +
+    "2) Write — develop a response, essay, or project\n" +
+    "3) Read — organize ideas from a text or source\n" +
     "Reply with 1, 2, or 3."
   );
 }
@@ -3399,7 +3464,7 @@ function clearMatchingSkip(state, completedStage) {
   }
 }
 
-function updateStateFromStudent(state, message) {
+async function await updateStateFromStudent(state, message) {
   const msg = cleanText(message);
   const s = structuredClone(state);
   ensureBuckets(s);
@@ -3431,6 +3496,16 @@ if (!s.frameMeta.assignmentContext) {
     clarificationCount: 0,
   };
 }
+
+// Assignment Understanding clarification
+if (s.pending?.type === "clarifyAssignmentUnderstanding") {
+
+  updateAssignmentUnderstanding(s, msg);
+
+  s.pending = null;
+
+  return s;
+}
   
 // Assignment Understanding capture
 if (!s.frameMeta.assignmentContext.raw && !(s.pending && s.pending.type)) {
@@ -3439,9 +3514,8 @@ if (!s.frameMeta.assignmentContext.raw && !(s.pending && s.pending.type)) {
     return s;
   }
 
-  updateAssignmentUnderstanding(s, msg);
+  await updateAssignmentUnderstanding(s, msg);
   return s;
-}
   
   // Purpose capture
   if (!s.frameMeta.purpose && !(s.pending && s.pending.type)) {
@@ -3633,7 +3707,7 @@ if (s.pending?.type === "feedbackThinkingSummary") {
   // Build Mode lane correction follow-up
 if (s.pending?.type === "reviseBuildLane") {
   s.pending = null;
-  return updateStateFromStudent(s, msg);
+  return await updateStateFromStudent(s, msg);
 }
 
 // Write-mode cause/effect stem follow-up
@@ -3828,7 +3902,7 @@ if (s.pending?.type === "needWriteCauseEffectStem") {
 
     if (stage === "mainIdeas") {
       s.pending = null;
-      return updateStateFromStudent(s, msg);
+      return await updateStateFromStudent(s, msg);
     }
 
   if (typeof stage === "string" && stage.startsWith("details:")) {
@@ -3844,12 +3918,12 @@ if (s.pending?.type === "needWriteCauseEffectStem") {
   }
 
   s.pending = null;
-  return updateStateFromStudent(s, msg);
+  return await updateStateFromStudent(s, msg);
 }
 
     if (stage === "soWhat") {
       s.pending = null;
-      return updateStateFromStudent(s, msg);
+      return await updateStateFromStudent(s, msg);
     }
 
     s.pending = null;
@@ -4406,8 +4480,8 @@ export default async function handler(req, res) {
 
       if (!isAffirmative(low) && !isNegative(low)) {
         const yn = await classifyYesNoViaLLM(message);
-        if (yn === "yes") proceedState = updateStateFromStudent(state, "yes");
-        else if (yn === "no") proceedState = updateStateFromStudent(state, "no");
+        if (yn === "yes") proceedState = await updateStateFromStudent(state, "yes");
+        else if (yn === "no") proceedState = await updateStateFromStudent(state, "no");
         else {
           const q = computeNextQuestion(state);
           let reply = enforceSingleQuestion(q);
@@ -4423,7 +4497,7 @@ export default async function handler(req, res) {
           return res.status(200).json({ reply, state });
         }
       } else {
-        proceedState = updateStateFromStudent(state, message);
+        proceedState = await updateStateFromStudent(state, message);
       }
 
       state = proceedState;
@@ -4480,7 +4554,7 @@ export default async function handler(req, res) {
         return res.status(200).json({ reply, state });
       }
 
-      state = updateStateFromStudent(state, message);
+      state = await updateStateFromStudent(state, message);
     }
 
     let nextQ = computeNextQuestion(state);
