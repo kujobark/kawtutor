@@ -1022,10 +1022,16 @@ function normalizeStuckChoice(msg) {
 function defaultState() {
   return {
     version: 2,
-    frameMeta: {
-      purpose: "", // study|write|read
-      frameType: "", // causeEffect|themes|reading|general
+  frameMeta: {
+    purpose: "", // study|write|read
+    frameType: "", // causeEffect|themes|reading|general
+  
+    assignmentContext: {
+      raw: "",
+      inferredPurpose: "",
+      confidence: null,
     },
+  },
     frame: {
       keyTopic: "",
       isAbout: "",
@@ -1085,6 +1091,19 @@ function normalizeIncomingState(raw) {
   const frameMeta = s.frameMeta && typeof s.frameMeta === "object" ? s.frameMeta : {};
   base.frameMeta.purpose = cleanText(frameMeta.purpose || "") || "";
   base.frameMeta.frameType = cleanText(frameMeta.frameType || "") || "";
+
+const assignmentContext =
+  frameMeta.assignmentContext && typeof frameMeta.assignmentContext === "object"
+    ? frameMeta.assignmentContext
+    : {};
+
+const confidence = Number(assignmentContext.confidence);
+
+base.frameMeta.assignmentContext = {
+  raw: cleanText(assignmentContext.raw || ""),
+  inferredPurpose: cleanText(assignmentContext.inferredPurpose || ""),
+  confidence: Number.isFinite(confidence) ? confidence : null,
+};
 
   base.pending = s.pending && typeof s.pending === "object" ? s.pending : null;
 
