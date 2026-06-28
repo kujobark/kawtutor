@@ -3554,7 +3554,7 @@ if (!s.frameMeta.assignmentContext.raw && !(s.pending && s.pending.type)) {
   if (choice === "1" || choice.includes("build")) {
     s.interactionMode = "build";
     s.feedback.active = false;
-    s.pending = null;
+    s.pending = { type: "choosePurpose" };
     return s;
   }
 
