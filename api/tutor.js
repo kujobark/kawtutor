@@ -37,6 +37,18 @@ function isNegative(s) {
   return t === "no" || t === "nope" || t === "nah" || t === "n/a" || t === "none";
 }
 
+function isStartupCommand(text) {
+  const t = cleanText(text).toLowerCase();
+
+  return (
+    t === "framing routine" ||
+    t === "start" ||
+    t === "begin" ||
+    t === "new frame" ||
+    t === "build a new frame"
+  );
+}
+
 function isAffirmative(s) {
   const t = cleanText(s).toLowerCase();
   return (
@@ -1080,19 +1092,20 @@ function normalizeStuckChoice(msg) {
 function defaultState() {
   return {
     version: 2,
-  frameMeta: {
-    purpose: "", // study|write|read
-    frameType: "", // causeEffect|themes|reading|general
-  
-assignmentContext: {
-  raw: "",
-  understanding: "",
-  confidence: "low",
-  needsClarification: true,
-  inferredPurpose: "",
-  childAnchor: "",
-  clarificationCount: 0,
-  },
+    frameMeta: {
+      purpose: "", // study|write|read
+      frameType: "", // causeEffect|themes|reading|general
+
+      assignmentContext: {
+        raw: "",
+        understanding: "",
+        confidence: "low",
+        needsClarification: true,
+        inferredPurpose: "",
+        childAnchor: "",
+        clarificationCount: 0,
+      },
+    },
     frame: {
       keyTopic: "",
       isAbout: "",
@@ -1120,7 +1133,6 @@ assignmentContext: {
   };
 }
 
-function normalizeIncomingState(raw) {
   const s = raw && typeof raw === "object" ? raw : {};
   const base = defaultState();
 
@@ -1842,6 +1854,10 @@ if (!s.frameMeta.assignmentContext) {
 
 // Assignment Understanding capture
 if (!s.frameMeta.assignmentContext.raw && !(s.pending && s.pending.type)) {
+  if (isStartupCommand(msg)) {
+    return s;
+  }
+
   updateAssignmentUnderstanding(s, msg);
   return s;
 }
