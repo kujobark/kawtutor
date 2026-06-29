@@ -16,6 +16,76 @@ const TRANSCRIPT_MAX_TURNS = 200;
 const LANG_DETECT_MIN_CHARS = 18;
 
 // ---------------------
+// KAW INSTRUCTIONAL ARCHITECTURE
+// Phase 1: Think before speaking
+// ---------------------
+
+const KAW_ARCHITECTURE = {
+  knowledgeLayer: {
+    assignmentIntelligence: true,
+    frameKnowledge: true,
+    thinkingPatterns: true,
+    instructionalMoves: true,
+  },
+
+  reasoningLayer: {
+    studentThinkingModel: true,
+    conversationRouter: true,
+    instructionalDiagnosis: true,
+    adaptiveCoaching: true,
+    instructionalPlan: true,
+  },
+
+  conversationLayer: {
+    buildMode: true,
+    feedbackMode: true,
+    reflection: true,
+    export: true,
+  },
+};
+
+function buildInstructionalContext(state, message = "") {
+  return {
+    message: cleanText(message),
+    interactionMode: state?.interactionMode || "build",
+    assignmentContext: state?.frameMeta?.assignmentContext || {},
+    useMode: state?.frameMeta?.purpose || "",
+    thinkingPattern: state?.frameMeta?.frameType || "",
+    frameStage: typeof getStage === "function" ? getStage(state) : "",
+    parentAnchorStage: typeof getParentAnchorContext === "function"
+      ? getParentAnchorContext(state)
+      : null,
+    frame: state?.frame || {},
+    feedback: state?.feedback || {},
+    pending: state?.pending || null,
+    transcript: Array.isArray(state?.transcript) ? state.transcript : [],
+  };
+}
+
+function createInstructionalPlan(context) {
+  return {
+    conversationType: context?.interactionMode || "build",
+    frameStage: context?.frameStage || "",
+    thinkingPattern: context?.thinkingPattern || "",
+    useMode: context?.useMode || "",
+    diagnosis: {
+      situation: "",
+      likelyNeed: "",
+      confidence: "low",
+    },
+    adaptiveCoaching: {
+      supportLevel: 0,
+      reason: "Phase 1 shell only — current engine still controls response.",
+    },
+    move: {
+      type: "",
+      guardrail: "Do not give answers. Move student thinking forward while preserving ownership.",
+      question: "",
+    },
+  };
+}
+
+// ---------------------
 // CORS
 // ---------------------
 const ALLOWED_ORIGIN = "*";
@@ -4468,6 +4538,21 @@ export default async function handler(req, res) {
 
   let incoming = body.state || body.vercelState || body.framing || {};
   let state = normalizeIncomingState(incoming);
+
+// ---------------------
+// INSTRUCTIONAL PLAN SNAPSHOT
+// Phase 1: read-only planning layer
+// ---------------------
+const instructionalContext = buildInstructionalContext(state, message);
+const instructionalPlan = createInstructionalPlan(instructionalContext);
+
+state.instructionalContext = instructionalContext;
+state.instructionalPlan = instructionalPlan;
+
+// Optional debug only; does not affect current behavior.
+if (state?.settings?.debugInstructionalPlan) {
+  console.log("[KAW PLAN]", instructionalPlan);
+}
     
     // Safety
     if (message) {
