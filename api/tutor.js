@@ -3671,7 +3671,6 @@ return "Let's start with your Key Topic.\n\nWhat is the main topic you'll be exp
 if (!s.frame.isAbout) {
   return `Now let's describe your Key Topic in your own words.\n\nWhat is "${s.frame.keyTopic}" about?`;
 }
-}
 
   const ideas = getIdeaList(s);
 
@@ -3704,6 +3703,7 @@ return `${label} ${c + 1}:\n\n${fallback}`;
         : `What is another Essential Detail that supports this Main Idea?`;
 
 return `${miLabel} ${i + 1}: ${mi}\n${dLabel} ${detailNum}:\n\n${fallback}`;
+  }
   }
 
   if (!s.frame.soWhat) {
