@@ -68,6 +68,30 @@ function createInstructionalPlan(context) {
     frameStage: context?.frameStage || "",
     thinkingPattern: context?.thinkingPattern || "",
     useMode: context?.useMode || "",
+  studentThinkingModel: {
+    currentUnderstanding: {},
+    misconceptions: [],
+    masteredConcepts: [],
+    strugglingConcepts: [],
+    confidence: {},
+    evidence: [],
+},
+
+instructionalModel: {
+  learningGoal: null,
+  prerequisiteConcepts: [],
+  currentFocus: null,
+  instructionalMoves: [],
+  scaffoldsUsed: [],
+  examplesUsed: [],
+},
+
+feedbackModel: {
+  strengths: [],
+  growthAreas: [],
+  previousCoaching: [],
+  nextRecommendation: null,
+},
     diagnosis: {
       situation: "",
       likelyNeed: "",
