@@ -62,12 +62,64 @@ function buildInstructionalContext(state, message = "") {
   };
 }
 
+function inferThinkingStrategy(context) {
+  const assignmentText = cleanText(
+    context?.assignmentContext?.understanding ||
+    context?.assignmentContext?.studentSummary ||
+    context?.assignmentContext?.raw ||
+    ""
+  ).toLowerCase();
+
+  const legacyFrameType = cleanText(context?.thinkingPattern || "");
+
+  if (
+    assignmentText.includes("cause") ||
+    assignmentText.includes("effect") ||
+    assignmentText.includes("why") ||
+    assignmentText.includes("how") ||
+    legacyFrameType === "causeEffect"
+  ) {
+    return "explain_relationship";
+  }
+
+  if (
+    assignmentText.includes("theme") ||
+    assignmentText.includes("message") ||
+    assignmentText.includes("central idea") ||
+    assignmentText.includes("big idea") ||
+    legacyFrameType === "themes"
+  ) {
+    return "interpret_meaning";
+  }
+
+  if (
+    assignmentText.includes("compare") ||
+    assignmentText.includes("contrast") ||
+    assignmentText.includes("similar") ||
+    assignmentText.includes("different")
+  ) {
+    return "compare_features";
+  }
+
+  if (
+    assignmentText.includes("evidence") ||
+    assignmentText.includes("source") ||
+    assignmentText.includes("text") ||
+    legacyFrameType === "reading"
+  ) {
+    return "organize_evidence";
+  }
+
+  return "organize_thinking";
+}
+
 function createInstructionalPlan(context) {
   return {
     conversationType: context?.interactionMode || "build",
     frameStage: context?.frameStage || "",
-    thinkingPattern: context?.thinkingPattern || "",
-    useMode: context?.useMode || "",
+   legacyFrameType: context?.thinkingPattern || "",
+   thinkingStrategy: inferThinkingStrategy(context),
+   useMode: context?.useMode || "",
   studentThinkingModel: {
     currentUnderstanding: {},
     misconceptions: [],
