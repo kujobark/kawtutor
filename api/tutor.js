@@ -21,20 +21,21 @@ const LANG_DETECT_MIN_CHARS = 18;
 // ---------------------
 
 const KAW_ARCHITECTURE = {
-  knowledgeLayer: {
-    assignmentIntelligence: true,
-    frameKnowledge: true,
-    thinkingPatterns: true,
+ knowledgeLayer: {
+    assignmentContext: true,
+    kuFramingRoutine: true,
+    frameComponentKnowledge: true,
+    cognitiveStrategies: true,
     instructionalMoves: true,
-  },
+},
 
-  reasoningLayer: {
+ reasoningLayer: {
     studentThinkingModel: true,
-    conversationRouter: true,
-    instructionalDiagnosis: true,
+    evidenceAnalysis: true,
+    instructionalReasoning: true,
     adaptiveCoaching: true,
-    instructionalPlan: true,
-  },
+    instructionalPlanning: true,
+},
 
   conversationLayer: {
     buildMode: true,
@@ -42,6 +43,36 @@ const KAW_ARCHITECTURE = {
     reflection: true,
     export: true,
   },
+};
+
+// =======================================
+// KU FRAME COMPONENT KNOWLEDGE
+// Canonical instructional knowledge
+// extracted from the KU Framing Routine.
+// =======================================
+
+const KU_FRAME_COMPONENTS = {
+
+   keyTopic: {
+
+   },
+
+   isAbout: {
+
+   },
+
+   mainIdeas: {
+
+   },
+
+   details: {
+
+   },
+
+   soWhat: {
+
+   }
+
 };
 
 function buildInstructionalContext(state, message = "") {
@@ -113,6 +144,74 @@ function inferThinkingStrategy(context) {
   return "organize_thinking";
 }
 
+function diagnoseInstructionalNeed(context) {
+  const frameStage = context?.frameStage || "";
+  const thinkingStrategy = inferThinkingStrategy(context);
+  const pendingType = context?.pending?.type || "";
+
+  if (pendingType) {
+    return {
+      situation: `pending_${pendingType}`,
+      likelyNeed: "continue_current_flow",
+      confidence: "medium",
+    };
+  }
+
+  if (frameStage === "assignmentContext") {
+    return {
+      situation: "student_needs_assignment_context",
+      likelyNeed: "elicit_assignment_understanding",
+      confidence: "high",
+    };
+  }
+
+  if (frameStage === "keyTopic") {
+    return {
+      situation: "student_identifying_key_topic",
+      likelyNeed: "elicit_topic_focus",
+      confidence: "high",
+    };
+  }
+
+  if (frameStage === "isAbout") {
+    return {
+      situation: `student_building_is_about_${thinkingStrategy}`,
+      likelyNeed: "clarify_relationship_or_meaning",
+      confidence: "medium",
+    };
+  }
+
+  if (frameStage === "mainIdeas") {
+    return {
+      situation: `student_generating_main_ideas_${thinkingStrategy}`,
+      likelyNeed: "elicit_supporting_structure",
+      confidence: "medium",
+    };
+  }
+
+  if (typeof frameStage === "string" && frameStage.startsWith("details:")) {
+    return {
+      situation: `student_adding_details_${thinkingStrategy}`,
+      likelyNeed: "strengthen_evidence_or_explanation",
+      confidence: "medium",
+    };
+  }
+
+  if (frameStage === "soWhat") {
+    return {
+      situation: `student_synthesizing_so_what_${thinkingStrategy}`,
+      likelyNeed: "support_significance_and_takeaway",
+      confidence: "medium",
+    };
+  }
+
+  return {
+    situation: "general_instructional_support",
+    likelyNeed: "determine_next_instructional_move",
+    confidence: "low",
+  };
+}
+
 function createInstructionalPlan(context) {
   return {
     conversationType: context?.interactionMode || "build",
@@ -144,20 +243,72 @@ feedbackModel: {
   previousCoaching: [],
   nextRecommendation: null,
 },
-    diagnosis: {
-      situation: "",
-      likelyNeed: "",
-      confidence: "low",
+diagnosis: diagnoseInstructionalNeed(context),
     },
     adaptiveCoaching: {
       supportLevel: 0,
       reason: "Phase 1 shell only — current engine still controls response.",
     },
-    move: {
-      type: "",
-      guardrail: "Do not give answers. Move student thinking forward while preserving ownership.",
-      question: "",
+move: selectInstructionalMove(context, diagnoseInstructionalNeed(context)),
     },
+  };
+}
+
+function selectInstructionalMove(context, diagnosis) {
+  const likelyNeed = diagnosis?.likelyNeed || "";
+
+  if (likelyNeed === "elicit_assignment_understanding") {
+    return {
+      type: "elicitation",
+      guardrail: "Do not answer the assignment. Help the student explain the task.",
+      question: "What is your assignment asking you to think about, explain, or show?",
+    };
+  }
+
+  if (likelyNeed === "elicit_topic_focus") {
+    return {
+      type: "elicitation",
+      guardrail: "Do not choose the topic for the student.",
+      question: "What topic or idea does your assignment seem to focus on most?",
+    };
+  }
+
+  if (likelyNeed === "clarify_relationship_or_meaning") {
+    return {
+      type: "clarifying_question",
+      guardrail: "Do not provide the relationship or meaning for the student.",
+      question: "What connection or meaning are you trying to explain?",
+    };
+  }
+
+  if (likelyNeed === "elicit_supporting_structure") {
+    return {
+      type: "probe",
+      guardrail: "Do not supply main ideas. Elicit one idea from the student.",
+      question: "What is one idea, cause, example, or moment that supports your thinking?",
+    };
+  }
+
+  if (likelyNeed === "strengthen_evidence_or_explanation") {
+    return {
+      type: "probe",
+      guardrail: "Do not invent evidence. Ask the student to connect evidence to thinking.",
+      question: "What detail, example, or evidence helps explain this idea?",
+    };
+  }
+
+  if (likelyNeed === "support_significance_and_takeaway") {
+    return {
+      type: "synthesis_prompt",
+      guardrail: "Do not write the takeaway for the student.",
+      question: "What should someone understand after seeing these ideas together?",
+    };
+  }
+
+  return {
+    type: "general_probe",
+    guardrail: "Preserve student ownership of thinking.",
+    question: "What is one small next step you can take?",
   };
 }
 
