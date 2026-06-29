@@ -502,18 +502,9 @@ function isBadKeyTopic(keyTopic) {
 
 function getKeyTopicFeedback(input) {
   const text = cleanText(input);
-  const wc = text.split(/\s+/).filter(Boolean).length;
 
   if (!text || isBadKeyTopic(text)) {
     return "That’s a good start, but your Key Topic should name the topic clearly, not use a generic word like “topic” or “my essay.”";
-  }
-
-  if (wc < 2) {
-    return "That’s a good start, but your Key Topic should be a short phrase (2–5 words), not just one word.";
-  }
-
-  if (wc > 5) {
-    return "That’s a strong idea, but your Key Topic should be a short phrase (2–5 words). Try shortening it.";
   }
 
   return null;
@@ -3226,7 +3217,7 @@ if (s.pending?.type === "chooseWorkflow") {
   }
 
  if (s.pending?.type === "reviseKeyTopic") {
-  return `${s.pending.feedback}\n\nWhat is your Key Topic? (2–5 words)`;
+  return `${s.pending.feedback}\n\nWhat is the name of your Key Topic?`;
 }
 
 if (s.pending?.type === "reviseBuildLane") {
@@ -4259,7 +4250,7 @@ if (s.pending?.type === "needWriteCauseEffectStem") {
   const cleaned = cleanText(msg);
   const wc = cleaned.split(/\s+/).filter(Boolean).length;
 
-  if (!s.frame.keyTopic && !isBadKeyTopic(cleaned) && wc >= 2 && wc <= 5) {
+  if (!s.frame.keyTopic && !isBadKeyTopic(cleaned) && wc <= 6) {
     s.frame.keyTopic = cleanFrameText(cleaned).replace(/[.!?]$/, "");
     s.pending = null;
     return s;
@@ -4665,12 +4656,12 @@ if (s.pending?.type === "confirmDetails") {
     return s;
   }
 
-  // 2) Key Topic capture (plain 2–5 words) — return after capturing
+  // 2) Key Topic capture 
    if (!s.frame.keyTopic) {
     const cleaned = cleanText(msg);
     const wc = cleaned.split(/\s+/).filter(Boolean).length;
   
-    if (!isBadKeyTopic(cleaned) && wc >= 2 && wc <= 5) {
+    if (!isBadKeyTopic(cleaned) && wc <= 6) {
       s.frame.keyTopic = cleanFrameText(cleaned).replace(/[.!?]$/, "");
       s.pending = null;
       return s;
