@@ -54,12 +54,50 @@ const KAW_ARCHITECTURE = {
 const KU_FRAME_COMPONENTS = {
 
    keyTopic: {
-
-   },
+  purpose: "Name the topic that will be explored.",
+  definition: "The title or name of the key topic.",
+  studentAction: "Write the name of the topic in the Key Topic box.",
+  expectedEvidence: [
+    "Names the central topic",
+    "Is concise",
+    "Can be explored in the Frame",
+    "Aligns with the assignment or source"
+  ],
+  commonBreakdowns: [
+    "Writes a full sentence",
+    "Writes a claim",
+    "Gives a detail instead of the topic",
+    "Uses a generic phrase like 'my assignment' or 'the topic'"
+  ],
+  cognitiveStrategies: [
+    "identify",
+    "select",
+    "focus"
+  ],
+},
 
    isAbout: {
-
-   },
+  purpose: "Provide a brief explanation or paraphrase of the key topic.",
+  definition: "A phrase or sentence that summarizes what the whole topic is about in words students understand.",
+  studentAction: "Write a paraphrase of the key topic in the Is About space.",
+  expectedEvidence: [
+    "Paraphrases the key topic",
+    "Summarizes the whole topic",
+    "Uses understandable language",
+    "Prepares the reader for the main ideas"
+  ],
+  commonBreakdowns: [
+    "Repeats the Key Topic only",
+    "Writes a claim instead of a paraphrase",
+    "Gets too detailed too soon",
+    "Uses vague wording"
+  ],
+  cognitiveStrategies: [
+    "paraphrase",
+    "summarize",
+    "clarify"
+  ],
+},
 
    mainIdeas: {
 
@@ -213,45 +251,60 @@ function diagnoseInstructionalNeed(context) {
 }
 
 function createInstructionalPlan(context) {
+  const diagnosis = diagnoseInstructionalNeed(context);
+
   return {
     conversationType: context?.interactionMode || "build",
     frameStage: context?.frameStage || "",
-   legacyFrameType: context?.thinkingPattern || "",
-   thinkingStrategy: inferThinkingStrategy(context),
-   useMode: context?.useMode || "",
-  studentThinkingModel: {
-    currentUnderstanding: {},
-    misconceptions: [],
-    masteredConcepts: [],
-    strugglingConcepts: [],
-    confidence: {},
-    evidence: [],
-},
+    legacyFrameType: context?.thinkingPattern || "",
+    thinkingStrategy: inferThinkingStrategy(context),
+    useMode: context?.useMode || "",
 
-instructionalModel: {
-  learningGoal: null,
-  prerequisiteConcepts: [],
-  currentFocus: null,
-  instructionalMoves: [],
-  scaffoldsUsed: [],
-  examplesUsed: [],
-},
+    componentKnowledge: getComponentKnowledge(context?.frameStage),
 
-feedbackModel: {
-  strengths: [],
-  growthAreas: [],
-  previousCoaching: [],
-  nextRecommendation: null,
-},
-diagnosis: diagnoseInstructionalNeed(context),
+    studentThinkingModel: {
+      currentUnderstanding: {},
+      misconceptions: [],
+      masteredConcepts: [],
+      strugglingConcepts: [],
+      confidence: {},
+      evidence: [],
     },
+
+    instructionalModel: {
+      learningGoal: null,
+      prerequisiteConcepts: [],
+      currentFocus: null,
+      instructionalMoves: [],
+      scaffoldsUsed: [],
+      examplesUsed: [],
+    },
+
+    feedbackModel: {
+      strengths: [],
+      growthAreas: [],
+      previousCoaching: [],
+      nextRecommendation: null,
+    },
+
+    diagnosis,
+
     adaptiveCoaching: {
       supportLevel: 0,
       reason: "Phase 1 shell only — current engine still controls response.",
     },
-move: selectInstructionalMove(context, diagnoseInstructionalNeed(context)),
-    },
+
+    move: selectInstructionalMove(context, diagnosis),
   };
+}
+
+function getComponentKnowledge(frameStage) {
+  const baseStage =
+    typeof getBaseStage === "function"
+      ? getBaseStage(frameStage)
+      : frameStage;
+
+  return KU_FRAME_COMPONENTS[baseStage] || null;
 }
 
 function selectInstructionalMove(context, diagnosis) {
