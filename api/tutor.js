@@ -3743,12 +3743,16 @@ if (!s.frameMeta?.purpose) {
 );
 }
 
-  if (!s.frame.keyTopic) return "What is your Key Topic? (2–5 words)";
-
-  if (!s.frame.isAbout) {
-    const pb = getPromptForStage(s, "isAbout");
-    return pb || `Finish this sentence: "${s.frame.keyTopic} is about ____."`;
-  }
+if (!s.frame.keyTopic)
+return "Let's start with your Key Topic.\n\nWhat is the main topic you'll be exploring in this Frame?";
+ 
+if (!s.frame.isAbout) {
+  const pb = getPromptForStage(s, "isAbout");
+  return (
+    pb ||
+    `Now let's describe your Key Topic in your own words.\n\nWhat is "${s.frame.keyTopic}" about?`
+  );
+}
 
   const ideas = getIdeaList(s);
 
