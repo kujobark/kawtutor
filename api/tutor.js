@@ -951,34 +951,6 @@ if (state?.frameMeta?.frameType === "themes") {
   };
 }
 
-function getPromptForStage(state, stage) {
-  const purpose = state.frameMeta?.purpose || "";
-  const frameType = state.frameMeta?.frameType || "";
-  const kt = state.frame?.keyTopic || "";
-
-  if (stage === "isAbout") {
-    const tpl = PROMPT_BANK?.[purpose]?.[frameType]?.isAbout;
-    if (tpl) return applyPromptTokens(fillTopic(tpl, kt), state);
-  }
-
-  if (stage === "mainIdeas") {
-    const q = PROMPT_BANK?.[purpose]?.[frameType]?.mainIdea;
-    if (q) return applyPromptTokens(q, state);
-  }
-
-  if (stage.startsWith("details:")) {
-    const q = PROMPT_BANK?.[purpose]?.[frameType]?.detail;
-    if (q) return applyPromptTokens(q, state);
-  }
-
-  if (stage === "soWhat") {
-    const tpl = PROMPT_BANK?.[purpose]?.[frameType]?.soWhat;
-    if (tpl) return applyPromptTokens(fillTopic(tpl, kt), state);
-  }
-
-  return null;
-}
-
 // ---------------------
 // STUCK NUDGES
 // ---------------------
@@ -3665,10 +3637,10 @@ if (s.pending?.type === "collectAnotherDetail") {
   // Base progression
   if (!s.frameMeta?.assignmentContext?.raw) {
   return (
-    "Hi! 👋 Let's build a great Frame together.
-    First, I'd like to understand what you're working on.
-    What is your assignment asking you to think about, explain, or show?"
-  );
+  "Hi! 👋 Let's build a great Frame together.\n\n" +
+  "First, I'd like to understand what you're working on.\n\n" +
+  "What is your assignment asking you to think about, explain, or show?"
+);
 }
 
 if (!hasSufficientAssignmentUnderstanding(s)) {
@@ -3697,8 +3669,8 @@ if (!s.frame.keyTopic)
 return "Let's start with your Key Topic.\n\nWhat is the main topic you'll be exploring in this Frame?";
  
 if (!s.frame.isAbout) {
-return `Now let's describe your Key Topic in your own words.\n\nWhat is "${s.frame.keyTopic}" about?`;
-  );
+  return `Now let's describe your Key Topic in your own words.\n\nWhat is "${s.frame.keyTopic}" about?`;
+}
 }
 
   const ideas = getIdeaList(s);
