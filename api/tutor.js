@@ -114,13 +114,23 @@ const KU_FRAME_COMPONENTS = {
 };
 
 function buildInstructionalContext(state, message = "") {
-  return {
+const currentFrameStage =
+  typeof getStage === "function" ? getStage(state) : "";
+
+const componentKnowledge =
+  KU_FRAME_COMPONENTS[
+    typeof getBaseStage === "function"
+      ? getBaseStage(currentFrameStage)
+      : currentFrameStage
+  ] || null;
+ return {
     message: cleanText(message),
     interactionMode: state?.interactionMode || "build",
     assignmentContext: state?.frameMeta?.assignmentContext || {},
     useMode: state?.frameMeta?.purpose || "",
     thinkingPattern: state?.frameMeta?.frameType || "",
-    frameStage: typeof getStage === "function" ? getStage(state) : "",
+    frameStage: currentFrameStage,
+    componentKnowledge,
     parentAnchorStage: typeof getParentAnchorContext === "function"
       ? getParentAnchorContext(state)
       : null,
