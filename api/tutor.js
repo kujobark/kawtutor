@@ -832,57 +832,6 @@ if (typeof activeStage === "string" && activeStage.startsWith("details:")) {
 }
 
 // ---------------------
-// PROMPT BANK
-// ---------------------
-const PROMPT_BANK = {
-
-  study: {
-    causeEffect: {
-      isAbout: 'Your Key Topic is:\n\n"[Key Topic]"\n\nNow let\'s think about what happens with this topic.\n\nIn your own words, what is the main effect or result?',
-      mainIdea: 'You are explaining why this happens:\n\n"[EFFECT]"\n\nWhat is one major cause that contributes to it?',
-      detail: 'Here is the cause you are working with:\n\n"[CAUSE]"\n\nWhat is one detail or example that shows how this leads to\n\n"[EFFECT]"?',
-      soWhat: 'Your frame shows that:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nLooking at this pattern,\n\nwhat important takeaway should someone understand about "[Key Topic]"?',
-    },
-     themes: {
-      isAbout: 'Your Key Topic is:\n\n"[Key Topic]"\n\nNow think about the deeper meaning.\n\nWhat message about life does this topic reveal?',
-      mainIdea: 'You identified this message about life:\n\n"[IS_ABOUT]"\n\nWhat is one Main Idea that helps show this message about life?',
-      detail: 'What specific example or explanation helps show this message about life in action?',
-      soWhat: 'What should people understand about life or people because of this message?'
-  }
-  },
-
-  write: {
-    causeEffect: {
-      isAbout: 'Your Key Topic is:\n\n"[Key Topic]"\n\nNow let\'s think about what happens in this topic.\n\nFinish this sentence:\n"This topic is about how ____ leads to ____."',
-      mainIdea: 'You are explaining why this happens:\n\n"[EFFECT]"\n\nWhat is one major cause that contributes to it?',
-      detail: 'Here is the cause you are working with:\n\n"[CAUSE]"\n\nWhat is one detail or example that shows how this leads to\n\n"[EFFECT]"?',
-      soWhat: 'Your frame shows that:\n\n"[CAUSE]"\n\nThis helps explain why\n\n"[EFFECT]"\n\nLooking at this pattern,\n\nwhat does this pattern help us understand about this effect?',  
-    },
-   themes: {
-      isAbout: 'Your Key Topic is:\n\n"[Key Topic]"\n\nNow think about the deeper meaning.\n\nWhat message about life do you want your reader to understand?',
-      mainIdea: 'You want to show this message about life:\n\n"[IS_ABOUT]"\n\nWhat is one Main Idea you can use to help develop this message?',
-      detail: 'What specific example or explanation helps show this message about life in action?',
-      soWhat: 'What should your reader understand about life or people because of this message?'
-    }
-  },
-
-  read: {
-    causeEffect: {
-      isAbout: 'The text is about:\n\n"[Key Topic]"\n\nNow let\'s think about what happens in this topic.\n\nWhat main effect or result does the author emphasize?',
-      mainIdea: 'The text explains this effect:\n\n"[EFFECT]"\n\nWhat are the main causes the author presents that lead to this effect?',
-      detail: 'Here is the cause you are working with:\n\n"[CAUSE]"\n\nWhat evidence from the text shows how this leads to\n\n"[EFFECT]"?',
-      soWhat: 'Why does understanding this cause-and-effect relationship matter in the text?'
-    },
-     themes: {
-      isAbout: 'The text focuses on:\n\n"[Key Topic]"\n\nWhat message about life does the author reveal through this topic?',
-      mainIdea: 'The text shows this message about life:\n\n"[IS_ABOUT]"\n\nWhat Main Idea from the text helps reveal this message?',
-      detail: 'What specific evidence or explanation helps show this message about life in action?',
-      soWhat: 'What should the reader understand about life or people because of this message?'
-    }
-  }
-};
-
-// ---------------------
 // FEEDBACK GAP BANK
 // ---------------------
 // Controlled internal categories Kaw can choose from.
@@ -3716,8 +3665,9 @@ if (s.pending?.type === "collectAnotherDetail") {
   // Base progression
   if (!s.frameMeta?.assignmentContext?.raw) {
   return (
-    "Before we begin, tell me a little about the task you are working on.\n\n" +
-    "In one or two sentences, what is your assignment asking you to think about, explain, or show?"
+    "Hi! 👋 Let's build a great Frame together.
+    First, I'd like to understand what you're working on.
+    What is your assignment asking you to think about, explain, or show?"
   );
 }
 
@@ -3747,48 +3697,23 @@ if (!s.frame.keyTopic)
 return "Let's start with your Key Topic.\n\nWhat is the main topic you'll be exploring in this Frame?";
  
 if (!s.frame.isAbout) {
-  const pb = getPromptForStage(s, "isAbout");
-  return (
-    pb ||
-    `Now let's describe your Key Topic in your own words.\n\nWhat is "${s.frame.keyTopic}" about?`
+return `Now let's describe your Key Topic in your own words.\n\nWhat is "${s.frame.keyTopic}" about?`;
   );
 }
 
   const ideas = getIdeaList(s);
 
 if (paStage === "parentItems" || ideas.length < 2) {
-  let pb = getPromptForStage(s, "mainIdeas");
   const c = ideas.length;
 
-    const isCE = s.frameMeta?.frameType === "causeEffect";
-    const label = isCE ? "Cause" : "Main Idea";
+const label = "Main Idea";
 
-  if (pb) {
-  if (/^What is one major cause or effect/i.test(pb) || /^What is one major cause/i.test(pb)) {
-    const ord = c === 0 ? "first" : c === 1 ? "second" : "next";
-    pb = pb.replace(/^What is one/i, `What is your ${ord}`);
-  }
+const fallback =
+  c === 0
+    ? `What is one Main Idea that helps explain "${s.frame.keyTopic}"?`
+    : `What is another Main Idea that helps explain "${s.frame.keyTopic}"?`;
 
-  if (!isCE) {
-    if (c === 1) {
-      pb = pb.replace(/What is one Main Idea/i, "What is another Main Idea");
-    }
-  }
-    
-if (!isCE && c > 0) {
-  const prev = ideas[c - 1];
-  return `${label} ${c + 1}:\nOne Main Idea you already identified is:\n\n"${prev}"\n\n${pb}`;
-}
-
-return `${label} ${c + 1}:\n${pb}`;
-  }
-
-    const fallback =
-      c === 0
-        ? `What is your first ${label} that helps explain ${s.frame.keyTopic}?`
-        : `What is your second ${label} that helps explain ${s.frame.keyTopic}?`;
-
-    return `${label} ${c + 1}:\n${fallback}`;
+return `${label} ${c + 1}:\n\n${fallback}`;
   }
 
   // DETAILS LOOP (CLEANED — no duplicate fallback / brace drift)
@@ -3796,30 +3721,21 @@ return `${label} ${c + 1}:\n${pb}`;
     const mi = ideas[i];
     const arr = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
     if (paStage === "detailsLoop" && arr.length < 2) {
-      const pb = getPromptForStage(s, `details:${i}`);
       const detailNum = arr.length + 1; // 1 or 2
 
-      const isCE = s.frameMeta?.frameType === "causeEffect";
-      const miLabel = isCE ? "Cause" : "Main Idea";
-      const dLabel = isCE && s.frameMeta?.purpose === "read" ? "Text Evidence" : "Supporting Detail";
+      const miLabel = "Main Idea";
+      const dLabel = "Essential Detail";
 
-      if (pb) {
-        const base = pb.replace(/\?\s*$/, "");
-        return `${miLabel} ${i + 1}: ${mi}\n${dLabel} ${detailNum}:\n\n${base}?`;
-      }
+  const fallback =
+      detailNum === 1
+        ? `What is one Essential Detail that supports this Main Idea?`
+        : `What is another Essential Detail that supports this Main Idea?`;
 
-      const fallback =
-        detailNum === 1
-          ? `What is your first ${dLabel} for this ${miLabel}: "${mi}"?`
-          : `What is your second ${dLabel} for this ${miLabel}: "${mi}"?`;
-
-      return `${miLabel} ${i + 1}: ${mi}\n${dLabel} ${detailNum}: ${fallback}`;
-    }
+return `${miLabel} ${i + 1}: ${mi}\n${dLabel} ${detailNum}:\n\n${fallback}`;
   }
 
   if (!s.frame.soWhat) {
-    const pb = getPromptForStage(s, "soWhat");
-    return pb || `So what? Why does "${s.frame.keyTopic}" matter? (1–2 sentences)`;
+    return `Now let's think about the So What.\n\nWhat is important to understand about "${s.frame.keyTopic}" after seeing these ideas together?`;
   }
 
   return "Want to refine anything (Key Topic, Is About, Main Ideas, Details, or So What)?";
