@@ -53,7 +53,7 @@ const KAW_ARCHITECTURE = {
 
 const KU_FRAME_COMPONENTS = {
 
-   keyTopic: {
+  keyTopic: {
   purpose: "Name the topic that will be explored.",
   definition: "The title or name of the key topic.",
   studentAction: "Write the name of the topic in the Key Topic box.",
@@ -74,6 +74,37 @@ const KU_FRAME_COMPONENTS = {
     "select",
     "focus"
   ],
+validation: {
+    shouldNameTheTopic: true,
+    disallowGenericTopics: true
+},
+
+conversationSupport: {
+ term: "Key Topic",
+  friendlyTerm: "main topic",
+  initialPrompt:
+    "Let's start with your Key Topic.\n\nWhat is the main topic you'll be exploring in this Frame?",
+  revisePrompt:
+    "That’s a good start, but your Key Topic should name the topic clearly.\n\nWhat is the main topic you'll be exploring in this Frame?"
+},
+
+genericNonExamples: [
+  "my assignment",
+  "the assignment",
+  "my essay",
+  "this essay",
+  "my paper",
+  "this paper",
+  "my paragraph",
+  "this paragraph",
+  "my topic",
+  "the topic",
+  "topic",
+  "key topic",
+  "it",
+  "this",
+  "that"
+]
 },
 
    isAbout: {
@@ -86,6 +117,11 @@ const KU_FRAME_COMPONENTS = {
     "Uses understandable language",
     "Prepares the reader for the main ideas"
   ],
+    successIndicators: [
+    "Clearly names the central topic.",
+    "Matches the assignment or source.",
+    "Can be explored through Main Ideas and Essential Details."
+],
   commonBreakdowns: [
     "Repeats the Key Topic only",
     "Writes a claim instead of a paraphrase",
@@ -474,23 +510,9 @@ function enforceSingleQuestion(text) {
   return out;
 }
 
-const GENERIC_KEY_TOPICS = new Set([
-  "my assignment",
-  "the assignment",
-  "my essay",
-  "this essay",
-  "my paper",
-  "this paper",
-  "my paragraph",
-  "this paragraph",
-  "my topic",
-  "the topic",
-  "topic",
-  "key topic",
-  "it",
-  "this",
-  "that",
-]);
+const GENERIC_KEY_TOPICS = new Set(
+  KU_FRAME_COMPONENTS.keyTopic.genericNonExamples || []
+);
 
 function isBadKeyTopic(keyTopic) {
   const kt = cleanText(keyTopic).toLowerCase();
@@ -502,9 +524,13 @@ function isBadKeyTopic(keyTopic) {
 
 function getKeyTopicFeedback(input) {
   const text = cleanText(input);
+  const support = KU_FRAME_COMPONENTS.keyTopic.conversationSupport || {};
 
   if (!text || isBadKeyTopic(text)) {
-    return "That’s a good start, but your Key Topic should name the topic clearly, not use a generic word like “topic” or “my essay.”";
+    return (
+      support.revisePrompt ||
+      "That’s a good start, but your Key Topic should name the topic clearly."
+    );
   }
 
   return null;
