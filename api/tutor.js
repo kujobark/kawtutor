@@ -3831,9 +3831,43 @@ const fallback = getComponentPrompt("details", promptType, {
   mainIdea: mi
 });
 
-return `${miLabel} ${i + 1}: ${mi}\n${dLabel} ${detailNum}:\n\n${fallback}`;
-  }
-  }
+if (i === 0 && detailNum === 1) {
+  return (
+    "🎉 Nice work! Your Main Ideas now explain your Key Topic.\n\n" +
+    "➡️ Now let's support each Main Idea with Essential Details.\n\n" +
+    `${miLabel} ${i + 1}\n` +
+    `${mi}\n\n` +
+    `✍️ ${dLabel} ${detailNum}\n\n` +
+    `${fallback}`
+  );
+}
+
+if (i > 0 && detailNum === 1) {
+  const completedLabel =
+    i === 1
+      ? "first"
+      : i === 2
+        ? "second"
+        : "previous";
+
+  return (
+    `🎉 Nice work! You've supported your ${completedLabel} Main Idea.\n\n` +
+    `➡️ Now let's support ${miLabel.toLowerCase()} ${i + 1}.\n\n` +
+    `${miLabel} ${i + 1}\n` +
+    `${mi}\n\n` +
+    `✍️ ${dLabel} ${detailNum}\n\n` +
+    `${fallback}`
+  );
+}
+
+return (
+  `${miLabel} ${i + 1}\n` +
+  `${mi}\n\n` +
+  `✍️ ${dLabel} ${detailNum}\n\n` +
+  `${fallback}`
+);
+}
+}
 
 if (!s.frame.soWhat) {
   return getComponentPrompt("soWhat", "initialPrompt", {
