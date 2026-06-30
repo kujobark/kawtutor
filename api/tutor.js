@@ -197,8 +197,11 @@ mainIdeas: {
     additionalPrompt:
       'What is another Main Idea that helps explain "{keyTopic}"?',
 
-    revisePrompt:
-      "You're close. Try naming a bigger idea that can be supported with details."
+   revisePrompt:
+      "You're close. Try naming a Main Idea that clearly connects to your Key Topic and can be explained with Essential Details.",
+
+   confirmationPrompt:
+      '✅ Checkpoint\n\nYou identified these Main Ideas:\n\n{mainIdeasList}\n\nDoes this accurately capture your thinking?\n\n📋 Choose an option:\n\n1) Yes — Continue building my Frame.\n2) No — Revise one Main Idea.\n\nReply with 1 or 2.'
   }
 },
 
@@ -514,6 +517,7 @@ return template
   .replaceAll("{keyTopic}", context.keyTopic || "your topic")
   .replaceAll("{isAbout}", context.isAbout || "")
   .replaceAll("{mainIdea}", context.mainIdea || "this Main Idea")
+  .replaceAll("{mainIdeasList}", context.mainIdeasList || "")
   .replaceAll("{detail}", context.detail || "this detail");
 }
 
@@ -629,6 +633,7 @@ function isStartupCommand(text) {
 function isAffirmative(s) {
   const t = cleanText(s).toLowerCase();
   return (
+    t === "1" ||
     t === "yes" ||
     t === "y" ||
     t === "yeah" ||
@@ -3665,7 +3670,9 @@ if (s.pending?.type === "confirmMainIdeas") {
 
   const label = isCE ? "Causes" : "Main Ideas";
 
-  return `You have identified the following ${label}:\n${lines}\n\nIs that correct, or would you like to revise one?`;
+  return getComponentPrompt("mainIdeas", "confirmationPrompt", {
+  mainIdeasList: lines
+});
 }
 
 if (s.pending?.type === "chooseMainIdeaToRevise") {
@@ -4382,6 +4389,7 @@ if (s.pending?.type === "confirmMainIdeas") {
   }
 
   if (
+    normalized === "2" ||
     normalized === "revise" ||
     normalized === "revise one" ||
     normalized === "change" ||
