@@ -151,8 +151,8 @@ revisePrompt:
   "You're on the right track. Try describing the whole topic in your own words instead of repeating the Key Topic.",
 
 confirmationPrompt:
-  'Using your ideas, your Frame now says:\n\n{keyTopic} is about {isAbout}.\n\nIs that correct, or would you like to revise it?'
-}
+  'Great! Based on what you shared, your Frame now says:\n\n{keyTopic} is about {isAbout}.\n\nDoes this accurately capture your thinking?\n\n1) Yes — Continue building my Frame.\n2) No — Revise this part.\n\nReply with 1 or 2.'
+ }
 },
 
 mainIdeas: {
