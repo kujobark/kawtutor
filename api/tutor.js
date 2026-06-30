@@ -3164,7 +3164,7 @@ if (s.pending?.type === "chooseWorkflow") {
   }
 
  if (s.pending?.type === "reviseKeyTopic") {
-  return `${s.pending.feedback}\n\nWhat is the name of your Key Topic?`;
+  return s.pending.feedback;
 }
 
 if (s.pending?.type === "reviseBuildLane") {
@@ -3691,8 +3691,9 @@ if (!s.frameMeta?.purpose) {
 );
 }
 
-if (!s.frame.keyTopic)
-return "Let's start with your Key Topic.\n\nWhat is the main topic you'll be exploring in this Frame?";
+if (!s.frame.keyTopic) {
+  return KU_FRAME_COMPONENTS.keyTopic.conversationSupport.initialPrompt;
+}
  
 if (!s.frame.isAbout) {
   return `Now let's describe your Key Topic in your own words.\n\nWhat is "${s.frame.keyTopic}" about?`;
