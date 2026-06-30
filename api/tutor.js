@@ -147,8 +147,11 @@ conversationSupport: {
 initialPrompt:
   'Now let\'s describe your Key Topic in your own words.\n\nWhat is "{keyTopic}" about?',
 
-  revisePrompt:
-    "You're on the right track. Try describing the whole topic in your own words instead of repeating the Key Topic."
+revisePrompt:
+  "You're on the right track. Try describing the whole topic in your own words instead of repeating the Key Topic.",
+
+confirmationPrompt:
+  'Using your ideas, your Frame now says:\n\n{keyTopic} is about {isAbout}.\n\nIs that correct, or would you like to revise it?'
 }
 },
 
@@ -507,10 +510,11 @@ function getComponentPrompt(componentName, promptType = "initialPrompt", context
     getComponentConversation(componentName)?.[promptType] ||
     "What should you add next?";
 
-  return template
-    .replaceAll("{keyTopic}", context.keyTopic || "your topic")
-    .replaceAll("{mainIdea}", context.mainIdea || "this Main Idea")
-    .replaceAll("{detail}", context.detail || "this detail");
+return template
+  .replaceAll("{keyTopic}", context.keyTopic || "your topic")
+  .replaceAll("{isAbout}", context.isAbout || "")
+  .replaceAll("{mainIdea}", context.mainIdea || "this Main Idea")
+  .replaceAll("{detail}", context.detail || "this detail");
 }
 
 function selectInstructionalMove(context, diagnosis) {
@@ -3646,82 +3650,12 @@ if (s.pending?.type === "reviseThemesSoWhat") {
 }
   
 if (s.pending?.type === "confirmIsAbout") {
-
-  // Write + causeEffect
-  if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
-    const raw = (s.frame.isAbout || "").trim();
-    const cleaned = raw.replace(/^this topic is about\s+/i, "").replace(/\.$/, "").trim();
-
-    const keyTopic =
-      s.frame.keyTopic && s.frame.keyTopic.length
-        ? s.frame.keyTopic.charAt(0).toUpperCase() + s.frame.keyTopic.slice(1)
-        : s.frame.keyTopic;
-
-    return `Using your ideas, your frame now reads:
-
-Key Topic
-${keyTopic}
-
-Is About
-${cleaned}
-
-Is that correct, or would you like to revise it?`;
-  }
-
-    // Study + causeEffect
-  if (s.frameMeta?.purpose === "study" && s.frameMeta?.frameType === "causeEffect") {
-    const topic = (s.frame.keyTopic || "").trim();
-    const isAbout = (s.frame.isAbout || "").trim().replace(/\.$/, "");
-
-    return `Using your ideas, your frame now reads:
-
-Key Topic
-${topic}
-
-Is About
-${isAbout}
-
-Is that correct, or would you like to revise it?`;
-  }
-  
-  // Read + causeEffect
-  if (s.frameMeta?.purpose === "read" && s.frameMeta?.frameType === "causeEffect") {
-    const topic = (s.frame.keyTopic || "").trim();
-    const isAbout = (s.frame.isAbout || "").trim().replace(/\.$/, "");
-
-    return `Using your ideas from the text, your frame now reads:
-
-Key Topic
-${topic}
-
-Is About
-${isAbout}
-
-Is that correct, or would you like to revise it?`;
-  }
-  
-// Themes
-if (s.frameMeta?.frameType === "themes") {
-  if (s.frameMeta?.purpose === "read") {
-    return "Using your ideas from the text, your frame now reads:\n\n" +
-      "Key Topic\n" +
-      s.frame.keyTopic + "\n\n" +
-      "Is About\n" +
-      s.frame.isAbout + "\n\n" +
-      "Is that correct, or would you like to revise it?";
-  }
-
-  const isAboutText =
-  (s.frame.isAbout || "").charAt(0).toLowerCase() +
-  (s.frame.isAbout || "").slice(1);
-
-return "Using your ideas, your frame now reads:\n\n" +
-  s.frame.keyTopic + " is about how " +
-  isAboutText.replace(/\.$/, "") + ".\n\n" +
-  "Is that correct, or would you like to revise it?";
-  }
-  }
-  
+  return getComponentPrompt("isAbout", "confirmationPrompt", {
+    keyTopic: s.frame.keyTopic,
+    isAbout: (s.frame.isAbout || "").replace(/\.$/, "")
+  });
+}
+ 
 if (s.pending?.type === "confirmMainIdeas") {
   const isCE = s.frameMeta?.frameType === "causeEffect";
 
