@@ -128,11 +128,28 @@ genericNonExamples: [
     "Gets too detailed too soon",
     "Uses vague wording"
   ],
-  cognitiveStrategies: [
-    "paraphrase",
-    "summarize",
-    "clarify"
-  ],
+ cognitiveStrategies: [
+  "paraphrase",
+  "summarize",
+  "clarify"
+],
+
+validation: {
+  shouldSummarizeTheWholeTopic: true,
+  shouldUseStudentFriendlyLanguage: true,
+  shouldNotRepeatKeyTopicOnly: true
+},
+
+conversationSupport: {
+  term: "Is About",
+  friendlyTerm: "description",
+
+initialPrompt:
+  'Now let\'s describe your Key Topic in your own words.\n\nWhat is "{keyTopic}" about?',
+
+  revisePrompt:
+    "You're on the right track. Try describing the whole topic in your own words instead of repeating the Key Topic."
+}
 },
 
    mainIdeas: {
@@ -353,6 +370,23 @@ function getComponentKnowledge(frameStage) {
   return KU_FRAME_COMPONENTS[baseStage] || null;
 }
 
+function getComponentConversation(componentName) {
+  return (
+    KU_FRAME_COMPONENTS?.[componentName]?.conversationSupport || {}
+  );
+}
+
+function getComponentPrompt(componentName, promptType = "initialPrompt", context = {}) {
+  const template =
+    getComponentConversation(componentName)?.[promptType] ||
+    "What should you add next?";
+
+  return template
+    .replaceAll("{keyTopic}", context.keyTopic || "your topic")
+    .replaceAll("{mainIdea}", context.mainIdea || "this Main Idea")
+    .replaceAll("{detail}", context.detail || "this detail");
+}
+
 function selectInstructionalMove(context, diagnosis) {
   const likelyNeed = diagnosis?.likelyNeed || "";
 
@@ -524,7 +558,7 @@ function isBadKeyTopic(keyTopic) {
 
 function getKeyTopicFeedback(input) {
   const text = cleanText(input);
-  const support = KU_FRAME_COMPONENTS.keyTopic.conversationSupport || {};
+  const support = getComponentConversation("keyTopic");
 
   if (!text || isBadKeyTopic(text)) {
     return (
@@ -3692,11 +3726,13 @@ if (!s.frameMeta?.purpose) {
 }
 
 if (!s.frame.keyTopic) {
-  return KU_FRAME_COMPONENTS.keyTopic.conversationSupport.initialPrompt;
+  return getComponentPrompt("keyTopic", "initialPrompt");
 }
  
 if (!s.frame.isAbout) {
-  return `Now let's describe your Key Topic in your own words.\n\nWhat is "${s.frame.keyTopic}" about?`;
+  return getComponentPrompt("isAbout", "initialPrompt", {
+    keyTopic: s.frame.keyTopic
+  });
 }
 
   const ideas = getIdeaList(s);
