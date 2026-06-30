@@ -152,17 +152,143 @@ initialPrompt:
 }
 },
 
-   mainIdeas: {
+mainIdeas: {
+  purpose: "Identify the major ideas that help explain the Key Topic.",
+  definition: "The big ideas, categories, causes, parts, or supports that organize the topic.",
+  studentAction: "Write important Main Ideas that help explain the Key Topic.",
 
-   },
+  expectedEvidence: [
+    "Names an important idea",
+    "Connects to the Key Topic",
+    "Can be supported with Essential Details",
+    "Is broader than a single detail"
+  ],
 
-   details: {
+  commonBreakdowns: [
+    "Gives a detail instead of a Main Idea",
+    "Repeats the Key Topic",
+    "Writes something too broad",
+    "Writes something unrelated to the topic"
+  ],
 
-   },
+  cognitiveStrategies: [
+    "categorize",
+    "organize",
+    "prioritize",
+    "explain"
+  ],
 
-   soWhat: {
+  validation: {
+    shouldConnectToKeyTopic: true,
+    shouldBeSupportableWithDetails: true,
+    shouldNotBeOnlyADetail: true
+  },
 
-   }
+  conversationSupport: {
+    term: "Main Idea",
+    friendlyTerm: "important idea",
+
+    initialPrompt:
+      'What is one Main Idea that helps explain "{keyTopic}"?',
+
+    additionalPrompt:
+      'What is another Main Idea that helps explain "{keyTopic}"?',
+
+    revisePrompt:
+      "You're close. Try naming a bigger idea that can be supported with details."
+  }
+},
+
+details: {
+  purpose: "Add information that supports and explains each Main Idea.",
+  definition: "Specific facts, examples, evidence, or explanations that make a Main Idea clearer.",
+  studentAction: "Write Essential Details that support each Main Idea.",
+
+  expectedEvidence: [
+    "Supports a specific Main Idea",
+    "Adds specific information",
+    "Explains or proves the idea",
+    "Is more specific than the Main Idea"
+  ],
+
+  commonBreakdowns: [
+    "Repeats the Main Idea",
+    "Adds a new Main Idea instead of a detail",
+    "Is too vague",
+    "Does not clearly support the Main Idea"
+  ],
+
+  cognitiveStrategies: [
+    "support",
+    "explain",
+    "specify",
+    "connect"
+  ],
+
+  validation: {
+    shouldSupportMainIdea: true,
+    shouldBeSpecific: true,
+    shouldNotIntroduceNewMainIdea: true
+  },
+
+  conversationSupport: {
+    term: "Essential Detail",
+    friendlyTerm: "supporting detail",
+
+    initialPrompt:
+      'What is one Essential Detail that supports this Main Idea?',
+
+    additionalPrompt:
+      'What is another Essential Detail that supports this Main Idea?',
+
+    revisePrompt:
+      "You're close. Try adding a specific fact, example, or explanation that supports this Main Idea."
+  }
+},
+
+soWhat: {
+  purpose: "Help students state what is important to understand after seeing the whole Frame.",
+  definition: "A final takeaway that explains why the information in the Frame matters.",
+  studentAction: "Write the important understanding or takeaway in the So What space.",
+
+  expectedEvidence: [
+    "Connects across the Frame",
+    "Explains why the ideas matter",
+    "States an important takeaway",
+    "Goes beyond listing details"
+  ],
+
+  commonBreakdowns: [
+    "Repeats the Key Topic",
+    "Repeats one Main Idea",
+    "Lists details instead of explaining importance",
+    "Uses vague wording like 'it is important'"
+  ],
+
+  cognitiveStrategies: [
+    "synthesize",
+    "generalize",
+    "prioritize",
+    "explain significance"
+  ],
+
+  validation: {
+    shouldSynthesizeAcrossFrame: true,
+    shouldExplainImportance: true,
+    shouldNotSimplyRepeatEarlierParts: true
+  },
+
+  conversationSupport: {
+    term: "So What",
+    friendlyTerm: "important takeaway",
+
+    initialPrompt:
+      'Now let\'s think about the So What.\n\nLooking at everything in your Frame, what is the most important thing someone should understand about "{keyTopic}"?',
+
+    revisePrompt:
+      "You're close. Try explaining the bigger takeaway instead of repeating one part of the Frame."
+  }
+}
 
 };
 
@@ -582,9 +708,10 @@ function parseKeyTopicIsAbout(msg) {
   if (!keyTopic || !isAbout) return null;
   if (isBadKeyTopic(keyTopic)) return null;
 
-  // Key topic should be short (2–5 words)
-  const wc = keyTopic.split(/\s+/).filter(Boolean).length;
-  if (wc < 2 || wc > 5) return null;
+// Key Topic should clearly name the topic.
+// One-word topics are allowed if they are specific.
+const wc = keyTopic.split(/\s+/).filter(Boolean).length;
+if (wc > 6) return null;
 
   return { keyTopic, isAbout };
 }
@@ -2197,6 +2324,9 @@ const ThemesFrame = {
   }
 };
 
+// LEGACY THEME-SPECIFIC IS ABOUT DIAGNOSIS
+// TODO: Extract into component diagnosis / thinking strategy layer.
+
 function evaluateThemesIsAbout(state, response) {
   const keyTopic = cleanText(state?.frame?.keyTopic || "").toLowerCase();
   const text = cleanText(response || "");
@@ -2960,9 +3090,9 @@ function applyIsAboutCapture(s, msg) {
     return s;
   }
 
-  s.frame.isAbout = cleanFrameText(msg);
-  s.pending = { type: "confirmIsAbout" };
-  return s;
+   s.frame.isAbout = cleanFrameText(msg);
+   s.pending = { type: "confirmIsAbout" };
+   return s;
 }
 
 // ---------------------
@@ -3449,14 +3579,7 @@ if (s.pending?.type === "stuckReask") {
     return `${ctx}Can you add one concrete piece of evidence (example, fact, quote, or statistic) that shows how "${mi}" connects to ${eff}?`;
 }
 if (s.pending?.type === "reviseIsAbout") {
-  const topic = (s.frame.keyTopic || "").trim();
-
-  return "Let's revise the relationship in the frame.\n\n" +
-    "Right now we have the topic:\n\n" +
-    topic + "\n\n" +
-    "Try rewriting the cause-and-effect relationship more clearly.\n\n" +
-    "Use the pattern:\n" +
-    "how ___ leads to ___";
+  return getComponentPrompt("isAbout", "revisePrompt");
 }
    
 // --- Return to skipped work before confirmation ---
@@ -3742,10 +3865,11 @@ if (paStage === "parentItems" || ideas.length < 2) {
 
 const label = "Main Idea";
 
-const fallback =
-  c === 0
-    ? `What is one Main Idea that helps explain "${s.frame.keyTopic}"?`
-    : `What is another Main Idea that helps explain "${s.frame.keyTopic}"?`;
+const promptType = c === 0 ? "initialPrompt" : "additionalPrompt";
+
+const fallback = getComponentPrompt("mainIdeas", promptType, {
+  keyTopic: s.frame.keyTopic
+});
 
 return `${label} ${c + 1}:\n\n${fallback}`;
   }
@@ -3760,18 +3884,21 @@ return `${label} ${c + 1}:\n\n${fallback}`;
       const miLabel = "Main Idea";
       const dLabel = "Essential Detail";
 
-  const fallback =
-      detailNum === 1
-        ? `What is one Essential Detail that supports this Main Idea?`
-        : `What is another Essential Detail that supports this Main Idea?`;
+const promptType = detailNum === 1 ? "initialPrompt" : "additionalPrompt";
+
+const fallback = getComponentPrompt("details", promptType, {
+  mainIdea: mi
+});
 
 return `${miLabel} ${i + 1}: ${mi}\n${dLabel} ${detailNum}:\n\n${fallback}`;
   }
   }
 
-  if (!s.frame.soWhat) {
-    return `Now let's think about the So What.\n\nWhat is important to understand about "${s.frame.keyTopic}" after seeing these ideas together?`;
-  }
+if (!s.frame.soWhat) {
+  return getComponentPrompt("soWhat", "initialPrompt", {
+    keyTopic: s.frame.keyTopic
+  });
+}
 
   return "Want to refine anything (Key Topic, Is About, Main Ideas, Details, or So What)?";
 }
