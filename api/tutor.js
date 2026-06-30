@@ -3900,6 +3900,16 @@ if (!s.frameMeta.assignmentContext.raw && !(s.pending && s.pending.type)) {
   return s;
   }
 
+ // Assignment Understanding clarification
+if (
+  s.frameMeta.assignmentContext.raw &&
+  s.frameMeta.assignmentContext.needsClarification === true &&
+  !(s.pending && s.pending.type)
+) {
+  await updateAssignmentUnderstanding(s, msg);
+  return s;
+}
+
 // Purpose capture
   if (!s.frameMeta.purpose && !(s.pending && s.pending.type)) {
     const p = normalizePurpose(msg);
