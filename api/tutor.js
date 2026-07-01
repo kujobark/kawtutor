@@ -3074,7 +3074,7 @@ const assignmentReasoning =
     : {};
 
 base.assignmentReasoning = {
-  task: assignmentReasoning.mode || null,
+  task: assignmentReasoning.task || assignmentReasoning.mode || null,
   label: cleanText(assignmentReasoning.label || ""),
   confidence: Number.isFinite(Number(assignmentReasoning.confidence))
     ? Number(assignmentReasoning.confidence)
@@ -4301,7 +4301,8 @@ if (hasSufficientAssignmentUnderstanding(s)) {
 }
 
 return s;
-
+}
+ 
  // Assignment Understanding clarification
 if (
   s.frameMeta.assignmentContext.raw &&
@@ -4357,7 +4358,6 @@ const label = presentation.thinkingTask;
     `🧠 Thinking task: ${label}\n\n` +
     `🪝 Frame focus: ${assignment}\n\n` +
     "🎯 Next step: Decide how you want to use your Frame.\n\n" +
-   `🎯 Next step: ${presentation.nextStep}\n\n` +
     "How can I support your work today?\n" +
     "1) Build a new Frame\n" +
     "2) Get feedback on an existing Frame\n" +
