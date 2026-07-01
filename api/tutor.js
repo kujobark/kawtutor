@@ -548,6 +548,58 @@ function isStuckMessage(text) {
   return false;
 }
 
+function looksLikeEvidence(text) {
+  const t = cleanText(text).toLowerCase();
+  if (!t) return false;
+
+  // numbers, percentages, or quoted text often signal evidence
+  if (/\d/.test(t)) return true;
+  if (t.includes("%")) return true;
+  if (t.includes('"') || t.includes("“") || t.includes("”")) return true;
+
+  const markers = [
+    "for example",
+    "for instance",
+    "such as",
+    "according to",
+    "the text says",
+    "in the text",
+    "in the article",
+    "in the source",
+    "the author",
+    "the study",
+    "research",
+    "survey",
+    "data",
+    "statistic",
+    "evidence",
+    "report",
+    "shows that",
+    "found that",
+  ];
+  return markers.some((p) => t.includes(p));
+}
+
+function looksLikeMechanism(text) {
+  const t = cleanText(text).toLowerCase();
+  if (!t) return false;
+
+  // causal connectives often signal mechanism/explanation rather than evidence
+  const markers = [
+    "because",
+    "leads to",
+    "causes",
+    "results in",
+    "therefore",
+    "so that",
+    "this makes",
+    "which makes",
+    "as a result",
+    "due to",
+  ];
+  return markers.some((p) => t.includes(p));
+}
+
 // ------------------------------------------------------
 // STUDENT OWNERSHIP CHECK
 // Ensures Kaw never replaces student thinking.
@@ -585,6 +637,200 @@ const componentKnowledge =
     pending: state?.pending || null,
     transcript: Array.isArray(state?.transcript) ? state.transcript : [],
   };
+}
+
+function getParentAnchorStage(state) {
+  const pendingType = state?.pending?.type || null;
+
+  // Confirmation/export pending states take priority because they
+  // represent the active structural stage the student is currently in.
+  if (pendingType && PARENT_ANCHOR_BRIDGE.confirmationStageByPending[pendingType]) {
+    return PARENT_ANCHOR_BRIDGE.confirmationStageByPending[pendingType];
+  }
+
+  // Interrupts belong to an underlying structural stage and do not
+  // create a new Parent Anchor stage.
+  if (pendingType && PARENT_ANCHOR_BRIDGE.interruptStageByPending[pendingType]) {
+    return PARENT_ANCHOR_BRIDGE.interruptStageByPending[pendingType];
+  }
+
+  // Stuck overlays should use the saved stage only if it actually exists
+  // in the current pending payload. Otherwise, fall back to getStage(state).
+  if (pendingType && pendingType.startsWith("stuck")) {
+    const savedStage = state?.pending?.stage || null;
+    if (savedStage) {
+      const mappedSavedStage = PARENT_ANCHOR_BRIDGE.structuralStageByRawStage(savedStage);
+      if (mappedSavedStage) return mappedSavedStage;
+    }
+  }
+
+  // Other overlays remain non-structural and do not override the
+  // underlying Parent Anchor stage. Fall back to the raw current stage.
+  const rawStage = getStage(state);
+  return PARENT_ANCHOR_BRIDGE.structuralStageByRawStage(rawStage);
+}
+
+/**
+ * Returns the structural Parent Anchor stage that owns the current moment.
+ *
+ * This is a read-only interpretation helper.
+ * It does NOT advance stages, mutate state, or replace getStage().
+ *
+ * Difference from getParentAnchorStage(state):
+ * - getParentAnchorStage(state) returns the currently interpreted structural stage
+ * - getParentAnchorOwnerStage(state) returns the structural owner of the
+ *   current pending flow, including interrupt and overlay cases
+ */
+
+function getParentAnchorOwnerStage(state) {
+  const pendingType = state?.pending?.type || null;
+
+  // Confirmation/export pending states explicitly own the current moment.
+  if (pendingType && PARENT_ANCHOR_BRIDGE.confirmationStageByPending[pendingType]) {
+    return PARENT_ANCHOR_BRIDGE.confirmationStageByPending[pendingType];
+  }
+
+  // Interrupt pending states belong to an underlying structural stage.
+  if (pendingType && PARENT_ANCHOR_BRIDGE.interruptStageByPending[pendingType]) {
+    return PARENT_ANCHOR_BRIDGE.interruptStageByPending[pendingType];
+  }
+
+  // Overlay helper flows do not create a new structural stage.
+  // If they saved a raw resume stage, map that back to its structural owner.
+  if (pendingType && PARENT_ANCHOR_BRIDGE.overlayPendingTypes.has(pendingType)) {
+    const savedStage = state?.pending?.stage || null;
+    if (savedStage) {
+      const mappedSavedStage = PARENT_ANCHOR_BRIDGE.structuralStageByRawStage(savedStage);
+      if (mappedSavedStage) return mappedSavedStage;
+    }
+  }
+
+  // Otherwise, the owner is the current interpreted Parent Anchor stage.
+  return getParentAnchorStage(state);
+}
+
+/**
+ * Returns the normalized Parent Anchor loop/mode type for the current moment.
+ *
+ * This helper is read-only and classification-only.
+ * It does NOT alter routing behavior.
+ */
+
+function getParentAnchorLoopType(state) {
+  const pendingType = state?.pending?.type || null;
+  const structuralStage = getParentAnchorStage(state);
+
+  if (structuralStage === "export") return "export";
+
+  if (pendingType && PARENT_ANCHOR_BRIDGE.overlayPendingTypes.has(pendingType)) {
+    return "overlay";
+  }
+
+  if (pendingType && PARENT_ANCHOR_BRIDGE.interruptStageByPending[pendingType]) {
+    return "interrupt";
+  }
+
+  if (pendingType && PARENT_ANCHOR_BRIDGE.confirmationStageByPending[pendingType]) {
+    return "confirm";
+  }
+
+  return "capture";
+}
+
+/**
+ * Returns a consolidated read-only Parent Anchor structural snapshot.
+ *
+ * This helper exists for observability, logging, debugging, and later
+ * architectural extraction. It must not be used to change runtime behavior
+ * in the sandbox phase.
+ */
+
+function getParentAnchorContext(state) {
+  const rawStage = getStage(state);
+  const structuralStage = getParentAnchorStage(state);
+  const ownerStructuralStage = getParentAnchorOwnerStage(state);
+  const pendingType = state?.pending?.type || null;
+  const savedStage = state?.pending?.stage || null;
+  const loopType = getParentAnchorLoopType(state);
+
+  return {
+    rawStage,
+    structuralStage,
+    ownerStructuralStage,
+    pendingType,
+    savedStage,
+    loopType,
+
+    isCapture: loopType === "capture",
+    isConfirmation: loopType === "confirm",
+    isInterrupt: loopType === "interrupt",
+    isOverlay: loopType === "overlay",
+    isExport: loopType === "export",
+  };
+}
+
+/**
+ * Read-only structural helper.
+ * Returns true if the Parent Anchor owner stage matches
+ * the requested structural stage.
+ */
+
+function isParentAnchorInStage(state, structuralStage) {
+  return getParentAnchorOwnerStage(state) === structuralStage;
+}
+
+/**
+ * Read-only structural helper.
+ * Returns true if the Parent Anchor loop type matches
+ * the requested loop classification.
+ */
+function isParentAnchorLoopType(state, loopType) {
+  return getParentAnchorLoopType(state) === loopType;
+}
+
+function getComponentKnowledge(frameStage) {
+  const baseStage =
+    typeof getBaseStage === "function"
+      ? getBaseStage(frameStage)
+      : frameStage;
+
+  return KU_FRAME_COMPONENTS[baseStage] || null;
+}
+
+function getComponentConversation(componentName) {
+  return (
+    KU_FRAME_COMPONENTS?.[componentName]?.conversationSupport || {}
+  );
+}
+
+function getComponentPrompt(componentName, promptType = "initialPrompt", context = {}) {
+  const template =
+    getComponentConversation(componentName)?.[promptType] ||
+    "What should you add next?";
+
+return template
+  .replaceAll("{keyTopic}", context.keyTopic || "your topic")
+  .replaceAll("{isAbout}", context.isAbout || "")
+  .replaceAll("{mainIdea}", context.mainIdea || "this Main Idea")
+  .replaceAll("{mainIdeasList}", context.mainIdeasList || "")
+  .replaceAll("{detail}", context.detail || "this detail");
+}
+
+function getFrameAdapter(state) {
+  const frameType =
+    state?.frameMeta?.frameType || state?.frameType || "causeEffect";
+
+  return CHILD_FRAMES[frameType] || CHILD_FRAMES["causeEffect"];
+}
+
+function getFrameLabel(state, structuralStage) {
+  const adapter = getFrameAdapter(state);
+  return adapter.getLabel(structuralStage, state);
+}
+
+function getFramePromptTerm(state, structuralStage) {
+  const adapter = getFrameAdapter(state);
+  return adapter.getPromptTerm(structuralStage, state);
 }
 
 // ------------------------------------------------------
@@ -770,6 +1016,21 @@ const looksLikeEventSummary =
   return null;
 }
 
+function shouldRequestEvidenceDetail(state, detailText) {
+  // Only apply guardrail for: write mode + causeEffect + details stage
+  if (state.frameMeta?.purpose !== "write") return false;
+  if (state.frameMeta?.frameType !== "causeEffect") return false;
+
+  const t = cleanText(detailText);
+  if (!t) return false;
+
+  // If it already looks like evidence, don't interrupt.
+  if (looksLikeEvidence(t)) return false;
+
+  // If it looks like mechanism (how/why) but not evidence, ask for evidence.
+  return looksLikeMechanism(t);
+}
+
 // ------------------------------------------------------
 // INSTRUCTIONAL DECISION
 // Chooses the best instructional move.
@@ -821,34 +1082,6 @@ function createInstructionalPlan(context) {
 
     move: selectInstructionalMove(context, diagnosis),
   };
-}
-
-function getComponentKnowledge(frameStage) {
-  const baseStage =
-    typeof getBaseStage === "function"
-      ? getBaseStage(frameStage)
-      : frameStage;
-
-  return KU_FRAME_COMPONENTS[baseStage] || null;
-}
-
-function getComponentConversation(componentName) {
-  return (
-    KU_FRAME_COMPONENTS?.[componentName]?.conversationSupport || {}
-  );
-}
-
-function getComponentPrompt(componentName, promptType = "initialPrompt", context = {}) {
-  const template =
-    getComponentConversation(componentName)?.[promptType] ||
-    "What should you add next?";
-
-return template
-  .replaceAll("{keyTopic}", context.keyTopic || "your topic")
-  .replaceAll("{isAbout}", context.isAbout || "")
-  .replaceAll("{mainIdea}", context.mainIdea || "this Main Idea")
-  .replaceAll("{mainIdeasList}", context.mainIdeasList || "")
-  .replaceAll("{detail}", context.detail || "this detail");
 }
 
 function selectInstructionalMove(context, diagnosis) {
@@ -909,6 +1142,335 @@ function selectInstructionalMove(context, diagnosis) {
   };
 }
 
+function buildMiniQuestion(state) {
+  let stage = state?.pending?.stage || getStage(state);
+
+  if (state?.pending?.type === "collectAnotherMainIdea") {
+    stage = "mainIdeas";
+  }
+
+  const baseStage = getBaseStage(stage);
+
+function normalizeStuckChoice(msg) {
+  const t = cleanText(msg).toLowerCase();
+  if (!t) return null;
+
+  if (t === "1" || t.startsWith("1 ")) return "1";
+  if (t === "2" || t.startsWith("2 ")) return "2";
+  if (t === "3" || t.startsWith("3 ")) return "3";
+  if (t === "4" || t.startsWith("4 ")) return "4";
+
+  if (t.includes("direction") || t.includes("prompt")) return "1";
+  if (t.includes("re-read") || t.includes("reread") || t.includes("notes") || t.includes("text")) return "2";
+  if (t.includes("smaller") || t.includes("small") || t.includes("mini")) return "3";
+  if (t.includes("skip") || t.includes("later") || t.includes("come back")) return "4";
+
+  return null;
+}
+
+// ======================================================
+// INSTRUCTIONAL MOVE LIBRARY
+// ======================================================
+//
+// This section contains reusable teaching moves Kaw can execute
+// after the engine interprets the student's need.
+
+// ------------------------------------------------------
+// SCAFFOLD / REMIND
+// Breaks the task into smaller supports and reminds students
+// of relevant prior thinking without giving the answer.
+// ------------------------------------------------------
+
+ function buildStuckNudges(state, stage) {
+  const purpose = state?.frameMeta?.purpose || "";
+  const frameType = state?.frameMeta?.frameType || "";
+
+  const keyTopic =
+    state?.frame?.keyTopic ||
+    state?.frame?.topic ||
+    "";
+
+  const effect =
+    state?.frame?.effect ||
+    state?.frame?.centralEffect ||
+    state?.frame?.result ||
+    "";
+
+const ideas = getIdeaList(state).filter(Boolean);
+
+const mostRecentCause =
+  ideas.length > 0 ? ideas[ideas.length - 1] : "";
+
+  const genericMainIdeas = [
+    "What is one main idea you could add?",
+    "What is an important part of this topic?",
+    "What belongs as a main idea here?"
+  ];
+
+  const genericDetails = [
+    "What is one example that fits here?",
+    "What is one fact or detail you could add?",
+    "What specific information supports this idea?"
+  ];
+
+  const genericSoWhat = [
+    "Why does this matter?",
+    "What should someone understand after reading this?",
+    "What is the takeaway?"
+  ];
+
+  // MAIN IDEAS
+  if (stage === "mainIdeas") {
+    if (frameType === "causeEffect") {
+
+      if (mostRecentCause && effect && keyTopic) {
+        return [
+`Your frame explains why ${effect} happens.
+
+You already identified this major cause:
+"${mostRecentCause}"
+
+Ask yourself: what other cause related to ${keyTopic} might also contribute to ${effect}?`,
+
+"What is another major cause?"
+        ];
+      }
+
+      if (mostRecentCause && effect) {
+        return [
+`Your frame explains why ${effect} happens.
+
+You already identified this major cause:
+"${mostRecentCause}"
+
+Ask yourself: what other cause might also contribute to ${effect}?`,
+
+"What is another major cause?"
+        ];
+      }
+
+      if (effect && keyTopic) {
+        return [
+`Your frame explains why ${effect} happens.
+
+Ask yourself: what cause related to ${keyTopic} might help explain ${effect}?`,
+
+"What is one major cause?"
+        ];
+      }
+
+      if (effect) {
+        return [
+`Your frame explains why ${effect} happens.
+
+Ask yourself: what cause might help explain that effect?`,
+
+"What is one major cause?"
+        ];
+      }
+    }
+
+    if (frameType === "themes") {
+      const theme = state?.frame?.isAbout || "";
+
+      if (mostRecentCause && theme && keyTopic) {
+        return [
+`Your frame is showing this message about life:
+"${theme}"
+
+You already identified this main idea:
+"${mostRecentCause}"
+
+Ask yourself: what other idea, example, or moment related to ${keyTopic} could also help show this message?`,
+
+"What is another main idea?"
+        ];
+      }
+
+      if (mostRecentCause && theme) {
+        return [
+`Your frame is showing this message about life:
+"${theme}"
+
+You already identified this main idea:
+"${mostRecentCause}"
+
+Ask yourself: what other idea, example, or moment could also help show this message?`,
+
+"What is another main idea?"
+        ];
+      }
+
+      if (theme && keyTopic) {
+        return [
+`Your frame is showing this message about life:
+"${theme}"
+
+Ask yourself: what idea, example, or moment related to ${keyTopic} could help show this message?`,
+
+"What is one main idea?"
+        ];
+      }
+
+      if (theme) {
+        return [
+`Your frame is showing this message about life:
+"${theme}"
+
+Ask yourself: what idea, example, or moment could help show this message?`,
+
+"What is one main idea?"
+        ];
+      }
+    }
+
+        return genericMainIdeas;
+  }
+  
+  // DETAILS
+  if (typeof stage === "string" && stage.startsWith("details:")) {
+    const rawIndex = stage.split(":")[1];
+    const idx = Number(rawIndex);
+    const selectedMainIdea = Number.isInteger(idx) ? (ideas[idx] || "") : "";
+
+    if (frameType === "causeEffect") {
+
+      if (selectedMainIdea && effect) {
+        return [
+`You already identified this cause:
+"${selectedMainIdea}"
+
+Now help the reader understand how that cause leads to ${effect}.`,
+
+"What specific detail, example, or explanation could support or explain that cause?"
+        ];
+      }
+
+      if (selectedMainIdea) {
+        return [
+`You already identified this cause:
+"${selectedMainIdea}"
+
+Now help the reader understand how that cause connects to your frame.`,
+
+"What specific detail, example, or explanation could support or explain that cause?"
+        ];
+      }
+    }
+
+    if (frameType === "themes") {
+      const theme = state?.frame?.isAbout || "";
+
+      if (selectedMainIdea && theme) {
+        return [
+`You already identified this main idea:
+"${selectedMainIdea}"
+
+Now help the reader understand how this shows the message:
+"${theme}"`,
+
+"What specific detail, example, or explanation could help show this theme in action?"
+        ];
+      }
+
+      if (selectedMainIdea) {
+        return [
+`You already identified this main idea:
+"${selectedMainIdea}"
+
+Now help the reader understand how it connects to your frame.`,
+
+"What specific detail, example, or explanation could help explain that support?"
+        ];
+      }
+    }
+
+  return genericDetails;
+  }
+    
+  // SO WHAT
+  if (stage === "soWhat") {
+    if (frameType === "causeEffect") {
+
+      if (ideas.length > 1 && effect && keyTopic) {  
+        return [
+`You identified causes that lead to ${effect}.
+
+Now think about the bigger meaning of that pattern in ${keyTopic}.`,
+
+"What larger idea or takeaway should someone understand about this topic?"
+        ];
+      }
+
+      if (ideas.length > 0 && effect) {  
+        return [
+`You identified causes that lead to ${effect}.
+
+Now think about the bigger meaning of that pattern.`,
+
+"What larger idea or takeaway should someone understand?"
+        ];
+      }
+
+      if (mostRecentCause && effect) {
+        return [
+`If "${mostRecentCause}" leads to ${effect},
+
+think about the bigger meaning of that connection.`,
+
+"What larger idea or takeaway should someone understand?"
+        ];
+      }
+    }
+
+    if (frameType === "themes") {
+      const theme = state?.frame?.isAbout || "";
+
+      if (ideas.length > 1 && theme && keyTopic) {
+        return [
+`You identified supports that help show this message:
+"${theme}"
+
+Now think about the bigger meaning of that pattern in ${keyTopic}.`,
+
+"What larger idea or takeaway should someone understand about this theme?"
+        ];
+      }
+
+      if (ideas.length > 0 && theme) {
+        return [
+`You identified supports that help show this message:
+"${theme}"
+
+Now think about the bigger meaning of that pattern.`,
+
+"What larger idea or takeaway should someone understand?"
+        ];
+      }
+
+      if (theme) {
+        return [
+`Your frame is showing this message about life:
+"${theme}"
+
+Now think beyond this one example or text.`,
+
+"What larger idea or takeaway should someone understand?"
+        ];
+      }
+    }
+    
+    return genericSoWhat;
+  }
+
+   return [
+    "What is one small next step you could try?",
+    "What is one idea you are considering?",
+    "What part feels easiest to answer first?"
+  ];
+}
+
+ 
 // ---------------------
 // CORS
 // ---------------------
@@ -1304,364 +1866,12 @@ const FEEDBACK_GAP_BANK = {
 // ---------------------
 // STUCK NUDGES
 // ---------------------
-function buildStuckNudges(state, stage) {
-  const purpose = state?.frameMeta?.purpose || "";
-  const frameType = state?.frameMeta?.frameType || "";
-
-  const keyTopic =
-    state?.frame?.keyTopic ||
-    state?.frame?.topic ||
-    "";
-
-  const effect =
-    state?.frame?.effect ||
-    state?.frame?.centralEffect ||
-    state?.frame?.result ||
-    "";
-
-const ideas = getIdeaList(state).filter(Boolean);
-
-const mostRecentCause =
-  ideas.length > 0 ? ideas[ideas.length - 1] : "";
-
-  const genericMainIdeas = [
-    "What is one main idea you could add?",
-    "What is an important part of this topic?",
-    "What belongs as a main idea here?"
-  ];
-
-  const genericDetails = [
-    "What is one example that fits here?",
-    "What is one fact or detail you could add?",
-    "What specific information supports this idea?"
-  ];
-
-  const genericSoWhat = [
-    "Why does this matter?",
-    "What should someone understand after reading this?",
-    "What is the takeaway?"
-  ];
-
-  // MAIN IDEAS
-  if (stage === "mainIdeas") {
-    if (frameType === "causeEffect") {
-
-      if (mostRecentCause && effect && keyTopic) {
-        return [
-`Your frame explains why ${effect} happens.
-
-You already identified this major cause:
-"${mostRecentCause}"
-
-Ask yourself: what other cause related to ${keyTopic} might also contribute to ${effect}?`,
-
-"What is another major cause?"
-        ];
-      }
-
-      if (mostRecentCause && effect) {
-        return [
-`Your frame explains why ${effect} happens.
-
-You already identified this major cause:
-"${mostRecentCause}"
-
-Ask yourself: what other cause might also contribute to ${effect}?`,
-
-"What is another major cause?"
-        ];
-      }
-
-      if (effect && keyTopic) {
-        return [
-`Your frame explains why ${effect} happens.
-
-Ask yourself: what cause related to ${keyTopic} might help explain ${effect}?`,
-
-"What is one major cause?"
-        ];
-      }
-
-      if (effect) {
-        return [
-`Your frame explains why ${effect} happens.
-
-Ask yourself: what cause might help explain that effect?`,
-
-"What is one major cause?"
-        ];
-      }
-    }
-
-    if (frameType === "themes") {
-      const theme = state?.frame?.isAbout || "";
-
-      if (mostRecentCause && theme && keyTopic) {
-        return [
-`Your frame is showing this message about life:
-"${theme}"
-
-You already identified this main idea:
-"${mostRecentCause}"
-
-Ask yourself: what other idea, example, or moment related to ${keyTopic} could also help show this message?`,
-
-"What is another main idea?"
-        ];
-      }
-
-      if (mostRecentCause && theme) {
-        return [
-`Your frame is showing this message about life:
-"${theme}"
-
-You already identified this main idea:
-"${mostRecentCause}"
-
-Ask yourself: what other idea, example, or moment could also help show this message?`,
-
-"What is another main idea?"
-        ];
-      }
-
-      if (theme && keyTopic) {
-        return [
-`Your frame is showing this message about life:
-"${theme}"
-
-Ask yourself: what idea, example, or moment related to ${keyTopic} could help show this message?`,
-
-"What is one main idea?"
-        ];
-      }
-
-      if (theme) {
-        return [
-`Your frame is showing this message about life:
-"${theme}"
-
-Ask yourself: what idea, example, or moment could help show this message?`,
-
-"What is one main idea?"
-        ];
-      }
-    }
-
-        return genericMainIdeas;
-  }
-  
-  // DETAILS
-  if (typeof stage === "string" && stage.startsWith("details:")) {
-    const rawIndex = stage.split(":")[1];
-    const idx = Number(rawIndex);
-    const selectedMainIdea = Number.isInteger(idx) ? (ideas[idx] || "") : "";
-
-    if (frameType === "causeEffect") {
-
-      if (selectedMainIdea && effect) {
-        return [
-`You already identified this cause:
-"${selectedMainIdea}"
-
-Now help the reader understand how that cause leads to ${effect}.`,
-
-"What specific detail, example, or explanation could support or explain that cause?"
-        ];
-      }
-
-      if (selectedMainIdea) {
-        return [
-`You already identified this cause:
-"${selectedMainIdea}"
-
-Now help the reader understand how that cause connects to your frame.`,
-
-"What specific detail, example, or explanation could support or explain that cause?"
-        ];
-      }
-    }
-
-    if (frameType === "themes") {
-      const theme = state?.frame?.isAbout || "";
-
-      if (selectedMainIdea && theme) {
-        return [
-`You already identified this main idea:
-"${selectedMainIdea}"
-
-Now help the reader understand how this shows the message:
-"${theme}"`,
-
-"What specific detail, example, or explanation could help show this theme in action?"
-        ];
-      }
-
-      if (selectedMainIdea) {
-        return [
-`You already identified this main idea:
-"${selectedMainIdea}"
-
-Now help the reader understand how it connects to your frame.`,
-
-"What specific detail, example, or explanation could help explain that support?"
-        ];
-      }
-    }
-
-  return genericDetails;
-  }
-    
-  // SO WHAT
-  if (stage === "soWhat") {
-    if (frameType === "causeEffect") {
-
-      if (ideas.length > 1 && effect && keyTopic) {  
-        return [
-`You identified causes that lead to ${effect}.
-
-Now think about the bigger meaning of that pattern in ${keyTopic}.`,
-
-"What larger idea or takeaway should someone understand about this topic?"
-        ];
-      }
-
-      if (ideas.length > 0 && effect) {  
-        return [
-`You identified causes that lead to ${effect}.
-
-Now think about the bigger meaning of that pattern.`,
-
-"What larger idea or takeaway should someone understand?"
-        ];
-      }
-
-      if (mostRecentCause && effect) {
-        return [
-`If "${mostRecentCause}" leads to ${effect},
-
-think about the bigger meaning of that connection.`,
-
-"What larger idea or takeaway should someone understand?"
-        ];
-      }
-    }
-
-    if (frameType === "themes") {
-      const theme = state?.frame?.isAbout || "";
-
-      if (ideas.length > 1 && theme && keyTopic) {
-        return [
-`You identified supports that help show this message:
-"${theme}"
-
-Now think about the bigger meaning of that pattern in ${keyTopic}.`,
-
-"What larger idea or takeaway should someone understand about this theme?"
-        ];
-      }
-
-      if (ideas.length > 0 && theme) {
-        return [
-`You identified supports that help show this message:
-"${theme}"
-
-Now think about the bigger meaning of that pattern.`,
-
-"What larger idea or takeaway should someone understand?"
-        ];
-      }
-
-      if (theme) {
-        return [
-`Your frame is showing this message about life:
-"${theme}"
-
-Now think beyond this one example or text.`,
-
-"What larger idea or takeaway should someone understand?"
-        ];
-      }
-    }
-    
-    return genericSoWhat;
-  }
-
-   return [
-    "What is one small next step you could try?",
-    "What is one idea you are considering?",
-    "What part feels easiest to answer first?"
-  ];
-}
 
 // ---------------------
-// WRITE-MODE GUARDRAILS (heuristics only)
+// WRITE-MODE GUARDRAILS
 // ---------------------
-function looksLikeEvidence(text) {
-  const t = cleanText(text).toLowerCase();
-  if (!t) return false;
-
-  // numbers, percentages, or quoted text often signal evidence
-  if (/\d/.test(t)) return true;
-  if (t.includes("%")) return true;
-  if (t.includes('"') || t.includes("“") || t.includes("”")) return true;
-
-  const markers = [
-    "for example",
-    "for instance",
-    "such as",
-    "according to",
-    "the text says",
-    "in the text",
-    "in the article",
-    "in the source",
-    "the author",
-    "the study",
-    "research",
-    "survey",
-    "data",
-    "statistic",
-    "evidence",
-    "report",
-    "shows that",
-    "found that",
-  ];
-  return markers.some((p) => t.includes(p));
-}
-
-function looksLikeMechanism(text) {
-  const t = cleanText(text).toLowerCase();
-  if (!t) return false;
-
-  // causal connectives often signal mechanism/explanation rather than evidence
-  const markers = [
-    "because",
-    "leads to",
-    "causes",
-    "results in",
-    "therefore",
-    "so that",
-    "this makes",
-    "which makes",
-    "as a result",
-    "due to",
-  ];
-  return markers.some((p) => t.includes(p));
-}
-
-function shouldRequestEvidenceDetail(state, detailText) {
-  // Only apply guardrail for: write mode + causeEffect + details stage
-  if (state.frameMeta?.purpose !== "write") return false;
-  if (state.frameMeta?.frameType !== "causeEffect") return false;
-
-  const t = cleanText(detailText);
-  if (!t) return false;
-
-  // If it already looks like evidence, don't interrupt.
-  if (looksLikeEvidence(t)) return false;
-
-  // If it looks like mechanism (how/why) but not evidence, ask for evidence.
-  return looksLikeMechanism(t);
-}
+// Evidence detection lives in Formative Assessment.
+// Evidence-request interpretation lives in Diagnosis.
 
 // ---------------------
 // BUILD MODE LANE GUARDRAILS
@@ -2148,150 +2358,7 @@ const PARENT_ANCHOR_BRIDGE = {
  * This helper explains the current engine structurally.
  * It must not become a new progression controller in this phase.
  */
-function getParentAnchorStage(state) {
-  const pendingType = state?.pending?.type || null;
 
-  // Confirmation/export pending states take priority because they
-  // represent the active structural stage the student is currently in.
-  if (pendingType && PARENT_ANCHOR_BRIDGE.confirmationStageByPending[pendingType]) {
-    return PARENT_ANCHOR_BRIDGE.confirmationStageByPending[pendingType];
-  }
-
-  // Interrupts belong to an underlying structural stage and do not
-  // create a new Parent Anchor stage.
-  if (pendingType && PARENT_ANCHOR_BRIDGE.interruptStageByPending[pendingType]) {
-    return PARENT_ANCHOR_BRIDGE.interruptStageByPending[pendingType];
-  }
-
-  // Stuck overlays should use the saved stage only if it actually exists
-  // in the current pending payload. Otherwise, fall back to getStage(state).
-  if (pendingType && pendingType.startsWith("stuck")) {
-    const savedStage = state?.pending?.stage || null;
-    if (savedStage) {
-      const mappedSavedStage = PARENT_ANCHOR_BRIDGE.structuralStageByRawStage(savedStage);
-      if (mappedSavedStage) return mappedSavedStage;
-    }
-  }
-
-  // Other overlays remain non-structural and do not override the
-  // underlying Parent Anchor stage. Fall back to the raw current stage.
-  const rawStage = getStage(state);
-  return PARENT_ANCHOR_BRIDGE.structuralStageByRawStage(rawStage);
-}
-
-/**
- * Returns the structural Parent Anchor stage that owns the current moment.
- *
- * This is a read-only interpretation helper.
- * It does NOT advance stages, mutate state, or replace getStage().
- *
- * Difference from getParentAnchorStage(state):
- * - getParentAnchorStage(state) returns the currently interpreted structural stage
- * - getParentAnchorOwnerStage(state) returns the structural owner of the
- *   current pending flow, including interrupt and overlay cases
- */
-function getParentAnchorOwnerStage(state) {
-  const pendingType = state?.pending?.type || null;
-
-  // Confirmation/export pending states explicitly own the current moment.
-  if (pendingType && PARENT_ANCHOR_BRIDGE.confirmationStageByPending[pendingType]) {
-    return PARENT_ANCHOR_BRIDGE.confirmationStageByPending[pendingType];
-  }
-
-  // Interrupt pending states belong to an underlying structural stage.
-  if (pendingType && PARENT_ANCHOR_BRIDGE.interruptStageByPending[pendingType]) {
-    return PARENT_ANCHOR_BRIDGE.interruptStageByPending[pendingType];
-  }
-
-  // Overlay helper flows do not create a new structural stage.
-  // If they saved a raw resume stage, map that back to its structural owner.
-  if (pendingType && PARENT_ANCHOR_BRIDGE.overlayPendingTypes.has(pendingType)) {
-    const savedStage = state?.pending?.stage || null;
-    if (savedStage) {
-      const mappedSavedStage = PARENT_ANCHOR_BRIDGE.structuralStageByRawStage(savedStage);
-      if (mappedSavedStage) return mappedSavedStage;
-    }
-  }
-
-  // Otherwise, the owner is the current interpreted Parent Anchor stage.
-  return getParentAnchorStage(state);
-}
-
-/**
- * Returns the normalized Parent Anchor loop/mode type for the current moment.
- *
- * This helper is read-only and classification-only.
- * It does NOT alter routing behavior.
- */
-function getParentAnchorLoopType(state) {
-  const pendingType = state?.pending?.type || null;
-  const structuralStage = getParentAnchorStage(state);
-
-  if (structuralStage === "export") return "export";
-
-  if (pendingType && PARENT_ANCHOR_BRIDGE.overlayPendingTypes.has(pendingType)) {
-    return "overlay";
-  }
-
-  if (pendingType && PARENT_ANCHOR_BRIDGE.interruptStageByPending[pendingType]) {
-    return "interrupt";
-  }
-
-  if (pendingType && PARENT_ANCHOR_BRIDGE.confirmationStageByPending[pendingType]) {
-    return "confirm";
-  }
-
-  return "capture";
-}
-
-/**
- * Returns a consolidated read-only Parent Anchor structural snapshot.
- *
- * This helper exists for observability, logging, debugging, and later
- * architectural extraction. It must not be used to change runtime behavior
- * in the sandbox phase.
- */
-function getParentAnchorContext(state) {
-  const rawStage = getStage(state);
-  const structuralStage = getParentAnchorStage(state);
-  const ownerStructuralStage = getParentAnchorOwnerStage(state);
-  const pendingType = state?.pending?.type || null;
-  const savedStage = state?.pending?.stage || null;
-  const loopType = getParentAnchorLoopType(state);
-
-  return {
-    rawStage,
-    structuralStage,
-    ownerStructuralStage,
-    pendingType,
-    savedStage,
-    loopType,
-
-    isCapture: loopType === "capture",
-    isConfirmation: loopType === "confirm",
-    isInterrupt: loopType === "interrupt",
-    isOverlay: loopType === "overlay",
-    isExport: loopType === "export",
-  };
-}
-
-/**
- * Read-only structural helper.
- * Returns true if the Parent Anchor owner stage matches
- * the requested structural stage.
- */
-function isParentAnchorInStage(state, structuralStage) {
-  return getParentAnchorOwnerStage(state) === structuralStage;
-}
-
-/**
- * Read-only structural helper.
- * Returns true if the Parent Anchor loop type matches
- * the requested loop classification.
- */
-function isParentAnchorLoopType(state, loopType) {
-  return getParentAnchorLoopType(state) === loopType;
-}
 
 // ---------------------
 // CHILD ANCHOR ADAPTERS
@@ -2602,22 +2669,6 @@ const CHILD_FRAMES = {
   themes: ThemesFrame
 };
 
-function getFrameAdapter(state) {
-  const frameType =
-    state?.frameMeta?.frameType || state?.frameType || "causeEffect";
-
-  return CHILD_FRAMES[frameType] || CHILD_FRAMES["causeEffect"];
-}
-
-function getFrameLabel(state, structuralStage) {
-  const adapter = getFrameAdapter(state);
-  return adapter.getLabel(structuralStage, state);
-}
-
-function getFramePromptTerm(state, structuralStage) {
-  const adapter = getFrameAdapter(state);
-  return adapter.getPromptTerm(structuralStage, state);
-}
 
 // ---------------------
 // PARENT ANCHOR OBSERVATION HELPERS
@@ -2649,14 +2700,7 @@ function getParentAnchorObservation(state) {
   };
 }
 
-function buildMiniQuestion(state) {
-  let stage = state?.pending?.stage || getStage(state);
 
-  if (state?.pending?.type === "collectAnotherMainIdea") {
-    stage = "mainIdeas";
-  }
-
-  const baseStage = getBaseStage(stage);
 
   // ---------------------
   // PARENT ANCHOR LABEL (READ-ONLY)
@@ -2722,22 +2766,6 @@ if (stage === "purpose") {
   return `What part of your ${framePromptTerm} feels easiest to improve right now: Key Topic, Is About, Main Ideas, Details, or So What?`;
 }
 
-function normalizeStuckChoice(msg) {
-  const t = cleanText(msg).toLowerCase();
-  if (!t) return null;
-
-  if (t === "1" || t.startsWith("1 ")) return "1";
-  if (t === "2" || t.startsWith("2 ")) return "2";
-  if (t === "3" || t.startsWith("3 ")) return "3";
-  if (t === "4" || t.startsWith("4 ")) return "4";
-
-  if (t.includes("direction") || t.includes("prompt")) return "1";
-  if (t.includes("re-read") || t.includes("reread") || t.includes("notes") || t.includes("text")) return "2";
-  if (t.includes("smaller") || t.includes("small") || t.includes("mini")) return "3";
-  if (t.includes("skip") || t.includes("later") || t.includes("come back")) return "4";
-
-  return null;
-}
 
 // ---------------------
 // STATE
