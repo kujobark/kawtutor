@@ -1965,14 +1965,11 @@ function looksLikeAdvice(text) {
 }
 
 // ------------------------------------------------------
-// REASONING MODE LIBRARY
+// THINKING TASK LIBRARY
 // ------------------------------------------------------
-// Reasoning modes describe why the student is using the Frame.
-// They do NOT change the Frame structure.
-// They change coaching, questioning, feedback, and scaffolding.
-// ------------------------------------------------------
+// Thinking tasks describe why the student is using the Frame.
 
-const REASONING_MODES = {
+const THINKING_TASKS = {
 
   interpret: {
     label: "Interpret",
@@ -2011,7 +2008,7 @@ const REASONING_MODES = {
 
 };
 
-const REASONING_MODE_PRESENTATION = {
+ const THINKING_TASK_PRESENTATION = {
   interpret: {
     thinkingTask: "Interpret",
     nextStep: "Identify the central meaning."
@@ -2049,11 +2046,11 @@ const REASONING_MODE_PRESENTATION = {
 };
 
 // ------------------------------------------------------
-// REASONING MODE INFERENCE
-// Determines why the student is using the Frame.
+// THINKING TASK INFERENCE
+// Infers the student's primary thinking task from the assignment context.
 // ------------------------------------------------------
 
-const REASONING_MODE_PATTERNS = {
+const THINKING_TASK_PATTERNS = {
 
   interpret: {
     signals: [
@@ -2143,11 +2140,11 @@ reflect: {
 };
 
 // ------------------------------------------------------
-// REASONING MODE INFERENCE
-// Determines why the student is using the Frame.
+// THINKING TASK INFERENCE
+// Infers the student's primary thinking task from the assignment context.
 // ------------------------------------------------------
 
-function inferReasoningMode(state) {
+function inferThinkingTask(state) {
   const assignment = cleanText(
     state?.frameMeta?.assignmentContext?.studentSummary ||
     state?.frameMeta?.assignmentContext?.understanding ||
@@ -2159,7 +2156,7 @@ function inferReasoningMode(state) {
   let bestScore = 0;
   let evidence = [];
 
-  for (const [mode, config] of Object.entries(REASONING_MODE_PATTERNS)) {
+  for (const [mode, config] of Object.entries(THINKING_TASK_PATTERNS)) {
     const matches = config.signals.filter(signal =>
       assignment.includes(signal.toLowerCase())
     );
@@ -2173,7 +2170,7 @@ function inferReasoningMode(state) {
 
   if (!bestMode) {
     return {
-      mode: null,
+      task: null,
       label: "",
       confidence: 0,
       evidence: []
@@ -2181,8 +2178,8 @@ function inferReasoningMode(state) {
   }
 
   return {
-    mode: bestMode,
-    label: REASONING_MODES[bestMode].label,
+    task: bestMode,
+    label: THINKING_TASKS[bestMode].label,
     confidence: Math.min(bestScore / 3, 1),
     evidence
   };
@@ -2305,7 +2302,7 @@ async function updateAssignmentUnderstanding(state, rawAssignment) {
     await evaluateAssignmentUnderstandingAI(rawAssignment);
 
   state.frameMeta.assignmentContext = understanding;
-  state.assignmentReasoning = inferReasoningMode(state);
+  state.assignmentReasoning = inferThinkingTask(state);
   state.assignmentReasoning.lastUpdated = Date.now();
   console.log("🧠 Assignment Reasoning");
   console.log("----------------------");
@@ -3055,7 +3052,7 @@ return {
     skips: [],
 
 assignmentReasoning: {
-  mode: null,
+  task: null,
   label: "",
   confidence: 0,
   evidence: [],
@@ -3077,7 +3074,7 @@ const assignmentReasoning =
     : {};
 
 base.assignmentReasoning = {
-  mode: assignmentReasoning.mode || null,
+  task: assignmentReasoning.mode || null,
   label: cleanText(assignmentReasoning.label || ""),
   confidence: Number.isFinite(Number(assignmentReasoning.confidence))
     ? Number(assignmentReasoning.confidence)
@@ -4343,8 +4340,9 @@ return s;
   // ----------------
  if (s.pending?.type === "assignmentReasoningIntro") {
   const reasoning = s.assignmentReasoning || {};
+
   const presentation =
-  REASONING_MODE_PRESENTATION[reasoning.mode] || {
+   THINKING_TASK_PRESENTATION[reasoning.task] || {
     thinkingTask: "Organize thinking",
     nextStep: "Decide how you want to use your Frame."
   };
