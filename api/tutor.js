@@ -625,6 +625,7 @@ const componentKnowledge =
     message: cleanText(message),
     interactionMode: state?.interactionMode || "build",
     assignmentContext: state?.frameMeta?.assignmentContext || {},
+    assignmentReasoning: state?.assignmentReasoning || {},
     useMode: state?.frameMeta?.purpose || "",
     thinkingPattern: state?.frameMeta?.frameType || "",
     frameStage: currentFrameStage,
@@ -1963,6 +1964,207 @@ function looksLikeAdvice(text) {
   );
 }
 
+// ------------------------------------------------------
+// REASONING MODE LIBRARY
+// ------------------------------------------------------
+// Reasoning modes describe why the student is using the Frame.
+// They do NOT change the Frame structure.
+// They change coaching, questioning, feedback, and scaffolding.
+// ------------------------------------------------------
+
+const REASONING_MODES = {
+
+  interpret: {
+    label: "Interpret",
+    description: "Construct meaning or significance."
+  },
+
+  explain: {
+    label: "Explain",
+    description: "Make ideas, relationships, processes, or reasoning clear."
+  },
+
+  analyze: {
+    label: "Analyze",
+    description: "Break ideas apart to understand patterns, structure, evidence, or reasoning."
+  },
+
+  compare: {
+    label: "Compare",
+    description: "Examine similarities, differences, and relationships."
+  },
+
+  evaluate: {
+    label: "Evaluate",
+    description: "Make and justify judgments using evidence or criteria."
+  },
+
+  synthesize: {
+    label: "Synthesize",
+    description: "Combine ideas into new understanding, conclusions, or solutions."
+  },
+
+  reflect: {
+    label: "Reflect",
+    description: "Examine learning, thinking, revision, or growth."
+  }
+
+};
+
+// ------------------------------------------------------
+// REASONING MODE INFERENCE
+// Determines why the student is using the Frame.
+// ------------------------------------------------------
+
+const REASONING_MODE_PATTERNS = {
+
+  interpret: {
+    signals: [
+      "theme",
+      "central message",
+      "lesson",
+      "symbolism",
+      "author's message",
+      "meaning"
+    ]
+  },
+
+explain: {
+  signals: [
+    "explain",
+    "process",
+    "cause",
+    "effect",
+    "relationship",
+    "how",
+    "why",
+    "reasoning"
+  ]
+},
+
+analyze: {
+  signals: [
+    "analyze",
+    "analysis",
+    "examine",
+    "break down",
+    "patterns",
+    "structure",
+    "evidence",
+    "reasoning"
+  ]
+},
+
+compare: {
+  signals: [
+    "compare",
+    "contrast",
+    "similar",
+    "different",
+    "similarities",
+    "differences"
+  ]
+},
+
+evaluate: {
+  signals: [
+    "evaluate",
+    "critique",
+    "judge",
+    "assess",
+    "defend",
+    "recommend",
+    "effective",
+    "quality"
+  ]
+},
+
+synthesize: {
+  signals: [
+    "synthesize",
+    "combine",
+    "connect",
+    "integrate",
+    "conclusion",
+    "solution",
+    "new understanding"
+  ]
+},
+
+reflect: {
+  signals: [
+    "reflect",
+    "reflection",
+    "self-assess",
+    "revise",
+    "revision",
+    "growth",
+    "goal",
+    "learning"
+  ]
+}
+};
+
+function inferReasoningMode(state) {
+
+ const assignment = cleanText(
+  state?.frameMeta?.assignmentContext?.studentSummary ||
+  state?.frameMeta?.assignmentContext?.understanding ||
+  state?.frameMeta?.assignmentContext?.raw ||
+  ""
+).toLowerCase();
+
+  let bestMode = null;
+  let bestScore = 0;
+  let evidence = [];
+
+  for (const [mode, config] of Object.entries(REASONING_MODE_PATTERNS)) {
+
+    const matches = config.signals.filter(signal =>
+      assignment.includes(signal.toLowerCase())
+    );
+
+    if (matches.length > bestScore) {
+      bestMode = mode;
+      bestScore = matches.length;
+      evidence = matches;
+    }
+
+  }
+
+  if (!bestMode) {
+    return {
+      mode: null,
+      label: "",
+      confidence: 0,
+      evidence: []
+    };
+  }
+
+  return {
+    mode: bestMode,
+    label: REASONING_MODES[bestMode].label,
+    confidence: Math.min(bestScore / 3, 1),
+    evidence
+  };
+
+}
+
+// ------------------------------------------------------
+// REASONING MODE INFERENCE
+// Determines why the student is using the Frame.
+// ------------------------------------------------------
+
+function inferReasoningMode(state) {
+
+    return {
+        mode: null,
+        label: "",
+        confidence: 0,
+        evidence: []
+    };
+
+}
 
 // ---------------------
 // ASSIGNMENT UNDERSTANDING ENGINE
@@ -2077,11 +2279,16 @@ function hasSufficientAssignmentUnderstanding(state) {
 }
 
 async function updateAssignmentUnderstanding(state, rawAssignment) {
-    const understanding =
-        await evaluateAssignmentUnderstandingAI(rawAssignment);
+  const understanding =
+    await evaluateAssignmentUnderstandingAI(rawAssignment);
 
-    state.frameMeta.assignmentContext = understanding;
-
+  state.frameMeta.assignmentContext = understanding;
+  state.assignmentReasoning = inferReasoningMode(state);
+  console.log("🧠 Assignment Reasoning");
+  console.log("----------------------");
+  console.log("Mode:", state.assignmentReasoning?.label || "None");
+  console.log("Confidence:", state.assignmentReasoning?.confidence ?? 0);
+  console.log("Evidence:", state.assignmentReasoning?.evidence || []);
     return understanding;
 }
 
@@ -2823,8 +3030,16 @@ return {
       exportChoice: null,
     },
     skips: [],
+
+assignmentReasoning: {
+  mode: null,
+  label: "",
+  confidence: 0,
+  evidence: [],
+  lastUpdated: null,
+},
+    },
   };
-}
 
 function normalizeIncomingState(raw) {
   const s = raw && typeof raw === "object" ? raw : {};
@@ -2833,6 +3048,23 @@ function normalizeIncomingState(raw) {
   base.interactionMode =
   s.interactionMode || "build";
 
+const assignmentReasoning =
+  s.assignmentReasoning && typeof s.assignmentReasoning === "object"
+    ? s.assignmentReasoning
+    : {};
+
+base.assignmentReasoning = {
+  mode: assignmentReasoning.mode || null,
+  label: cleanText(assignmentReasoning.label || ""),
+  confidence: Number.isFinite(Number(assignmentReasoning.confidence))
+    ? Number(assignmentReasoning.confidence)
+    : 0,
+  evidence: Array.isArray(assignmentReasoning.evidence)
+    ? assignmentReasoning.evidence.map(cleanText).filter(Boolean)
+    : [],
+  lastUpdated: assignmentReasoning.lastUpdated || null,
+};
+ 
 const feedback =
   s.feedback && typeof s.feedback === "object"
     ? s.feedback
