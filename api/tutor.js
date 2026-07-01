@@ -3505,11 +3505,29 @@ if (s?.settings?.debugParentAnchor) {
   });
 }
 
-if (s.pending?.type === "chooseWorkflow") {
+if (s.pending?.type === "assignmentReasoningIntro") {
+  const reasoning = s.assignmentReasoning || {};
+
+  const presentation =
+    THINKING_TASK_PRESENTATION[reasoning.task] || {
+      thinkingTask: "Organize thinking",
+      nextStep: "Decide how you want to use your Frame."
+    };
+
+  const label = presentation.thinkingTask;
+
+  const assignment =
+    s.frameMeta?.assignmentContext?.studentSummary ||
+    s.frameMeta?.assignmentContext?.raw ||
+    "your assignment";
+
   return (
+    `🧠 Thinking task: ${label}\n\n` +
+    `🪝 Frame focus: ${assignment}\n\n` +
+    "🎯 Next step: Decide how you want to use your Frame.\n\n" +
     "How can I support your work today?\n" +
     "1) Build a new Frame\n" +
-    "2) Get feedback on an existing Frame\n" +
+    "2) Get feedback on an existing Frame\n\n" +
     "Reply with 1 or 2."
   );
 }
@@ -4316,6 +4334,7 @@ if (hasSufficientAssignmentUnderstanding(s)) {
 }
 
 return s;
+}
 
 // Purpose capture
   if (!s.frameMeta.purpose && !(s.pending && s.pending.type)) {
@@ -4339,31 +4358,6 @@ return s;
   // ----------------
   // Pending handlers
   // ----------------
- if (s.pending?.type === "assignmentReasoningIntro") {
-  const reasoning = s.assignmentReasoning || {};
-
-  const presentation =
-   THINKING_TASK_PRESENTATION[reasoning.task] || {
-    thinkingTask: "Organize thinking",
-    nextStep: "Decide how you want to use your Frame."
-  };
-
-const label = presentation.thinkingTask;
-  const assignment =
-    s.frameMeta?.assignmentContext?.studentSummary ||
-    s.frameMeta?.assignmentContext?.raw ||
-    "your assignment";
-
-  return (
-    `🧠 Thinking task: ${label}\n\n` +
-    `🪝 Frame focus: ${assignment}\n\n` +
-    "🎯 Next step: Decide how you want to use your Frame.\n\n" +
-    "How can I support your work today?\n" +
-    "1) Build a new Frame\n" +
-    "2) Get feedback on an existing Frame\n" +
-    "Reply with 1 or 2."
-  );
-}
 
 if (s.pending?.type === "assignmentReasoningIntro") {
   s.pending = { type: "chooseWorkflow" };
