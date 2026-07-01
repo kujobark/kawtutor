@@ -2111,17 +2111,6 @@ reflect: {
 // Determines why the student is using the Frame.
 // ------------------------------------------------------
 
-function inferReasoningMode(state) {
-
-    return {
-        mode: null,
-        label: "",
-        confidence: 0,
-        evidence: []
-    };
-
-}
-
 // ---------------------
 // ASSIGNMENT UNDERSTANDING ENGINE
 // ---------------------
