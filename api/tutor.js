@@ -2105,11 +2105,51 @@ reflect: {
 }
 };
 
-
 // ------------------------------------------------------
 // REASONING MODE INFERENCE
 // Determines why the student is using the Frame.
 // ------------------------------------------------------
+
+function inferReasoningMode(state) {
+  const assignment = cleanText(
+    state?.frameMeta?.assignmentContext?.studentSummary ||
+    state?.frameMeta?.assignmentContext?.understanding ||
+    state?.frameMeta?.assignmentContext?.raw ||
+    ""
+  ).toLowerCase();
+
+  let bestMode = null;
+  let bestScore = 0;
+  let evidence = [];
+
+  for (const [mode, config] of Object.entries(REASONING_MODE_PATTERNS)) {
+    const matches = config.signals.filter(signal =>
+      assignment.includes(signal.toLowerCase())
+    );
+
+    if (matches.length > bestScore) {
+      bestMode = mode;
+      bestScore = matches.length;
+      evidence = matches;
+    }
+  }
+
+  if (!bestMode) {
+    return {
+      mode: null,
+      label: "",
+      confidence: 0,
+      evidence: []
+    };
+  }
+
+  return {
+    mode: bestMode,
+    label: REASONING_MODES[bestMode].label,
+    confidence: Math.min(bestScore / 3, 1),
+    evidence
+  };
+}
 
 // ---------------------
 // ASSIGNMENT UNDERSTANDING ENGINE
