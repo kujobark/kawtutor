@@ -2011,6 +2011,43 @@ const REASONING_MODES = {
 
 };
 
+const REASONING_MODE_PRESENTATION = {
+  interpret: {
+    thinkingTask: "Interpret",
+    nextStep: "Identify the central meaning."
+  },
+
+  explain: {
+    thinkingTask: "Explain",
+    nextStep: "Identify the important ideas that help explain it."
+  },
+
+  analyze: {
+    thinkingTask: "Analyze",
+    nextStep: "Identify the important parts you'll examine."
+  },
+
+  compare: {
+    thinkingTask: "Compare",
+    nextStep: "Identify what you'll compare."
+  },
+
+  evaluate: {
+    thinkingTask: "Evaluate",
+    nextStep: "Identify what you'll use to support your judgment."
+  },
+
+  synthesize: {
+    thinkingTask: "Synthesize",
+    nextStep: "Identify the ideas you'll connect."
+  },
+
+  reflect: {
+    thinkingTask: "Reflect",
+    nextStep: "Identify the experience or learning you'll examine."
+  }
+};
+
 // ------------------------------------------------------
 // REASONING MODE INFERENCE
 // Determines why the student is using the Frame.
@@ -2269,6 +2306,7 @@ async function updateAssignmentUnderstanding(state, rawAssignment) {
 
   state.frameMeta.assignmentContext = understanding;
   state.assignmentReasoning = inferReasoningMode(state);
+  state.assignmentReasoning.lastUpdated = Date.now();
   console.log("🧠 Assignment Reasoning");
   console.log("----------------------");
   console.log("Mode:", state.assignmentReasoning?.label || "None");
@@ -4105,8 +4143,8 @@ if (!s.frameMeta?.purpose) {
     s.frameMeta?.assignmentContext?.studentSummary ||
     s.frameMeta?.assignmentContext?.raw;
     s.pending = {
-      type: "chooseWorkflow"
-    };
+     type: "assignmentReasoningIntro"
+ };
 
   return (
   "Thanks—that gives me a better picture of what you're working on.\n\n" +
@@ -4259,9 +4297,13 @@ if (!s.frameMeta.assignmentContext.raw && !(s.pending && s.pending.type)) {
     return s;
   }
 
-  await updateAssignmentUnderstanding(s, msg);
-  return s;
-  }
+ await updateAssignmentUnderstanding(s, msg);
+
+if (hasSufficientAssignmentUnderstanding(s)) {
+  s.pending = { type: "assignmentReasoningIntro" };
+}
+
+return s;
 
  // Assignment Understanding clarification
 if (
@@ -4270,8 +4312,12 @@ if (
   !(s.pending && s.pending.type)
 ) {
   await updateAssignmentUnderstanding(s, msg);
-  return s;
+
+if (hasSufficientAssignmentUnderstanding(s)) {
+  s.pending = { type: "assignmentReasoningIntro" };
 }
+
+return s;
 
 // Purpose capture
   if (!s.frameMeta.purpose && !(s.pending && s.pending.type)) {
@@ -4295,6 +4341,37 @@ if (
   // ----------------
   // Pending handlers
   // ----------------
+ if (s.pending?.type === "assignmentReasoningIntro") {
+  const reasoning = s.assignmentReasoning || {};
+  const presentation =
+  REASONING_MODE_PRESENTATION[reasoning.mode] || {
+    thinkingTask: "Organize thinking",
+    nextStep: "Decide how you want to use your Frame."
+  };
+
+const label = presentation.thinkingTask;
+  const assignment =
+    s.frameMeta?.assignmentContext?.studentSummary ||
+    s.frameMeta?.assignmentContext?.raw ||
+    "your assignment";
+
+  return (
+    `🧠 Thinking task: ${label}\n\n` +
+    `🪝 Frame focus: ${assignment}\n\n` +
+    "🎯 Next step: Decide how you want to use your Frame.\n\n" +
+   `🎯 Next step: ${presentation.nextStep}\n\n` +
+    "How can I support your work today?\n" +
+    "1) Build a new Frame\n" +
+    "2) Get feedback on an existing Frame\n" +
+    "Reply with 1 or 2."
+  );
+}
+
+if (s.pending?.type === "assignmentReasoningIntro") {
+  s.pending = { type: "chooseWorkflow" };
+  return await updateStateFromStudent(s, msg);
+}
+ 
  if (s.pending?.type === "chooseWorkflow") {
   const choice = msg.toLowerCase().trim();
 
@@ -5291,6 +5368,7 @@ if (state?.settings?.debugInstructionalPlan) {
       const pendingType = state.pending?.type || null;
       const inProtectedPending =
       pendingType === "confirmLanguageSwitch" ||
+      pendingType === "assignmentReasoningIntro" ||
       pendingType === "chooseWorkflow" ||
       pendingType === "choosePurpose" ||
       pendingType === "feedbackSelectSection" ||
