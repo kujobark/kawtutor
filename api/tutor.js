@@ -2306,7 +2306,8 @@ async function updateAssignmentUnderstanding(state, rawAssignment) {
   state.assignmentReasoning.lastUpdated = Date.now();
   console.log("🧠 Assignment Reasoning");
   console.log("----------------------");
-  console.log("Mode:", state.assignmentReasoning?.label || "None");
+  console.log("Task:", state.assignmentReasoning?.task || "None");
+  console.log("Label:", state.assignmentReasoning?.label || "None");
   console.log("Confidence:", state.assignmentReasoning?.confidence ?? 0);
   console.log("Evidence:", state.assignmentReasoning?.evidence || []);
     return understanding;
