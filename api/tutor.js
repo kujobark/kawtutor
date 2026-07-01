@@ -1143,13 +1143,11 @@ function selectInstructionalMove(context, diagnosis) {
 }
 
 function buildMiniQuestion(state) {
-  let stage = state?.pending?.stage || getStage(state);
-
-  if (state?.pending?.type === "collectAnotherMainIdea") {
-    stage = "mainIdeas";
-  }
-
+  const stage = state?.pending?.stage || getStage(state);
   const baseStage = getBaseStage(stage);
+
+  return "What part feels easiest to improve right now: Key Topic, Is About, Main Ideas, Details, or So What?";
+}
 
 function normalizeStuckChoice(msg) {
   const t = cleanText(msg).toLowerCase();
@@ -1167,7 +1165,6 @@ function normalizeStuckChoice(msg) {
 
   return null;
 }
-
 // ======================================================
 // INSTRUCTIONAL MOVE LIBRARY
 // ======================================================
