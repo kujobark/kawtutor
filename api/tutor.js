@@ -1143,10 +1143,68 @@ function selectInstructionalMove(context, diagnosis) {
 }
 
 function buildMiniQuestion(state) {
-  const stage = state?.pending?.stage || getStage(state);
-  const baseStage = getBaseStage(stage);
+  let stage = state?.pending?.stage || getStage(state);
 
-  return "What part feels easiest to improve right now: Key Topic, Is About, Main Ideas, Details, or So What?";
+  if (state?.pending?.type === "collectAnotherMainIdea") {
+    stage = "mainIdeas";
+  }
+
+  const paContext = getParentAnchorContext(state);
+  const framePromptTerm = getFramePromptTerm(state, paContext.ownerStructuralStage);
+  const keyTopic = state.frame?.keyTopic || "your topic";
+  const effect = state.frame?.effect || state.frame?.isAbout || "the effect";
+  const isCE = state.frameMeta?.frameType === "causeEffect";
+
+  if (stage === "purpose") {
+    return (
+      "How will you use this Frame?\n" +
+      "1) Study — think through and organize your ideas\n" +
+      "2) Write — build a claim and support it\n" +
+      "3) Read — pull key ideas from a text or source\n\n" +
+      "Reply with 1, 2, or 3."
+    );
+  }
+
+  if (stage === "keyTopic") {
+    return `Your frame begins with the Key Topic.\n\nIn just a few words, what is the name of the topic you are exploring?`;
+  }
+
+  if (stage === "isAbout") {
+    if (isCE) {
+      return `Your frame starts with this Key Topic:\n\n"${keyTopic}"\n\nNow think about what main effect this topic leads to.\n\nWhat effect is your frame trying to explain?`;
+    }
+
+    return `Your frame starts with this Key Topic:\n\n"${keyTopic}"\n\nNow think about the deeper meaning of this topic.\n\nWhat message about life or people might this topic be showing?`;
+  }
+
+  if (stage === "mainIdeas") {
+    if (isCE) {
+      return `You identified this effect:\n\n"${effect}"\n\nWhat are the main causes that lead to this effect?`;
+    }
+
+    return `You identified this message about life:\n\n"${state.frame?.isAbout || "your theme"}"\n\nWhat is one example, idea, or moment that helps show this message?`;
+  }
+
+  if (typeof stage === "string" && stage.startsWith("details:")) {
+    const idx = Number(stage.split(":")[1]);
+    const mi = getIdeaList(state)[idx] || "this main idea";
+
+    if (isCE) {
+      return `You identified this cause:\n\n"${mi}"\n\nNow think about how that leads to this effect:\n\n"${effect}"\n\nWhat detail or example shows how this cause produces the effect?`;
+    }
+
+    return `You identified this main idea:\n\n"${mi}"\n\nNow think about how it connects to this message:\n\n"${state.frame?.isAbout || "your theme"}"\n\nWhat specific detail, example, or explanation helps this message about life in action?`;
+  }
+
+  if (stage === "soWhat") {
+    if (isCE) {
+      return `Your frame explains why this happens:\n\n"${effect}"\n\nNow think about why this matters.\n\nWhat should people really understand about this topic?`;
+    }
+
+    return `Your frame is showing this message about life:\n\n"${state.frame?.isAbout || "your theme"}"\n\nNow think beyond this one example or text.\n\nWhat should people really understand about life or people because of this theme?`;
+  }
+
+  return `What part of your ${framePromptTerm} feels easiest to improve right now: Key Topic, Is About, Main Ideas, Details, or So What?`;
 }
 
 function normalizeStuckChoice(msg) {
