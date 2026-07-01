@@ -15,10 +15,57 @@ const TRANSCRIPT_MAX_TURNS = 200;
 // Run language detection only on “real” text
 const LANG_DETECT_MIN_CHARS = 18;
 
-// ---------------------
-// KAW INSTRUCTIONAL ARCHITECTURE
-// Phase 1: Think before speaking
-// ---------------------
+// ======================================================
+// KAW v2 ARCHITECTURE MAP
+// ======================================================
+//
+// Kaw is organized around four layers:
+//
+// 1. HIGH-IMPACT LEARNING STRATEGY
+//    - Defines what students are building.
+//    - Current strategy: KU Framing Routine.
+//
+// 2. STRUCTURAL ANCHORS
+//    - Parent Anchor controls progression through the routine.
+//    - Child Anchor translates that progression into strategy/component language.
+//
+// 3. INSTRUCTIONAL INTELLIGENCE ENGINE
+//    - Formative Assessment: gathers evidence of student understanding.
+//    - Diagnosis: interprets what the evidence suggests.
+//    - Context Integration: combines assignment, frame, stage, and conversation context.
+//    - Instructional Decision: selects the best instructional move.
+//    - Student Ownership Check: ensures Kaw helps students think without thinking for them.
+//
+// 4. INSTRUCTIONAL MOVE LIBRARY
+//    - Build
+//    - Scaffold
+//    - Clarify
+//    - Probe
+//    - Checkpoint
+//    - Revise
+//    - Expand
+//    - Bridge
+//    - Celebrate
+//    - Refocus
+//    - Remind
+//    - Strategy Cue
+//    - Reflect
+//
+// Phase 1 goal:
+// Reorganize and label the existing instructional expertise without changing behavior.
+//
+// Refactor rule:
+// Parent/Child Anchor progression logic is load-bearing.
+// Do not move or rewrite it until the engine sections are stable.
+
+
+// ======================================================
+// INSTRUCTIONAL INTELLIGENCE ENGINE — READ-ONLY SHELL
+// ======================================================
+//
+// This section begins Kaw's engine layer.
+// In Phase 1, it observes and plans only.
+// It does not control runtime behavior yet.
 
 const KAW_ARCHITECTURE = {
  knowledgeLayer: {
@@ -45,11 +92,20 @@ const KAW_ARCHITECTURE = {
   },
 };
 
-// =======================================
-// KU FRAME COMPONENT KNOWLEDGE
-// Canonical instructional knowledge
-// extracted from the KU Framing Routine.
-// =======================================
+// ======================================================
+// HIGH-IMPACT LEARNING STRATEGY — KU FRAMING ROUTINE
+// ======================================================
+//
+// This section defines what students are building.
+//
+// The current strategy is the KU Framing Routine.
+// KU_FRAME_COMPONENTS stores the instructional purpose,
+// expected evidence, common breakdowns, cognitive strategies,
+// validation rules, and conversation language for each Frame component.
+//
+// Future goal:
+// Other high-impact learning strategies should be able to provide
+// their own strategy knowledge without changing the core engine.
 
 const KU_FRAME_COMPONENTS = {
 
@@ -298,6 +354,211 @@ soWhat: {
 
 };
 
+// ======================================================
+// INSTRUCTIONAL INTELLIGENCE ENGINE
+// ======================================================
+//
+// This section gathers context, interprets student needs,
+// creates an instructional plan, and selects an instructional move.
+//
+// Phase 1 status:
+// Read-only planning layer.
+// Existing runtime flow still controls Kaw's actual response.
+
+// ------------------------------------------------------
+// FORMATIVE ASSESSMENT
+// Gathers evidence about student understanding.
+// ------------------------------------------------------
+
+function analyzeFeedbackResponse(state) {
+  const response = cleanText(state?.feedback?.currentResponse || "");
+  const lower = response.toLowerCase();
+
+  const detectedGaps = [];
+
+  if (
+  state?.frameMeta?.frameType === "themes" &&
+  (
+    lower.startsWith("you should") ||
+    lower.startsWith("people should") ||
+    lower.includes("should always") ||
+    lower.includes("should never")
+  )
+) {
+  detectedGaps.push("adviceInsteadOfInsight");
+}
+    
+if (state?.frameMeta?.frameType === "themes") {
+  const looksLikeEventSummary =
+    /\b(moved|joined|went|met|lost|found|started|stopped)\b.*\band\b.*\b(moved|joined|went|met|lost|found|started|stopped)\b/i.test(lower);
+
+  if (
+    lower.startsWith("this story is about") ||
+    lower.startsWith("the story is about") ||
+    lower.startsWith("this text is about") ||
+    lower.startsWith("the text is about") ||
+    lower.includes("first ") ||
+    lower.includes("then ") ||
+    lower.includes("next ") ||
+    lower.includes("finally ") ||
+    looksLikeEventSummary
+  ) {
+    detectedGaps.push("summaryInsteadOfThinking");
+  }
+}
+
+  if (
+    lower.includes("stuff") ||
+    lower.includes("things") ||
+    lower.includes("something") ||
+    lower.includes("important")
+  ) {
+    detectedGaps.push("vague");
+  }
+
+  if (response.split(/\s+/).filter(Boolean).length < 5) {
+    detectedGaps.push("needsSpecificity");
+  }
+
+  const uniqueGaps = [...new Set(detectedGaps)];
+
+  const primaryGap = uniqueGaps
+    .slice()
+    .sort((a, b) => {
+      const pa = FEEDBACK_GAP_BANK[a]?.priority ?? 999;
+      const pb = FEEDBACK_GAP_BANK[b]?.priority ?? 999;
+      return pa - pb;
+    })[0] || null;
+
+  return {
+    detectedGaps: uniqueGaps,
+    primaryGap
+  };
+}
+
+function detectStuckTone(text) {
+  const t = cleanText(text).toLowerCase();
+  if (!t) return "neutral";
+
+  const frustration = [
+    "confus",
+    "frustrat",
+    "annoy",
+    "angry",
+    "mad",
+    "ugh",
+    "this sucks",
+    "this is hard",
+    "this is confusing",
+    "this makes no sense",
+    "i'm confused",
+    "im confused",
+    "i'm lost",
+    "im lost",
+    "i can't do this",
+    "i cant do this",
+    "stupid",
+    "dumb",
+    "hate",
+  ];
+  if (frustration.some((p) => t.includes(p))) return "frustration";
+
+  const resistance = [
+    "do we have to",
+    "why do we have to",
+    "why am i doing",
+    "what's the point",
+    "whats the point",
+    "pointless",
+    "this is pointless",
+    "can you just tell me",
+    "just tell me",
+  ];
+  if (resistance.some((p) => t.includes(p))) return "resistance";
+
+  return "neutral";
+}
+
+function isStuckMessage(text) {
+  const t = cleanText(text).toLowerCase();
+  if (!t) return false;
+
+  const exact = new Set([
+    "idk",
+    "i dont know",
+    "i don't know",
+    "dont know",
+    "don't know",
+    "not sure",
+    "im not sure",
+    "i'm not sure",
+    "no idea",
+    "help",
+    "can you help",
+    "i need help",
+    "stuck",
+    "skip",
+    "i'm stuck",
+    "im stuck",
+    "confused",
+    "lost",
+    "blank",
+    "blanking",
+    "nothing",
+    "i forgot",
+    "i dont remember",
+    "i don't remember",
+  ]);
+
+  if (exact.has(t)) return true;
+
+  const patterns = [
+    "i dont get it",
+    "i don't get it",
+    "i dont understand",
+    "i don't understand",
+    "this is hard",
+    "this is confusing",
+    "this makes no sense",
+    "im confused",
+    "i'm confused",
+    "im lost",
+    "i'm lost",
+    "i cant do this",
+    "i can't do this",
+    "what do i do",
+    "what am i supposed to do",
+    "what does that mean",
+    "can you just tell me",
+    "just tell me",
+    "i forgot what to do",
+    "i don't remember what to do",
+    "i dont remember what to do",
+  ];
+
+  if (patterns.some((p) => t.includes(p))) return true;
+
+  const hesitantShort = new Set([
+    "maybe",
+    "i guess",
+    "guess",
+  ]);
+  if (hesitantShort.has(t)) return true;
+
+  return false;
+}
+
+// ------------------------------------------------------
+// STUDENT OWNERSHIP CHECK
+// Ensures Kaw never replaces student thinking.
+// ------------------------------------------------------
+
+
+// ------------------------------------------------------
+// CONTEXT INTEGRATION
+// Combines assignment, strategy, anchors, and conversation.
+// ------------------------------------------------------
+
 function buildInstructionalContext(state, message = "") {
 const currentFrameStage =
   typeof getStage === "function" ? getStage(state) : "";
@@ -325,6 +586,11 @@ const componentKnowledge =
     transcript: Array.isArray(state?.transcript) ? state.transcript : [],
   };
 }
+
+// ------------------------------------------------------
+// DIAGNOSIS
+// Interprets the instructional meaning of the evidence.
+// ------------------------------------------------------
 
 function inferThinkingStrategy(context) {
   const assignmentText = cleanText(
@@ -444,6 +710,70 @@ function diagnoseInstructionalNeed(context) {
     confidence: "low",
   };
 }
+
+function analyzeBuildLane(state, stage, response) {
+  const frameType = state?.frameMeta?.frameType || "";
+  const text = cleanText(response);
+
+  if (!text) return null;
+
+  if (frameType === "themes" && stage === "mainIdeas") {
+    if (looksLikeAdvice(text)) {
+      return {
+        type: "reviseBuildLane",
+        stage: "mainIdeas",
+        feedback: "That sounds more like advice than a Main Idea.",
+        revisionPrompt: "What idea, example, or moment helps show your message about life?"
+      };
+    }
+
+   const summaryPatterns = [
+  /\b(moved|joined|went|met|lost|found|started|stopped)\b.*\band\b.*\b(moved|joined|went|met|lost|found|started|stopped)\b/i
+];
+
+const looksLikeEventSummary =
+  summaryPatterns.some(pattern => pattern.test(text));
+
+    if (looksLikeSequenceSummary(text) || looksLikeEventSummary) {
+      return {
+        type: "reviseBuildLane",
+        stage: "mainIdeas",
+        feedback: "That tells what happened.",
+        revisionPrompt: "What idea does this experience help show?"
+      };
+    }
+  }
+
+  if (frameType === "themes" && stage === "details") {
+  const lower = text.toLowerCase();
+
+  const soundsBroad =
+    lower === cleanText(state?.frame?.isAbout || "").toLowerCase() ||
+    lower.includes("people often") ||
+    lower.includes("can be difficult") ||
+    lower.includes("is important") ||
+    lower.includes("matters") ||
+    lower.startsWith("people ") ||
+    lower.startsWith("someone ") ||
+    lower.startsWith("everyone ");
+
+  if (soundsBroad) {
+    return {
+      type: "reviseBuildLane",
+      stage: "details",
+      feedback: "That is a good idea, but it sounds broad for a Supporting Detail.",
+      revisionPrompt: "What specific example, event, or explanation helps show this idea in action?"
+    };
+  }
+}
+  
+  return null;
+}
+
+// ------------------------------------------------------
+// INSTRUCTIONAL DECISION
+// Chooses the best instructional move.
+// ------------------------------------------------------
 
 function createInstructionalPlan(context) {
   const diagnosis = diagnoseInstructionalNeed(context);
@@ -830,117 +1160,8 @@ Rules:
 // STUCK SUPPORT (SSOT)
 // ---------------------
 
-function detectStuckTone(text) {
-  const t = cleanText(text).toLowerCase();
-  if (!t) return "neutral";
 
-  const frustration = [
-    "confus",
-    "frustrat",
-    "annoy",
-    "angry",
-    "mad",
-    "ugh",
-    "this sucks",
-    "this is hard",
-    "this is confusing",
-    "this makes no sense",
-    "i'm confused",
-    "im confused",
-    "i'm lost",
-    "im lost",
-    "i can't do this",
-    "i cant do this",
-    "stupid",
-    "dumb",
-    "hate",
-  ];
-  if (frustration.some((p) => t.includes(p))) return "frustration";
 
-  const resistance = [
-    "do we have to",
-    "why do we have to",
-    "why am i doing",
-    "what's the point",
-    "whats the point",
-    "pointless",
-    "this is pointless",
-    "can you just tell me",
-    "just tell me",
-  ];
-  if (resistance.some((p) => t.includes(p))) return "resistance";
-
-  return "neutral";
-}
-
-function isStuckMessage(text) {
-  const t = cleanText(text).toLowerCase();
-  if (!t) return false;
-
-  const exact = new Set([
-    "idk",
-    "i dont know",
-    "i don't know",
-    "dont know",
-    "don't know",
-    "not sure",
-    "im not sure",
-    "i'm not sure",
-    "no idea",
-    "help",
-    "can you help",
-    "i need help",
-    "stuck",
-    "skip",
-    "i'm stuck",
-    "im stuck",
-    "confused",
-    "lost",
-    "blank",
-    "blanking",
-    "nothing",
-    "i forgot",
-    "i dont remember",
-    "i don't remember",
-  ]);
-
-  if (exact.has(t)) return true;
-
-  const patterns = [
-    "i dont get it",
-    "i don't get it",
-    "i dont understand",
-    "i don't understand",
-    "this is hard",
-    "this is confusing",
-    "this makes no sense",
-    "im confused",
-    "i'm confused",
-    "im lost",
-    "i'm lost",
-    "i cant do this",
-    "i can't do this",
-    "what do i do",
-    "what am i supposed to do",
-    "what does that mean",
-    "can you just tell me",
-    "just tell me",
-    "i forgot what to do",
-    "i don't remember what to do",
-    "i dont remember what to do",
-  ];
-
-  if (patterns.some((p) => t.includes(p))) return true;
-
-  const hesitantShort = new Set([
-    "maybe",
-    "i guess",
-    "guess",
-  ]);
-  if (hesitantShort.has(t)) return true;
-
-  return false;
-}
 function formatNudgeText(nudges) {
   const items = Array.isArray(nudges)
     ? nudges.map((n) => (n || "").toString().trim()).filter(Boolean)
@@ -1079,73 +1300,6 @@ const FEEDBACK_GAP_BANK = {
   }
 
 };
-
-  function analyzeFeedbackResponse(state) {
-  const response = cleanText(state?.feedback?.currentResponse || "");
-  const section = state?.feedback?.targetSection || "";
-  const lower = response.toLowerCase();
-
-  const detectedGaps = [];
-
-  if (
-  state?.frameMeta?.frameType === "themes" &&
-  (
-    lower.startsWith("you should") ||
-    lower.startsWith("people should") ||
-    lower.includes("should always") ||
-    lower.includes("should never")
-  )
-) {
-  detectedGaps.push("adviceInsteadOfInsight");
-}
-    
-if (state?.frameMeta?.frameType === "themes") {
-  const looksLikeEventSummary =
-    /\b(moved|joined|went|met|lost|found|started|stopped)\b.*\band\b.*\b(moved|joined|went|met|lost|found|started|stopped)\b/i.test(lower);
-
-  if (
-    lower.startsWith("this story is about") ||
-    lower.startsWith("the story is about") ||
-    lower.startsWith("this text is about") ||
-    lower.startsWith("the text is about") ||
-    lower.includes("first ") ||
-    lower.includes("then ") ||
-    lower.includes("next ") ||
-    lower.includes("finally ") ||
-    looksLikeEventSummary
-  ) {
-    detectedGaps.push("summaryInsteadOfThinking");
-  }
-}
-
-  if (
-    lower.includes("stuff") ||
-    lower.includes("things") ||
-    lower.includes("something") ||
-    lower.includes("important")
-  ) {
-    detectedGaps.push("vague");
-  }
-
-  if (response.split(/\s+/).filter(Boolean).length < 5) {
-    detectedGaps.push("needsSpecificity");
-  }
-
-  const uniqueGaps = [...new Set(detectedGaps)];
-
-  const primaryGap = uniqueGaps
-    .slice()
-    .sort((a, b) => {
-      const pa = FEEDBACK_GAP_BANK[a]?.priority ?? 999;
-      const pb = FEEDBACK_GAP_BANK[b]?.priority ?? 999;
-      return pa - pb;
-    })[0] || null;
-
-  return {
-    detectedGaps: uniqueGaps,
-    primaryGap
-  };
-}
 
 // ---------------------
 // STUCK NUDGES
@@ -1544,64 +1698,6 @@ function looksLikeAdvice(text) {
   );
 }
 
-function analyzeBuildLane(state, stage, response) {
-  const frameType = state?.frameMeta?.frameType || "";
-  const text = cleanText(response);
-
-  if (!text) return null;
-
-  if (frameType === "themes" && stage === "mainIdeas") {
-    if (looksLikeAdvice(text)) {
-      return {
-        type: "reviseBuildLane",
-        stage: "mainIdeas",
-        feedback: "That sounds more like advice than a Main Idea.",
-        revisionPrompt: "What idea, example, or moment helps show your message about life?"
-      };
-    }
-
-   const summaryPatterns = [
-  /\b(moved|joined|went|met|lost|found|started|stopped)\b.*\band\b.*\b(moved|joined|went|met|lost|found|started|stopped)\b/i
-];
-
-const looksLikeEventSummary =
-  summaryPatterns.some(pattern => pattern.test(text));
-
-    if (looksLikeSequenceSummary(text) || looksLikeEventSummary) {
-      return {
-        type: "reviseBuildLane",
-        stage: "mainIdeas",
-        feedback: "That tells what happened.",
-        revisionPrompt: "What idea does this experience help show?"
-      };
-    }
-  }
-
-  if (frameType === "themes" && stage === "details") {
-  const lower = text.toLowerCase();
-
-  const soundsBroad =
-    lower === cleanText(state?.frame?.isAbout || "").toLowerCase() ||
-    lower.includes("people often") ||
-    lower.includes("can be difficult") ||
-    lower.includes("is important") ||
-    lower.includes("matters") ||
-    lower.startsWith("people ") ||
-    lower.startsWith("someone ") ||
-    lower.startsWith("everyone ");
-
-  if (soundsBroad) {
-    return {
-      type: "reviseBuildLane",
-      stage: "details",
-      feedback: "That is a good idea, but it sounds broad for a Supporting Detail.",
-      revisionPrompt: "What specific example, event, or explanation helps show this idea in action?"
-    };
-  }
-}
-  
-  return null;
-}
 
 // ---------------------
 // ASSIGNMENT UNDERSTANDING ENGINE
