@@ -2161,31 +2161,28 @@ function inferThinkingTask(state) {
   let bestScore = 0;
   let evidence = [];
 
-  for (const [mode, config] of Object.entries(THINKING_TASK_PATTERNS)) {
-    const matches = config.signals.filter(signal =>
-      assignment.includes(signal.toLowerCase())
-    );
+ for (const [mode, config] of Object.entries(THINKING_TASK_PATTERNS)) {
+  let score = 0;
+  let matches = [];
 
-    if (matches.length > bestScore) {
-      bestMode = mode;
-      bestScore = matches.length;
-      evidence = matches;
+  for (const [signal, weight] of Object.entries(config.signals)) {
+    if (assignment.includes(signal.toLowerCase())) {
+      score += weight;
+      matches.push(signal);
     }
   }
 
-  if (!bestMode) {
-    return {
-      task: null,
-      label: "",
-      confidence: 0,
-      evidence: []
-    };
+  if (score > bestScore) {
+    bestMode = mode;
+    bestScore = score;
+    evidence = matches;
   }
+}
 
   return {
     task: bestMode,
     label: THINKING_TASKS[bestMode].label,
-    confidence: Math.min(bestScore / 3, 1),
+    confidence: Math.min(bestScore / 6, 1),
     evidence
   };
 }
