@@ -2047,7 +2047,19 @@ const THINKING_TASKS = {
 
 // ------------------------------------------------------
 // THINKING TASK INFERENCE
-// Infers the student's primary thinking task from the assignment context.
+//
+// Purpose:
+// Infer the student's primary cognitive task from the
+// complete assignment context.
+//
+// We intentionally evaluate the original assignment,
+// AI understanding, and AI summary together so that
+// instructional verbs (Analyze, Evaluate, Compare, etc.)
+// are preserved while still benefiting from AI
+// clarification.
+//
+// This inference guides coaching only.
+// It NEVER changes the KU Frame structure.
 // ------------------------------------------------------
 
 const THINKING_TASK_PATTERNS = {
