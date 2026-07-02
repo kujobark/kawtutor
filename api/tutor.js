@@ -2190,6 +2190,15 @@ function inferThinkingTask(state) {
   }
 }
 
+if (!bestMode) {
+  return {
+    task: null,
+    label: "",
+    confidence: 0,
+    evidence: []
+  };
+}
+ 
   return {
     task: bestMode,
     label: THINKING_TASKS[bestMode].label,
