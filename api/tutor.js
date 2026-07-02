@@ -2051,92 +2051,97 @@ const THINKING_TASKS = {
 // ------------------------------------------------------
 
 const THINKING_TASK_PATTERNS = {
-
   interpret: {
-    signals: [
-      "theme",
-      "central message",
-      "lesson",
-      "symbolism",
-      "author's message",
-      "meaning"
-    ]
+    signals: {
+      interpret: 5,
+      theme: 4,
+      "central message": 4,
+      lesson: 3,
+      symbolism: 3,
+      meaning: 2
+    }
   },
 
-explain: {
-  signals: [
-    "explain",
-    "process",
-    "cause",
-    "effect",
-    "relationship",
-    "how",
-    "why",
-    "reasoning"
-  ]
-},
+  explain: {
+    signals: {
+      explain: 5,
+      describe: 4,
+      process: 3,
+      cause: 2,
+      effect: 2,
+      relationship: 2,
+      how: 1,
+      why: 1
+    }
+  },
 
-analyze: {
-  signals: [
-    "analyze",
-    "analysis",
-    "examine",
-    "break down",
-    "patterns",
-    "structure",
-    "evidence",
-    "reasoning"
-  ]
-},
+  analyze: {
+    signals: {
+      analyze: 6,
+      analysis: 6,
+      examine: 4,
+      investigate: 4,
+      "break down": 4,
+      patterns: 3,
+      structure: 3,
+      evidence: 2,
+      why: 2,
+      causes: 2
+    }
+  },
 
-compare: {
-  signals: [
-    "compare",
-    "contrast",
-    "similar",
-    "different",
-    "similarities",
-    "differences"
-  ]
-},
+  compare: {
+    signals: {
+      compare: 6,
+      contrast: 6,
+      similar: 3,
+      different: 3,
+      similarities: 3,
+      differences: 3
+    }
+  },
 
-evaluate: {
-  signals: [
-    "evaluate",
-    "critique",
-    "judge",
-    "assess",
-    "defend",
-    "recommend",
-    "effective",
-    "quality"
-  ]
-},
+  evaluate: {
+    signals: {
+      evaluate: 6,
+      critique: 5,
+      judge: 5,
+      assess: 5,
+      defend: 5,
+      argue: 5,
+      arguing: 5,
+      persuasive: 5,
+      recommend: 4,
+      effective: 3,
+      quality: 3,
+      should: 2
+    }
+  },
 
-synthesize: {
-  signals: [
-    "synthesize",
-    "combine",
-    "connect",
-    "integrate",
-    "conclusion",
-    "solution",
-    "new understanding"
-  ]
-},
+  synthesize: {
+    signals: {
+      synthesize: 6,
+      combine: 4,
+      connect: 4,
+      integrate: 4,
+      conclusion: 3,
+      solution: 3,
+      "new understanding": 3
+    }
+  },
 
-reflect: {
-  signals: [
-    "reflect",
-    "reflection",
-    "self-assess",
-    "revise",
-    "revision",
-    "growth",
-    "goal",
-    "learning"
-  ]
-}
+  reflect: {
+    signals: {
+      reflect: 6,
+      reflection: 6,
+      "self-assess": 5,
+      revise: 4,
+      revision: 4,
+      growth: 4,
+      goal: 3,
+      learning: 3
+    }
+  }
 };
 
 // ------------------------------------------------------
