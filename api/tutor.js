@@ -2150,12 +2150,11 @@ const THINKING_TASK_PATTERNS = {
 // ------------------------------------------------------
 
 function inferThinkingTask(state) {
-  const assignment = cleanText(
-    state?.frameMeta?.assignmentContext?.studentSummary ||
-    state?.frameMeta?.assignmentContext?.understanding ||
-    state?.frameMeta?.assignmentContext?.raw ||
-    ""
-  ).toLowerCase();
+  const assignment = cleanText([
+  state?.frameMeta?.assignmentContext?.raw,
+  state?.frameMeta?.assignmentContext?.studentSummary,
+  state?.frameMeta?.assignmentContext?.understanding
+].filter(Boolean).join(" ")).toLowerCase();
 
   let bestMode = null;
   let bestScore = 0;
