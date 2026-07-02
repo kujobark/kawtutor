@@ -3523,7 +3523,6 @@ if (s.pending?.type === "assignmentReasoningIntro") {
     "your assignment";
 
   return (
-  `DEBUG task: ${reasoning.task || "null"} | label: ${reasoning.label || "null"} | evidence: ${(reasoning.evidence || []).join(", ") || "none"}\n\n` +
   `🧠 Thinking task: ${label}\n\n` +
     `🪝 Frame focus: ${assignment}\n\n` +
     "🎯 Next step: Decide how you want to use your Frame.\n\n" +
