@@ -2008,40 +2008,33 @@ const THINKING_TASKS = {
 
 };
 
- const THINKING_TASK_PRESENTATION = {
+const THINKING_TASK_PRESENTATION = {
   interpret: {
-    thinkingTask: "Interpret",
-    nextStep: "Identify the central meaning."
+    intro: "Let's build a Frame that helps uncover the deeper meaning and support it with evidence."
   },
 
   explain: {
-    thinkingTask: "Explain",
-    nextStep: "Identify the important ideas that help explain it."
+    intro: "Let's build a Frame that helps explain your ideas clearly."
   },
 
   analyze: {
-    thinkingTask: "Analyze",
-    nextStep: "Identify the important parts you'll examine."
+    intro: "Let's build a Frame that helps examine the important parts and how they work together."
   },
 
   compare: {
-    thinkingTask: "Compare",
-    nextStep: "Identify what you'll compare."
+    intro: "Let's build a Frame that helps identify the most important similarities and differences."
   },
 
   evaluate: {
-    thinkingTask: "Evaluate",
-    nextStep: "Identify what you'll use to support your judgment."
+    intro: "Let's build a Frame that helps support your judgment with strong evidence."
   },
 
   synthesize: {
-    thinkingTask: "Synthesize",
-    nextStep: "Identify the ideas you'll connect."
+    intro: "Let's build a Frame that helps connect ideas into a new understanding."
   },
 
   reflect: {
-    thinkingTask: "Reflect",
-    nextStep: "Identify the experience or learning you'll examine."
+    intro: "Let's build a Frame that helps capture what you learned and why it matters."
   }
 };
 
@@ -3537,22 +3530,23 @@ if (s.pending?.type === "assignmentReasoningIntro") {
       nextStep: "Decide how you want to use your Frame."
     };
 
-  const label = presentation.thinkingTask;
+  const intro =
+  presentation.intro ||
+  "Let's build a Frame that helps organize your thinking.";
 
   const assignment =
     s.frameMeta?.assignmentContext?.studentSummary ||
     s.frameMeta?.assignmentContext?.raw ||
     "your assignment";
 
-  return (
-  `🧠 Thinking task: ${label}\n\n` +
-    `🪝 Frame focus: ${assignment}\n\n` +
-    "🎯 Next step: Decide how you want to use your Frame.\n\n" +
-    "How can I support your work today?\n" +
-    "1) Build a new Frame\n" +
-    "2) Get feedback on an existing Frame\n\n" +
-    "Reply with 1 or 2."
-  );
+ return (
+  "🧠 Great! I understand your assignment.\n\n" +
+  `🎯 ${intro}\n\n` +
+  "🪜 How can I support your work today?\n\n" +
+  "1) Build a new Frame\n" +
+  "2) Get feedback on an existing Frame\n\n" +
+  "Reply with 1 or 2."
+);
 }
 
   if (s.pending?.type === "choosePurpose") {
