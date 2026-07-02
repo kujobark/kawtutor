@@ -2161,13 +2161,37 @@ function inferThinkingTask(state) {
   state?.frameMeta?.assignmentContext?.understanding
 ].filter(Boolean).join(" ")).toLowerCase();
 
+  const firstWords = assignment
+  .split(/\s+/)
+  .slice(0, 5)
+  .join(" ");
+ 
   let bestMode = null;
   let bestScore = 0;
   let evidence = [];
 
+  const firstVerbBonus = {
+  interpret: ["interpret"],
+  explain: ["explain", "describe"],
+  analyze: ["analyze", "examine", "investigate"],
+  compare: ["compare", "contrast"],
+  evaluate: ["evaluate", "judge", "assess", "defend", "argue"],
+  synthesize: ["synthesize", "combine", "connect"],
+  reflect: ["reflect"]
+};
+
  for (const [mode, config] of Object.entries(THINKING_TASK_PATTERNS)) {
   let score = 0;
   let matches = [];
+
+ const leadingSignals = firstVerbBonus[mode] || [];
+
+for (const signal of leadingSignals) {
+  if (firstWords.startsWith(signal)) {
+    score += 10;
+    matches.push(`leading:${signal}`);
+  }
+}
 
   for (const [signal, weight] of Object.entries(config.signals)) {
     if (assignment.includes(signal.toLowerCase())) {
