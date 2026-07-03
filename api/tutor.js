@@ -1806,24 +1806,6 @@ function normalizePurpose(msg) {
   return null;
 }
 
-function normalizeFrameTypeSelection(input) {
-  const t = (input || "").toLowerCase().trim();
-
-  // Accept numeric choices
-  if (t === "1" || t.startsWith("1 ")) return "causeEffect";
-  if (t === "2" || t.startsWith("2 ")) return "themes";
-  if (t === "3" || t.startsWith("3 ")) return "reading";
-  if (t === "4" || t.startsWith("4 ")) return "general";
-
-  // Accept common text variants (still deterministic)
-  if (t.includes("cause") || t.includes("effect") || t.includes("how") || t.includes("why")) return "causeEffect";
-  if (t.includes("theme") || t.includes("big idea") || t.includes("central idea")) return "themes";
-  if (t.includes("read") || t.includes("text") || t.includes("source") || t.includes("note")) return "reading";
-  if (t.includes("general") || t.includes("organize") || t.includes("organise")) return "general";
-
-  return null;
-}
-
 function fillTopic(template, keyTopic) {
   return (template || "").replaceAll("[Key Topic]", keyTopic || "your topic");
 }
@@ -2382,7 +2364,6 @@ async function updateAssignmentUnderstanding(state, rawAssignment) {
 const FRAME_STAGE_SEQUENCE = [
   "assignmentContext",
   "purpose",
-  "frameType",
   "keyTopic",
   "isAbout",
   "mainIdeas",
@@ -2398,7 +2379,6 @@ function getStage(state) {
 
   if (!m.assignmentContext?.raw) return "assignmentContext";
   if (!m.purpose) return "purpose";  
-  if (!m.frameType) return "frameType";
   if (!f.keyTopic) return "keyTopic";
   if (!f.isAbout) return "isAbout";
   if (ideas.length < 2) return "mainIdeas";
@@ -2568,7 +2548,6 @@ function getIdeaList(state) {
 const PARENT_ANCHOR_BRIDGE = {
   structuralStages: [
     "purpose",
-    "frameType",
     "keyTopic",
     "isAbout",
     "isAboutConfirm",
@@ -2639,7 +2618,6 @@ const PARENT_ANCHOR_BRIDGE = {
  structuralStageByRawStage(rawStage) {
     if (rawStage === "assignmentContext") return "assignmentContext";
     if (rawStage === "purpose") return "purpose";
-    if (rawStage === "frameType") return "frameType";
     if (rawStage === "keyTopic") return "keyTopic";
     if (rawStage === "isAbout") return "isAbout";
     if (rawStage === "mainIdeas") return "parentItems";
@@ -3033,7 +3011,6 @@ return {
 
   frameMeta: {
     purpose: "",
-    frameType: "",
 
     assignmentContext: {
         raw: "",
@@ -3224,7 +3201,6 @@ base.frame.details = ideaSeed.map((mi) => {
 
   const frameMeta = s.frameMeta && typeof s.frameMeta === "object" ? s.frameMeta : {};
   base.frameMeta.purpose = cleanText(frameMeta.purpose || "") || "";
-  base.frameMeta.frameType = cleanText(frameMeta.frameType || "") || "";
 
   const assignmentContext =
   frameMeta.assignmentContext && typeof frameMeta.assignmentContext === "object"
@@ -4321,8 +4297,7 @@ async function updateStateFromStudent(state, message) {
 if (!s.frameMeta) {
   s.frameMeta = {
     purpose: "",
-    frameType: "",
-    assignmentContext: {
+      assignmentContext: {
       raw: "",
       understanding: "",
       confidence: "low",
@@ -4386,16 +4361,6 @@ return s;
     }
   }
 
-  // Frame type selection
-    if (s.frameMeta?.purpose && !s.frameMeta.frameType && !(s.pending && s.pending.type)) {
-    const ft = normalizeFrameTypeSelection(msg);
-    if (ft) {
-      s.frameMeta.frameType = ft;
-      s.pending = { type: "chooseWorkflow" };
-      return s;
-    }
-  }
-
   // ----------------
   // Pending handlers
   // ----------------
@@ -4432,7 +4397,6 @@ if (choice === "1" || choice.includes("build")) {
 
    if (p) {
     s.frameMeta.purpose = p;
-    s.frameMeta.frameType = "general";
     s.pending = null;
     return s;
   }
@@ -4741,13 +4705,6 @@ if (s.pending?.type === "needWriteCauseEffectStem") {
     if (stage === "purpose") {
       const p = normalizePurpose(msg);
       if (p) s.frameMeta.purpose = p;
-      s.pending = null;
-      return s;
-    }
-
-    if (stage === "frameType") {
-      const ft = normalizeFrameTypeSelection(msg);
-      if (ft) s.frameMeta.frameType = ft;
       s.pending = null;
       return s;
     }
