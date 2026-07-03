@@ -4901,8 +4901,9 @@ if (state?.settings?.debugInstructionalPlan) {
       pendingType === "stuckSkip";
 
       if (!inProtectedPending && isStuckMessage(message)) {
-        const stage = getStage(state);
-        const resumeQuestion = enforceSingleQuestion(computeNextQuestion(state));
+        const stage =
+        state.instructionalBehavior?.structuralStage ??
+        getStage(state);
 
         state.pending = {
           type: "stuckConfirm",
