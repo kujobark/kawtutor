@@ -4323,15 +4323,6 @@ if (s.pending?.type === "needWriteCauseEffectStem") {
     return s;
   }
 
-      // VALID SAVE PATH 2: revision handler save (after successful revision)
-      s.frame.soWhat = msg;
-      s.pending = { type: "offerMoreSoWhat" };
-      return s;
-    }
-
-    return s;
-  }
-
   if (s.pending?.type === "confirmIsAbout") {
     const normalized = msg.toLowerCase().trim();
 
