@@ -1134,7 +1134,6 @@ function buildMiniQuestion(state) {
   }
 
   const paContext = getParentAnchorContext(state);
-  const framePromptTerm = getFramePromptTerm(state, paContext.ownerStructuralStage);
   const keyTopic = state.frame?.keyTopic || "your topic";
   const effect = state.frame?.effect || state.frame?.isAbout || "the effect";
   const isCE = state.frameMeta?.frameType === "causeEffect";
@@ -1188,7 +1187,7 @@ function buildMiniQuestion(state) {
     return `Your frame is showing this message about life:\n\n"${state.frame?.isAbout || "your theme"}"\n\nNow think beyond this one example or text.\n\nWhat should people really understand about life or people because of this theme?`;
   }
 
-  return `What part of your ${framePromptTerm} feels easiest to improve right now: Key Topic, Is About, Main Ideas, Details, or So What?`;
+  return "What part of your Frame feels easiest to improve right now: Key Topic, Is About, Main Ideas, Details, or So What?";
 }
 
 function normalizeStuckChoice(msg) {
@@ -2652,15 +2651,15 @@ const PARENT_ANCHOR_BRIDGE = {
 
 function getParentAnchorDisplayLabel(state) {
   const context = getParentAnchorContext(state);
-  return getFrameLabel(state, context.ownerStructuralStage);
+  return context.ownerStructuralStage;
 }
 
 function getParentAnchorObservation(state) {
   const context = getParentAnchorContext(state);
   const frameType = state?.frameMeta?.frameType || "";
   const purpose = state?.frameMeta?.purpose || "";
-  const ownerLabel = getFrameLabel(state, context.ownerStructuralStage);
-  const stageLabel = getFrameLabel(state, context.structuralStage);
+  const ownerLabel = context.ownerStructuralStage;
+  const stageLabel = context.structuralStage;
 
   return {
     ...context,
@@ -2847,28 +2846,25 @@ base.frame.mainIdeas = Array.isArray(frame.mainIdeas)
   ? frame.mainIdeas.map(cleanText).filter(Boolean)
   : [];
 
-  if (Array.isArray(frame.details)) {
-    base.frame.details = frame.details.map((bucket) => (Array.isArray(bucket) ? bucket.map(cleanText).filter(Boolean) : []));
-  } else if (frame.details && typeof frame.details === "object") {
-    // legacy object form
-   const obj = frame.details;
-const rawFrameType =
-  s?.frameMeta && typeof s.frameMeta === "object"
-    ? cleanText(s.frameMeta.frameType || "")
-    : "";
+if (Array.isArray(frame.details)) {
+  base.frame.details = frame.details.map((bucket) =>
+    Array.isArray(bucket)
+      ? bucket.map(cleanText).filter(Boolean)
+      : []
+  );
+} else if (frame.details && typeof frame.details === "object") {
+  // Legacy object format
+  const obj = frame.details;
 
-const ideaSeed =
-  rawFrameType === "causeEffect"
-    ? base.frame.causes
-    : base.frame.parentItems;
-
-base.frame.details = ideaSeed.map((mi) => {
-  const bucket = obj[mi];
-  return Array.isArray(bucket) ? bucket.map(cleanText).filter(Boolean) : [];
-});
-  } else {
-    base.frame.details = [];
-  }
+  base.frame.details = base.frame.parentItems.map((mi) => {
+    const bucket = obj[mi];
+    return Array.isArray(bucket)
+      ? bucket.map(cleanText).filter(Boolean)
+      : [];
+  });
+} else {
+  base.frame.details = [];
+}
 
   base.frame.soWhat = cleanText(frame.soWhat || s.soWhat || "");
 
@@ -2924,14 +2920,8 @@ base.frameMeta.assignmentContext = {
       .filter((x) => x.stage);
   }
 
-// ensure detail buckets exist for each idea
-const isCE = base.frameMeta?.frameType === "causeEffect";
-
-const ideaSeed = isCE
-  ? (base.frame.causes || [])
-  : (base.frame.parentItems || []);
-
-for (let i = 0; i < ideaSeed.length; i++) {
+// ensure detail buckets exist for each parent item
+for (let i = 0; i < base.frame.parentItems.length; i++) {
   if (!Array.isArray(base.frame.details[i])) {
     base.frame.details[i] = [];
   }
@@ -2981,43 +2971,24 @@ function isFrameComplete(s) {
 // ---------------------
 function buildFrameText(s) {
   const lines = [];
-  const isCE = s.frameMeta?.frameType === "causeEffect";
+  const ideas = getIdeaList(s);
 
   lines.push(`KEY TOPIC: ${s.frame.keyTopic}`);
   lines.push(`IS ABOUT: ${s.frame.isAbout}`);
-  // Cause & Effect export (supports multiple causes)
-if (isCE) {
-  const causes = s.frame.causes || [];
+  lines.push("MAIN IDEAS + SUPPORTING DETAILS:");
 
-  if (causes.length) {
-    causes.forEach((c, i) => {
-      lines.push(`CAUSE ${i + 1}: ${c}`);
+  ideas.forEach((mi, i) => {
+    lines.push(`Main Idea ${i + 1}: ${mi}`);
+
+    const details = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
+
+    details.forEach((d, k) => {
+      lines.push(`  - Supporting Detail ${k + 1}: ${d}`);
     });
-  }
 
-  if (s.frame.effect) {
-    lines.push(`EFFECT: ${s.frame.effect}`);
-  }
-} else {
-  // fallback for non-CE frames (unchanged behavior)
-  if (s.frame.cause || s.frame.effect) {
-    lines.push(`CAUSE: ${s.frame.cause || ""}`);
-    lines.push(`EFFECT: ${s.frame.effect || ""}`);
-  }
-}
+    lines.push("");
+  });
 
-// Surface-labeling only (structure unchanged)
-lines.push(isCE ? "CAUSES + SUPPORTING DETAILS:" : "MAIN IDEAS + SUPPORTING DETAILS:");
-
-const ideas = getIdeaList(s);
-ideas.forEach((mi, i) => {
-  lines.push(`${isCE ? "Cause" : "Main Idea"} ${i + 1}: ${mi}`);
-  const details = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
-  const detailLabel = s.frameMeta?.purpose === "read" ? "Text Evidence" : "Supporting Detail";
-  details.forEach((d, k) => lines.push(`  - ${detailLabel} ${k + 1}: ${d}`));
-  lines.push("");
-});
-  
   lines.push(`SO WHAT: ${s.frame.soWhat}`);
   return lines.join("\n").trim();
 }
@@ -3093,20 +3064,6 @@ function parseCauseEffectFromLeadsTo(msg) {
 }
 
 function applyIsAboutCapture(s, msg) {
-  if (s.frameMeta?.frameType === "themes") {
-    const result = evaluateThemesIsAbout(s, msg);
-
-    if (!result.sufficient) {
-      s.pending = {
-        type: "reviseThemesIsAbout",
-        category: result.category,
-        feedback: result.feedback,
-        revisionPrompt: result.revisionPrompt,
-        scaffold: result.scaffold,
-      };
-      return s;
-    }
-  }
 
   // Write + causeEffect must include "leads to" and we parse/store cause/effect
   if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
@@ -3696,16 +3653,6 @@ if (skipped.stage?.startsWith("details")) {
 }
  
 if (s.pending?.type === "reviseThemesIsAbout") {
-  const parts = [
-    s.pending.feedback,
-    s.pending.revisionPrompt,
-    s.pending.scaffold
-  ].filter(Boolean);
-
-  return parts.join("\n\n");
-}
-
-if (s.pending?.type === "reviseThemesSoWhat") {
   const parts = [
     s.pending.feedback,
     s.pending.revisionPrompt,
@@ -4428,27 +4375,6 @@ if (s.pending?.type === "needWriteCauseEffectStem") {
     return s;
   }
 
-  if (s.pending?.type === "reviseThemesIsAbout") {
-    s.pending = null;
-    applyIsAboutCapture(s, msg);
-    return s;
-  }
-
-  if (s.pending?.type === "reviseThemesSoWhat") {
-    if (!isNegative(msg)) {
-      const evaluation = evaluateThemesSoWhat(s, msg);
-
-      if (!evaluation.sufficient) {
-  s.pending = {
-    type: "reviseThemesSoWhat",
-    category: evaluation.category,
-    feedback: evaluation.feedback,
-    revisionPrompt: evaluation.revisionPrompt,
-    scaffold: evaluation.scaffold,
-  };
-    return s;
-}
-
       // VALID SAVE PATH 2: revision handler save (after successful revision)
       s.frame.soWhat = msg;
       s.pending = { type: "offerMoreSoWhat" };
@@ -4467,9 +4393,7 @@ if (s.pending?.type === "needWriteCauseEffectStem") {
     }
 
     if (normalized === "revise" || normalized === "change") {
-      s.pending = {
-        type: s.frameMeta?.frameType === "themes" ? "reviseThemesIsAbout" : "reviseIsAbout",
-      };
+      s.pending = { type: "reviseIsAbout" };
       return s;
     }
 
@@ -4894,20 +4818,6 @@ if (laneCheck) {
   // 6) So What capture
   if (!s.frame.soWhat) {
     if (!isNegative(msg)) {
-      if (s.frameMeta?.frameType === "themes") {
-        const evaluation = evaluateThemesSoWhat(s, msg);
-
-        if (!evaluation.sufficient) {
-          s.pending = {
-            type: "reviseThemesSoWhat",
-            category: evaluation.category,
-            feedback: evaluation.feedback,
-            revisionPrompt: evaluation.revisionPrompt,
-            scaffold: evaluation.scaffold,
-          };
-          return s;
-        }
-      }
 
       // VALID SAVE PATH 1: normal So What capture (after evaluation)
       s.frame.soWhat = msg;
