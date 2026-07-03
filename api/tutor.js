@@ -204,7 +204,7 @@ initialPrompt:
   'Now let\'s describe your Key Topic in your own words.\n\nWhat is "{keyTopic}" about?',
 
 revisePrompt:
-  "You're on the right track. Try describing the whole topic in your own words instead of repeating the Key Topic.",
+  '✏️ Let\'s revise your "Is About" statement.\n\nWhat would you like it to say instead?',
 
 confirmationPrompt:
   '💡 Great! Based on what you shared, your Frame now says:\n\n{keyTopic} is about {isAbout}.\n\nDoes this accurately capture your thinking?\n\n1) Yes — Continue building my Frame.\n2) No — Revise this part.\n\nReply with 1 or 2.'
@@ -3324,7 +3324,13 @@ if (s.pending?.type === "reviseBuildLane") {
 }
   
 if (s.pending?.type === "stuckConfirm")
-  return "🌱 Sounds like you're stuck.\n\nWant a quick thinking move? (yes/no)";
+  return (
+    "🌱 Sounds like you're stuck.\n\n" +
+    "Would you like a quick thinking move?\n\n" +
+    "1) Yes — Give me a thinking move.\n" +
+    "2) No — Let me try again.\n\n" +
+    "Reply with 1 or 2."
+  );
  
 if (s.pending?.type === "stuckMenu") {
 
@@ -3332,15 +3338,15 @@ if (s.pending?.type === "stuckMenu") {
     ? "No problem — that smaller question didn’t help enough yet. Let’s try a different help move.\n\n"
     : "";
 
-  return (
-    intro +
-    "Pick a quick help move: " +
-    "1) Check directions  " +
-    "2) Re-read source/notes  " +
-    "3) I’ll ask a smaller question for this step  " +
-    "4) Skip for now and come back.  " +
-    "Which one (1–4)?"
-  );
+return (
+  intro +
+  "📋 Pick a quick thinking move:\n\n" +
+  "1) Check directions\n" +
+  "2) Re-read source/notes\n" +
+  "3) Ask me a smaller question for this step\n" +
+  "4) Skip for now and come back\n\n" +
+  "Reply with 1–4."
+);
 }
 
 if (s.pending?.type === "stuckReask") {
@@ -4229,7 +4235,7 @@ if (s.pending?.type === "needWriteCauseEffectStem") {
 
   if (s.pending?.type === "stuckSkip") {
     const low = msg.toLowerCase().trim();
-    if (isAffirmative(low)) {
+    if (isAffirmative(low) || low === "1") {
       s.pending = {
         type: "stuckMini",
         stage: s.pending.stage || getStage(s),
@@ -4238,7 +4244,7 @@ if (s.pending?.type === "needWriteCauseEffectStem") {
       };
       return s;
     }
-    if (isNegative(low)) {
+    if (isNegative(low) || low === "2") {
       s.pending = {
         type: "stuckConfirm",
         stage: s.pending.stage || getStage(s),
