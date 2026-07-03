@@ -207,7 +207,7 @@ revisePrompt:
   "You're on the right track. Try describing the whole topic in your own words instead of repeating the Key Topic.",
 
 confirmationPrompt:
-  'Great! Based on what you shared, your Frame now says:\n\n{keyTopic} is about {isAbout}.\n\nDoes this accurately capture your thinking?\n\n1) Yes — Continue building my Frame.\n2) No — Revise this part.\n\nReply with 1 or 2.'
+  '💡 Great! Based on what you shared, your Frame now says:\n\n{keyTopic} is about {isAbout}.\n\nDoes this accurately capture your thinking?\n\n1) Yes — Continue building my Frame.\n2) No — Revise this part.\n\nReply with 1 or 2.'
  }
 },
 
@@ -3323,8 +3323,9 @@ if (s.pending?.type === "reviseBuildLane") {
   ].filter(Boolean).join("\n\n");
 }
   
-  if (s.pending?.type === "stuckConfirm") return "Sounds like you’re stuck. Want a quick help move? (yes/no)";
-
+if (s.pending?.type === "stuckConfirm")
+  return "🌱 Sounds like you're stuck.\n\nWant a quick thinking move? (yes/no)";
+ 
 if (s.pending?.type === "stuckMenu") {
 
   const intro = s.pending?.retryFromMini
@@ -3610,11 +3611,15 @@ if (skipped.stage?.startsWith("details")) {
   return intro + s.pending.miniQuestion;
 }
   
-if (s.pending?.type === "confirmIsAbout") {
-  return getComponentPrompt("isAbout", "confirmationPrompt", {
-    keyTopic: s.frame.keyTopic,
-    isAbout: (s.frame.isAbout || "").replace(/\.$/, "")
-  });
+const isAboutDisplay = (s.frame.isAbout || "")
+  .trim()
+  .replace(/\.$/, "")
+  .replace(/^[A-Z]/, c => c.toLowerCase());
+
+return getComponentPrompt("isAbout", "confirmationPrompt", {
+  keyTopic: s.frame.keyTopic,
+  isAbout: isAboutDisplay
+});
 }
  
 if (s.pending?.type === "confirmMainIdeas") {
