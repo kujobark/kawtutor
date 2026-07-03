@@ -3611,15 +3611,16 @@ if (skipped.stage?.startsWith("details")) {
   return intro + s.pending.miniQuestion;
 }
   
-const isAboutDisplay = (s.frame.isAbout || "")
-  .trim()
-  .replace(/\.$/, "")
-  .replace(/^[A-Z]/, c => c.toLowerCase());
+if (s.pending?.type === "confirmIsAbout") {
+  const isAboutDisplay = (s.frame.isAbout || "")
+    .trim()
+    .replace(/\.$/, "")
+    .replace(/^[A-Z]/, c => c.toLowerCase());
 
-return getComponentPrompt("isAbout", "confirmationPrompt", {
-  keyTopic: s.frame.keyTopic,
-  isAbout: isAboutDisplay
-});
+  return getComponentPrompt("isAbout", "confirmationPrompt", {
+    keyTopic: s.frame.keyTopic,
+    isAbout: isAboutDisplay
+  });
 }
  
 if (s.pending?.type === "confirmMainIdeas") {
