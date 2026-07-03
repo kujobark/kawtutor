@@ -4329,22 +4329,26 @@ if (s.pending?.type === "needWriteCauseEffectStem") {
     return s;
   }
 
-  if (s.pending?.type === "confirmIsAbout") {
-    const normalized = msg.toLowerCase().trim();
+if (s.pending?.type === "confirmIsAbout") {
+  const normalized = msg.toLowerCase().trim();
 
-    if (isAffirmative(normalized)) {
-      s.pending = null;
-      return s;
-    }
-
-    if (normalized === "revise" || normalized === "change") {
-      s.pending = { type: "reviseIsAbout" };
-      return s;
-    }
-
-    applyIsAboutCapture(s, msg);
+  if (normalized === "1" || isAffirmative(normalized)) {
+    s.pending = null;
     return s;
   }
+
+  if (
+    normalized === "2" ||
+    normalized === "revise" ||
+    normalized === "change" ||
+    normalized === "edit"
+  ) {
+    s.pending = { type: "reviseIsAbout" };
+    return s;
+  }
+
+  return s;
+}
 
   if (s.pending?.type === "reviseIsAbout") {
     applyIsAboutCapture(s, msg);
