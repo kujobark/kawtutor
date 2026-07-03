@@ -4891,18 +4891,17 @@ if (state?.settings?.debugInstructionalPlan) {
       pendingType === "stuckMini" ||
       pendingType === "stuckSkip";
 
-      if (!inProtectedPending && isStuckMessage(message)) {
-        const stage =
-        state.instructionalBehavior?.structuralStage ??
-        getStage(state);
+    if (!inProtectedPending && isStuckMessage(message)) {
+     const stage = getStage(state);
+     const resumeQuestion = enforceSingleQuestion(computeNextQuestion(state));
 
-        state.pending = {
-          type: "stuckConfirm",
-          stage,
-          tone: detectStuckTone(message),
-          resumeQuestion,
-          miniQuestion: buildMiniQuestion(state),
-        };
+  state.pending = {
+    type: "stuckConfirm",
+    stage,
+    tone: detectStuckTone(message),
+    resumeQuestion,
+    miniQuestion: buildMiniQuestion(state),
+  };
 
         let reply = enforceSingleQuestion(computeNextQuestion(state));
 
