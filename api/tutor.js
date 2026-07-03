@@ -1218,297 +1218,255 @@ function normalizeStuckChoice(msg) {
 // Breaks the task into smaller supports and reminds students
 // of relevant prior thinking without giving the answer.
 // ------------------------------------------------------
+function buildStuckNudges(state, stage) {
+  const keyTopic = state?.frame?.keyTopic || "your topic";
+  const isAbout = state?.frame?.isAbout || "";
+  const ideas = getIdeaList(state).filter(Boolean);
 
- function buildStuckNudges(state, stage) {
-  const purpose = state?.frameMeta?.purpose || "";
-  const frameType = state?.frameMeta?.frameType || "";
+  const frameSummary =
+    isAbout && keyTopic
+      ? `"${keyTopic}" → ${isAbout}`
+      : keyTopic
+        ? `"${keyTopic}"`
+        : "your Frame";
 
-  const keyTopic =
-    state?.frame?.keyTopic ||
-    state?.frame?.topic ||
-    "";
-
-  const effect =
-    state?.frame?.effect ||
-    state?.frame?.centralEffect ||
-    state?.frame?.result ||
-    "";
-
-const ideas = getIdeaList(state).filter(Boolean);
-
-const mostRecentCause =
-  ideas.length > 0 ? ideas[ideas.length - 1] : "";
-
-  const genericMainIdeas = [
-    "What is one main idea you could add?",
-    "What is an important part of this topic?",
-    "What belongs as a main idea here?"
-  ];
-
-  const genericDetails = [
-    "What is one example that fits here?",
-    "What is one fact or detail you could add?",
-    "What specific information supports this idea?"
-  ];
-
-  const genericSoWhat = [
-    "Why does this matter?",
-    "What should someone understand after reading this?",
-    "What is the takeaway?"
-  ];
-
-  // MAIN IDEAS
   if (stage === "mainIdeas") {
-    if (frameType === "causeEffect") {
-
-      if (mostRecentCause && effect && keyTopic) {
-        return [
-`Your frame explains why ${effect} happens.
-
-You already identified this major cause:
-"${mostRecentCause}"
-
-Ask yourself: what other cause related to ${keyTopic} might also contribute to ${effect}?`,
-
-"What is another major cause?"
-        ];
-      }
-
-      if (mostRecentCause && effect) {
-        return [
-`Your frame explains why ${effect} happens.
-
-You already identified this major cause:
-"${mostRecentCause}"
-
-Ask yourself: what other cause might also contribute to ${effect}?`,
-
-"What is another major cause?"
-        ];
-      }
-
-      if (effect && keyTopic) {
-        return [
-`Your frame explains why ${effect} happens.
-
-Ask yourself: what cause related to ${keyTopic} might help explain ${effect}?`,
-
-"What is one major cause?"
-        ];
-      }
-
-      if (effect) {
-        return [
-`Your frame explains why ${effect} happens.
-
-Ask yourself: what cause might help explain that effect?`,
-
-"What is one major cause?"
-        ];
-      }
-    }
-
-    if (frameType === "themes") {
-      const theme = state?.frame?.isAbout || "";
-
-      if (mostRecentCause && theme && keyTopic) {
-        return [
-`Your frame is showing this message about life:
-"${theme}"
-
-You already identified this main idea:
-"${mostRecentCause}"
-
-Ask yourself: what other idea, example, or moment related to ${keyTopic} could also help show this message?`,
-
-"What is another main idea?"
-        ];
-      }
-
-      if (mostRecentCause && theme) {
-        return [
-`Your frame is showing this message about life:
-"${theme}"
-
-You already identified this main idea:
-"${mostRecentCause}"
-
-Ask yourself: what other idea, example, or moment could also help show this message?`,
-
-"What is another main idea?"
-        ];
-      }
-
-      if (theme && keyTopic) {
-        return [
-`Your frame is showing this message about life:
-"${theme}"
-
-Ask yourself: what idea, example, or moment related to ${keyTopic} could help show this message?`,
-
-"What is one main idea?"
-        ];
-      }
-
-      if (theme) {
-        return [
-`Your frame is showing this message about life:
-"${theme}"
-
-Ask yourself: what idea, example, or moment could help show this message?`,
-
-"What is one main idea?"
-        ];
-      }
-    }
-
-        return genericMainIdeas;
+    return [
+      `🧭 You are building the Main Ideas for ${frameSummary}.`,
+      "💡 Main Ideas are the big supporting ideas that explain your Key Topic and strengthen your Is About statement.",
+      "🔎 Think about important categories, reasons, examples, parts, or supports that belong in this Frame.",
+      "✍️ What is one Main Idea you could add?"
+    ];
   }
-  
-  // DETAILS
+
   if (typeof stage === "string" && stage.startsWith("details:")) {
-    const rawIndex = stage.split(":")[1];
-    const idx = Number(rawIndex);
-    const selectedMainIdea = Number.isInteger(idx) ? (ideas[idx] || "") : "";
+    const idx = Number(stage.split(":")[1]);
+    const selectedMainIdea =
+      Number.isInteger(idx) && ideas[idx]
+        ? ideas[idx]
+        : "this Main Idea";
 
-    if (frameType === "causeEffect") {
-
-      if (selectedMainIdea && effect) {
-        return [
-`You already identified this cause:
-"${selectedMainIdea}"
-
-Now help the reader understand how that cause leads to ${effect}.`,
-
-"What specific detail, example, or explanation could support or explain that cause?"
-        ];
-      }
-
-      if (selectedMainIdea) {
-        return [
-`You already identified this cause:
-"${selectedMainIdea}"
-
-Now help the reader understand how that cause connects to your frame.`,
-
-"What specific detail, example, or explanation could support or explain that cause?"
-        ];
-      }
-    }
-
-    if (frameType === "themes") {
-      const theme = state?.frame?.isAbout || "";
-
-      if (selectedMainIdea && theme) {
-        return [
-`You already identified this main idea:
-"${selectedMainIdea}"
-
-Now help the reader understand how this shows the message:
-"${theme}"`,
-
-"What specific detail, example, or explanation could help show this theme in action?"
-        ];
-      }
-
-      if (selectedMainIdea) {
-        return [
-`You already identified this main idea:
-"${selectedMainIdea}"
-
-Now help the reader understand how it connects to your frame.`,
-
-"What specific detail, example, or explanation could help explain that support?"
-        ];
-      }
-    }
-
-  return genericDetails;
+    return [
+      `🧭 You are adding Details for this Main Idea:\n"${selectedMainIdea}"`,
+      "💡 Essential Details explain, prove, clarify, or strengthen one specific Main Idea.",
+      "🔎 Think of a fact, example, quotation, observation, piece of evidence, or explanation that helps someone understand this Main Idea better.",
+      "✍️ What Detail could you add?"
+    ];
   }
-    
-  // SO WHAT
+
   if (stage === "soWhat") {
-    if (frameType === "causeEffect") {
-
-      if (ideas.length > 1 && effect && keyTopic) {  
-        return [
-`You identified causes that lead to ${effect}.
-
-Now think about the bigger meaning of that pattern in ${keyTopic}.`,
-
-"What larger idea or takeaway should someone understand about this topic?"
-        ];
-      }
-
-      if (ideas.length > 0 && effect) {  
-        return [
-`You identified causes that lead to ${effect}.
-
-Now think about the bigger meaning of that pattern.`,
-
-"What larger idea or takeaway should someone understand?"
-        ];
-      }
-
-      if (mostRecentCause && effect) {
-        return [
-`If "${mostRecentCause}" leads to ${effect},
-
-think about the bigger meaning of that connection.`,
-
-"What larger idea or takeaway should someone understand?"
-        ];
-      }
-    }
-
-    if (frameType === "themes") {
-      const theme = state?.frame?.isAbout || "";
-
-      if (ideas.length > 1 && theme && keyTopic) {
-        return [
-`You identified supports that help show this message:
-"${theme}"
-
-Now think about the bigger meaning of that pattern in ${keyTopic}.`,
-
-"What larger idea or takeaway should someone understand about this theme?"
-        ];
-      }
-
-      if (ideas.length > 0 && theme) {
-        return [
-`You identified supports that help show this message:
-"${theme}"
-
-Now think about the bigger meaning of that pattern.`,
-
-"What larger idea or takeaway should someone understand?"
-        ];
-      }
-
-      if (theme) {
-        return [
-`Your frame is showing this message about life:
-"${theme}"
-
-Now think beyond this one example or text.`,
-
-"What larger idea or takeaway should someone understand?"
-        ];
-      }
-    }
-    
-    return genericSoWhat;
+    return [
+      "🧭 You are writing the So What.",
+      "💡 The So What explains why the completed Frame matters.",
+      "🔎 Look across your Key Topic, Is About, Main Ideas, and Details. Instead of repeating them, ask what someone should understand from the whole Frame.",
+      "✍️ What is the larger takeaway?"
+    ];
   }
 
-   return [
-    "What is one small next step you could try?",
-    "What is one idea you are considering?",
-    "What part feels easiest to answer first?"
+  return [
+    "🧭 Let’s pause and choose the best support move for where you are in the Frame.",
+    "💡 Let’s use the smallest helpful step instead of guessing.",
+    "🔎 Look at your Frame and choose the part that feels easiest to restart.",
+    "✍️ What part do you want to work on: Key Topic, Is About, Main Ideas, Details, or So What?"
   ];
 }
 
- 
+function detectInstructionalState(state, msg) {
+  const text = cleanText(msg);
+  const lower = text.toLowerCase();
+  const stage = state?.pending?.stage || getStage(state);
+  const evidence = [];
+
+  const protectedPendingTypes = new Set([
+    "confirmLanguageSwitch",
+    "assignmentReasoningIntro",
+    "chooseWorkflow",
+    "choosePurpose",
+    "feedbackSelectSection",
+    "feedbackCollectResponse",
+    "feedbackCoach",
+    "feedbackThinkingSummary",
+    "feedbackRevise",
+    "feedbackComplete",
+    "stuckConfirm",
+    "stuckMenu",
+    "stuckReask",
+    "stuckNudge",
+    "stuckMini",
+    "stuckSkip",
+  ]);
+
+  const pendingType = state?.pending?.type || null;
+
+  if (pendingType && protectedPendingTypes.has(pendingType)) {
+    return {
+      state: "protected",
+      level: "none",
+      nextBehavior: "continueCurrentFlow",
+      evidence: ["protectedPending"],
+      confidence: 1,
+      stage,
+    };
+  }
+
+  if (!text) {
+    return {
+      state: "productive",
+      level: "none",
+      nextBehavior: "continue",
+      evidence: [],
+      confidence: 0,
+      stage,
+    };
+  }
+
+  const strongStruggle =
+    isStuckMessage(text) ||
+    lower.includes("i don't know") ||
+    lower.includes("i dont know") ||
+    lower.includes("i'm confused") ||
+    lower.includes("im confused") ||
+    lower.includes("i'm lost") ||
+    lower.includes("im lost");
+
+  if (strongStruggle) evidence.push("strongStruggleLanguage");
+
+  const tone = detectStuckTone(text);
+  if (tone === "frustration") evidence.push("frustrationTone");
+  if (tone === "resistance") evidence.push("resistanceTone");
+
+  const vagueWords = ["stuff", "things", "something", "anything", "whatever"];
+  if (vagueWords.some((w) => lower.includes(w))) {
+    evidence.push("vagueLanguage");
+  }
+
+  const uncertainWords = ["maybe", "i guess", "kind of", "sort of", "not sure"];
+  if (uncertainWords.some((w) => lower.includes(w))) {
+    evidence.push("uncertaintyLanguage");
+  }
+
+  const driftSignals = [
+    "can we do something else",
+    "can i do something else",
+    "forget this",
+    "skip this",
+    "new assignment",
+    "different assignment",
+    "i want to talk about",
+    "this is boring",
+  ];
+
+  if (driftSignals.some((p) => lower.includes(p))) {
+    return {
+      state: "drifting",
+      level: "refocus",
+      nextBehavior: "acknowledgeReconnectContinue",
+      evidence: ["driftSignal"],
+      confidence: 0.85,
+      stage,
+    };
+  }
+
+  const isShort = text.split(/\s+/).filter(Boolean).length <= 3;
+  if (isShort) evidence.push("shortResponseWeakSignal");
+
+  const weakSignals = evidence.filter((e) =>
+    [
+      "vagueLanguage",
+      "uncertaintyLanguage",
+      "shortResponseWeakSignal",
+      "resistanceTone",
+    ].includes(e)
+  );
+
+  if (evidence.includes("strongStruggleLanguage") || evidence.includes("frustrationTone")) {
+    return {
+      state: "struggling",
+      level: "nudge",
+      nextBehavior: "instructionalNudge",
+      evidence,
+      confidence: 0.9,
+      stage,
+    };
+  }
+
+  if (weakSignals.length >= 2) {
+    return {
+      state: "uncertain",
+      level: "probe",
+      nextBehavior: "probeBeforeSupport",
+      evidence,
+      confidence: 0.65,
+      stage,
+    };
+  }
+
+  return {
+    state: "productive",
+    level: "none",
+    nextBehavior: "continue",
+    evidence,
+    confidence: 0.35,
+    stage,
+  };
+}
+
+function selectInstructionalBehavior(state, instructionalState) {
+  const currentState = instructionalState?.state || "productive";
+  const level = instructionalState?.level || "none";
+  const nextBehavior = instructionalState?.nextBehavior || "continue";
+  const evidence = instructionalState?.evidence || [];
+  const stage = instructionalState?.stage || getStage(state);
+
+  if (currentState === "protected") {
+    return {
+      behavior: "continueCurrentFlow",
+      level: "none",
+      stage,
+      evidence,
+      reason: "A protected pending flow is already active."
+    };
+  }
+
+  if (currentState === "drifting") {
+    return {
+      behavior: "refocus",
+      level: "refocus",
+      stage,
+      evidence,
+      reason: "Student appears to be drifting away from the current instructional goal."
+    };
+  }
+
+  if (nextBehavior === "instructionalNudge" || level === "nudge") {
+    return {
+      behavior: "nudge",
+      level: "nudge",
+      stage,
+      evidence,
+      reason: "Student shows evidence of unproductive struggle; provide a targeted instructional nudge."
+    };
+  }
+
+  if (nextBehavior === "probeBeforeSupport" || level === "probe") {
+    return {
+      behavior: "probe",
+      level: "probe",
+      stage,
+      evidence,
+      reason: "Student shows weak uncertainty signals; ask a light probing question before escalating support."
+    };
+  }
+
+  return {
+    behavior: "continue",
+    level: "none",
+    stage,
+    evidence,
+    reason: "Student appears to be in productive struggle or normal progress."
+  };
+}
+
 // ---------------------
 // CORS
 // ---------------------
@@ -3651,16 +3609,6 @@ if (skipped.stage?.startsWith("details")) {
 
   return intro + s.pending.miniQuestion;
 }
- 
-if (s.pending?.type === "reviseThemesIsAbout") {
-  const parts = [
-    s.pending.feedback,
-    s.pending.revisionPrompt,
-    s.pending.scaffold
-  ].filter(Boolean);
-
-  return parts.join("\n\n");
-}
   
 if (s.pending?.type === "confirmIsAbout") {
   return getComponentPrompt("isAbout", "confirmationPrompt", {
@@ -4850,15 +4798,21 @@ export default async function handler(req, res) {
 // INSTRUCTIONAL PLAN SNAPSHOT
 // Phase 1: read-only planning layer
 // ---------------------
-const instructionalContext = buildInstructionalContext(state, message);
-const instructionalPlan = createInstructionalPlan(instructionalContext);
-
-state.instructionalContext = instructionalContext;
-state.instructionalPlan = instructionalPlan;
+ const instructionalContext = buildInstructionalContext(state, message);
+ const instructionalPlan = createInstructionalPlan(instructionalContext);
+ const instructionalState = detectInstructionalState(state, message);
+ const instructionalBehavior = selectInstructionalBehavior(state, instructionalState);
+ 
+ state.instructionalContext = instructionalContext;
+ state.instructionalPlan = instructionalPlan;
+ state.instructionalState = instructionalState;
+ state.instructionalBehavior = instructionalBehavior;
 
 // Optional debug only; does not affect current behavior.
 if (state?.settings?.debugInstructionalPlan) {
   console.log("[KAW PLAN]", instructionalPlan);
+  console.log("[KAW STATE]", instructionalState);
+  console.log("[KAW BEHAVIOR]", instructionalBehavior);
 }
     
     // Safety
