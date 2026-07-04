@@ -3544,13 +3544,19 @@ if (s.pending?.type === "stuckReask") {
   }
 
   return s.pending.resumeQuestion;
-}
  
-  if (s.pending?.type === "stuckNudge") {
+ if (s.pending?.type === "stuckNudge") {
   const tone = s.pending.tone || "neutral";
-  const ack = tone === "frustration" ? "That can feel frustrating. " : tone === "resistance" ? "I hear you. " : "";
+  const ack =
+    tone === "frustration"
+      ? "🌱 That can feel frustrating. Let’s try one small step.\n\n"
+      : tone === "resistance"
+        ? "🌱 I hear you. Let’s use one small thinking move and keep going.\n\n"
+        : "🌱 Let’s try one small step.\n\n";
+
   const nudge = (s.pending.nudgeText || "").toString().trim();
-  return `${ack}${nudge}\n\nThen answer: ${s.pending.resumeQuestion}`;
+
+  return `${ack}${nudge}`;
 }
 
   if (s.pending?.type === "stuckMini") return s.pending.miniQuestion || buildMiniQuestion(s);
@@ -4155,7 +4161,7 @@ if (s.pending?.type === "needWriteCauseEffectStem") {
   // STUCK flow
   if (s.pending?.type === "stuckConfirm") {
     const low = msg.toLowerCase().trim();
-    if (isAffirmative(low)) {
+    if (isAffirmative(low) || low === "1") {
       s.pending = {
         type: "stuckMenu",
         stage: s.pending.stage || getStage(s),
@@ -4165,7 +4171,7 @@ if (s.pending?.type === "needWriteCauseEffectStem") {
       };
       return s;
     }
-    if (isNegative(low)) {
+    if (isNegative(low) || low === "2") {
       s.pending = null;
       return s;
     }
@@ -4228,10 +4234,23 @@ if (s.pending?.type === "needWriteCauseEffectStem") {
     // fall through
   }
 
-  if (s.pending?.type === "stuckNudge") {
-    s.pending = null;
-    // fall through
+if (s.pending?.type === "stuckNudge") {
+  const stage = s.pending.stage || getStage(s);
+
+  if (isStuckMessage(msg)) {
+    s.pending = {
+      type: "stuckConfirm",
+      stage,
+      tone: detectStuckTone(msg),
+      resumeQuestion: s.pending.resumeQuestion,
+      miniQuestion: s.pending.miniQuestion || buildMiniQuestion(s),
+    };
+    return s;
   }
+
+  s.pending = null;
+  return await updateStateFromStudent(s, msg);
+}
 
   if (s.pending?.type === "stuckSkip") {
     const low = msg.toLowerCase().trim();
@@ -4911,13 +4930,14 @@ if (state?.settings?.debugInstructionalPlan) {
      const stage = getStage(state);
      const resumeQuestion = enforceSingleQuestion(computeNextQuestion(state));
 
-  state.pending = {
-    type: "stuckConfirm",
-    stage,
-    tone: detectStuckTone(message),
-    resumeQuestion,
-    miniQuestion: buildMiniQuestion(state),
-  };
+ state.pending = {
+   type: "stuckNudge",
+   stage,
+   tone: detectStuckTone(message),
+   resumeQuestion,
+   miniQuestion: buildMiniQuestion(state),
+   nudgeText: formatNudgeText(buildStuckNudges(state, stage)),
+};
 
         let reply = enforceSingleQuestion(computeNextQuestion(state));
 
