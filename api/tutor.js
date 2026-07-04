@@ -3544,6 +3544,7 @@ if (s.pending?.type === "stuckReask") {
   }
 
   return s.pending.resumeQuestion;
+  }
  
  if (s.pending?.type === "stuckNudge") {
   const tone = s.pending.tone || "neutral";
