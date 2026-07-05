@@ -3754,60 +3754,46 @@ if (s.pending?.type === "collectAnotherDetail") {
   return `What is ${dLabel} ${count} for ${miLabel} ${i + 1}: "${mi}"?`;
 }
   
-  if (s.pending?.type === "confirmDetails") {
-  const normalized = msg.toLowerCase().trim();
-  const idx = Number(s.pending.index);
-  const arr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
+ if (s.pending?.type === "confirmDetails") {
+  const i = Number(s.pending.index);
+  const mi = getIdeaList(s)[i] || "";
+  const arr = Array.isArray(s.frame.details?.[i]) ? s.frame.details[i] : [];
 
-  if (isAffirmative(normalized) || normalized === "1") {
-    s.pending = null;
-    return s;
-  }
+  const isCE = s.frameMeta?.frameType === "causeEffect";
+  const miLabel = isCE ? "Cause" : "Main Idea";
+  const dLabel = isCE && s.frameMeta?.purpose === "read" ? "Text Evidence" : "Supporting Detail";
 
-  if (
-    normalized === "2" ||
-    normalized === "revise" ||
-    normalized === "revise one" ||
-    normalized === "change" ||
-    normalized === "edit"
-  ) {
-    if (s.pending?.type === "chooseDetailToRevise") {
-  const normalized = msg.toLowerCase().trim();
-  const match = normalized.match(/\d+/);
-  const detailIndex = match ? Number(match[0]) - 1 : NaN;
-  const idx = Number(s.pending.index);
-  const arr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
+  const lines = arr.map((d, k) => `${dLabel} ${k + 1}: ${d}`).join("\n");
 
-  if (Number.isInteger(detailIndex) && detailIndex >= 0 && detailIndex < arr.length) {
-    s.pending = { type: "reviseDetailAt", index: idx, detailIndex };
-    return s;
-  }
-
-  return s;
+  return (
+    `✅ Checkpoint\n\n` +
+    `For this ${miLabel}: "${mi}", you identified:\n\n` +
+    `${lines}\n\n` +
+    `Does this accurately capture your thinking?\n\n` +
+    `1) Yes — Continue building my Frame.\n` +
+    `2) No — Revise one ${dLabel}.\n\n` +
+    `Reply with 1 or 2.`
+  );
 }
 
-if (s.pending?.type === "reviseDetailAt") {
-  const idx = Number(s.pending.index);
-  const detailIndex = Number(s.pending.detailIndex);
+if (s.pending?.type === "offerMoreSoWhat") {
+  return "Do you want to add one more sentence to your So What? (yes/no)";
+}
 
-  if (isWeakFrameResponse(msg)) {
-    s.pending = {
-      type: "stuckNudge",
-      stage: `details:${idx}`,
-      tone: detectStuckTone(msg),
-      resumeQuestion: buildMiniQuestion(s),
-      miniQuestion: buildMiniQuestion(s),
-      nudgeText: formatNudgeText(buildStuckNudges(s, `details:${idx}`)),
-    };
-    return s;
-  }
+if (s.pending?.type === "collectMoreSoWhat") {
+  return "Add one more sentence to your So What:";
+}
 
-  if (Array.isArray(s.frame.details[idx]) && s.frame.details[idx][detailIndex] !== undefined) {
-    s.frame.details[idx][detailIndex] = msg;
-  }
+if (s.pending?.type === "confirmSoWhat") {
+  return `Your So What is: "${s.frame.soWhat}". Is that correct, or would you like to revise it?`;
+}
 
-  s.pending = { type: "confirmDetails", index: idx };
-  return s;
+if (s.pending?.type === "offerExport") {
+  return "Would you like to save or print a copy of your work? (yes/no)";
+}
+
+if (s.pending?.type === "chooseExportType") {
+  return "What would you like to save/print: frame, transcript, or both? (frame/transcript/both)";
 }
 
   // Base progression
@@ -4635,6 +4621,17 @@ if (s.pending?.type === "offerAnotherDetail") {
     if (!Array.isArray(s.frame.details[idx])) s.frame.details[idx] = [];
 
    if (!isNegative(msg)) {
+   if (isWeakFrameResponse(msg)) {
+    s.pending = {
+      type: "stuckNudge",
+      stage: `details:${idx}`,
+      tone: detectStuckTone(msg),
+      resumeQuestion: buildMiniQuestion(s),
+      miniQuestion: buildMiniQuestion(s),
+      nudgeText: formatNudgeText(buildStuckNudges(s, `details:${idx}`)),
+    };
+    return s;
+  }
   if (shouldRequestEvidenceDetail(s, msg)) {
     s.pending = { type: "writeNeedEvidenceDetail", index: idx, mechanism: msg };
     return s;
@@ -4664,18 +4661,19 @@ if (s.pending?.type === "confirmDetails") {
   const idx = Number(s.pending.index);
   const arr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
 
-  if (isAffirmative(normalized)) {
+  if (isAffirmative(normalized) || normalized === "1") {
     s.pending = null;
     return s;
   }
 
   if (
+    normalized === "2" ||
     normalized === "revise" ||
     normalized === "revise one" ||
     normalized === "change" ||
     normalized === "edit"
   ) {
-    s.pending = { type: "collectAnotherDetail", index: idx };
+    s.pending = { type: "chooseDetailToRevise", index: idx };
     return s;
   }
 
@@ -4689,6 +4687,45 @@ if (s.pending?.type === "confirmDetails") {
     return s;
   }
 
+  return s;
+}
+
+ if (s.pending?.type === "chooseDetailToRevise") {
+  const normalized = msg.toLowerCase().trim();
+  const match = normalized.match(/\d+/);
+  const detailIndex = match ? Number(match[0]) - 1 : NaN;
+  const idx = Number(s.pending.index);
+  const arr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
+
+  if (Number.isInteger(detailIndex) && detailIndex >= 0 && detailIndex < arr.length) {
+    s.pending = { type: "reviseDetailAt", index: idx, detailIndex };
+    return s;
+  }
+
+  return s;
+}
+
+if (s.pending?.type === "reviseDetailAt") {
+  const idx = Number(s.pending.index);
+  const detailIndex = Number(s.pending.detailIndex);
+
+  if (isWeakFrameResponse(msg)) {
+    s.pending = {
+      type: "stuckNudge",
+      stage: `details:${idx}`,
+      tone: detectStuckTone(msg),
+      resumeQuestion: buildMiniQuestion(s),
+      miniQuestion: buildMiniQuestion(s),
+      nudgeText: formatNudgeText(buildStuckNudges(s, `details:${idx}`)),
+    };
+    return s;
+  }
+
+  if (Array.isArray(s.frame.details[idx]) && s.frame.details[idx][detailIndex] !== undefined) {
+    s.frame.details[idx][detailIndex] = msg;
+  }
+
+  s.pending = { type: "confirmDetails", index: idx };
   return s;
 }
   
