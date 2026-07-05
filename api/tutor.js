@@ -4709,6 +4709,18 @@ if (s.pending?.type === "reviseDetailAt") {
   const idx = Number(s.pending.index);
   const detailIndex = Number(s.pending.detailIndex);
 
+if (s.pending?.type === "reviseDetailAt") {
+  const idx = Number(s.pending.index);
+  const detailIndex = Number(s.pending.detailIndex);
+  const normalized = msg.toLowerCase().trim();
+
+  // If the student declines, keep the current detail and return to confirmation.
+  if (isNegative(normalized)) {
+    s.pending = { type: "confirmDetails", index: idx };
+    return s;
+  }
+
+  // Weak responses trigger instructional support instead of being saved.
   if (isWeakFrameResponse(msg)) {
     s.pending = {
       type: "stuckNudge",
@@ -4721,10 +4733,15 @@ if (s.pending?.type === "reviseDetailAt") {
     return s;
   }
 
-  if (Array.isArray(s.frame.details[idx]) && s.frame.details[idx][detailIndex] !== undefined) {
+  // Replace the selected detail.
+  if (
+    Array.isArray(s.frame.details[idx]) &&
+    s.frame.details[idx][detailIndex] !== undefined
+  ) {
     s.frame.details[idx][detailIndex] = msg;
   }
 
+  // Return to the confirmation screen.
   s.pending = { type: "confirmDetails", index: idx };
   return s;
 }
