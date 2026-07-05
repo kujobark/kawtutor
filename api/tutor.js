@@ -548,6 +548,30 @@ function isStuckMessage(text) {
   return false;
 }
 
+function isWeakFrameResponse(text) {
+  const t = cleanText(text).toLowerCase();
+  if (!t) return true;
+
+  const weakExact = new Set([
+    "stuff",
+    "things",
+    "something",
+    "anything",
+    "whatever",
+    "maybe",
+    "i guess",
+    "guess",
+    "idk",
+    "i don't know",
+    "i dont know"
+  ]);
+
+  if (weakExact.has(t)) return true;
+  if (isStuckMessage(t)) return true;
+
+  return false;
+}
+
 function looksLikeEvidence(text) {
   const t = cleanText(text).toLowerCase();
   if (!t) return false;
@@ -3668,6 +3692,25 @@ if (s.pending?.type === "reviseMainIdeaAt") {
   return `Revise ${isCE ? "Cause" : "Main Idea"} ${idx + 1}:\n\n"${current}"\n\nWhat should it say instead?`;
 }
 
+if (s.pending?.type === "chooseDetailToRevise") {
+  const idx = Number(s.pending.index);
+  const arr = Array.isArray(s.frame.details?.[idx]) ? s.frame.details[idx] : [];
+  const lineLabel = s.frameMeta?.purpose === "read" ? "Text Evidence" : "Supporting Detail";
+
+  const lines = arr.map((d, k) => `${k + 1}) ${lineLabel} ${k + 1}: ${d}`).join("\n");
+
+  return `Which ${lineLabel} would you like to revise?\n\n${lines}\n\nReply with the number.`;
+}
+
+if (s.pending?.type === "reviseDetailAt") {
+  const idx = Number(s.pending.index);
+  const detailIndex = Number(s.pending.detailIndex);
+  const current = s.frame.details?.[idx]?.[detailIndex] || "";
+  const lineLabel = s.frameMeta?.purpose === "read" ? "Text Evidence" : "Supporting Detail";
+
+  return `Revise ${lineLabel} ${detailIndex + 1}:\n\n"${current}"\n\nWhat should it say instead?`;
+}
+ 
 if (s.pending?.type === "offerAnotherMainIdea") {
   const isCE = s.frameMeta?.frameType === "causeEffect";
   const count = getIdeaList(s).length;
@@ -3712,26 +3755,60 @@ if (s.pending?.type === "collectAnotherDetail") {
 }
   
   if (s.pending?.type === "confirmDetails") {
-    const i = Number(s.pending.index);
-    const mi = getIdeaList(s)[i] || "";
-    const arr = Array.isArray(s.frame.details?.[i]) ? s.frame.details[i] : [];
-    const lineLabel = s.frameMeta?.purpose === "read" ? "Text Evidence" : "Supporting Detail";
-    const lines = arr.map((d, k) => `${lineLabel} ${k + 1}: ${d}`).join("\n");
-    
-    const isCE = s.frameMeta?.frameType === "causeEffect";
-    const miLabel = isCE ? "Cause" : "Main Idea";
-    const dLabel = isCE && s.frameMeta?.purpose === "read" ? "Text Evidence" : "Supporting Details";
+  const normalized = msg.toLowerCase().trim();
+  const idx = Number(s.pending.index);
+  const arr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
 
-    return `For this ${miLabel}: "${mi}", you identified the following ${dLabel}:\n${lines}\nIs that correct, or would you like to revise one?`;
+  if (isAffirmative(normalized) || normalized === "1") {
+    s.pending = null;
+    return s;
   }
 
-  if (s.pending?.type === "offerMoreSoWhat") return "Do you want to add one more sentence to your So What? (yes/no)";
-  if (s.pending?.type === "collectMoreSoWhat") return "Add one more sentence to your So What:";
-  if (s.pending?.type === "confirmSoWhat")
-    return `Your So What is: "${s.frame.soWhat}". Is that correct, or would you like to revise it?`;
-  if (s.pending?.type === "offerExport") return "Would you like to save or print a copy of your work? (yes/no)";
-  if (s.pending?.type === "chooseExportType")
-    return "What would you like to save/print: frame, transcript, or both? (frame/transcript/both)";
+  if (
+    normalized === "2" ||
+    normalized === "revise" ||
+    normalized === "revise one" ||
+    normalized === "change" ||
+    normalized === "edit"
+  ) {
+    if (s.pending?.type === "chooseDetailToRevise") {
+  const normalized = msg.toLowerCase().trim();
+  const match = normalized.match(/\d+/);
+  const detailIndex = match ? Number(match[0]) - 1 : NaN;
+  const idx = Number(s.pending.index);
+  const arr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
+
+  if (Number.isInteger(detailIndex) && detailIndex >= 0 && detailIndex < arr.length) {
+    s.pending = { type: "reviseDetailAt", index: idx, detailIndex };
+    return s;
+  }
+
+  return s;
+}
+
+if (s.pending?.type === "reviseDetailAt") {
+  const idx = Number(s.pending.index);
+  const detailIndex = Number(s.pending.detailIndex);
+
+  if (isWeakFrameResponse(msg)) {
+    s.pending = {
+      type: "stuckNudge",
+      stage: `details:${idx}`,
+      tone: detectStuckTone(msg),
+      resumeQuestion: buildMiniQuestion(s),
+      miniQuestion: buildMiniQuestion(s),
+      nudgeText: formatNudgeText(buildStuckNudges(s, `details:${idx}`)),
+    };
+    return s;
+  }
+
+  if (Array.isArray(s.frame.details[idx]) && s.frame.details[idx][detailIndex] !== undefined) {
+    s.frame.details[idx][detailIndex] = msg;
+  }
+
+  s.pending = { type: "confirmDetails", index: idx };
+  return s;
+}
 
   // Base progression
   if (!s.frameMeta?.assignmentContext?.raw) {
@@ -4521,6 +4598,18 @@ if (s.pending?.type === "offerAnotherDetail") {
 
   if (arr.length >= 5) {
     s.pending = { type: "confirmDetails", index: idx };
+    return s;
+  }
+
+   if (isWeakFrameResponse(msg)) {
+    s.pending = {
+      type: "stuckNudge",
+      stage: `details:${idx}`,
+      tone: detectStuckTone(msg),
+      resumeQuestion: buildMiniQuestion(s),
+      miniQuestion: buildMiniQuestion(s),
+      nudgeText: formatNudgeText(buildStuckNudges(s, `details:${idx}`)),
+    };
     return s;
   }
 
