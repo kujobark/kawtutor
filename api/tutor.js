@@ -295,7 +295,7 @@ details: {
 
   conversationSupport: {
     term: "Essential Detail",
-    friendlyTerm: "essential detail"
+    friendlyTerm: "essential detail,"
 
     initialPrompt:
       'What is one Essential Detail that supports this Main Idea?',
@@ -1015,7 +1015,7 @@ const looksLikeEventSummary =
     return {
       type: "reviseBuildLane",
       stage: "details",
-      feedback: "That is a good idea, but it sounds broad for a Essential Detail.",
+      feedback: "That is a good idea, but it sounds broad for an Essential Detail.",
       revisionPrompt: "What specific example, event, or explanation helps show this idea in action?"
     };
   }
@@ -2965,7 +2965,7 @@ function buildFrameText(s) {
 
   lines.push(`KEY TOPIC: ${s.frame.keyTopic}`);
   lines.push(`IS ABOUT: ${s.frame.isAbout}`);
-  lines.push("MAIN IDEAS + SUPPORTING DETAILS:");
+  lines.push("MAIN IDEAS + ESSENTIAL DETAILS:");
 
   ideas.forEach((mi, i) => {
     lines.push(`Main Idea ${i + 1}: ${mi}`);
