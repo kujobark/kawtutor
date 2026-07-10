@@ -295,7 +295,7 @@ details: {
 
   conversationSupport: {
     term: "Essential Detail",
-    friendlyTerm: "supporting detail",
+    friendlyTerm: "essential detail"
 
     initialPrompt:
       'What is one Essential Detail that supports this Main Idea?',
