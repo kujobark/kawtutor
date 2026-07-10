@@ -3728,17 +3728,27 @@ if (s.pending?.type === "collectAnotherMainIdea") {
     : "What is another Main Idea that helps show this message about life?"}`;
 }
   
- if (s.pending?.type === "offerAnotherDetail") {
+if (s.pending?.type === "offerAnotherDetail") {
   const i = Number(s.pending.index);
   const mi = getIdeaList(s)[i] || "";
 
   const isCE = s.frameMeta?.frameType === "causeEffect";
   const miLabel = isCE ? "Cause" : "Main Idea";
-  const dLabel = isCE && s.frameMeta?.purpose === "read" ? "Text Evidence" : "Supporting Detail";
+  const dLabel =
+    isCE && s.frameMeta?.purpose === "read"
+      ? "Text Evidence"
+      : "Supporting Detail";
 
   const count = (s.frame.details?.[i] || []).length;
 
-  return `For ${miLabel} ${i + 1}: "${mi}", you currently have ${count} ${dLabel}${count > 1 ? "s" : ""}. Would you like to add another ${dLabel}? (yes/no)`;
+  return (
+    `📋 You currently have ${count} ${dLabel}${count > 1 ? "s" : ""} ` +
+    `for ${miLabel} ${i + 1}:\n"${mi}"\n\n` +
+    `Would you like to add another ${dLabel}?\n\n` +
+    `1) Yes — Add another ${dLabel}.\n` +
+    `2) No — Continue.\n\n` +
+    `Reply with 1 or 2.`
+  );
 }
   
 if (s.pending?.type === "collectAnotherDetail") {
@@ -4564,7 +4574,7 @@ if (s.pending?.type === "offerAnotherDetail") {
   const idx = Number(s.pending.index);
   const arr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
 
-  if (isAffirmative(normalized)) {
+  if (isNegative(normalized) || normalized === "2") {
     if (arr.length >= 5) {
       s.pending = { type: "confirmDetails", index: idx };
       return s;
@@ -5069,6 +5079,34 @@ if (state?.settings?.debugInstructionalPlan) {
       pendingType === "stuckMini" ||
       pendingType === "stuckSkip";
 
+    if (
+  !inProtectedPending &&
+  instructionalBehavior?.behavior === "refocus"
+) {
+  const currentQuestion = enforceSingleQuestion(
+    computeNextQuestion(state)
+  );
+
+  let reply =
+    "😊 We can come back to that, but let’s finish this part of your Frame first.\n\n" +
+    currentQuestion;
+
+  if (
+    state.settings.languageLocked &&
+    state.settings.language !== "en"
+  ) {
+    reply = await translateQuestionViaLLM(
+      reply,
+      state.settings.languageName || "the target language"
+    );
+  }
+
+  appendTurn(state, "Student", message);
+  appendTurn(state, "Kaw", reply);
+
+  return res.status(200).json({ reply, state });
+}
+     
     if (!inProtectedPending && isStuckMessage(message)) {
      const stage = getStage(state);
      const resumeQuestion = enforceSingleQuestion(computeNextQuestion(state));
