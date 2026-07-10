@@ -1015,7 +1015,7 @@ const looksLikeEventSummary =
     return {
       type: "reviseBuildLane",
       stage: "details",
-      feedback: "That is a good idea, but it sounds broad for a Supporting Detail.",
+      feedback: "That is a good idea, but it sounds broad for a Essential Detail.",
       revisionPrompt: "What specific example, event, or explanation helps show this idea in action?"
     };
   }
@@ -2973,7 +2973,7 @@ function buildFrameText(s) {
     const details = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
 
     details.forEach((d, k) => {
-      lines.push(`  - Supporting Detail ${k + 1}: ${d}`);
+      lines.push(`  - Essential Detail ${k + 1}: ${d}`);
     });
 
     lines.push("");
@@ -3636,7 +3636,7 @@ if (skipped.stage === "soWhat") label = "the So What statement";
 if (skipped.stage?.startsWith("details")) {
   const idx = Number(skipped.stage.split(":")[1]);
   const labelBase = s.frameMeta?.frameType === "causeEffect" ? "Cause" : "Main Idea";
-  const detailLabel = s.frameMeta?.purpose === "read" ? "Text Evidence" : "Supporting Detail";
+  const detailLabel = s.frameMeta?.purpose === "read" ? "Text Evidence" : "Essential Detail";
   label = `${detailLabel} for ${labelBase} ${idx + 1}`;
 }
 
@@ -3703,7 +3703,7 @@ if (s.pending?.type === "reviseMainIdeaAt") {
 if (s.pending?.type === "chooseDetailToRevise") {
   const idx = Number(s.pending.index);
   const arr = Array.isArray(s.frame.details?.[idx]) ? s.frame.details[idx] : [];
-  const lineLabel = s.frameMeta?.purpose === "read" ? "Text Evidence" : "Supporting Detail";
+  const lineLabel = s.frameMeta?.purpose === "read" ? "Text Evidence" : "Essential Detail";
 
   const lines = arr.map((d, k) => `${k + 1}) ${lineLabel} ${k + 1}: ${d}`).join("\n");
 
@@ -3714,7 +3714,7 @@ if (s.pending?.type === "reviseDetailAt") {
   const idx = Number(s.pending.index);
   const detailIndex = Number(s.pending.detailIndex);
   const current = s.frame.details?.[idx]?.[detailIndex] || "";
-  const lineLabel = s.frameMeta?.purpose === "read" ? "Text Evidence" : "Supporting Detail";
+  const lineLabel = s.frameMeta?.purpose === "read" ? "Text Evidence" : "Essential Detail";
 
   return `Revise ${lineLabel} ${detailIndex + 1}:\n\n"${current}"\n\nWhat should it say instead?`;
 }
@@ -3754,7 +3754,7 @@ if (s.pending?.type === "offerAnotherDetail") {
   const dLabel =
     isCE && s.frameMeta?.purpose === "read"
       ? "Text Evidence"
-      : "Supporting Detail";
+      : "Essential Detail";
 
   const count = (s.frame.details?.[i] || []).length;
 
@@ -3774,7 +3774,7 @@ if (s.pending?.type === "collectAnotherDetail") {
 
   const isCE = s.frameMeta?.frameType === "causeEffect";
   const miLabel = isCE ? "Cause" : "Main Idea";
-  const dLabel = isCE && s.frameMeta?.purpose === "read" ? "Text Evidence" : "Supporting Detail";
+  const dLabel = isCE && s.frameMeta?.purpose === "read" ? "Text Evidence" : "Essential Detail";
 
   const count = (s.frame.details?.[i] || []).length + 1;
 
@@ -3788,7 +3788,7 @@ if (s.pending?.type === "collectAnotherDetail") {
 
   const isCE = s.frameMeta?.frameType === "causeEffect";
   const miLabel = isCE ? "Cause" : "Main Idea";
-  const dLabel = isCE && s.frameMeta?.purpose === "read" ? "Text Evidence" : "Supporting Detail";
+  const dLabel = isCE && s.frameMeta?.purpose === "read" ? "Text Evidence" : "Essential Detail";
 
   const lines = arr.map((d, k) => `${dLabel} ${k + 1}: ${d}`).join("\n");
 
