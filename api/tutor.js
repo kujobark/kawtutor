@@ -1386,9 +1386,7 @@ function detectInstructionalState(state, msg) {
     "i hate this",
     "this sucks",
     "bruh",
-    "bro",
-    "ugh",
-];
+   ];
 
   if (driftSignals.some((p) => lower.includes(p))) {
     return {
