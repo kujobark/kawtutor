@@ -1378,7 +1378,17 @@ function detectInstructionalState(state, msg) {
     "different assignment",
     "i want to talk about",
     "this is boring",
-  ];
+    "this is taking forever",
+    "this takes forever",
+    "this is too long",
+    "can we hurry",
+    "this is annoying",
+    "i hate this",
+    "this sucks",
+    "bruh",
+    "bro",
+    "ugh",
+];
 
   if (driftSignals.some((p) => lower.includes(p))) {
     return {
@@ -3715,17 +3725,26 @@ if (s.pending?.type === "offerAnotherMainIdea") {
   const isCE = s.frameMeta?.frameType === "causeEffect";
   const count = getIdeaList(s).length;
   const label = isCE ? "Cause" : "Main Idea";
-  return `You currently have ${count} ${label}${count > 1 ? "s" : ""}. Would you like to add another ${label}? (yes/no)`;
+
+  return (
+    `📋 You currently have ${count} ${label}${count > 1 ? "s" : ""}.\n\n` +
+    `Would you like to add another ${label}?\n\n` +
+    `1) Yes — Add another ${label}.\n` +
+    `2) No — Continue.\n\n` +
+    `Reply with 1 or 2.`
+  );
 }
 
 if (s.pending?.type === "collectAnotherMainIdea") {
   const isCE = s.frameMeta?.frameType === "causeEffect";
-  const count = getIdeaList(s).length + 1;
-  return isCE
-    ? `What is another cause that leads to this effect: "${s.frame.effect}"?`
-    : `${count === 1
-    ? "What is one Main Idea that helps show this message about life?"
-    : "What is another Main Idea that helps show this message about life?"}`;
+
+  if (isCE) {
+    return `What is another cause that leads to this effect: "${s.frame.effect}"?`;
+  }
+
+  return getComponentPrompt("mainIdeas", "additionalPrompt", {
+    keyTopic: s.frame.keyTopic
+  });
 }
   
 if (s.pending?.type === "offerAnotherDetail") {
@@ -3787,7 +3806,13 @@ if (s.pending?.type === "collectAnotherDetail") {
 }
 
 if (s.pending?.type === "offerMoreSoWhat") {
-  return "Do you want to add one more sentence to your So What? (yes/no)";
+  return (
+    "📋 You currently have a So What statement.\n\n" +
+    "Would you like to add another sentence?\n\n" +
+    "1) Yes — Add another sentence.\n" +
+    "2) No — Continue.\n\n" +
+    "Reply with 1 or 2."
+  );
 }
 
 if (s.pending?.type === "collectMoreSoWhat") {
@@ -3799,7 +3824,12 @@ if (s.pending?.type === "confirmSoWhat") {
 }
 
 if (s.pending?.type === "offerExport") {
-  return "Would you like to save or print a copy of your work? (yes/no)";
+  return (
+    "📋 What would you like to do next?\n\n" +
+    "1) Save or print my Frame.\n" +
+    "2) Finish without saving.\n\n" +
+    "Reply with 1 or 2."
+  );
 }
 
 if (s.pending?.type === "chooseExportType") {
@@ -3900,7 +3930,7 @@ if (i > 0 && detailNum === 1) {
 
   return (
     `🎉 Nice work! You've supported your ${completedLabel} Main Idea.\n\n` +
-    `➡️ Now let's support ${miLabel.toLowerCase()} ${i + 1}.\n\n` +
+    `➡️ Now let's support ${miLabel} ${i + 1}.\n\n` +
     `${miLabel} ${i + 1}\n` +
     `${mi}\n\n` +
     `✍️ ${dLabel} ${detailNum}\n\n` +
@@ -4721,6 +4751,33 @@ if (s.pending?.type === "reviseDetailAt") {
   const detailIndex = Number(s.pending.detailIndex);
   const normalized = msg.toLowerCase().trim();
 
+// Do not save conversational revision directions as the new detail.
+// Keep the student in the same revision step and ask again.
+const revisionDirections = [
+  "make that stronger",
+  "make it stronger",
+  "help me revise",
+  "help me change",
+  "i want to change it",
+  "i'd like to change it",
+  "actually, make that stronger",
+  "actually make that stronger",
+  "that doesn't sound right",
+  "that doesnt sound right",
+  "wait",
+  "hold on",
+];
+
+if (
+  revisionDirections.some(
+    (signal) =>
+      normalized === signal ||
+      normalized.includes(signal)
+  )
+) {
+  return s;
+}
+ 
   // If the student declines, keep the current detail
   // and return to the confirmation checkpoint.
   if (isNegative(normalized)) {
@@ -4790,13 +4847,19 @@ if (s.pending?.type === "reviseDetailAt") {
 
   if (s.pending?.type === "offerExport") {
     const normalized = msg.toLowerCase().trim();
-    if (isAffirmative(normalized)) {
-      s.pending = { type: "chooseExportType" };
-      return s;
+
+    if (isAffirmative(normalized) || normalized === "1") {
+        s.pending = { type: "chooseExportType" };
+        return s;
     }
-    s.pending = null;
+
+    if (isNegative(normalized) || normalized === "2") {
+        s.pending = null;
+        return s;
+    }
+
     return s;
-  }
+}
 
   if (s.pending?.type === "chooseExportType") {
     const normalized = msg.toLowerCase().trim();
