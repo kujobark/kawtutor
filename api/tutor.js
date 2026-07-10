@@ -4708,19 +4708,16 @@ if (s.pending?.type === "confirmDetails") {
 if (s.pending?.type === "reviseDetailAt") {
   const idx = Number(s.pending.index);
   const detailIndex = Number(s.pending.detailIndex);
-
-if (s.pending?.type === "reviseDetailAt") {
-  const idx = Number(s.pending.index);
-  const detailIndex = Number(s.pending.detailIndex);
   const normalized = msg.toLowerCase().trim();
 
-  // If the student declines, keep the current detail and return to confirmation.
+  // If the student declines, keep the current detail
+  // and return to the confirmation checkpoint.
   if (isNegative(normalized)) {
     s.pending = { type: "confirmDetails", index: idx };
     return s;
   }
 
-  // Weak responses trigger instructional support instead of being saved.
+  // Do not save vague or stuck responses as revisions.
   if (isWeakFrameResponse(msg)) {
     s.pending = {
       type: "stuckNudge",
@@ -4728,12 +4725,14 @@ if (s.pending?.type === "reviseDetailAt") {
       tone: detectStuckTone(msg),
       resumeQuestion: buildMiniQuestion(s),
       miniQuestion: buildMiniQuestion(s),
-      nudgeText: formatNudgeText(buildStuckNudges(s, `details:${idx}`)),
+      nudgeText: formatNudgeText(
+        buildStuckNudges(s, `details:${idx}`)
+      ),
     };
     return s;
   }
 
-  // Replace the selected detail.
+  // Replace only the selected detail.
   if (
     Array.isArray(s.frame.details[idx]) &&
     s.frame.details[idx][detailIndex] !== undefined
@@ -4741,7 +4740,7 @@ if (s.pending?.type === "reviseDetailAt") {
     s.frame.details[idx][detailIndex] = msg;
   }
 
-  // Return to the confirmation screen.
+  // Return to the detail checkpoint.
   s.pending = { type: "confirmDetails", index: idx };
   return s;
 }
