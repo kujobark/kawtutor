@@ -4574,20 +4574,21 @@ if (s.pending?.type === "offerAnotherDetail") {
   const idx = Number(s.pending.index);
   const arr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
 
-  if (isNegative(normalized) || normalized === "2") {
-    if (arr.length >= 5) {
-      s.pending = { type: "confirmDetails", index: idx };
-      return s;
-    }
-    s.pending = { type: "collectAnotherDetail", index: idx };
+ if (isAffirmative(normalized) || normalized === "1") {
+  if (arr.length >= 5) {
+    s.pending = { type: "confirmDetails", index: idx };
     return s;
   }
+
+  s.pending = { type: "collectAnotherDetail", index: idx };
+  return s;
+}
 
   if (!normalized) {
     return s;
   }
 
-  if (isNegative(normalized)) {
+  if (isNegative(normalized) || normalized === "2") {
     s.pending = { type: "confirmDetails", index: idx };
     return s;
   }
