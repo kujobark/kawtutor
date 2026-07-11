@@ -7,7 +7,8 @@ const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 // ---------------------
 // CONFIG
 // ---------------------
-const DEFAULT_MODEL = process.env.OPENAI_MODEL || "gpt-4.1-mini";
+const DEFAULT_MODEL =
+  process.env.OPENAI_MODEL || "gpt-5.5";
 
 // Transcript cap (avoid bloating state)
 const TRANSCRIPT_MAX_TURNS = 200;
@@ -651,7 +652,6 @@ const componentKnowledge =
     assignmentContext: state?.frameMeta?.assignmentContext || {},
     assignmentReasoning: state?.assignmentReasoning || {},
     useMode: state?.frameMeta?.purpose || "",
-    thinkingPattern: state?.frameMeta?.frameType || "",
     frameStage: currentFrameStage,
     componentKnowledge,
     parentAnchorStage: typeof getParentAnchorContext === "function"
@@ -1045,7 +1045,6 @@ function createInstructionalPlan(context) {
   return {
     conversationType: context?.interactionMode || "build",
     frameStage: context?.frameStage || "",
-    thinkingPattern: context?.thinkingPattern || "",
     thinkingStrategy: inferThinkingStrategy(context),
     useMode: context?.useMode || "",
 
@@ -1778,7 +1777,7 @@ function normalizePurpose(msg) {
 // ---------------------
 // Controlled internal categories Kaw can choose from.
 // Student-facing questions should be generated from the
-// gap + section + frame type + purpose + student response.
+// gap + section + assignment context + purpose + student response.
 
 const FEEDBACK_GAP_BANK = {
 
