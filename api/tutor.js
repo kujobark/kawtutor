@@ -2139,23 +2139,33 @@ function evaluateAssignmentUnderstanding(rawAssignment) {
   const lower = assignment.toLowerCase();
   const words = assignment.split(/\s+/).filter(Boolean);
 
-  const hasEnoughWords = words.length >= 6;
-
   const hasTaskSignal =
-      lower.includes("explain") ||
-      lower.includes("describ") ||
-      lower.includes("compar") ||
-      lower.includes("contrast") ||
-      lower.includes("analy") ||
-      lower.includes("argu") ||
-      lower.includes("show") ||
-      lower.includes("identif") ||
-      lower.includes("writ") ||
-      lower.includes("read");
+    lower.includes("explain") ||
+    lower.includes("describ") ||
+    lower.includes("compar") ||
+    lower.includes("contrast") ||
+    lower.includes("analy") ||
+    lower.includes("evaluat") ||
+    lower.includes("argu") ||
+    lower.includes("show") ||
+    lower.includes("identif") ||
+    lower.includes("interpret") ||
+    lower.includes("reflect") ||
+    lower.includes("summar") ||
+    lower.includes("creat") ||
+    lower.includes("writ") ||
+    lower.includes("read") ||
+    lower.startsWith("why ") ||
+    lower.startsWith("how ") ||
+    lower.startsWith("what causes ") ||
+    lower.startsWith("what caused ") ||
+    lower.startsWith("what effect ") ||
+    lower.startsWith("what are the effects ");
 
-  const hasTopicSignal = words.length >= 3;
+  const hasTopicSignal = words.length >= 2;
 
-  const needsClarification = !(hasEnoughWords && hasTaskSignal && hasTopicSignal);
+  const needsClarification =
+    !(hasTaskSignal && hasTopicSignal);
 
   return {
     raw: assignment,
@@ -2170,6 +2180,8 @@ function evaluateAssignmentUnderstanding(rawAssignment) {
 
 async function evaluateAssignmentUnderstandingAI(rawAssignment) {
   const assignment = cleanText(rawAssignment);
+  const deterministicCheck =
+  evaluateAssignmentUnderstanding(assignment);
 
   if (!assignment) {
     return evaluateAssignmentUnderstanding(rawAssignment);
@@ -2222,8 +2234,16 @@ Return ONLY valid JSON in this format:
       raw: assignment,
       studentSummary: cleanText(parsed.studentSummary || assignment),
       understanding: cleanText(parsed.understanding || parsed.studentSummary || assignment),
-      confidence: parsed.confidence === "high" ? "high" : "low",
-      needsClarification: parsed.needsClarification === false ? false : true,
+      confidence:
+        deterministicCheck.needsClarification === false ||
+        parsed.confidence === "high"
+          ? "high"
+          : "low",
+
+needsClarification:
+  deterministicCheck.needsClarification === false
+    ? false
+    : parsed.needsClarification !== false,
       inferredPurpose: cleanText(parsed.inferredPurpose || ""),
       childAnchor: cleanText(parsed.childAnchor || ""),
       reasoningType: cleanText(parsed.reasoningType || ""),
