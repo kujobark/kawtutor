@@ -481,7 +481,12 @@ function detectStuckTone(text) {
 }
 
 function isStuckMessage(text) {
-  const t = cleanText(text).toLowerCase();
+  const t = cleanText(text)
+    .toLowerCase()
+    .replace(/[’‘]/g, "'")
+    .replace(/[.!?]+$/g, "")
+    .trim();
+
   if (!t) return false;
 
   const exact = new Set([
@@ -1493,6 +1498,118 @@ function selectInstructionalBehavior(state, instructionalState) {
   };
 }
 
+// ------------------------------------------------------
+// AI INTENT FALLBACK
+// Used only when deterministic rules do not recognize
+// possible student struggle.
+//
+// This classifier never changes state or writes student work.
+// It returns a controlled intent label for the existing
+// deterministic engine to interpret.
+// ------------------------------------------------------
+
+async function classifyStudentIntentViaAI(state, message) {
+  const text = cleanText(message);
+
+  if (!text) {
+    return {
+      intent: "productive",
+      confidence: 0,
+    };
+  }
+
+  const stage =
+    state?.pending?.stage ||
+    getStage(state) ||
+    "";
+
+  const keyTopic =
+    state?.frame?.keyTopic ||
+    "";
+
+  const mainIdeas =
+    getIdeaList(state)
+      .filter(Boolean)
+      .slice(0, 5);
+
+  const system = `You classify a student's conversational intent during a structured learning routine.
+
+Return ONLY valid compact JSON.
+
+Allowed intent values:
+- "productive"
+- "stuck"
+- "frustrated"
+- "uncertain"
+- "off_task"
+- "revision_direction"
+
+Rules:
+- Do not answer the student.
+- Do not evaluate factual correctness.
+- Do not rewrite student work.
+- Do not infer struggle merely because an answer is short.
+- Use "stuck" when the student cannot begin, has no idea, or does not know what to write.
+- Use "frustrated" when the student expresses annoyance, discouragement, or emotional resistance.
+- Use "uncertain" when the student is hesitant but may still be attempting an answer.
+- Use "revision_direction" when the student is instructing the companion to revise rather than supplying replacement text.
+- Use "off_task" only when the student clearly changes away from the learning task.
+- Otherwise use "productive".
+
+Return:
+{"intent":"productive","confidence":0.0}`;
+
+  const user = `Current Frame stage: ${stage}
+Key Topic: ${keyTopic || "(not entered yet)"}
+Main Ideas: ${mainIdeas.length ? mainIdeas.join(" | ") : "(none yet)"}
+
+Student message:
+"${text}"`;
+
+  try {
+    const resp = await client.chat.completions.create({
+      model: DEFAULT_MODEL,
+      temperature: 0,
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: user },
+      ],
+    });
+
+    const parsed = JSON.parse(
+      resp?.choices?.[0]?.message?.content || "{}"
+    );
+
+    const allowedIntents = new Set([
+      "productive",
+      "stuck",
+      "frustrated",
+      "uncertain",
+      "off_task",
+      "revision_direction",
+    ]);
+
+    const intent = allowedIntents.has(parsed.intent)
+      ? parsed.intent
+      : "productive";
+
+    const confidence = Number(parsed.confidence || 0);
+
+    return {
+      intent,
+      confidence:
+        Number.isFinite(confidence)
+          ? Math.max(0, Math.min(confidence, 1))
+          : 0,
+    };
+  } catch {
+    return {
+      intent: "productive",
+      confidence: 0,
+    };
+  }
+}
+  
 // ---------------------
 // CORS
 // ---------------------
@@ -5110,6 +5227,75 @@ if (state?.settings?.debugInstructionalPlan) {
       pendingType === "stuckNudge" ||
       pendingType === "stuckMini" ||
       pendingType === "stuckSkip";
+
+// ------------------------------------------------------
+// AI INTENT FALLBACK
+// Deterministic rules always run first.
+// AI is consulted only when those rules classify the
+// student response as normal/productive.
+// ------------------------------------------------------
+
+if (
+  !inProtectedPending &&
+  instructionalBehavior?.behavior === "continue"
+) {
+  const aiIntent =
+    await classifyStudentIntentViaAI(state, message);
+
+  const aiDetectedStruggle =
+    aiIntent.confidence >= 0.85 &&
+    (
+      aiIntent.intent === "stuck" ||
+      aiIntent.intent === "frustrated"
+    );
+
+  if (aiDetectedStruggle) {
+    const stage = getStage(state);
+    const resumeQuestion = enforceSingleQuestion(
+      computeNextQuestion(state)
+    );
+
+    state.pending = {
+      type: "stuckNudge",
+      stage,
+      tone:
+        aiIntent.intent === "frustrated"
+          ? "frustration"
+          : "neutral",
+      resumeQuestion,
+      miniQuestion: buildMiniQuestion(state),
+      nudgeText: formatNudgeText(
+        buildStuckNudges(state, stage)
+      ),
+      detectedBy: "aiIntentFallback",
+      aiIntent: aiIntent.intent,
+      aiConfidence: aiIntent.confidence,
+    };
+
+    let reply = enforceSingleQuestion(
+      computeNextQuestion(state)
+    );
+
+    if (
+      state.settings.languageLocked &&
+      state.settings.language !== "en"
+    ) {
+      reply = await translateQuestionViaLLM(
+        reply,
+        state.settings.languageName ||
+          "the target language"
+      );
+    }
+
+    appendTurn(state, "Student", message);
+    appendTurn(state, "Kaw", reply);
+
+    return res.status(200).json({
+      reply,
+      state,
+    });
+  }
+}
 
     if (
   !inProtectedPending &&
