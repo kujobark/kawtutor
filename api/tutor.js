@@ -1566,15 +1566,44 @@ Main Ideas: ${mainIdeas.length ? mainIdeas.join(" | ") : "(none yet)"}
 Student message:
 "${text}"`;
 
-  try {
-    const resp = await client.chat.completions.create({
-      model: DEFAULT_MODEL,
-      temperature: 0,
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: user },
-      ],
-    });
+ const resp = await client.chat.completions.create({
+  model: DEFAULT_MODEL,
+  reasoning_effort: "none",
+  response_format: {
+    type: "json_schema",
+    json_schema: {
+      name: "student_intent_classification",
+      strict: true,
+      schema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          intent: {
+            type: "string",
+            enum: [
+              "productive",
+              "stuck",
+              "frustrated",
+              "uncertain",
+              "off_task",
+              "revision_direction",
+            ],
+          },
+          confidence: {
+            type: "number",
+            minimum: 0,
+            maximum: 1,
+          },
+        },
+        required: ["intent", "confidence"],
+      },
+    },
+  },
+  messages: [
+    { role: "system", content: system },
+    { role: "user", content: user },
+  ],
+});
 
     const parsed = JSON.parse(
       resp?.choices?.[0]?.message?.content || "{}"
