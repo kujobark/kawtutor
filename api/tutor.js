@@ -1566,7 +1566,8 @@ Main Ideas: ${mainIdeas.length ? mainIdeas.join(" | ") : "(none yet)"}
 Student message:
 "${text}"`;
 
- const resp = await client.chat.completions.create({
+ try {
+   const resp = await client.chat.completions.create({
   model: DEFAULT_MODEL,
   reasoning_effort: "none",
   response_format: {
