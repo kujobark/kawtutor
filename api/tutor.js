@@ -1269,12 +1269,12 @@ function buildStuckNudges(state, stage) {
         ? ideas[idx]
         : "this Main Idea";
 
-    return [
-      `🧭 You are adding Details for this Main Idea:\n"${selectedMainIdea}"`,
-      "💡 Essential Details explain, prove, clarify, or strengthen one specific Main Idea.",
-      "🔎 Think of a fact, example, quotation, observation, piece of evidence, or explanation that helps someone understand this Main Idea better.",
-      "✍️ What Detail could you add?"
-    ];
+     return [
+    `🧭 You're working on this Main Idea:\n"${selectedMainIdea}"`,
+    "💡 A strong Essential Detail helps your reader better understand this Main Idea.",
+    "🔎 Think of one fact, example, observation, piece of evidence, or explanation that supports it.",
+    "✍️ What Essential Detail could you add?"
+  ];
   }
 
   if (stage === "soWhat") {
