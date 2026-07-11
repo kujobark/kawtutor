@@ -1045,7 +1045,7 @@ function createInstructionalPlan(context) {
   return {
     conversationType: context?.interactionMode || "build",
     frameStage: context?.frameStage || "",
-    legacyFrameType: context?.thinkingPattern || "",
+    thinkingPattern: context?.thinkingPattern || "",
     thinkingStrategy: inferThinkingStrategy(context),
     useMode: context?.useMode || "",
 
