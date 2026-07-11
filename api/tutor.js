@@ -295,7 +295,7 @@ details: {
 
   conversationSupport: {
     term: "Essential Detail",
-    friendlyTerm: "essential detail,"
+    friendlyTerm: "essential detail",
 
     initialPrompt:
       'What is one Essential Detail that supports this Main Idea?',
@@ -854,14 +854,11 @@ function inferThinkingStrategy(context) {
     ""
   ).toLowerCase();
 
-  const legacyFrameType = cleanText(context?.thinkingPattern || "");
-
   if (
     assignmentText.includes("cause") ||
     assignmentText.includes("effect") ||
     assignmentText.includes("why") ||
-    assignmentText.includes("how") ||
-    legacyFrameType === "causeEffect"
+    assignmentText.includes("how")
   ) {
     return "explain_relationship";
   }
@@ -870,8 +867,7 @@ function inferThinkingStrategy(context) {
     assignmentText.includes("theme") ||
     assignmentText.includes("message") ||
     assignmentText.includes("central idea") ||
-    assignmentText.includes("big idea") ||
-    legacyFrameType === "themes"
+    assignmentText.includes("big idea")
   ) {
     return "interpret_meaning";
   }
@@ -888,8 +884,7 @@ function inferThinkingStrategy(context) {
   if (
     assignmentText.includes("evidence") ||
     assignmentText.includes("source") ||
-    assignmentText.includes("text") ||
-    legacyFrameType === "reading"
+    assignmentText.includes("text")
   ) {
     return "organize_evidence";
   }
@@ -1778,48 +1773,6 @@ function normalizePurpose(msg) {
   return null;
 }
 
-function fillTopic(template, keyTopic) {
-  return (template || "").replaceAll("[Key Topic]", keyTopic || "your topic");
-}
-
-function applyPromptTokens(template, state) {
-  let out = template || "";
-const kt = state?.frame?.keyTopic || "";
-const eff = state?.frame?.effect || "";
-const isAbout = state?.frame?.isAbout || "";
-const ideas = getIdeaList(state).filter(Boolean);
-
-const activeStage = state?.pending?.stage || getStage(state) || "";
-let cause = ideas.length ? ideas[ideas.length - 1] : "";
-
-
-if (typeof activeStage === "string" && activeStage.startsWith("details:")) {
-  const rawIndex = activeStage.split(":")[1];
-  const idx = Number(rawIndex);
-  if (Number.isInteger(idx) && ideas[idx]) {
-    cause = ideas[idx];
-  }
-}
-
-  // Key Topic token
-  if (kt) out = out.replace(/\[Key Topic\]/g, kt);
-  if (isAbout) out = out.replace(/\[IS_ABOUT\]/g, isAbout);
-  
-  // Cause/Effect tokens / phrases
-  if (eff) {
-    out = out.replace(/\[EFFECT\]/g, eff);
-    out = out.replace(/the effect you[’']?re writing about/gi, eff);
-    out = out.replace(/\bthe effect\b/gi, eff);
-  }
-
-  // Cause token
-  if (cause) {
-    out = out.replace(/\[CAUSE\]/g, cause);
-  }
-
-  return out;
-}
-
 // ---------------------
 // FEEDBACK GAP BANK
 // ---------------------
@@ -2319,12 +2272,12 @@ async function updateAssignmentUnderstanding(state, rawAssignment) {
 // stage that has not yet been satisfied.
 //
 // Stage progression:
-// 1. purpose
-// 2. frameType
+// 1. assignmentContext
+// 2. purpose
 // 3. keyTopic
 // 4. isAbout
 // 5. mainIdeas
-// 6. details (per main idea)
+// 6. details (per Main Idea)
 // 7. soWhat
 // 8. refine
 //
@@ -2646,14 +2599,12 @@ function getParentAnchorDisplayLabel(state) {
 
 function getParentAnchorObservation(state) {
   const context = getParentAnchorContext(state);
-  const frameType = state?.frameMeta?.frameType || "";
   const purpose = state?.frameMeta?.purpose || "";
   const ownerLabel = context.ownerStructuralStage;
   const stageLabel = context.structuralStage;
 
   return {
     ...context,
-    frameType,
     purpose,
     ownerLabel,
     stageLabel,
