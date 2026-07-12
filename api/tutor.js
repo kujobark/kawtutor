@@ -5066,24 +5066,36 @@ if (struggleCheck.detected) {
     msg,
   ];
 
-  const arr = Array.isArray(s.frame.details[idx])
-    ? s.frame.details[idx]
-    : [];
+const arr = Array.isArray(s.frame.details[idx])
+  ? s.frame.details[idx]
+  : [];
 
-  if (arr.length >= 5) {
-    s.pending = {
-      type: "confirmDetails",
-      index: idx,
-    };
-    return s;
-  }
-
+// The first two Essential Details are required.
+// Do not offer optional expansion until both exist.
+if (arr.length < 2) {
   s.pending = {
-    type: "offerAnotherDetail",
+    type: "collectAnotherDetail",
     index: idx,
   };
-
   return s;
+}
+
+if (arr.length >= 5) {
+  s.pending = {
+    type: "confirmDetails",
+    index: idx,
+  };
+  return s;
+}
+
+// Two required Details now exist.
+// Offer optional strengthening.
+s.pending = {
+  type: "offerAnotherDetail",
+  index: idx,
+};
+
+return s;
 }
 
 if (s.pending?.type === "confirmDetails") {
