@@ -5020,44 +5020,71 @@ if (struggleCheck.detected) {
 }
 
   if (s.pending?.type === "collectAnotherDetail") {
-    const idx = Number(s.pending.index);
-    if (!Array.isArray(s.frame.details[idx])) s.frame.details[idx] = [];
+  const idx = Number(s.pending.index);
+  const normalized = msg.toLowerCase().trim();
 
-   if (!isNegative(msg)) {
-   if (isWeakFrameResponse(msg)) {
+  if (!Array.isArray(s.frame.details[idx])) {
+    s.frame.details[idx] = [];
+  }
+
+  // This Essential Detail is optional. A genuine decline keeps
+  // the existing Details unchanged and moves to confirmation.
+  if (isNegative(normalized) || normalized === "2") {
+    s.pending = { type: "confirmDetails", index: idx };
+    return s;
+  }
+
+  const mutationIntent =
+    await classifyStudentWorkMutationIntent(s, msg);
+
+  if (!mutationIntent.accept) {
+    // Preserve the current Details and remain at the exact
+    // optional Detail capture step until valid student content
+    // is provided or the student explicitly declines.
+    return s;
+  }
+
+  if (shouldRequestEvidenceDetail(s, msg)) {
     s.pending = {
-      type: "stuckNudge",
-      stage: `details:${idx}`,
-      tone: detectStuckTone(msg),
-      resumeQuestion: buildMiniQuestion(s),
-      miniQuestion: buildMiniQuestion(s),
-      nudgeText: formatNudgeText(buildStuckNudges(s, `details:${idx}`)),
+      type: "writeNeedEvidenceDetail",
+      index: idx,
+      mechanism: msg,
     };
     return s;
   }
-  if (shouldRequestEvidenceDetail(s, msg)) {
-    s.pending = { type: "writeNeedEvidenceDetail", index: idx, mechanism: msg };
-    return s;
-  }
 
-  const laneCheck = analyzeBuildLane(s, "details", msg);
+  const laneCheck =
+    analyzeBuildLane(s, "details", msg);
+
   if (laneCheck) {
     s.pending = laneCheck;
     return s;
   }
 
-  s.frame.details[idx] = [...s.frame.details[idx], msg];
-}
+  s.frame.details[idx] = [
+    ...s.frame.details[idx],
+    msg,
+  ];
 
-    const arr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
-    if (arr.length >= 5) {
-      s.pending = { type: "confirmDetails", index: idx };
-      return s;
-    }
+  const arr = Array.isArray(s.frame.details[idx])
+    ? s.frame.details[idx]
+    : [];
 
-    s.pending = { type: "offerAnotherDetail", index: idx };
+  if (arr.length >= 5) {
+    s.pending = {
+      type: "confirmDetails",
+      index: idx,
+    };
     return s;
   }
+
+  s.pending = {
+    type: "offerAnotherDetail",
+    index: idx,
+  };
+
+  return s;
+}
 
 if (s.pending?.type === "confirmDetails") {
   const normalized = msg.toLowerCase().trim();
