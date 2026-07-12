@@ -1694,9 +1694,10 @@ async function classifyStudentWorkMutationIntent(state, message) {
 
   // Choice language and conversational responses are not
   // replacement Frame content.
-  if (
+    if (
     isAffirmative(normalized) ||
     isNegative(normalized) ||
+    normalized === "2" ||
     isMetaResponse(normalized)
   ) {
     return {
