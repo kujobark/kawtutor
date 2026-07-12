@@ -1669,6 +1669,108 @@ async function detectsUnrecognizedStruggle(state, message) {
   };
 }
 
+// ------------------------------------------------------
+// STUDENT-WORK MUTATION PROTECTION
+// Determines whether a response is actual student-authored
+// Frame content before existing work is replaced or new
+// optional content is added.
+//
+// JavaScript remains the final authority.
+// AI only classifies ambiguous intent.
+// ------------------------------------------------------
+async function classifyStudentWorkMutationIntent(state, message) {
+  const text = cleanText(message);
+  const normalized = text.toLowerCase();
+
+  // Deterministic rules always receive first priority.
+  if (!text || isWeakFrameResponse(text)) {
+    return {
+      accept: false,
+      intent: "stuck",
+      confidence: 1,
+      source: "deterministic",
+    };
+  }
+
+  // Choice language and conversational responses are not
+  // replacement Frame content.
+  if (
+    isAffirmative(normalized) ||
+    isNegative(normalized) ||
+    isMetaResponse(normalized)
+  ) {
+    return {
+      accept: false,
+      intent: "uncertain",
+      confidence: 1,
+      source: "deterministic",
+    };
+  }
+
+  const revisionDirections = [
+    "revise",
+    "change",
+    "edit",
+    "make it stronger",
+    "make that stronger",
+    "help me revise",
+    "help me change it",
+    "change it for me",
+    "fix it",
+    "fix that",
+    "make it better",
+    "that doesn't sound right",
+    "that does not sound right",
+    "wait",
+    "hold on",
+  ];
+
+  if (
+    revisionDirections.some(
+      (direction) =>
+        normalized === direction ||
+        normalized.startsWith(`${direction} `)
+    )
+  ) {
+    return {
+      accept: false,
+      intent: "revision_direction",
+      confidence: 1,
+      source: "deterministic",
+    };
+  }
+
+  // AI is consulted only when deterministic rules do not
+  // confidently identify the student's intent.
+  const aiIntent =
+    await classifyStudentIntentViaAI(state, text);
+
+  if (
+    aiIntent.confidence >= 0.75 &&
+    aiIntent.intent !== "productive"
+  ) {
+    return {
+      accept: false,
+      intent: aiIntent.intent,
+      confidence: aiIntent.confidence,
+      source: "aiIntentFallback",
+    };
+  }
+
+  return {
+    accept: true,
+    intent: "productive",
+    confidence:
+      aiIntent.intent === "productive"
+        ? aiIntent.confidence
+        : 0,
+    source:
+      aiIntent.confidence >= 0.75
+        ? "aiIntentFallback"
+        : "deterministicDefault",
+  };
+}
+
 // ---------------------
 // CORS
 // ---------------------
@@ -4624,6 +4726,16 @@ if (s.pending?.type === "confirmIsAbout") {
 }
 
   if (s.pending?.type === "reviseIsAbout") {
+    const mutationIntent =
+      await classifyStudentWorkMutationIntent(s, msg);
+
+    if (!mutationIntent.accept) {
+      // Preserve both the existing Is About statement and the
+      // exact revision location until valid replacement content
+      // is provided.
+      return s;
+    }
+
     applyIsAboutCapture(s, msg);
     return s;
   }
@@ -4664,16 +4776,32 @@ if (s.pending?.type === "confirmMainIdeas") {
   return s;
 }
 
-if (s.pending?.type === "reviseMainIdeaAt") {
+  if (s.pending?.type === "reviseMainIdeaAt") {
   const idx = Number(s.pending.index);
   const isCE = s.frameMeta?.frameType === "causeEffect";
 
+  const mutationIntent =
+    await classifyStudentWorkMutationIntent(s, msg);
+
+  if (!mutationIntent.accept) {
+    // Preserve the selected Main Idea, its aligned Essential
+    // Details, and the exact revision location until valid
+    // replacement content is provided.
+    return s;
+  }
+
   if (isCE) {
-    if (Array.isArray(s.frame.causes) && s.frame.causes[idx] !== undefined) {
+    if (
+      Array.isArray(s.frame.causes) &&
+      s.frame.causes[idx] !== undefined
+    ) {
       s.frame.causes[idx] = msg;
     }
   } else {
-    if (Array.isArray(s.frame.parentItems) && s.frame.parentItems[idx] !== undefined) {
+    if (
+      Array.isArray(s.frame.parentItems) &&
+      s.frame.parentItems[idx] !== undefined
+    ) {
       s.frame.parentItems[idx] = msg;
     }
   }
@@ -4702,33 +4830,71 @@ if (s.pending?.type === "reviseMainIdeaAt") {
   }
 
   if (s.pending?.type === "collectAnotherMainIdea") {
-    if (!isNegative(msg)) {
-      const isCE = s.frameMeta?.frameType === "causeEffect";
+    const normalized = msg.toLowerCase().trim();
 
-            const laneCheck = analyzeBuildLane(s, "mainIdeas", msg);
-      if (laneCheck) {
-        s.pending = laneCheck;
-        return s;
+    // This Main Idea is optional. A genuine decline preserves
+    // the existing collection and moves to confirmation.
+    if (isNegative(normalized)) {
+      s.pending = { type: "confirmMainIdeas" };
+      return s;
+    }
+
+    const mutationIntent =
+      await classifyStudentWorkMutationIntent(s, msg);
+
+    if (!mutationIntent.accept) {
+      // Preserve the current Main Ideas and remain at the exact
+      // optional Main Idea capture step until valid student
+      // content is provided or the student explicitly declines.
+      return s;
+    }
+
+    const isCE =
+      s.frameMeta?.frameType === "causeEffect";
+
+    const laneCheck =
+      analyzeBuildLane(s, "mainIdeas", msg);
+
+    if (laneCheck) {
+      s.pending = laneCheck;
+      return s;
+    }
+
+    if (isCE) {
+      if (!Array.isArray(s.frame.causes)) {
+        s.frame.causes = [];
       }
-      
-      if (isCE) {
-        if (!Array.isArray(s.frame.causes)) s.frame.causes = [];
-        if (!Array.isArray(s.frame.details)) s.frame.details = [];
 
-        s.frame.causes.push(msg);
+      if (!Array.isArray(s.frame.details)) {
+        s.frame.details = [];
+      }
 
-        if (!Array.isArray(s.frame.details[s.frame.causes.length - 1])) {
-          s.frame.details[s.frame.causes.length - 1] = [];
-        }
-      } else {
-        if (!Array.isArray(s.frame.parentItems)) s.frame.parentItems = [];
-        if (!Array.isArray(s.frame.details)) s.frame.details = [];
+      s.frame.causes.push(msg);
 
-        s.frame.parentItems.push(msg);
+      if (
+        !Array.isArray(
+          s.frame.details[s.frame.causes.length - 1]
+        )
+      ) {
+        s.frame.details[s.frame.causes.length - 1] = [];
+      }
+    } else {
+      if (!Array.isArray(s.frame.parentItems)) {
+        s.frame.parentItems = [];
+      }
 
-        if (!Array.isArray(s.frame.details[s.frame.parentItems.length - 1])) {
-          s.frame.details[s.frame.parentItems.length - 1] = [];
-        }
+      if (!Array.isArray(s.frame.details)) {
+        s.frame.details = [];
+      }
+
+      s.frame.parentItems.push(msg);
+
+      if (
+        !Array.isArray(
+          s.frame.details[s.frame.parentItems.length - 1]
+        )
+      ) {
+        s.frame.details[s.frame.parentItems.length - 1] = [];
       }
     }
 
@@ -4742,7 +4908,7 @@ if (s.pending?.type === "reviseMainIdeaAt") {
     s.pending = { type: "offerAnotherMainIdea" };
     return s;
   }
-
+  
 if (s.pending?.type === "offerAnotherDetail") {
   const normalized = msg.toLowerCase().trim();
   const idx = Number(s.pending.index);
@@ -4915,56 +5081,24 @@ if (s.pending?.type === "reviseDetailAt") {
   const detailIndex = Number(s.pending.detailIndex);
   const normalized = msg.toLowerCase().trim();
 
-// Do not save conversational revision directions as the new detail.
-// Keep the student in the same revision step and ask again.
-const revisionDirections = [
-  "make that stronger",
-  "make it stronger",
-  "help me revise",
-  "help me change",
-  "i want to change it",
-  "i'd like to change it",
-  "actually, make that stronger",
-  "actually make that stronger",
-  "that doesn't sound right",
-  "that doesnt sound right",
-  "wait",
-  "hold on",
-];
-
-if (
-  revisionDirections.some(
-    (signal) =>
-      normalized === signal ||
-      normalized.includes(signal)
-  )
-) {
-  return s;
-}
- 
-  // If the student declines, keep the current detail
-  // and return to the confirmation checkpoint.
+  // Preserve the current Essential Detail when the student
+  // explicitly declines the revision and return to confirmation.
   if (isNegative(normalized)) {
     s.pending = { type: "confirmDetails", index: idx };
     return s;
   }
 
-  // Do not save vague or stuck responses as revisions.
-  if (isWeakFrameResponse(msg)) {
-    s.pending = {
-      type: "stuckNudge",
-      stage: `details:${idx}`,
-      tone: detectStuckTone(msg),
-      resumeQuestion: buildMiniQuestion(s),
-      miniQuestion: buildMiniQuestion(s),
-      nudgeText: formatNudgeText(
-        buildStuckNudges(s, `details:${idx}`)
-      ),
-    };
+  const mutationIntent =
+    await classifyStudentWorkMutationIntent(s, msg);
+
+  if (!mutationIntent.accept) {
+    // Preserve the selected Essential Detail and remain at the
+    // exact revision location until valid replacement content
+    // is supplied or the student explicitly declines.
     return s;
   }
 
-  // Replace only the selected detail.
+  // Replace only the selected Essential Detail.
   if (
     Array.isArray(s.frame.details[idx]) &&
     s.frame.details[idx][detailIndex] !== undefined
@@ -4972,7 +5106,7 @@ if (
     s.frame.details[idx][detailIndex] = msg;
   }
 
-  // Return to the detail checkpoint.
+  // Return to the Detail confirmation checkpoint.
   s.pending = { type: "confirmDetails", index: idx };
   return s;
 }
@@ -4987,27 +5121,72 @@ if (
     return s;
   }
 
-  if (s.pending?.type === "collectMoreSoWhat") {
-    if (!isNegative(msg)) s.frame.soWhat = cleanText(`${s.frame.soWhat} ${msg}`);
+    if (s.pending?.type === "collectMoreSoWhat") {
+    const normalized = msg.toLowerCase().trim();
+
+    // A genuine decline keeps the existing So What unchanged
+    // and returns the student to the confirmation checkpoint.
+    if (isNegative(normalized)) {
+      s.pending = { type: "confirmSoWhat" };
+      return s;
+    }
+
+    const mutationIntent =
+      await classifyStudentWorkMutationIntent(s, msg);
+
+    if (!mutationIntent.accept) {
+      // Preserve the existing So What and remain at the exact
+      // additional-sentence step until valid student content
+      // is provided or the student explicitly declines.
+      return s;
+    }
+
+    s.frame.soWhat =
+      cleanText(`${s.frame.soWhat} ${msg}`);
+
     s.pending = { type: "confirmSoWhat" };
     return s;
   }
 
-  if (s.pending?.type === "confirmSoWhat") {
-    const normalized = msg.toLowerCase().trim();
-    if (isAffirmative(normalized)) {
-      s.pending = null;
-      if (isFrameComplete(s) && !s.flags.exportOffered) {
-        s.flags.exportOffered = true;
-        s.pending = { type: "offerExport" };
-      }
-      return s;
+ if (s.pending?.type === "confirmSoWhat") {
+  const normalized = msg.toLowerCase().trim();
+
+  if (isAffirmative(normalized)) {
+    s.pending = null;
+
+    if (isFrameComplete(s) && !s.flags.exportOffered) {
+      s.flags.exportOffered = true;
+      s.pending = { type: "offerExport" };
     }
-    // VALID SAVE PATH 3: confirm fallback (user typed revision instead of yes/no)
+
+    return s;
+  }
+
+  const mutationIntent =
+    await classifyStudentWorkMutationIntent(s, msg);
+
+  // The student wants to revise but has not yet supplied
+  // replacement wording. Preserve the existing So What and
+  // remain at the current confirmation step.
+  if (
+    isNegative(normalized) ||
+    normalized === "2" ||
+    mutationIntent.intent === "revision_direction"
+  ) {
+    return s;
+  }
+
+  // Accept only validated student-authored replacement content.
+  if (mutationIntent.accept) {
     s.frame.soWhat = msg;
     s.pending = null;
     return s;
   }
+
+  // Preserve the existing So What for uncertainty,
+  // frustration, or off-task responses.
+  return s;
+}
 
   if (s.pending?.type === "offerExport") {
     const normalized = msg.toLowerCase().trim();
@@ -5217,12 +5396,20 @@ export default async function handler(req, res) {
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
+  // Preserve the last safely normalized incoming state so an
+  // unexpected error never erases the student's work or location.
+  let safeState = defaultState();
+
   try {
     const body = req.body && typeof req.body === "object" ? req.body : {};
     const message = cleanText(body.message || "");
 
   let incoming = body.state || body.vercelState || body.framing || {};
   let state = normalizeIncomingState(incoming);
+
+  // Keep an unchanged recovery copy from before this request
+  // begins mutating instructional state.
+  safeState = structuredClone(state);
 
 // ---------------------
 // INSTRUCTIONAL PLAN SNAPSHOT
@@ -5421,7 +5608,7 @@ return res.status(200).json({ reply, state });
     console.error("Tutor API error:", err);
     return res.status(200).json({
       reply: "Hmm — I had trouble processing that. Can you try again?",
-      state: normalizeIncomingState({}),
+      state: safeState,
     });
   }
 }
