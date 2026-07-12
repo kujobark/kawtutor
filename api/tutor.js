@@ -1305,6 +1305,7 @@ function detectInstructionalState(state, msg) {
     "assignmentReasoningIntro",
     "chooseWorkflow",
     "choosePurpose",
+    "collectAnotherMainIdea",
     "feedbackSelectSection",
     "feedbackCollectResponse",
     "feedbackCoach",
@@ -5505,6 +5506,7 @@ if (state?.settings?.debugInstructionalPlan) {
       pendingType === "assignmentReasoningIntro" ||
       pendingType === "chooseWorkflow" ||
       pendingType === "choosePurpose" ||
+      pendingType === "collectAnotherMainIdea" ||
       pendingType === "feedbackSelectSection" ||
       pendingType === "feedbackCollectResponse" ||
       pendingType === "feedbackCoach" ||
