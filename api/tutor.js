@@ -5185,10 +5185,10 @@ if (s.pending?.type === "reviseDetailAt") {
 
     // A genuine decline keeps the existing So What unchanged
     // and returns the student to the confirmation checkpoint.
-    if (isNegative(normalized)) {
-      s.pending = { type: "confirmSoWhat" };
-      return s;
-    }
+    if (isNegative(normalized) || normalized === "2") {
+    s.pending = { type: "confirmSoWhat" };
+    return s;
+}
 
     const mutationIntent =
       await classifyStudentWorkMutationIntent(s, msg);
