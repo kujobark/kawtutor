@@ -1300,25 +1300,55 @@ function detectInstructionalState(state, msg) {
   const stage = state?.pending?.stage || getStage(state);
   const evidence = [];
 
-  const protectedPendingTypes = new Set([
-    "confirmLanguageSwitch",
-    "assignmentReasoningIntro",
-    "chooseWorkflow",
-    "choosePurpose",
-    "collectAnotherMainIdea",
-    "feedbackSelectSection",
-    "feedbackCollectResponse",
-    "feedbackCoach",
-    "feedbackThinkingSummary",
-    "feedbackRevise",
-    "feedbackComplete",
-    "stuckConfirm",
-    "stuckMenu",
-    "stuckReask",
-    "stuckNudge",
-    "stuckMini",
-    "stuckSkip",
-  ]);
+ const protectedPendingTypes = new Set([
+  "confirmLanguageSwitch",
+  "assignmentReasoningIntro",
+  "chooseWorkflow",
+  "choosePurpose",
+
+  // Is About confirmation and revision
+  "confirmIsAbout",
+  "reviseIsAbout",
+
+  // Main Idea optional capture, confirmation, and revision
+  "offerAnotherMainIdea",
+  "collectAnotherMainIdea",
+  "confirmMainIdeas",
+  "chooseMainIdeaToRevise",
+  "reviseMainIdeaAt",
+
+  // Essential Detail optional capture, confirmation, and revision
+  "offerAnotherDetail",
+  "collectAnotherDetail",
+  "confirmDetails",
+  "chooseDetailToRevise",
+  "reviseDetailAt",
+
+  // So What expansion and confirmation
+  "offerMoreSoWhat",
+  "collectMoreSoWhat",
+  "confirmSoWhat",
+
+  // Export choice
+  "offerExport",
+  "chooseExportType",
+
+  // Feedback Mode
+  "feedbackSelectSection",
+  "feedbackCollectResponse",
+  "feedbackCoach",
+  "feedbackThinkingSummary",
+  "feedbackRevise",
+  "feedbackComplete",
+
+  // Stuck-support engine
+  "stuckConfirm",
+  "stuckMenu",
+  "stuckReask",
+  "stuckNudge",
+  "stuckMini",
+  "stuckSkip",
+]);
 
   const pendingType = state?.pending?.type || null;
 
@@ -5506,19 +5536,49 @@ if (state?.settings?.debugInstructionalPlan) {
       pendingType === "assignmentReasoningIntro" ||
       pendingType === "chooseWorkflow" ||
       pendingType === "choosePurpose" ||
+    
+      // Is About confirmation and revision
+      pendingType === "confirmIsAbout" ||
+      pendingType === "reviseIsAbout" ||
+    
+      // Main Idea optional capture, confirmation, and revision
+      pendingType === "offerAnotherMainIdea" ||
       pendingType === "collectAnotherMainIdea" ||
+      pendingType === "confirmMainIdeas" ||
+      pendingType === "chooseMainIdeaToRevise" ||
+      pendingType === "reviseMainIdeaAt" ||
+    
+      // Essential Detail optional capture, confirmation, and revision
+      pendingType === "offerAnotherDetail" ||
+      pendingType === "collectAnotherDetail" ||
+      pendingType === "confirmDetails" ||
+      pendingType === "chooseDetailToRevise" ||
+      pendingType === "reviseDetailAt" ||
+    
+      // So What expansion and confirmation
+      pendingType === "offerMoreSoWhat" ||
+      pendingType === "collectMoreSoWhat" ||
+      pendingType === "confirmSoWhat" ||
+    
+      // Export choice
+      pendingType === "offerExport" ||
+      pendingType === "chooseExportType" ||
+    
+      // Feedback Mode
       pendingType === "feedbackSelectSection" ||
       pendingType === "feedbackCollectResponse" ||
       pendingType === "feedbackCoach" ||
       pendingType === "feedbackThinkingSummary" ||
       pendingType === "feedbackRevise" ||
       pendingType === "feedbackComplete" ||
-      pendingType === "stuckConfirm" ||
-      pendingType === "stuckMenu" ||
-      pendingType === "stuckReask" ||
-      pendingType === "stuckNudge" ||
-      pendingType === "stuckMini" ||
-      pendingType === "stuckSkip";
+
+  // Stuck-support engine
+  pendingType === "stuckConfirm" ||
+  pendingType === "stuckMenu" ||
+  pendingType === "stuckReask" ||
+  pendingType === "stuckNudge" ||
+  pendingType === "stuckMini" ||
+  pendingType === "stuckSkip";
 
     if (
   !inProtectedPending &&
