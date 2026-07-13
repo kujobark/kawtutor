@@ -4884,12 +4884,11 @@ if (s.pending?.type === "stuckNudge") {
   // Legacy Stuck flows without an exact saved pending state
   // continue through the existing stage-based handling below.
   if (stage === "purpose") {
-    if (stage === "purpose") {
-      const p = normalizePurpose(msg);
-      if (p) s.frameMeta.purpose = p;
-      s.pending = null;
-      return s;
-    }
+  const p = normalizePurpose(msg);
+  if (p) s.frameMeta.purpose = p;
+  s.pending = null;
+  return s;
+}
 
  if (stage === "keyTopic") {
   const cleaned = cleanText(msg);
