@@ -4041,14 +4041,19 @@ if (s.pending?.type === "offerAnotherDetail") {
       ? s.frame.details[i].length
       : 0;
 
-  return (
-    `✅ You now have the two required ${dLabel}s for ${miLabel} ${i + 1}:\n` +
-    `"${mi}"\n\n` +
-    `Would you like to strengthen this ${miLabel} by adding another ${dLabel}?\n\n` +
-    `1) Yes — Add another ${dLabel}.\n` +
-    `2) No — Continue.\n\n` +
-    `Reply with 1 or 2.`
-  );
+  const completionMessage =
+  count === 2
+    ? `✅ You now have the two required ${dLabel}s for ${miLabel} ${i + 1}:\n`
+    : `✅ You currently have ${count} ${dLabel}s for ${miLabel} ${i + 1}:\n`;
+
+return (
+  completionMessage +
+  `"${mi}"\n\n` +
+  `Would you like to strengthen this ${miLabel} by adding another ${dLabel}?\n\n` +
+  `1) Yes — Add another ${dLabel}.\n` +
+  `2) No — Continue.\n\n` +
+  `Reply with 1 or 2.`
+);
 }
   
 if (s.pending?.type === "collectAnotherDetail") {
@@ -5051,9 +5056,14 @@ if (struggleCheck.detected) {
     s.frame.details[idx] = [];
   }
 
-  // This Essential Detail is optional. A genuine decline keeps
-  // the existing Details unchanged and moves to confirmation.
-  if (isNegative(normalized) || normalized === "2") {
+  const currentCount = s.frame.details[idx].length;
+
+  // Declining is available only after the two required
+  // Essential Details have been completed.
+  if (
+    currentCount >= 2 &&
+    (isNegative(normalized) || normalized === "2")
+  ) {
     s.pending = { type: "confirmDetails", index: idx };
     return s;
   }
