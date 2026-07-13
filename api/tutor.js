@@ -2068,6 +2068,94 @@ function restoreResumePending(stuckPending) {
   );
 }
 
+function beginStuckSupportFromPending(
+  state,
+  message,
+  intentResult = {}
+) {
+  const resumePending =
+    cloneResumePending(state.pending);
+
+  const pendingType =
+    resumePending?.type || "";
+
+  let stage = getStage(state);
+
+  if (
+    pendingType === "collectAnotherMainIdea" ||
+    pendingType === "reviseMainIdeaAt"
+  ) {
+    stage = "mainIdeas";
+  }
+
+  if (
+    pendingType === "collectAnotherDetail" ||
+    pendingType === "reviseDetailAt"
+  ) {
+    const index = Number(resumePending?.index);
+
+    if (Number.isInteger(index)) {
+      stage = `details:${index}`;
+    }
+  }
+
+  if (
+    pendingType === "reviseIsAbout"
+  ) {
+    stage = "isAbout";
+  }
+
+  if (
+    pendingType === "collectMoreSoWhat" ||
+    pendingType === "confirmSoWhat"
+  ) {
+    stage = "soWhat";
+  }
+
+  state.pending = {
+    type: "stuckNudge",
+    stage,
+    tone:
+      intentResult.intent === "frustrated"
+        ? "frustration"
+        : detectStuckTone(message),
+    resumePending,
+    resumeQuestion: computeNextQuestion({
+      ...state,
+      pending: resumePending,
+    }),
+    miniQuestion: buildMiniQuestion({
+      ...state,
+      pending: {
+        ...resumePending,
+        stage,
+      },
+    }),
+    nudgeText:
+      intentResult.intent === "revision_direction"
+        ? formatNudgeText([
+            "💡 It sounds like you want help strengthening this part.",
+            "🧭 I can help you think it through, but the wording needs to stay yours.",
+            ...buildStuckNudges(state, stage),
+          ])
+        : formatNudgeText(
+            buildStuckNudges(state, stage)
+          ),
+    detectedBy:
+      intentResult.source || "deterministic",
+    aiIntent:
+      intentResult.source === "aiIntentFallback"
+        ? intentResult.intent
+        : undefined,
+    aiConfidence:
+      intentResult.source === "aiIntentFallback"
+        ? intentResult.confidence
+        : undefined,
+  };
+
+  return state;
+}
+
 function formatNudgeText(nudges) {
   const items = Array.isArray(nudges)
     ? nudges.map((n) => (n || "").toString().trim()).filter(Boolean)
@@ -4592,92 +4680,138 @@ if (s.pending?.type === "needWriteCauseEffectStem") {
 
   // STUCK flow
   if (s.pending?.type === "stuckConfirm") {
-    const low = msg.toLowerCase().trim();
-    if (isAffirmative(low) || low === "1") {
-      s.pending = {
-        type: "stuckMenu",
-        stage: s.pending.stage || getStage(s),
-        tone: s.pending.tone || "neutral",
-        resumeQuestion: s.pending.resumeQuestion,
-        miniQuestion: s.pending.miniQuestion || buildMiniQuestion(s),
-      };
-      return s;
-    }
-    if (isNegative(low) || low === "2") {
-      s.pending = null;
-      return s;
-    }
+  const low = msg.toLowerCase().trim();
+
+  if (isAffirmative(low) || low === "1") {
+    s.pending = {
+      type: "stuckMenu",
+      stage: s.pending.stage || getStage(s),
+      tone: s.pending.tone || "neutral",
+      resumeQuestion: s.pending.resumeQuestion,
+      resumePending: cloneResumePending(
+        s.pending.resumePending
+      ),
+      miniQuestion:
+        s.pending.miniQuestion ||
+        buildMiniQuestion(s),
+    };
     return s;
   }
 
-  if (s.pending?.type === "stuckMenu") {
-    const choice = normalizeStuckChoice(msg);
-    if (!choice) return s;
+  if (isNegative(low) || low === "2") {
+    const resumePending =
+      restoreResumePending(s.pending);
 
-    if (choice === "1") {
-      s.pending = {
-        type: "stuckReask",
-        mode: "directions",
-        stage: s.pending.stage || getStage(s),
-        resumeQuestion: s.pending.resumeQuestion,
-      };
-      return s;
-    }
-
-    if (choice === "2") {
-      s.pending = {
-        type: "stuckReask",
-        mode: "reread",
-        stage: s.pending.stage || getStage(s),
-        resumeQuestion: s.pending.resumeQuestion,
-      };
-      return s;
-    }
-
-    if (choice === "3") {
-      const stage = s.pending.stage || getStage(s);
-      s.pending = {
-        type: "stuckMini",
-        stage,
-        miniQuestion: buildMiniQuestion(s),
-        resumeQuestion: s.pending.resumeQuestion,
-      };
-      return s;
-    }
-
-    if (choice === "4") {
-      if (!Array.isArray(s.skips)) s.skips = [];
-      s.skips.push({ stage: s.pending.stage || getStage(s), at: Date.now() });
-
-      s.pending = {
-        type: "stuckSkip",
-        stage: s.pending.stage || getStage(s),
-        resumeQuestion: s.pending.resumeQuestion,
-        miniQuestion: s.pending.miniQuestion || buildMiniQuestion(s),
-      };
-      return s;
-    }
-
+    s.pending = resumePending;
     return s;
   }
 
-  if (s.pending?.type === "stuckReask") {
-    s.pending = null;
-    // fall through
+  return s;
+}
+
+if (s.pending?.type === "stuckMenu") {
+  const choice = normalizeStuckChoice(msg);
+  if (!choice) return s;
+
+  const resumePending =
+    cloneResumePending(s.pending.resumePending);
+
+  if (choice === "1") {
+    s.pending = {
+      type: "stuckReask",
+      mode: "directions",
+      stage: s.pending.stage || getStage(s),
+      resumeQuestion: s.pending.resumeQuestion,
+      resumePending,
+    };
+    return s;
   }
 
-  if (s.pending?.type === "stuckNudge") {
+  if (choice === "2") {
+    s.pending = {
+      type: "stuckReask",
+      mode: "reread",
+      stage: s.pending.stage || getStage(s),
+      resumeQuestion: s.pending.resumeQuestion,
+      resumePending,
+    };
+    return s;
+  }
+
+  if (choice === "3") {
     const stage = s.pending.stage || getStage(s);
-  
-     s.pending = {
-    type: "stuckConfirm",
-    stage,
-    tone: detectStuckTone(msg),
-    resumeQuestion: s.pending.resumeQuestion,
-    resumePending: cloneResumePending(s.pending.resumePending),
-    miniQuestion: s.pending.miniQuestion || buildMiniQuestion(s),
-  };
+
+    s.pending = {
+      type: "stuckMini",
+      stage,
+      miniQuestion: buildMiniQuestion(s),
+      resumeQuestion: s.pending.resumeQuestion,
+      resumePending,
+    };
     return s;
+  }
+
+  if (choice === "4") {
+    if (!Array.isArray(s.skips)) s.skips = [];
+
+    s.skips.push({
+      stage: s.pending.stage || getStage(s),
+      at: Date.now(),
+    });
+
+    s.pending = {
+      type: "stuckSkip",
+      stage: s.pending.stage || getStage(s),
+      resumeQuestion: s.pending.resumeQuestion,
+      resumePending,
+      miniQuestion:
+        s.pending.miniQuestion ||
+        buildMiniQuestion(s),
+    };
+    return s;
+  }
+
+  return s;
+}
+
+ if (s.pending?.type === "stuckReask") {
+  const resumePending =
+    restoreResumePending(s.pending);
+
+  if (resumePending) {
+    s.pending = resumePending;
+    return await updateStateFromStudent(s, msg);
+  }
+
+  s.pending = null;
+  // Legacy fallback: continue through the normal runtime path.
+}
+
+if (s.pending?.type === "stuckNudge") {
+  const stage = s.pending.stage || getStage(s);
+
+  if (isStuckMessage(msg)) {
+    s.pending = {
+      type: "stuckConfirm",
+      stage,
+      tone: detectStuckTone(msg),
+      resumeQuestion: s.pending.resumeQuestion,
+      resumePending: cloneResumePending(
+        s.pending.resumePending
+      ),
+      miniQuestion:
+        s.pending.miniQuestion ||
+        buildMiniQuestion(s),
+    };
+    return s;
+  }
+
+  const resumePending =
+    restoreResumePending(s.pending);
+
+  if (resumePending) {
+    s.pending = resumePending;
+    return await updateStateFromStudent(s, msg);
   }
 
   s.pending = null;
@@ -4685,43 +4819,71 @@ if (s.pending?.type === "needWriteCauseEffectStem") {
 }
 
   if (s.pending?.type === "stuckSkip") {
-    const low = msg.toLowerCase().trim();
-    if (isAffirmative(low) || low === "1") {
-      s.pending = {
-        type: "stuckMini",
-        stage: s.pending.stage || getStage(s),
-        miniQuestion: s.pending.miniQuestion || buildMiniQuestion(s),
-        resumeQuestion: s.pending.resumeQuestion,
-      };
-      return s;
-    }
-    if (isNegative(low) || low === "2") {
-      s.pending = {
-        type: "stuckConfirm",
-        stage: s.pending.stage || getStage(s),
-        resumeQuestion: s.pending.resumeQuestion,
-        miniQuestion: s.pending.miniQuestion || buildMiniQuestion(s),
-      };
-      return s;
-    }
+  const low = msg.toLowerCase().trim();
+
+  const resumePending =
+    cloneResumePending(s.pending.resumePending);
+
+  if (isAffirmative(low) || low === "1") {
+    s.pending = {
+      type: "stuckMini",
+      stage: s.pending.stage || getStage(s),
+      miniQuestion:
+        s.pending.miniQuestion ||
+        buildMiniQuestion(s),
+      resumeQuestion: s.pending.resumeQuestion,
+      resumePending,
+    };
     return s;
   }
 
+  if (isNegative(low) || low === "2") {
+    s.pending = {
+      type: "stuckConfirm",
+      stage: s.pending.stage || getStage(s),
+      resumeQuestion: s.pending.resumeQuestion,
+      resumePending,
+      miniQuestion:
+        s.pending.miniQuestion ||
+        buildMiniQuestion(s),
+    };
+    return s;
+  }
+
+  return s;
+}
+
   if (s.pending?.type === "stuckMini") {
-    const stage = s.pending.stage || getStage(s);
+  const stage = s.pending.stage || getStage(s);
 
-    if (isStuckMessage(msg)) {
-      s.pending = {
-        type: "stuckMenu",
-        stage,
-        tone: detectStuckTone(msg),
-        resumeQuestion: s.pending.resumeQuestion,
-        miniQuestion: s.pending.miniQuestion || buildMiniQuestion(s),
-        retryFromMini: true,
-      };
-      return s;
-    }
+  if (isStuckMessage(msg)) {
+    s.pending = {
+      type: "stuckMenu",
+      stage,
+      tone: detectStuckTone(msg),
+      resumeQuestion: s.pending.resumeQuestion,
+      resumePending: cloneResumePending(
+        s.pending.resumePending
+      ),
+      miniQuestion:
+        s.pending.miniQuestion ||
+        buildMiniQuestion(s),
+      retryFromMini: true,
+    };
+    return s;
+  }
 
+  const resumePending =
+    restoreResumePending(s.pending);
+
+  if (resumePending) {
+    s.pending = resumePending;
+    return await updateStateFromStudent(s, msg);
+  }
+
+  // Legacy Stuck flows without an exact saved pending state
+  // continue through the existing stage-based handling below.
+  if (stage === "purpose") {
     if (stage === "purpose") {
       const p = normalizePurpose(msg);
       if (p) s.frameMeta.purpose = p;
@@ -4811,12 +4973,26 @@ if (s.pending?.type === "confirmIsAbout") {
     const mutationIntent =
       await classifyStudentWorkMutationIntent(s, msg);
 
-    if (!mutationIntent.accept) {
-      // Preserve both the existing Is About statement and the
-      // exact revision location until valid replacement content
-      // is provided.
-      return s;
-    }
+   if (!mutationIntent.accept) {
+  // Genuine struggle or frustration enters the existing
+  // Stuck Support sequence without losing the exact
+  // Is About revision location.
+  if (
+    mutationIntent.intent === "stuck" ||
+    mutationIntent.intent === "frustrated"
+  ) {
+    return beginStuckSupportFromPending(
+      s,
+      msg,
+      mutationIntent
+    );
+  }
+
+  // Revision directions, uncertainty, and other non-content
+  // responses remain protected until their coaching behavior
+  // is handled explicitly.
+  return s;
+}
 
     applyIsAboutCapture(s, msg);
     return s;
@@ -4865,12 +5041,26 @@ if (s.pending?.type === "confirmMainIdeas") {
   const mutationIntent =
     await classifyStudentWorkMutationIntent(s, msg);
 
-  if (!mutationIntent.accept) {
-    // Preserve the selected Main Idea, its aligned Essential
-    // Details, and the exact revision location until valid
-    // replacement content is provided.
-    return s;
+ if (!mutationIntent.accept) {
+  // Genuine struggle or frustration enters the existing
+  // Stuck Support sequence without losing the selected
+  // Main Idea revision location.
+  if (
+    mutationIntent.intent === "stuck" ||
+    mutationIntent.intent === "frustrated"
+  ) {
+    return beginStuckSupportFromPending(
+      s,
+      msg,
+      mutationIntent
+    );
   }
+
+  // Revision directions, uncertainty, and other non-content
+  // responses remain protected until their coaching behavior
+  // is handled explicitly.
+  return s;
+}
 
   if (isCE) {
     if (
@@ -4924,12 +5114,26 @@ if (s.pending?.type === "confirmMainIdeas") {
     const mutationIntent =
       await classifyStudentWorkMutationIntent(s, msg);
 
-    if (!mutationIntent.accept) {
-      // Preserve the current Main Ideas and remain at the exact
-      // optional Main Idea capture step until valid student
-      // content is provided or the student explicitly declines.
-      return s;
-    }
+  if (!mutationIntent.accept) {
+  // Genuine struggle or frustration enters the existing
+  // Stuck Support sequence without losing this exact
+  // optional Main Idea capture location.
+  if (
+    mutationIntent.intent === "stuck" ||
+    mutationIntent.intent === "frustrated"
+  ) {
+    return beginStuckSupportFromPending(
+      s,
+      msg,
+      mutationIntent
+    );
+  }
+
+  // Revision directions, uncertainty, and other non-content
+  // responses remain protected until their coaching behavior
+  // is handled explicitly.
+  return s;
+}
 
     const isCE =
       s.frameMeta?.frameType === "causeEffect";
@@ -5093,11 +5297,25 @@ if (struggleCheck.detected) {
     await classifyStudentWorkMutationIntent(s, msg);
 
   if (!mutationIntent.accept) {
-    // Preserve the current Details and remain at the exact
-    // optional Detail capture step until valid student content
-    // is provided or the student explicitly declines.
-    return s;
+  // Genuine struggle or frustration enters the existing
+  // Stuck Support sequence without losing this exact
+  // optional Detail capture location.
+  if (
+    mutationIntent.intent === "stuck" ||
+    mutationIntent.intent === "frustrated"
+  ) {
+    return beginStuckSupportFromPending(
+      s,
+      msg,
+      mutationIntent
+    );
   }
+
+  // Revision directions, uncertainty, and other non-content
+  // responses remain protected until their coaching behavior
+  // is handled explicitly.
+  return s;
+}
 
   if (shouldRequestEvidenceDetail(s, msg)) {
     s.pending = {
@@ -5218,11 +5436,25 @@ if (s.pending?.type === "reviseDetailAt") {
     await classifyStudentWorkMutationIntent(s, msg);
 
   if (!mutationIntent.accept) {
-    // Preserve the selected Essential Detail and remain at the
-    // exact revision location until valid replacement content
-    // is supplied or the student explicitly declines.
-    return s;
+  // Genuine struggle or frustration enters the existing
+  // Stuck Support sequence without losing the selected
+  // Essential Detail revision location.
+  if (
+    mutationIntent.intent === "stuck" ||
+    mutationIntent.intent === "frustrated"
+  ) {
+    return beginStuckSupportFromPending(
+      s,
+      msg,
+      mutationIntent
+    );
   }
+
+  // Revision directions, uncertainty, and other non-content
+  // responses remain protected until their coaching behavior
+  // is handled explicitly.
+  return s;
+}
 
   // Replace only the selected Essential Detail.
   if (
@@ -5260,12 +5492,26 @@ if (s.pending?.type === "reviseDetailAt") {
     const mutationIntent =
       await classifyStudentWorkMutationIntent(s, msg);
 
-    if (!mutationIntent.accept) {
-      // Preserve the existing So What and remain at the exact
-      // additional-sentence step until valid student content
-      // is provided or the student explicitly declines.
-      return s;
-    }
+  if (!mutationIntent.accept) {
+  // Genuine struggle or frustration enters the existing
+  // Stuck Support sequence without losing the exact
+  // additional So What sentence location.
+  if (
+    mutationIntent.intent === "stuck" ||
+    mutationIntent.intent === "frustrated"
+  ) {
+    return beginStuckSupportFromPending(
+      s,
+      msg,
+      mutationIntent
+    );
+  }
+
+  // Revision directions, uncertainty, and other non-content
+  // responses remain protected until their coaching behavior
+  // is handled explicitly.
+  return s;
+}
 
     s.frame.soWhat =
       cleanText(`${s.frame.soWhat} ${msg}`);
@@ -5309,9 +5555,24 @@ if (s.pending?.type === "reviseDetailAt") {
     return s;
   }
 
-  // Preserve the existing So What for uncertainty,
-  // frustration, or off-task responses.
-  return s;
+  // Genuine struggle or frustration enters the existing
+// Stuck Support sequence without losing the So What
+// confirmation location.
+if (
+  mutationIntent.intent === "stuck" ||
+  mutationIntent.intent === "frustrated"
+) {
+  return beginStuckSupportFromPending(
+    s,
+    msg,
+    mutationIntent
+  );
+}
+
+// Uncertainty, off-task responses, and other non-content
+// replies preserve the existing So What and remain at
+// the current confirmation step.
+return s;
 }
 
   if (s.pending?.type === "offerExport") {
