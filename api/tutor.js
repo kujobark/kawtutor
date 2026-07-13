@@ -4084,9 +4084,18 @@ if (s.pending?.type === "collectAnotherDetail") {
     );
   }
 
+  const ideas = getIdeaList(s);
+  const hasNextMainIdea = i < ideas.length - 1;
+
+  const nextDestination = hasNextMainIdea
+    ? `${miLabel} ${i + 2}`
+    : "your So What statement";
+
   return (
-    `What is ${dLabel} ${nextCount} for ${miLabel} ${i + 1}: "${mi}"?\n\n` +
-    `Reply with another ${dLabel}, or type 2 to continue.`
+    `What is ${dLabel} ${nextCount} for ${miLabel} ${i + 1}?\n` +
+    `"${mi}"\n\n` +
+    `💡 This additional ${dLabel} is optional and can help strengthen your Frame.\n\n` +
+    `Add another ${dLabel}, or reply with 2 to review these Details and continue to ${nextDestination}.`
   );
 }
   
