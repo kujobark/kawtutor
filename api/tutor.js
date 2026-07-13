@@ -427,6 +427,127 @@ function getInstructionalContract(
 }
 
 // ======================================================
+// INSTRUCTIONAL CONTRACT EXECUTION
+// ======================================================
+
+function executeInstructionalContract(contract, state) {
+  if (!contract) return null;
+
+  switch (contract.contractId) {
+
+    case "ED-GS-001":
+      return executeEDGS001(contract, state);
+
+    default:
+      return null;
+  }
+}
+
+function executeEDGS001(contract, state) {
+  const ideas = getIdeaList(state).filter(Boolean);
+  const resume = state?.pending?.resumePending;
+
+  const currentMainIdea =
+    Number.isInteger(resume?.index)
+      ? ideas[resume.index] || ""
+      : "";
+
+  return {
+    contractId: contract.contractId,
+    instructionalGoal: contract.instructionalGoal,
+    teachingMove: contract.teachingMove,
+    thinkingMove: contract.thinkingMove,
+    aiContextualizes: contract.aiContextualizes,
+
+     context: {
+      assignmentContext:
+        state?.frameMeta?.assignmentContext || {},
+      thinkingTask:
+        state?.assignmentReasoning || {},
+      frameComponent:
+        contract.frameComponent,
+      currentMainIdea,
+      existingDetails:
+        Number.isInteger(resume?.index) &&
+        Array.isArray(state?.frame?.details?.[resume.index])
+          ? state.frame.details[resume.index]
+          : [],
+      keyTopic:
+        state?.frame?.keyTopic || "",
+      isAbout:
+        state?.frame?.isAbout || ""
+    }
+  };
+}
+
+function buildAIContextualizationPayload(execution) {
+  if (!execution?.aiContextualizes) return null;
+
+  return {
+    contractId:
+      execution.contractId,
+
+    instructionalGoal:
+      execution.instructionalGoal,
+
+    teachingMove:
+      execution.teachingMove,
+
+    thinkingMove:
+      execution.thinkingMove,
+
+    context: {
+      assignmentContext:
+        execution?.context?.assignmentContext || {},
+
+      thinkingTask:
+        execution?.context?.thinkingTask || {},
+
+      frameComponent:
+        execution?.context?.frameComponent || "",
+
+      keyTopic:
+        execution?.context?.keyTopic || "",
+
+      isAbout:
+        execution?.context?.isAbout || "",
+
+      currentMainIdea:
+        execution?.context?.currentMainIdea || "",
+
+      existingDetails:
+        Array.isArray(
+          execution?.context?.existingDetails
+        )
+          ? execution.context.existingDetails
+          : []
+    }
+  };
+}
+
+// ======================================================
+// INSTRUCTIONAL CONTRACT ACTIVATION
+// ======================================================
+
+function activateInstructionalContract(contract, state) {
+  if (!contract) return null;
+
+  const execution =
+    executeInstructionalContract(contract, state);
+
+  if (!execution) return null;
+
+  const aiPayload =
+    buildAIContextualizationPayload(execution);
+
+  return {
+    contractId: contract.contractId,
+    execution,
+    aiPayload
+  };
+}
+
+// ======================================================
 // INSTRUCTIONAL INTELLIGENCE ENGINE
 // ======================================================
 //
@@ -1324,12 +1445,13 @@ function buildStuckNudges(state, stage) {
         ? `"${keyTopic}"`
         : "your Frame";
 
-  if (stage === "mainIdeas") {
+  const contract = state.pending?.instructionalContract || null;
+
+  if (contract?.thinkingMove === "Recall observable evidence") {
     return [
-      `🧭 You are building the Main Ideas for ${frameSummary}.`,
-      "💡 Main Ideas are the big supporting ideas that explain your Key Topic and strengthen your Is About statement.",
-      "🔎 Think about important categories, reasons, examples, parts, or supports that belong in this Frame.",
-      "✍️ What is one Main Idea you could add?"
+      "👀 Let's start with what you can actually observe.",
+      "Think about the text, image, data, or source—not your opinion yet.",
+      "What is one specific piece of evidence you notice?"
     ];
   }
 
@@ -2170,8 +2292,6 @@ function beginStuckSupportFromPending(
     }
   }
 
-  
-
   if (
     pendingType === "reviseIsAbout"
   ) {
@@ -2203,29 +2323,51 @@ function beginStuckSupportFromPending(
           instructionalSituation
         )
       : null;
+
+  const instructionalActivation =
+  instructionalContract
+    ? activateInstructionalContract(
+        instructionalContract,
+        state
+      )
+    : null;
   
   state.pending = {
-    type: "stuckNudge",
-    stage,
-    instructionalContract:
-  instructionalContract
-    ? {
-        contractId:
-          instructionalContract.contractId,
-        frameComponent:
-          instructionalContract.frameComponent,
-        instructionalSituation:
-          instructionalContract.instructionalSituation,
-        instructionalGoal:
-          instructionalContract.instructionalGoal,
-        teachingMove:
-          instructionalContract.teachingMove,
-        thinkingMove:
-          instructionalContract.thinkingMove,
-        aiContextualizes:
-          instructionalContract.aiContextualizes,
-      }
-    : null,
+  type: "stuckNudge",
+  stage,
+
+  instructionalContract:
+    instructionalContract
+      ? {
+          contractId:
+            instructionalContract.contractId,
+          frameComponent:
+            instructionalContract.frameComponent,
+          instructionalSituation:
+            instructionalContract.instructionalSituation,
+          instructionalGoal:
+            instructionalContract.instructionalGoal,
+          teachingMove:
+            instructionalContract.teachingMove,
+          thinkingMove:
+            instructionalContract.thinkingMove,
+          aiContextualizes:
+            instructionalContract.aiContextualizes,
+        }
+      : null,
+
+  instructionalActivation:
+    instructionalActivation
+      ? {
+          contractId:
+            instructionalActivation.contractId,
+          execution:
+            instructionalActivation.execution,
+          aiPayload:
+            instructionalActivation.aiPayload,
+        }
+      : null,
+     
     tone:
       intentResult.intent === "frustrated"
         ? "frustration"
