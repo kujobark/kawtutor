@@ -2054,7 +2054,19 @@ Rules:
 // STUCK SUPPORT (SSOT)
 // ---------------------
 
+function cloneResumePending(pending) {
+  if (!pending || typeof pending !== "object") {
+    return null;
+  }
 
+  return structuredClone(pending);
+}
+
+function restoreResumePending(stuckPending) {
+  return cloneResumePending(
+    stuckPending?.resumePending || null
+  );
+}
 
 function formatNudgeText(nudges) {
   const items = Array.isArray(nudges)
@@ -4654,17 +4666,17 @@ if (s.pending?.type === "needWriteCauseEffectStem") {
     // fall through
   }
 
-if (s.pending?.type === "stuckNudge") {
-  const stage = s.pending.stage || getStage(s);
-
-  if (isStuckMessage(msg)) {
-    s.pending = {
-      type: "stuckConfirm",
-      stage,
-      tone: detectStuckTone(msg),
-      resumeQuestion: s.pending.resumeQuestion,
-      miniQuestion: s.pending.miniQuestion || buildMiniQuestion(s),
-    };
+  if (s.pending?.type === "stuckNudge") {
+    const stage = s.pending.stage || getStage(s);
+  
+     s.pending = {
+    type: "stuckConfirm",
+    stage,
+    tone: detectStuckTone(msg),
+    resumeQuestion: s.pending.resumeQuestion,
+    resumePending: cloneResumePending(s.pending.resumePending),
+    miniQuestion: s.pending.miniQuestion || buildMiniQuestion(s),
+  };
     return s;
   }
 
