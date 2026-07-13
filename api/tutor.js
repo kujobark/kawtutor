@@ -355,6 +355,83 @@ soWhat: {
 
 };
 
+};
+
+// ======================================================
+// INSTRUCTIONAL PLAYBOOK
+// ======================================================
+//
+// The Instructional Playbook stores predetermined,
+// teacher-authored instructional contracts.
+//
+// The runtime may consult these contracts.
+// It must never invent pedagogy.
+//
+// AI may contextualize a predetermined Thinking Move
+// only when the selected contract explicitly allows it.
+
+const INSTRUCTIONAL_PLAYBOOK = {
+  details: {
+    genuineStruggle: {
+      contractId: "ED-GS-001",
+
+      frameComponent: "details",
+      instructionalSituation: "genuineStruggle",
+
+      instructionalGoal: "restartThinking",
+
+      teachingMove: "recall",
+
+      thinkingMove:
+        "Think of one supporting fact, example, observation, explanation, or piece of evidence that supports this Main Idea.",
+
+      aiContextualizes: true,
+
+      validation: {
+        type: "essentialDetail",
+        description:
+          "The student provides a clear Essential Detail that directly supports the current Main Idea.",
+      },
+
+      resumeBehavior: {
+        type: "returnToExactInstructionalLocation",
+        description:
+          "Return to the same Essential Detail and Main Idea where support was requested.",
+      },
+
+      progressiveSupport: {
+        principle:
+          "If the first intervention does not restart productive thinking, provide progressively more targeted support without supplying the student's Essential Detail.",
+      },
+
+      studentWorkProtection: {
+        preserveExistingWork: true,
+        neverSaveStruggleLanguage: true,
+        neverGenerateStudentWork: true,
+      },
+    },
+  },
+};
+
+function getInstructionalContract(
+  frameComponent,
+  instructionalSituation
+) {
+  const componentContracts =
+    INSTRUCTIONAL_PLAYBOOK?.[frameComponent];
+
+  if (!componentContracts) return null;
+
+  return (
+    componentContracts?.[instructionalSituation] ||
+    null
+  );
+}
+
+// ======================================================
+// INSTRUCTIONAL INTELLIGENCE ENGINE
+// ======================================================
+
 // ======================================================
 // INSTRUCTIONAL INTELLIGENCE ENGINE
 // ======================================================
@@ -2099,6 +2176,8 @@ function beginStuckSupportFromPending(
     }
   }
 
+  
+
   if (
     pendingType === "reviseIsAbout"
   ) {
@@ -2115,6 +2194,25 @@ function beginStuckSupportFromPending(
   state.pending = {
     type: "stuckNudge",
     stage,
+    instructionalContract:
+  instructionalContract
+    ? {
+        contractId:
+          instructionalContract.contractId,
+        frameComponent:
+          instructionalContract.frameComponent,
+        instructionalSituation:
+          instructionalContract.instructionalSituation,
+        instructionalGoal:
+          instructionalContract.instructionalGoal,
+        teachingMove:
+          instructionalContract.teachingMove,
+        thinkingMove:
+          instructionalContract.thinkingMove,
+        aiContextualizes:
+          instructionalContract.aiContextualizes,
+      }
+    : null,
     tone:
       intentResult.intent === "frustrated"
         ? "frustration"
