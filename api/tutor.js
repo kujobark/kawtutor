@@ -5295,13 +5295,14 @@ if (struggleCheck.detected) {
   const mutationIntent =
     await classifyStudentWorkMutationIntent(s, msg);
 
-  if (!mutationIntent.accept) {
-  // Genuine struggle or frustration enters the existing
-  // Stuck Support sequence without losing this exact
-  // optional Detail capture location.
+if (!mutationIntent.accept) {
+  // Genuine struggle, frustration, or a request to strengthen
+  // the current work enters intent-specific coaching without
+  // losing this exact optional Detail capture location.
   if (
     mutationIntent.intent === "stuck" ||
-    mutationIntent.intent === "frustrated"
+    mutationIntent.intent === "frustrated" ||
+    mutationIntent.intent === "revision_direction"
   ) {
     return beginStuckSupportFromPending(
       s,
@@ -5310,9 +5311,8 @@ if (struggleCheck.detected) {
     );
   }
 
-  // Revision directions, uncertainty, and other non-content
-  // responses remain protected until their coaching behavior
-  // is handled explicitly.
+  // Uncertainty and other non-content responses remain
+  // protected until their coaching behavior is explicit.
   return s;
 }
 
