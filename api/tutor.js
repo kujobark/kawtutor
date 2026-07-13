@@ -355,8 +355,6 @@ soWhat: {
 
 };
 
-};
-
 // ======================================================
 // INSTRUCTIONAL PLAYBOOK
 // ======================================================
@@ -427,10 +425,6 @@ function getInstructionalContract(
     null
   );
 }
-
-// ======================================================
-// INSTRUCTIONAL INTELLIGENCE ENGINE
-// ======================================================
 
 // ======================================================
 // INSTRUCTIONAL INTELLIGENCE ENGINE
@@ -2191,6 +2185,25 @@ function beginStuckSupportFromPending(
     stage = "soWhat";
   }
 
+  const frameComponent =
+    typeof stage === "string" && stage.startsWith("details:")
+      ? "details"
+      : getBaseStage(stage);
+
+  const instructionalSituation =
+    intentResult.intent === "stuck" ||
+    intentResult.intent === "frustrated"
+      ? "genuineStruggle"
+      : null;
+
+  const instructionalContract =
+    instructionalSituation
+      ? getInstructionalContract(
+          frameComponent,
+          instructionalSituation
+        )
+      : null;
+  
   state.pending = {
     type: "stuckNudge",
     stage,
