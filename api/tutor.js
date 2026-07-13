@@ -4036,12 +4036,15 @@ if (s.pending?.type === "offerAnotherDetail") {
       ? "Text Evidence"
       : "Essential Detail";
 
-  const count = (s.frame.details?.[i] || []).length;
+  const count =
+    Array.isArray(s.frame.details?.[i])
+      ? s.frame.details[i].length
+      : 0;
 
   return (
-    `📋 You currently have ${count} ${dLabel}${count > 1 ? "s" : ""} ` +
-    `for ${miLabel} ${i + 1}:\n"${mi}"\n\n` +
-    `Would you like to add another ${dLabel}?\n\n` +
+    `✅ You now have the two required ${dLabel}s for ${miLabel} ${i + 1}:\n` +
+    `"${mi}"\n\n` +
+    `Would you like to strengthen this ${miLabel} by adding another ${dLabel}?\n\n` +
     `1) Yes — Add another ${dLabel}.\n` +
     `2) No — Continue.\n\n` +
     `Reply with 1 or 2.`
@@ -4050,15 +4053,36 @@ if (s.pending?.type === "offerAnotherDetail") {
   
 if (s.pending?.type === "collectAnotherDetail") {
   const i = Number(s.pending.index);
-  const mi = getIdeaList(s)[i] || "";  
+  const mi = getIdeaList(s)[i] || "";
 
   const isCE = s.frameMeta?.frameType === "causeEffect";
   const miLabel = isCE ? "Cause" : "Main Idea";
-  const dLabel = isCE && s.frameMeta?.purpose === "read" ? "Text Evidence" : "Essential Detail";
+  const dLabel =
+    isCE && s.frameMeta?.purpose === "read"
+      ? "Text Evidence"
+      : "Essential Detail";
 
-  const count = (s.frame.details?.[i] || []).length + 1;
+  const currentCount =
+    Array.isArray(s.frame.details?.[i])
+      ? s.frame.details[i].length
+      : 0;
 
-  return `What is ${dLabel} ${count} for ${miLabel} ${i + 1}: "${mi}"?`;
+  const nextCount = currentCount + 1;
+
+  // The second Detail is required to fully support the Main Idea.
+  if (currentCount === 1) {
+    return (
+      `🎉 Great! You have your first ${dLabel}.\n\n` +
+      `✍️ Let's add one more required ${dLabel} to fully support this ${miLabel}.\n\n` +
+      `${miLabel} ${i + 1}: "${mi}"\n\n` +
+      `What is ${dLabel} ${nextCount}?`
+    );
+  }
+
+  return (
+    `What is ${dLabel} ${nextCount} for ${miLabel} ${i + 1}: "${mi}"?\n\n` +
+    `Reply with another ${dLabel}, or type 2 to continue.`
+  );
 }
   
  if (s.pending?.type === "confirmDetails") {
@@ -5438,7 +5462,26 @@ if (laneCheck) {
         clearMatchingSkip(s, `details:${i}`);
       }
 
-      s.pending = { type: "offerAnotherDetail", index: i };
+            const updatedArr = Array.isArray(s.frame.details[i])
+        ? s.frame.details[i]
+        : [];
+
+      // The first two Essential Details are required.
+      // After Detail 1, move directly to required Detail 2.
+      if (updatedArr.length < 2) {
+        s.pending = {
+          type: "collectAnotherDetail",
+          index: i,
+        };
+        return s;
+      }
+
+      // Two required Details now exist.
+      // Offer optional strengthening.
+      s.pending = {
+        type: "offerAnotherDetail",
+        index: i,
+      };
       return s;
     }
   }
