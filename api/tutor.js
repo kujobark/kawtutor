@@ -556,17 +556,110 @@ function activateInstructionalContract(contract, state) {
 // ======================================================
 
 async function getInstructionalResponse(activation) {
-  if (!activation) return null;
-
-  const payload = activation.aiPayload;
+  const payload = activation?.aiPayload;
 
   if (!payload) return null;
 
-  // AI integration comes next.
-  // For now simply return the payload so we can
-  // verify the runtime end-to-end.
+  const assignmentContext =
+    payload?.context?.assignmentContext || {};
 
-  return payload;
+  const assignment =
+    assignmentContext.studentSummary ||
+    assignmentContext.understanding ||
+    assignmentContext.raw ||
+    "";
+
+  const thinkingTask =
+    payload?.context?.thinkingTask?.label ||
+    payload?.context?.thinkingTask?.task ||
+    "";
+
+  const currentMainIdea =
+    payload?.context?.currentMainIdea || "";
+
+  const existingDetails =
+    Array.isArray(payload?.context?.existingDetails)
+      ? payload.context.existingDetails
+      : [];
+
+  const system = `You are the language contextualization layer for Kaw, a structured instructional companion.
+
+The instructional decision has already been made by a deterministic Instructional Decision Engine.
+
+Your only job is to express the predetermined Thinking Move as one natural, assignment-specific question.
+
+You must follow these rules:
+- Do not answer the assignment.
+- Do not provide facts, examples, evidence, explanations, or possible student answers.
+- Do not introduce outside knowledge.
+- Do not evaluate factual correctness.
+- Do not rewrite or complete student work.
+- Do not change the Instructional Goal, Teaching Move, or Thinking Move.
+- Preserve student ownership.
+- Ask exactly one concise question.
+- Return only the student-facing question.`;
+
+  const user = `Contract ID:
+${payload.contractId}
+
+Instructional Goal:
+${payload.instructionalGoal}
+
+Teaching Move:
+${payload.teachingMove}
+
+Predetermined Thinking Move:
+${payload.thinkingMove}
+
+Assignment Context:
+${assignment || "(not available)"}
+
+Thinking Task:
+${thinkingTask || "(not available)"}
+
+Key Topic:
+${payload?.context?.keyTopic || "(not available)"}
+
+Is About:
+${payload?.context?.isAbout || "(not available)"}
+
+Current Main Idea:
+${currentMainIdea || "(not available)"}
+
+Existing Essential Details:
+${
+  existingDetails.length
+    ? existingDetails.join(" | ")
+    : "(none yet)"
+}
+
+Contextualize the predetermined Thinking Move into exactly one natural question for the student.`;
+
+  try {
+    const resp = await client.chat.completions.create({
+      model: DEFAULT_MODEL,
+      reasoning_effort: "none",
+      temperature: 0,
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: user },
+      ],
+    });
+
+    const response =
+      resp?.choices?.[0]?.message?.content || "";
+
+    return response
+      ? enforceSingleQuestion(response)
+      : null;
+  } catch (error) {
+    console.error(
+      "Instructional contextualization error:",
+      error
+    );
+
+    return null;
+  }
 }
 
 // ======================================================
@@ -6364,8 +6457,22 @@ if (state?.settings?.debugInstructionalPlan) {
       state = await updateStateFromStudent(state, message);
     }
 
-    let nextQ = computeNextQuestion(state);
-    let reply = enforceSingleQuestion(nextQ);
+      const instructionalActivation =
+        state?.pending?.instructionalActivation || null;
+
+      const instructionalResponse =
+        instructionalActivation
+          ? await getInstructionalResponse(
+              instructionalActivation
+            )
+          : null;
+      
+      const nextQ =
+        instructionalResponse ||
+        computeNextQuestion(state);
+      
+      let reply =
+        enforceSingleQuestion(nextQ);
 
     if (state.settings.languageLocked && state.settings.language !== "en") {
       reply = await translateQuestionViaLLM(reply, state.settings.languageName || "the target language");
