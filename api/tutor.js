@@ -557,7 +557,8 @@ function activateInstructionalContract(contract, state) {
 
 async function getInstructionalResponse(activation) {
   const payload = activation?.aiPayload;
-
+  console.log("AI PAYLOAD:", payload);
+  
   if (!payload) return null;
 
   const assignmentContext =
@@ -2446,6 +2447,10 @@ function beginStuckSupportFromPending(
         state
       )
     : null;
+    console.log(
+  "ACTIVATION:",
+  instructionalActivation
+);
   
   state.pending = {
   type: "stuckNudge",
@@ -6466,7 +6471,11 @@ if (state?.settings?.debugInstructionalPlan) {
               instructionalActivation
             )
           : null;
-      
+
+      console.log(
+        "AI RESPONSE:",
+        instructionalResponse
+    );
       const nextQ =
         instructionalResponse ||
         computeNextQuestion(state);
