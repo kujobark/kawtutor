@@ -6424,7 +6424,11 @@ if (state?.settings?.debugInstructionalPlan) {
   return res.status(200).json({ reply, state });
 }
      
-    if (!inProtectedPending && isStuckMessage(message)) {
+    if (
+      !inProtectedPending &&
+      isStuckMessage(message) &&
+      getBaseStage(getStage(state)) !== "details"
+    ) {
      const stage = getStage(state);
      const resumeQuestion = enforceSingleQuestion(computeNextQuestion(state));
 
