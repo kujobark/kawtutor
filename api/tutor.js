@@ -383,6 +383,9 @@ const INSTRUCTIONAL_PLAYBOOK = {
       thinkingMove:
         "Think of one supporting fact, example, observation, explanation, or piece of evidence that supports this Main Idea.",
 
+      communicationPattern:
+        "briefReassuranceThenQuestion",
+      
       aiContextualizes: true,
 
       validation: {
@@ -425,6 +428,58 @@ function getInstructionalContract(
     null
   );
 }
+
+// ======================================================================
+// LAYER 6 — INSTRUCTIONAL COMMUNICATION
+//
+// Purpose:
+// Defines the approved instructional communication patterns used to
+// express predetermined instructional decisions.
+//
+// Architectural Ownership:
+// • Universal instructional commitments are inherited by every contract.
+// • Contracts reference an approved communication pattern.
+// • AI contextualizes the selected pattern using accumulated
+//   instructional context.
+//
+// AI never determines instructional communication.
+// AI realizes the predetermined communication pattern while preserving
+// student ownership and instructional intent.
+// ======================================================================
+
+const INSTRUCTIONAL_COMMUNICATION = {
+
+    universal: {
+
+        preserveStudentOwnership: true,
+
+        acknowledgeAuthenticProgressOnly: true,
+
+        advanceOneThinkingStep: true,
+
+        askOneIntentionalQuestion: true,
+
+        useInstructionalRestraint: true,
+
+        supportiveTeachingPresence: true,
+
+        neverGenerateStudentWork: true,
+
+        neverChangeInstructionalDecision: true
+
+    },
+
+    patterns: {
+
+        questionOnly: {},
+
+        acknowledgeThenQuestion: {},
+
+        briefReassuranceThenQuestion: {}
+
+    }
+
+};
 
 // ======================================================
 // INSTRUCTIONAL CONTRACT EXECUTION
