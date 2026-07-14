@@ -445,7 +445,11 @@ function executeInstructionalContract(contract, state) {
 
 function executeEDGS001(contract, state) {
   const ideas = getIdeaList(state).filter(Boolean);
-  const resume = state?.pending?.resumePending;
+
+  const resume =
+    state?.pending?.resumePending ||
+    state?.pending ||
+    null;
 
   const currentMainIdea =
     Number.isInteger(resume?.index)
@@ -545,6 +549,24 @@ function activateInstructionalContract(contract, state) {
     execution,
     aiPayload
   };
+}
+
+// ======================================================
+// INSTRUCTIONAL RESPONSE
+// ======================================================
+
+async function getInstructionalResponse(activation) {
+  if (!activation) return null;
+
+  const payload = activation.aiPayload;
+
+  if (!payload) return null;
+
+  // AI integration comes next.
+  // For now simply return the payload so we can
+  // verify the runtime end-to-end.
+
+  return payload;
 }
 
 // ======================================================
@@ -5965,23 +5987,93 @@ const struggleCheck =
 if (struggleCheck.detected) {
   const stage = `details:${i}`;
 
+  const instructionalContract =
+    getInstructionalContract(
+      "details",
+      "genuineStruggle"
+    );
+
+  const activationState = {
+    ...s,
+    pending: {
+      type: "collectAnotherDetail",
+      index: i,
+    },
+  };
+
+  const instructionalActivation =
+    instructionalContract
+      ? activateInstructionalContract(
+          instructionalContract,
+          activationState
+        )
+      : null;
+
   s.pending = {
     type: "stuckNudge",
     stage,
+
+    instructionalContract:
+      instructionalContract
+        ? {
+            contractId:
+              instructionalContract.contractId,
+            frameComponent:
+              instructionalContract.frameComponent,
+            instructionalSituation:
+              instructionalContract.instructionalSituation,
+            instructionalGoal:
+              instructionalContract.instructionalGoal,
+            teachingMove:
+              instructionalContract.teachingMove,
+            thinkingMove:
+              instructionalContract.thinkingMove,
+            aiContextualizes:
+              instructionalContract.aiContextualizes,
+          }
+        : null,
+
+    instructionalActivation:
+      instructionalActivation
+        ? {
+            contractId:
+              instructionalActivation.contractId,
+            execution:
+              instructionalActivation.execution,
+            aiPayload:
+              instructionalActivation.aiPayload,
+          }
+        : null,
+
     tone:
       struggleCheck.intent === "frustrated"
         ? "frustration"
         : detectStuckTone(msg),
-    resumeQuestion: buildMiniQuestion(s),
-    miniQuestion: buildMiniQuestion(s),
-    nudgeText: formatNudgeText(
-      buildStuckNudges(s, stage)
-    ),
-    detectedBy: struggleCheck.source,
+
+    resumePending: {
+      type: "collectAnotherDetail",
+      index: i,
+    },
+
+    resumeQuestion:
+      buildMiniQuestion(activationState),
+
+    miniQuestion:
+      buildMiniQuestion(activationState),
+
+    nudgeText:
+      formatNudgeText(
+        buildStuckNudges(s, stage)
+      ),
+
+    detectedBy:
+      struggleCheck.source,
+
     aiIntent:
       struggleCheck.source === "aiIntentFallback"
         ? struggleCheck.intent
         : undefined,
+
     aiConfidence:
       struggleCheck.source === "aiIntentFallback"
         ? struggleCheck.confidence
