@@ -471,15 +471,35 @@ const INSTRUCTIONAL_COMMUNICATION = {
 
     patterns: {
 
-        questionOnly: {},
+    questionOnly: {
+        instruction:
+            "Express the predetermined Thinking Move as one concise, natural question."
+    },
 
-        acknowledgeThenQuestion: {},
+    acknowledgeThenQuestion: {
+        instruction:
+            "Briefly acknowledge authentic progress supported by the student's existing work, then express the predetermined Thinking Move as one concise question."
+    },
 
-        briefReassuranceThenQuestion: {}
-
+    briefReassuranceThenQuestion: {
+        instruction:
+            "Offer one brief, supportive reassurance responsive to the student's genuine struggle, then express the predetermined Thinking Move as one concise question."
     }
 
+}
+
 };
+
+function getInstructionalCommunicationPattern(patternName) {
+  const patterns =
+    INSTRUCTIONAL_COMMUNICATION?.patterns || {};
+
+  return (
+    patterns?.[patternName] ||
+    patterns.questionOnly ||
+    null
+  );
+}
 
 // ======================================================
 // INSTRUCTIONAL CONTRACT EXECUTION
@@ -516,6 +536,8 @@ function executeEDGS001(contract, state) {
     instructionalGoal: contract.instructionalGoal,
     teachingMove: contract.teachingMove,
     thinkingMove: contract.thinkingMove,
+    communicationPattern:
+      contract.communicationPattern || "questionOnly",
     aiContextualizes: contract.aiContextualizes,
 
      context: {
@@ -552,12 +574,13 @@ function buildAIContextualizationPayload(execution) {
     teachingMove:
       execution.teachingMove,
 
-    thinkingMove:
+   thinkingMove:
       execution.thinkingMove,
 
-    context: {
-      assignmentContext:
-        execution?.context?.assignmentContext || {},
+  communicationPattern:
+      execution.communicationPattern || "questionOnly",
+
+  context: {
 
       thinkingTask:
         execution?.context?.thinkingTask || {},
