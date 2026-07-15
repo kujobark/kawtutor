@@ -1032,6 +1032,80 @@ function looksLikeMechanism(text) {
   return markers.some((p) => t.includes(p));
 }
 
+function validateEssentialDetailResponse(
+  response,
+  currentMainIdea = ""
+) {
+  const text = cleanText(response);
+  const normalized = text.toLowerCase();
+
+  const mainIdea =
+    cleanText(currentMainIdea).toLowerCase();
+
+  if (!text) {
+    return {
+      valid: false,
+      reason: "emptyResponse",
+    };
+  }
+
+  if (
+    isStuckMessage(text) ||
+    isWeakFrameResponse(text) ||
+    isMetaResponse(text)
+  ) {
+    return {
+      valid: false,
+      reason: "notStudentDetail",
+    };
+  }
+
+  const circularResponses = new Set([
+    "because it does",
+    "because they do",
+    "because it is",
+    "because that happens",
+    "it just does",
+    "they just do",
+    "that is why",
+    "because of that",
+    "it is true",
+    "that is true",
+  ]);
+
+  if (circularResponses.has(normalized)) {
+    return {
+      valid: false,
+      reason: "circularExplanation",
+    };
+  }
+
+  const words =
+    text.split(/\s+/).filter(Boolean);
+
+  if (words.length < 4) {
+    return {
+      valid: false,
+      reason: "needsSpecificity",
+    };
+  }
+
+  if (
+    mainIdea &&
+    normalized === mainIdea
+  ) {
+    return {
+      valid: false,
+      reason: "repeatsMainIdea",
+    };
+  }
+
+  return {
+    valid: true,
+    reason: null,
+  };
+}
+
 // ------------------------------------------------------
 // STUDENT OWNERSHIP CHECK
 // Ensures Kaw never replaces student thinking.
@@ -5799,6 +5873,27 @@ if (!mutationIntent.accept) {
     s.pending = laneCheck;
     return s;
   }
+
+  const currentMainIdea =
+  getIdeaList(s)[idx] || "";
+
+const detailValidation =
+  validateEssentialDetailResponse(
+    msg,
+    currentMainIdea
+  );
+
+if (!detailValidation.valid) {
+  return beginStuckSupportFromPending(
+    s,
+    msg,
+    {
+      intent: "stuck",
+      confidence: 1,
+      source: `detailValidation:${detailValidation.reason}`,
+    }
+  );
+}
 
   s.frame.details[idx] = [
     ...s.frame.details[idx],
