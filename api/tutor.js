@@ -582,6 +582,9 @@ function buildAIContextualizationPayload(execution) {
 
   context: {
 
+      assignmentContext:
+        execution?.context?.assignmentContext || {},
+
       thinkingTask:
         execution?.context?.thinkingTask || {},
 
@@ -639,6 +642,15 @@ async function getInstructionalResponse(activation) {
   
   if (!payload) return null;
 
+  const communicationPattern =
+  getInstructionalCommunicationPattern(
+    payload.communicationPattern
+  );
+
+  const communicationInstruction =
+  communicationPattern?.instruction ||
+  "Express the predetermined Thinking Move as one concise, natural question.";
+
   const assignmentContext =
     payload?.context?.assignmentContext || {};
 
@@ -668,18 +680,16 @@ The instructional decision has already been made by a deterministic Instructiona
 Your only job is to express the predetermined Thinking Move as one natural, assignment-specific question.
 
 You must follow these rules:
-- Do not answer the assignment.
-- Do not provide facts, examples, evidence, explanations, or possible student answers.
-- Do not introduce outside knowledge.
-- Do not evaluate factual correctness.
 - Do not rewrite or complete student work.
 - Do not change the Instructional Goal, Teaching Move, or Thinking Move.
 - Preserve student ownership.
+- Follow the Approved Communication Instruction exactly.
 - Ask exactly one concise question.
-- Return only the student-facing question.`;
-
+- You may include one brief student-facing lead-in before the question only when the Approved Communication Instruction requires it.
+- Return only the complete student-facing response.`;
+  
   const user = `Contract ID:
-${payload.contractId}
+  ${payload.contractId}
 
 Instructional Goal:
 ${payload.instructionalGoal}
@@ -689,6 +699,12 @@ ${payload.teachingMove}
 
 Predetermined Thinking Move:
 ${payload.thinkingMove}
+
+Approved Communication Pattern:
+${payload.communicationPattern || "questionOnly"}
+
+Approved Communication Instruction:
+${communicationInstruction}
 
 Assignment Context:
 ${assignment || "(not available)"}
