@@ -483,7 +483,7 @@ const INSTRUCTIONAL_COMMUNICATION = {
 
     briefReassuranceThenQuestion: {
         instruction:
-            "Offer one brief, supportive reassurance responsive to the student's genuine struggle, then express the predetermined Thinking Move as one concise question."
+            "Use one brief, supportive lead-in that does not imply progress or success, then express the predetermined Thinking Move as one concise question."
     }
 
 }
