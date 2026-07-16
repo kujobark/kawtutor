@@ -518,6 +518,58 @@ function executeInstructionalContract(contract, state) {
   }
 }
 
+function selectEDGS001ThinkingMove(
+  instructionalFinding,
+  fallbackThinkingMove
+) {
+  const diagnosis =
+    instructionalFinding?.diagnosis || "";
+
+  // --------------------------------------------------
+  // NO COMPONENT EVIDENCE
+  //
+  // The student has not provided observable content that
+  // can be evaluated as an Essential Detail.
+  //
+  // Kaw reduces cognitive load and cues the student to
+  // retrieve one concrete form of support for the accepted
+  // Main Idea without implying progress or supplying content.
+  // --------------------------------------------------
+  if (diagnosis === "noComponentEvidence") {
+    return (
+      "Using the accepted Main Idea, invite the student to think of " +
+      "one concrete fact, example, observation, explanation, or piece " +
+      "of evidence that could support it. Reduce cognitive load without " +
+      "suggesting or generating the Essential Detail."
+    );
+  }
+
+  // --------------------------------------------------
+  // INSUFFICIENT OBSERVABLE EVIDENCE
+  //
+  // The response is too vague, circular, or incomplete to
+  // determine whether the required supporting relationship
+  // to the Main Idea has been established.
+  //
+  // Kaw may not infer alignment. It should prompt the student
+  // to provide observable information that makes the possible
+  // relationship clear.
+  // --------------------------------------------------
+  if (diagnosis === "insufficientObservableEvidence") {
+    return (
+      "Using the accepted Main Idea, ask the student for one concrete " +
+      "fact, example, observation, explanation, or piece of evidence " +
+      "that makes clear how the detail could support the Main Idea. " +
+      "Do not claim that the current response supports or fails to " +
+      "support the Main Idea because alignment remains undetermined."
+    );
+  }
+
+  // Preserve the teacher-authored contract move when no
+  // diagnosis-specific Thinking Move has been established.
+  return fallbackThinkingMove;
+}
+
 function executeEDGS001(contract, state) {
   const ideas = getIdeaList(state).filter(Boolean);
 
@@ -531,15 +583,39 @@ function executeEDGS001(contract, state) {
       ? ideas[resume.index] || ""
       : "";
 
+  // Read the instructional finding established before
+  // this contract was activated.
+  //
+  // The finding describes the observable instructional
+  // condition. It does not infer the student's thinking,
+  // intent, emotion, or understanding.
+  const instructionalFinding =
+    state?.pending?.instructionalFinding ||
+    state?.pending?.resumePending?.instructionalFinding ||
+    null;
+
+  // Select the predetermined Thinking Move from the
+  // deterministic instructional finding.
+  //
+  // AI does not choose this move.
+  const selectedThinkingMove =
+    selectEDGS001ThinkingMove(
+      instructionalFinding,
+      contract.thinkingMove
+    );
+  
   return {
     contractId: contract.contractId,
     instructionalGoal: contract.instructionalGoal,
     teachingMove: contract.teachingMove,
-    thinkingMove: contract.thinkingMove,
+    thinkingMove: selectedThinkingMove,
     communicationPattern:
       contract.communicationPattern || "questionOnly",
     aiContextualizes: contract.aiContextualizes,
 
+    instructionalFinding,
+
+    context: {
      context: {
       assignmentContext:
         state?.frameMeta?.assignmentContext || {},
@@ -574,13 +650,19 @@ function buildAIContextualizationPayload(execution) {
     teachingMove:
       execution.teachingMove,
 
-   thinkingMove:
+    thinkingMove:
       execution.thinkingMove,
 
-  communicationPattern:
+    communicationPattern:
       execution.communicationPattern || "questionOnly",
 
-  context: {
+    // Carry only the deterministic instructional conclusion.
+    // AI may express this finding but may not reinterpret,
+    // expand, or replace it.
+    instructionalFinding:
+      execution?.instructionalFinding || null,
+
+    context: {
 
       assignmentContext:
         execution?.context?.assignmentContext || {},
@@ -672,20 +754,33 @@ async function getInstructionalResponse(activation) {
     Array.isArray(payload?.context?.existingDetails)
       ? payload.context.existingDetails
       : [];
+  
+  // Deterministic instructional conclusions established
+  // before AI contextualization.
+  //
+  // AI may express these conclusions but may not revise,
+  // reinterpret, strengthen, weaken, or replace them.
+  const instructionalFinding =
+    payload?.instructionalFinding || null;
+  
+   const system = `You are the language contextualization layer for Kaw, a structured instructional companion.
 
-  const system = `You are the language contextualization layer for Kaw, a structured instructional companion.
+The instructional decision and instructional findings have already been established by a deterministic Instructional Reasoning Engine.
 
-The instructional decision has already been made by a deterministic Instructional Decision Engine.
-
-Your only job is to express the predetermined Thinking Move as one natural, assignment-specific question.
+Your only job is to express the predetermined Thinking Move using natural, assignment-specific language.
 
 You must follow these rules:
 - Do not rewrite or complete student work.
 - Do not change the Instructional Goal, Teaching Move, or Thinking Move.
+- Do not reinterpret, expand, weaken, strengthen, or replace the established Instructional Finding.
+- Do not infer student intent, understanding, confusion, emotion, effort, motivation, or meaning.
+- Do not claim that a response supports or fails to support the Main Idea unless the established Instructional Finding explicitly says so.
+- When relationship status is undetermined, preserve that uncertainty and ask for observable information that would make the relationship clearer.
 - Preserve student ownership.
 - Follow the Approved Communication Instruction exactly.
 - Ask exactly one concise question.
 - You may include one brief student-facing lead-in before the question only when the Approved Communication Instruction requires it.
+- Any acknowledgement must be directly supported by the established Instructional Finding.
 - Return only the complete student-facing response.`;
   
   const user = `Contract ID:
@@ -705,6 +800,13 @@ ${payload.communicationPattern || "questionOnly"}
 
 Approved Communication Instruction:
 ${communicationInstruction}
+
+Established Instructional Finding:
+${JSON.stringify(
+  instructionalFinding || {},
+  null,
+  2
+)}
 
 Assignment Context:
 ${assignment || "(not available)"}
@@ -728,8 +830,14 @@ ${
     : "(none yet)"
 }
 
-Contextualize the predetermined Thinking Move into exactly one natural question for the student.`;
+Express the predetermined Thinking Move as one natural, assignment-specific student-facing response.
 
+Use only instructional conclusions explicitly contained in the Established Instructional Finding.
+
+Do not introduce praise, alignment claims, diagnoses, assumptions, or interpretations that were not deterministically established.
+
+Ask exactly one question.`;
+  
   try {
     const resp = await client.chat.completions.create({
       model: DEFAULT_MODEL,
@@ -1036,6 +1144,142 @@ function validateEssentialDetailResponse(
   response,
   currentMainIdea = ""
 ) {
+  const text = cleanText(response);
+  const normalized = text.toLowerCase();
+
+  const mainIdea =
+    cleanText(currentMainIdea).toLowerCase();
+
+  // --------------------------------------------------
+  // ESSENTIAL DETAIL INSTRUCTIONAL RELATIONSHIP
+  //
+  // An Essential Detail must establish a supporting
+  // relationship to the current Main Idea.
+  //
+  // Kaw may establish only what observable evidence
+  // directly supports. When evidence is insufficient,
+  // the relationship remains undetermined.
+  // --------------------------------------------------
+
+  if (!text) {
+    return {
+      valid: false,
+
+      componentEvidenceLevel: "none",
+
+      componentCriteriaStatus: "notSatisfied",
+
+      relationshipStatus: "undetermined",
+
+      diagnosis: "emptyResponse",
+    };
+  }
+
+  if (
+    isStuckMessage(text) ||
+    isWeakFrameResponse(text) ||
+    isMetaResponse(text)
+  ) {
+    return {
+      valid: false,
+
+      componentEvidenceLevel: "none",
+
+      componentCriteriaStatus: "notSatisfied",
+
+      relationshipStatus: "undetermined",
+
+      diagnosis: "noComponentEvidence",
+    };
+  }
+
+  const circularResponses = new Set([
+    "because it does",
+    "because they do",
+    "because it is",
+    "because that happens",
+    "it just does",
+    "they just do",
+    "that is why",
+    "because of that",
+    "it is true",
+    "that is true",
+  ]);
+
+  if (circularResponses.has(normalized)) {
+    return {
+      valid: false,
+
+      componentEvidenceLevel: "none",
+
+      componentCriteriaStatus: "notSatisfied",
+
+      relationshipStatus: "undetermined",
+
+      diagnosis: "insufficientObservableEvidence",
+    };
+  }
+
+  const words =
+    text.split(/\s+/).filter(Boolean);
+
+  if (words.length < 4) {
+    return {
+      valid: false,
+
+      componentEvidenceLevel: "limited",
+
+      componentCriteriaStatus: "notSatisfied",
+
+      relationshipStatus: "undetermined",
+
+      diagnosis: "insufficientObservableEvidence",
+    };
+  }
+
+  if (
+    mainIdea &&
+    normalized === mainIdea
+  ) {
+    return {
+      valid: false,
+
+      componentEvidenceLevel: "limited",
+
+      componentCriteriaStatus: "notSatisfied",
+
+      relationshipStatus: "notEstablished",
+
+      diagnosis: "repeatsMainIdea",
+    };
+  }
+
+  // At this stage, the deterministic engine has enough
+  // observable student content to continue relationship
+  // analysis, but it has not yet established whether the
+  // response fully supports the current Main Idea.
+  //
+  // The next architectural step will determine whether the
+  // relationship is:
+  // - established
+  // - incomplete
+  // - not established
+  //
+  // Until that logic is added, the response remains
+  // provisionally valid under the current runtime behavior.
+  return {
+    valid: true,
+
+    componentEvidenceLevel: "substantive",
+
+    componentCriteriaStatus: "provisionallySatisfied",
+
+    relationshipStatus: "pendingAnalysis",
+
+    diagnosis: null,
+  };
+}
+
   const text = cleanText(response);
   const normalized = text.toLowerCase();
 
@@ -2608,13 +2852,31 @@ function beginStuckSupportFromPending(
         )
       : null;
 
+  // Build a temporary activation state that includes the
+  // deterministic instructional finding before the new
+  // pending support state is committed.
+  //
+  // This ensures contract execution can read the finding
+  // during activation without changing the student's saved
+  // Frame or instructional location.
+  const activationState = {
+    ...state,
+
+    pending: {
+      ...(state?.pending || {}),
+
+      instructionalFinding:
+        intentResult?.instructionalFinding || null,
+    },
+  };
+
   const instructionalActivation =
-  instructionalContract
-    ? activateInstructionalContract(
-        instructionalContract,
-        state
-      )
-    : null;
+    instructionalContract
+      ? activateInstructionalContract(
+          instructionalContract,
+          activationState
+        )
+      : null;
     console.log(
   "ACTIVATION:",
   instructionalActivation
@@ -2623,6 +2885,15 @@ function beginStuckSupportFromPending(
   state.pending = {
   type: "stuckNudge",
   stage,
+  // Preserve the deterministic instructional finding that
+  // caused this support sequence.
+  //
+  // This allows downstream contract selection and
+  // communication to respond to what was instructionally
+  // established rather than treating every invalid response
+  // as generic struggle.
+  instructionalFinding:
+    intentResult?.instructionalFinding || null,
 
   instructionalContract:
     instructionalContract
@@ -5884,13 +6155,48 @@ const detailValidation =
   );
 
 if (!detailValidation.valid) {
+  // Preserve exactly what the deterministic validator
+  // established about this response.
+  //
+  // Do not infer intent, understanding, confusion, or effort.
+  // The finding describes only the observable instructional
+  // condition of the response.
+  const instructionalFinding = {
+    frameComponent: "details",
+
+    componentEvidenceLevel:
+      detailValidation.componentEvidenceLevel,
+
+    componentCriteriaStatus:
+      detailValidation.componentCriteriaStatus,
+
+    relationshipStatus:
+      detailValidation.relationshipStatus,
+
+    diagnosis:
+      detailValidation.diagnosis,
+
+    currentMainIdea,
+
+    currentDetailIndex:
+      s.frame.details[idx].length,
+  };
+
   return beginStuckSupportFromPending(
     s,
     msg,
     {
+      // This remains the current contract-routing behavior
+      // temporarily. The next change will select support from
+      // the instructional finding rather than this generic label.
       intent: "stuck",
+
       confidence: 1,
-      source: `detailValidation:${detailValidation.reason}`,
+
+      source:
+        `detailValidation:${detailValidation.diagnosis}`,
+
+      instructionalFinding,
     }
   );
 }
