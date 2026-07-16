@@ -1711,6 +1711,147 @@ async function runEssentialDetailSelfTests() {
           : null,
     },
   });
+
+    // --------------------------------------------------
+  // LIVE RUNTIME TEST
+  //
+  // Confirms that the second required Essential Detail
+  // also blocks a circular response without overwriting
+  // or losing the first valid Detail.
+  // --------------------------------------------------
+
+  const secondDetailInvalidState =
+    defaultState();
+
+  secondDetailInvalidState.frameMeta
+    .assignmentContext = {
+      raw:
+        "Explain how social media can affect teen mental health.",
+      understanding:
+        "Explain how social media can affect teen mental health.",
+      studentSummary:
+        "you're explaining how social media can affect teen mental health.",
+      confidence: "high",
+      needsClarification: false,
+      inferredPurpose: "",
+      childAnchor: "",
+      clarificationCount: 0,
+    };
+
+  secondDetailInvalidState.frameMeta.purpose =
+    "study";
+
+  secondDetailInvalidState.frame.keyTopic =
+    "Social Media and Teen Mental Health";
+
+  secondDetailInvalidState.frame.isAbout =
+    "How social media can affect teen mental health.";
+
+  secondDetailInvalidState.frame.parentItems = [
+    "Social media can increase anxiety and stress.",
+    "Social media can affect self-esteem.",
+  ];
+
+  const existingFirstDetail =
+    "Teens compare themselves to people online.";
+
+  secondDetailInvalidState.frame.details = [
+    [existingFirstDetail],
+    [],
+  ];
+
+  secondDetailInvalidState.pending = {
+    type: "collectAnotherDetail",
+    index: 0,
+  };
+
+  const secondDetailInvalidActual =
+    await updateStateFromStudent(
+      secondDetailInvalidState,
+      "because it does"
+    );
+
+  const secondDetailInvalidPassed =
+    Array.isArray(
+      secondDetailInvalidActual?.frame
+        ?.details?.[0]
+    ) &&
+    secondDetailInvalidActual.frame
+      .details[0].length === 1 &&
+    secondDetailInvalidActual.frame
+      .details[0][0] ===
+      existingFirstDetail &&
+    secondDetailInvalidActual?.pending?.type ===
+      "stuckNudge" &&
+    secondDetailInvalidActual?.pending
+      ?.instructionalFinding
+      ?.diagnosis ===
+      "insufficientObservableEvidence" &&
+    secondDetailInvalidActual?.pending
+      ?.resumePending?.type ===
+      "collectAnotherDetail" &&
+    secondDetailInvalidActual?.pending
+      ?.resumePending?.index === 0;
+
+  results.push({
+    name:
+      "ED Runtime - Second required detail blocks circular response",
+
+    passed:
+      secondDetailInvalidPassed,
+
+    response:
+      "because it does",
+
+    expected: {
+      savedDetailCount: 1,
+      preservedFirstDetail:
+        existingFirstDetail,
+      pendingType: "stuckNudge",
+      diagnosis:
+        "insufficientObservableEvidence",
+      resumePendingType:
+        "collectAnotherDetail",
+      resumePendingIndex: 0,
+    },
+
+    actual: {
+      savedDetailCount:
+        Array.isArray(
+          secondDetailInvalidActual?.frame
+            ?.details?.[0]
+        )
+          ? secondDetailInvalidActual.frame
+              .details[0].length
+          : null,
+
+      preservedFirstDetail:
+        secondDetailInvalidActual?.frame
+          ?.details?.[0]?.[0] || null,
+
+      pendingType:
+        secondDetailInvalidActual?.pending
+          ?.type || null,
+
+      diagnosis:
+        secondDetailInvalidActual?.pending
+          ?.instructionalFinding
+          ?.diagnosis || null,
+
+      resumePendingType:
+        secondDetailInvalidActual?.pending
+          ?.resumePending?.type || null,
+
+      resumePendingIndex:
+        Number.isInteger(
+          secondDetailInvalidActual?.pending
+            ?.resumePending?.index
+        )
+          ? secondDetailInvalidActual.pending
+              .resumePending.index
+          : null,
+    },
+  });
   
   const passedCount =
     results.filter((result) => result.passed).length;
