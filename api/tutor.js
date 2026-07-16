@@ -6728,179 +6728,199 @@ return s;
   for (let i = 0; i < ideas.length; i++) {
     const arr = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
 
-    if (arr.length < 2) {
-      if (!isNegative(msg)) {
+  if (arr.length < 2) {
+  if (!isNegative(msg)) {
+    const currentMainIdea =
+      getIdeaList(s)[i] || "";
 
-  const detailValidation =
-  validateEssentialDetailResponse(
-    msg,
-    currentMainIdea
-  );
+    const detailValidation =
+      validateEssentialDetailResponse(
+        msg,
+        currentMainIdea
+      );
 
-if (!detailValidation.valid) {
-  const instructionalFinding = {
-    frameComponent: "details",
+    if (!detailValidation.valid) {
+      const instructionalFinding = {
+        frameComponent: "details",
 
-    componentEvidenceLevel:
-      detailValidation.componentEvidenceLevel,
+        componentEvidenceLevel:
+          detailValidation.componentEvidenceLevel,
 
-    componentCriteriaStatus:
-      detailValidation.componentCriteriaStatus,
+        componentCriteriaStatus:
+          detailValidation.componentCriteriaStatus,
 
-    relationshipStatus:
-      detailValidation.relationshipStatus,
+        relationshipStatus:
+          detailValidation.relationshipStatus,
 
-    diagnosis:
-      detailValidation.diagnosis,
+        diagnosis:
+          detailValidation.diagnosis,
 
-    currentMainIdea,
+        currentMainIdea,
 
-    currentDetailIndex:
-      arr.length,
-  };
+        currentDetailIndex:
+          arr.length,
+      };
 
-  s.pending = {
-    type: "collectAnotherDetail",
-    index: i,
-  };
+      s.pending = {
+        type: "collectAnotherDetail",
+        index: i,
+      };
 
-  return beginStuckSupportFromPending(
-    s,
-    msg,
-    {
-      intent: "stuck",
-      confidence: 1,
+      return beginStuckSupportFromPending(
+        s,
+        msg,
+        {
+          intent: "stuck",
+          confidence: 1,
 
-      source:
-        `detailValidation:${detailValidation.diagnosis}`,
+          source:
+            `detailValidation:${detailValidation.diagnosis}`,
 
-      instructionalFinding,
-    }
-  );
-
-        
-    // Prevent recognized or AI-detected struggle
-  // from being saved as an Essential Detail.
-const struggleCheck =
-  await detectsUnrecognizedStruggle(s, msg);
-
-if (struggleCheck.detected) {
-  const stage = `details:${i}`;
-
-  const instructionalContract =
-    getInstructionalContract(
-      "details",
-      "genuineStruggle"
-    );
-
-  const activationState = {
-    ...s,
-    pending: {
-      type: "collectAnotherDetail",
-      index: i,
-    },
-  };
-
-  const instructionalActivation =
-    instructionalContract
-      ? activateInstructionalContract(
-          instructionalContract,
-          activationState
-        )
-      : null;
-
-  s.pending = {
-    type: "stuckNudge",
-    stage,
-
-    instructionalContract:
-      instructionalContract
-        ? {
-            contractId:
-              instructionalContract.contractId,
-            frameComponent:
-              instructionalContract.frameComponent,
-            instructionalSituation:
-              instructionalContract.instructionalSituation,
-            instructionalGoal:
-              instructionalContract.instructionalGoal,
-            teachingMove:
-              instructionalContract.teachingMove,
-            thinkingMove:
-              instructionalContract.thinkingMove,
-            aiContextualizes:
-              instructionalContract.aiContextualizes,
-          }
-        : null,
-
-    instructionalActivation:
-      instructionalActivation
-        ? {
-            contractId:
-              instructionalActivation.contractId,
-            execution:
-              instructionalActivation.execution,
-            aiPayload:
-              instructionalActivation.aiPayload,
-          }
-        : null,
-
-    tone:
-      struggleCheck.intent === "frustrated"
-        ? "frustration"
-        : detectStuckTone(msg),
-
-    resumePending: {
-      type: "collectAnotherDetail",
-      index: i,
-    },
-
-    resumeQuestion:
-      buildMiniQuestion(activationState),
-
-    miniQuestion:
-      buildMiniQuestion(activationState),
-
-    nudgeText:
-      formatNudgeText(
-        buildStuckNudges(s, stage)
-      ),
-
-    detectedBy:
-      struggleCheck.source,
-
-    aiIntent:
-      struggleCheck.source === "aiIntentFallback"
-        ? struggleCheck.intent
-        : undefined,
-
-    aiConfidence:
-      struggleCheck.source === "aiIntentFallback"
-        ? struggleCheck.confidence
-        : undefined,
-  };
-
-  return s;
-}
-
-        if (shouldRequestEvidenceDetail(s, msg)) {
-          s.pending = { type: "writeNeedEvidenceDetail", index: i, mechanism: msg };
-          return s;
+          instructionalFinding,
         }
+      );
+    }
 
-        const laneCheck = analyzeBuildLane(s, "details", msg);
-if (laneCheck) {
-  s.pending = laneCheck;
-  return s;
-}
+    // Only responses that pass deterministic validation
+    // may reach the AI fallback struggle detector.
+    const struggleCheck =
+      await detectsUnrecognizedStruggle(
+        s,
+        msg
+      );
 
-const currentMainIdea =
-  getIdeaList(s)[i] || "";
-}
-        
-        s.frame.details[i] = [...arr, msg];
-        clearMatchingSkip(s, `details:${i}`);
-      }
+    if (struggleCheck.detected) {
+      const stage = `details:${i}`;
+
+      const instructionalContract =
+        getInstructionalContract(
+          "details",
+          "genuineStruggle"
+        );
+
+      const activationState = {
+        ...s,
+        pending: {
+          type: "collectAnotherDetail",
+          index: i,
+        },
+      };
+
+      const instructionalActivation =
+        instructionalContract
+          ? activateInstructionalContract(
+              instructionalContract,
+              activationState
+            )
+          : null;
+
+      s.pending = {
+        type: "stuckNudge",
+        stage,
+
+        instructionalContract:
+          instructionalContract
+            ? {
+                contractId:
+                  instructionalContract.contractId,
+                frameComponent:
+                  instructionalContract.frameComponent,
+                instructionalSituation:
+                  instructionalContract.instructionalSituation,
+                instructionalGoal:
+                  instructionalContract.instructionalGoal,
+                teachingMove:
+                  instructionalContract.teachingMove,
+                thinkingMove:
+                  instructionalContract.thinkingMove,
+                aiContextualizes:
+                  instructionalContract.aiContextualizes,
+              }
+            : null,
+
+        instructionalActivation:
+          instructionalActivation
+            ? {
+                contractId:
+                  instructionalActivation.contractId,
+                execution:
+                  instructionalActivation.execution,
+                aiPayload:
+                  instructionalActivation.aiPayload,
+              }
+            : null,
+
+        tone:
+          struggleCheck.intent === "frustrated"
+            ? "frustration"
+            : detectStuckTone(msg),
+
+        resumePending: {
+          type: "collectAnotherDetail",
+          index: i,
+        },
+
+        resumeQuestion:
+          buildMiniQuestion(activationState),
+
+        miniQuestion:
+          buildMiniQuestion(activationState),
+
+        nudgeText:
+          formatNudgeText(
+            buildStuckNudges(s, stage)
+          ),
+
+        detectedBy:
+          struggleCheck.source,
+
+        aiIntent:
+          struggleCheck.source ===
+          "aiIntentFallback"
+            ? struggleCheck.intent
+            : undefined,
+
+        aiConfidence:
+          struggleCheck.source ===
+          "aiIntentFallback"
+            ? struggleCheck.confidence
+            : undefined,
+      };
+
+      return s;
+    }
+
+    if (shouldRequestEvidenceDetail(s, msg)) {
+      s.pending = {
+        type: "writeNeedEvidenceDetail",
+        index: i,
+        mechanism: msg,
+      };
+      return s;
+    }
+
+    const laneCheck =
+      analyzeBuildLane(
+        s,
+        "details",
+        msg
+      );
+
+    if (laneCheck) {
+      s.pending = laneCheck;
+      return s;
+    }
+
+    s.frame.details[i] = [
+      ...arr,
+      msg,
+    ];
+
+    clearMatchingSkip(
+      s,
+      `details:${i}`
+    );
+  }
 
             const updatedArr = Array.isArray(s.frame.details[i])
         ? s.frame.details[i]
