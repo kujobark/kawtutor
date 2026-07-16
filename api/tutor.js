@@ -1300,8 +1300,22 @@ function validateEssentialDetailResponse(
 }
 
 // ======================================================
-// KAW ESSENTIAL DETAIL SELF-TESTS
+// DETERMINISTIC SELF-TEST SUITES
 // ======================================================
+//
+// Purpose:
+//
+// Provides deterministic benchmark suites that verify
+// Kaw's instructional reasoning and runtime behavior.
+//
+// These tests do not affect production behavior.
+// They run only when explicitly invoked by developers.
+//
+// ======================================================
+
+// ------------------------------------------------------
+// Essential Detail Test Suite
+// ------------------------------------------------------
 //
 // Purpose:
 // Quickly verify deterministic Essential Detail validation
@@ -1940,6 +1954,67 @@ function formatEssentialDetailSelfTestResults(
   }
 
   return lines.join("\n");
+}
+
+// ------------------------------------------------------
+// DETERMINISTIC SELF-TEST SUITE REGISTRY
+//
+// Each instructional subsystem owns its own test suite.
+// The registry allows /run tests to execute every suite
+// without combining all tests into one giant function.
+// ------------------------------------------------------
+
+const DETERMINISTIC_SELF_TEST_SUITES = [
+  {
+    id: "essentialDetail",
+    label: "Essential Detail Validation",
+    run: runEssentialDetailSelfTests,
+    format: formatEssentialDetailSelfTestResults,
+  },
+];
+
+async function runAllDeterministicSelfTests() {
+  const suiteResults = [];
+
+  for (const suite of DETERMINISTIC_SELF_TEST_SUITES) {
+    const result = await suite.run();
+
+    suiteResults.push({
+      id: suite.id,
+      label: suite.label,
+      format: suite.format,
+      result,
+    });
+  }
+
+  const passedCount =
+    suiteResults.reduce(
+      (total, suite) =>
+        total + suite.result.passedCount,
+      0
+    );
+
+  const failedCount =
+    suiteResults.reduce(
+      (total, suite) =>
+        total + suite.result.failedCount,
+      0
+    );
+
+  const total =
+    suiteResults.reduce(
+      (count, suite) =>
+        count + suite.result.total,
+      0
+    );
+
+  return {
+    passed: failedCount === 0,
+    passedCount,
+    failedCount,
+    total,
+    suites: suiteResults,
+  };
 }
 
 // ------------------------------------------------------
@@ -7465,12 +7540,27 @@ if (body.runSelfTests === true) {
 // ------------------------------------------------------
 if (message.toLowerCase() === "/run tests") {
   const testResults =
-    await runEssentialDetailSelfTests();
+    await runAllDeterministicSelfTests();
 
-  const reply =
-    formatEssentialDetailSelfTestResults(
-      testResults
+  const formattedSuites =
+    testResults.suites.map((suite) =>
+      suite.format(suite.result)
     );
+
+  const reply = [
+    ...formattedSuites,
+    "",
+    "════════════════════════",
+    "ALL DETERMINISTIC SUITES",
+    "════════════════════════",
+    "",
+    `Passed: ${testResults.passedCount}/${testResults.total}`,
+    `Failed: ${testResults.failedCount}`,
+    "",
+    testResults.passed
+      ? "🚀 All deterministic suites passed."
+      : "⚠️ One or more deterministic suites failed.",
+  ].join("\n");
 
   return res.status(200).json({
     reply,
@@ -7479,22 +7569,10 @@ if (message.toLowerCase() === "/run tests") {
       body.vercelState ||
       body.framing ||
       defaultState(),
-    selfTest: {
-      suite:
-        "essentialDetailDeterministicValidation",
-      passed:
-        testResults.passed,
-      passedCount:
-        testResults.passedCount,
-      failedCount:
-        testResults.failedCount,
-      total:
-        testResults.total,
-    },
+    selfTest: testResults,
   });
 }
 
-    
   let incoming = body.state || body.vercelState || body.framing || {};
   let state = normalizeIncomingState(incoming);
 
