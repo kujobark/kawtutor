@@ -1514,6 +1514,100 @@ async function runEssentialDetailSelfTests() {
     },
   });
 
+    // --------------------------------------------------
+  // LIVE RUNTIME TEST
+  //
+  // Confirms that the actual first Essential Detail
+  // pathway blocks a no-evidence response before saving it.
+  // --------------------------------------------------
+
+  const stuckRuntimeState = defaultState();
+
+  stuckRuntimeState.frameMeta.assignmentContext = {
+    raw:
+      "Explain how social media can affect teen mental health.",
+    understanding:
+      "Explain how social media can affect teen mental health.",
+    studentSummary:
+      "you're explaining how social media can affect teen mental health.",
+    confidence: "high",
+    needsClarification: false,
+    inferredPurpose: "",
+    childAnchor: "",
+    clarificationCount: 0,
+  };
+
+  stuckRuntimeState.frameMeta.purpose = "study";
+
+  stuckRuntimeState.frame.keyTopic =
+    "Social Media and Teen Mental Health";
+
+  stuckRuntimeState.frame.isAbout =
+    "How social media can affect teen mental health.";
+
+  stuckRuntimeState.frame.parentItems = [
+    "Social media can increase anxiety and stress.",
+    "Social media can affect self-esteem.",
+  ];
+
+  stuckRuntimeState.frame.details = [
+    [],
+    [],
+  ];
+
+  const stuckRuntimeActual =
+    await updateStateFromStudent(
+      stuckRuntimeState,
+      "idk"
+    );
+
+  const stuckRuntimePassed =
+    Array.isArray(
+      stuckRuntimeActual?.frame?.details?.[0]
+    ) &&
+    stuckRuntimeActual.frame.details[0].length === 0 &&
+    stuckRuntimeActual?.pending?.type ===
+      "stuckNudge" &&
+    stuckRuntimeActual?.pending
+      ?.instructionalFinding
+      ?.diagnosis ===
+      "noComponentEvidence";
+
+  results.push({
+    name:
+      "ED Runtime - First detail blocks no-evidence response",
+
+    passed:
+      stuckRuntimePassed,
+
+    response:
+      "idk",
+
+    expected: {
+      savedDetailCount: 0,
+      pendingType: "stuckNudge",
+      diagnosis:
+        "noComponentEvidence",
+    },
+
+    actual: {
+      savedDetailCount:
+        Array.isArray(
+          stuckRuntimeActual?.frame?.details?.[0]
+        )
+          ? stuckRuntimeActual.frame.details[0].length
+          : null,
+
+      pendingType:
+        stuckRuntimeActual?.pending?.type || null,
+
+      diagnosis:
+        stuckRuntimeActual?.pending
+          ?.instructionalFinding
+          ?.diagnosis || null,
+    },
+  });
+  
   const passedCount =
     results.filter((result) => result.passed).length;
 
