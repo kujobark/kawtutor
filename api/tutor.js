@@ -1311,7 +1311,7 @@ function validateEssentialDetailResponse(
 // They run only when explicitly called.
 // ======================================================
 
-function runEssentialDetailSelfTests() {
+async function runEssentialDetailSelfTests() {
   const currentMainIdea =
     "Social media can increase anxiety and stress.";
 
@@ -6731,6 +6731,54 @@ return s;
     if (arr.length < 2) {
       if (!isNegative(msg)) {
 
+  const detailValidation =
+  validateEssentialDetailResponse(
+    msg,
+    currentMainIdea
+  );
+
+if (!detailValidation.valid) {
+  const instructionalFinding = {
+    frameComponent: "details",
+
+    componentEvidenceLevel:
+      detailValidation.componentEvidenceLevel,
+
+    componentCriteriaStatus:
+      detailValidation.componentCriteriaStatus,
+
+    relationshipStatus:
+      detailValidation.relationshipStatus,
+
+    diagnosis:
+      detailValidation.diagnosis,
+
+    currentMainIdea,
+
+    currentDetailIndex:
+      arr.length,
+  };
+
+  s.pending = {
+    type: "collectAnotherDetail",
+    index: i,
+  };
+
+  return beginStuckSupportFromPending(
+    s,
+    msg,
+    {
+      intent: "stuck",
+      confidence: 1,
+
+      source:
+        `detailValidation:${detailValidation.diagnosis}`,
+
+      instructionalFinding,
+    }
+  );
+
+        
     // Prevent recognized or AI-detected struggle
   // from being saved as an Essential Detail.
 const struggleCheck =
@@ -6845,6 +6893,10 @@ if (laneCheck) {
   s.pending = laneCheck;
   return s;
 }
+
+const currentMainIdea =
+  getIdeaList(s)[i] || "";
+}
         
         s.frame.details[i] = [...arr, msg];
         clearMatchingSkip(s, `details:${i}`);
@@ -6920,7 +6972,7 @@ export default async function handler(req, res) {
 // ------------------------------------------------------
 if (body.runSelfTests === true) {
   const testResults =
-    runEssentialDetailSelfTests();
+    await runEssentialDetailSelfTests();
 
   return res.status(200).json({
     selfTest: true,
@@ -6941,7 +6993,7 @@ if (body.runSelfTests === true) {
 // ------------------------------------------------------
 if (message.toLowerCase() === "/run tests") {
   const testResults =
-    runEssentialDetailSelfTests();
+    await runEssentialDetailSelfTests();
 
   const reply =
     formatEssentialDetailSelfTestResults(
