@@ -1607,6 +1607,110 @@ async function runEssentialDetailSelfTests() {
           ?.diagnosis || null,
     },
   });
+
+    // --------------------------------------------------
+  // LIVE RUNTIME TEST
+  //
+  // Confirms that a valid first Essential Detail is saved
+  // and progression continues to the required second Detail.
+  // --------------------------------------------------
+
+  const validRuntimeState = defaultState();
+
+  validRuntimeState.frameMeta.assignmentContext = {
+    raw:
+      "Explain how social media can affect teen mental health.",
+    understanding:
+      "Explain how social media can affect teen mental health.",
+    studentSummary:
+      "you're explaining how social media can affect teen mental health.",
+    confidence: "high",
+    needsClarification: false,
+    inferredPurpose: "",
+    childAnchor: "",
+    clarificationCount: 0,
+  };
+
+  validRuntimeState.frameMeta.purpose = "study";
+
+  validRuntimeState.frame.keyTopic =
+    "Social Media and Teen Mental Health";
+
+  validRuntimeState.frame.isAbout =
+    "How social media can affect teen mental health.";
+
+  validRuntimeState.frame.parentItems = [
+    "Social media can increase anxiety and stress.",
+    "Social media can affect self-esteem.",
+  ];
+
+  validRuntimeState.frame.details = [
+    [],
+    [],
+  ];
+
+  const validRuntimeResponse =
+    "Teens compare themselves to people online.";
+
+  const validRuntimeActual =
+    await updateStateFromStudent(
+      validRuntimeState,
+      validRuntimeResponse
+    );
+
+  const validRuntimePassed =
+    Array.isArray(
+      validRuntimeActual?.frame?.details?.[0]
+    ) &&
+    validRuntimeActual.frame.details[0].length === 1 &&
+    validRuntimeActual.frame.details[0][0] ===
+      validRuntimeResponse &&
+    validRuntimeActual?.pending?.type ===
+      "collectAnotherDetail" &&
+    validRuntimeActual?.pending?.index === 0;
+
+  results.push({
+    name:
+      "ED Runtime - First valid detail is saved and advances",
+
+    passed:
+      validRuntimePassed,
+
+    response:
+      validRuntimeResponse,
+
+    expected: {
+      savedDetailCount: 1,
+      savedDetail:
+        validRuntimeResponse,
+      pendingType:
+        "collectAnotherDetail",
+      pendingIndex: 0,
+    },
+
+    actual: {
+      savedDetailCount:
+        Array.isArray(
+          validRuntimeActual?.frame?.details?.[0]
+        )
+          ? validRuntimeActual.frame.details[0].length
+          : null,
+
+      savedDetail:
+        validRuntimeActual?.frame
+          ?.details?.[0]?.[0] || null,
+
+      pendingType:
+        validRuntimeActual?.pending?.type || null,
+
+      pendingIndex:
+        Number.isInteger(
+          validRuntimeActual?.pending?.index
+        )
+          ? validRuntimeActual.pending.index
+          : null,
+    },
+  });
   
   const passedCount =
     results.filter((result) => result.passed).length;
