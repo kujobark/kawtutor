@@ -571,7 +571,8 @@ function selectEDGS001ThinkingMove(
 }
 
 function executeEDGS001(contract, state) {
-  const ideas = getIdeaList(state).filter(Boolean);
+  const ideas =
+    getIdeaList(state).filter(Boolean);
 
   const resume =
     state?.pending?.resumePending ||
@@ -586,9 +587,9 @@ function executeEDGS001(contract, state) {
   // Read the instructional finding established before
   // this contract was activated.
   //
-  // The finding describes the observable instructional
-  // condition. It does not infer the student's thinking,
-  // intent, emotion, or understanding.
+  // The finding describes only the observable instructional
+  // condition. It does not infer student intent, emotion,
+  // understanding, effort, or meaning.
   const instructionalFinding =
     state?.pending?.instructionalFinding ||
     state?.pending?.resumePending?.instructionalFinding ||
@@ -603,37 +604,55 @@ function executeEDGS001(contract, state) {
       instructionalFinding,
       contract.thinkingMove
     );
-  
+
   return {
-    contractId: contract.contractId,
-    instructionalGoal: contract.instructionalGoal,
-    teachingMove: contract.teachingMove,
-    thinkingMove: selectedThinkingMove,
+    contractId:
+      contract.contractId,
+
+    instructionalGoal:
+      contract.instructionalGoal,
+
+    teachingMove:
+      contract.teachingMove,
+
+    thinkingMove:
+      selectedThinkingMove,
+
     communicationPattern:
-      contract.communicationPattern || "questionOnly",
-    aiContextualizes: contract.aiContextualizes,
+      contract.communicationPattern ||
+      "questionOnly",
+
+    aiContextualizes:
+      contract.aiContextualizes,
 
     instructionalFinding,
 
     context: {
-     context: {
       assignmentContext:
         state?.frameMeta?.assignmentContext || {},
+
       thinkingTask:
         state?.assignmentReasoning || {},
+
       frameComponent:
         contract.frameComponent,
+
       currentMainIdea,
+
       existingDetails:
         Number.isInteger(resume?.index) &&
-        Array.isArray(state?.frame?.details?.[resume.index])
+        Array.isArray(
+          state?.frame?.details?.[resume.index]
+        )
           ? state.frame.details[resume.index]
           : [],
+
       keyTopic:
         state?.frame?.keyTopic || "",
+
       isAbout:
-        state?.frame?.isAbout || ""
-    }
+        state?.frame?.isAbout || "",
+    },
   };
 }
 
@@ -1277,76 +1296,6 @@ function validateEssentialDetailResponse(
     relationshipStatus: "pendingAnalysis",
 
     diagnosis: null,
-  };
-}
-
-  const text = cleanText(response);
-  const normalized = text.toLowerCase();
-
-  const mainIdea =
-    cleanText(currentMainIdea).toLowerCase();
-
-  if (!text) {
-    return {
-      valid: false,
-      reason: "emptyResponse",
-    };
-  }
-
-  if (
-    isStuckMessage(text) ||
-    isWeakFrameResponse(text) ||
-    isMetaResponse(text)
-  ) {
-    return {
-      valid: false,
-      reason: "notStudentDetail",
-    };
-  }
-
-  const circularResponses = new Set([
-    "because it does",
-    "because they do",
-    "because it is",
-    "because that happens",
-    "it just does",
-    "they just do",
-    "that is why",
-    "because of that",
-    "it is true",
-    "that is true",
-  ]);
-
-  if (circularResponses.has(normalized)) {
-    return {
-      valid: false,
-      reason: "circularExplanation",
-    };
-  }
-
-  const words =
-    text.split(/\s+/).filter(Boolean);
-
-  if (words.length < 4) {
-    return {
-      valid: false,
-      reason: "needsSpecificity",
-    };
-  }
-
-  if (
-    mainIdea &&
-    normalized === mainIdea
-  ) {
-    return {
-      valid: false,
-      reason: "repeatsMainIdea",
-    };
-  }
-
-  return {
-    valid: true,
-    reason: null,
   };
 }
 
