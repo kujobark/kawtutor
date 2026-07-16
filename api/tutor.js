@@ -1459,6 +1459,56 @@ function runEssentialDetailSelfTests() {
   };
 }
 
+function formatEssentialDetailSelfTestResults(
+  testResults
+) {
+  const lines = [
+    "🧪 KAW DETERMINISTIC SELF-TESTS",
+    "",
+    "Essential Detail Validation",
+    "",
+  ];
+
+  testResults.results.forEach((result) => {
+    lines.push(
+      `${result.passed ? "✅" : "❌"} ${result.name}`
+    );
+
+    if (!result.passed) {
+      lines.push(
+        `Expected: ${JSON.stringify(
+          result.expected
+        )}`
+      );
+
+      lines.push(
+        `Actual: ${JSON.stringify(
+          result.actual
+        )}`
+      );
+    }
+
+    lines.push("");
+  });
+
+  lines.push("────────────────────────");
+  lines.push(
+    `Passed: ${testResults.passedCount}/${testResults.total}`
+  );
+  lines.push(
+    `Failed: ${testResults.failedCount}`
+  );
+
+  if (testResults.passed) {
+    lines.push("");
+    lines.push(
+      "🚀 All current deterministic tests passed."
+    );
+  }
+
+  return lines.join("\n");
+}
+
 // ------------------------------------------------------
 // STUDENT OWNERSHIP CHECK
 // Ensures Kaw never replaces student thinking.
@@ -6880,6 +6930,47 @@ if (body.runSelfTests === true) {
   });
 }
 
+  // ------------------------------------------------------
+// HIDDEN KAW DEVELOPER COMMAND
+//
+// Type "/run tests" in the Wix Kaw chat to run the
+// deterministic Essential Detail validation suite.
+//
+// This command bypasses the normal student interaction
+// flow and does not modify the student's Frame or state.
+// ------------------------------------------------------
+if (message.toLowerCase() === "/run tests") {
+  const testResults =
+    runEssentialDetailSelfTests();
+
+  const reply =
+    formatEssentialDetailSelfTestResults(
+      testResults
+    );
+
+  return res.status(200).json({
+    reply,
+    state:
+      body.state ||
+      body.vercelState ||
+      body.framing ||
+      defaultState(),
+    selfTest: {
+      suite:
+        "essentialDetailDeterministicValidation",
+      passed:
+        testResults.passed,
+      passedCount:
+        testResults.passedCount,
+      failedCount:
+        testResults.failedCount,
+      total:
+        testResults.total,
+    },
+  });
+}
+
+    
   let incoming = body.state || body.vercelState || body.framing || {};
   let state = normalizeIncomingState(incoming);
 
