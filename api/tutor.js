@@ -501,6 +501,233 @@ function getInstructionalCommunicationPattern(patternName) {
   );
 }
 
+// ------------------------------------------------------
+// INSTRUCTIONAL COMMUNICATION LICENSE
+//
+// Converts the deterministic instructional decision into
+// explicit permissions and prohibitions for AI expression.
+//
+// The license does not choose pedagogy.
+// It limits how the predetermined Thinking Move may be
+// communicated while preserving student ownership.
+// ------------------------------------------------------
+
+function buildInstructionalCommunicationLicense(
+  execution
+) {
+  if (!execution) return null;
+
+  const instructionalFinding =
+    execution?.instructionalFinding || null;
+
+  const relationshipStatus =
+    instructionalFinding?.relationshipStatus || "";
+
+  const communicationPattern =
+    execution?.communicationPattern ||
+    "questionOnly";
+
+  return {
+    contractId:
+      execution.contractId,
+
+    instructionalGoal:
+      execution.instructionalGoal,
+
+    teachingMove:
+      execution.teachingMove,
+
+    requiredThinkingMove:
+      execution.thinkingMove,
+
+    communicationPattern,
+
+    permissions: {
+      mayAskQuestion: true,
+
+      maximumQuestions: 1,
+
+      mayUseBriefLeadIn:
+        communicationPattern ===
+          "acknowledgeThenQuestion" ||
+        communicationPattern ===
+          "briefReassuranceThenQuestion",
+
+      mayAcknowledgeProgress:
+        communicationPattern ===
+          "acknowledgeThenQuestion",
+
+      mayUseBriefReassurance:
+        communicationPattern ===
+          "briefReassuranceThenQuestion",
+
+      mayReferenceAssignmentContext: true,
+
+      mayReferenceCurrentMainIdea: true,
+
+      mayReferenceExistingStudentWork: true,
+    },
+
+    prohibitions: {
+      mayGenerateStudentWork: false,
+
+      mayCompleteStudentWork: false,
+
+      maySupplyEvidence: false,
+
+      mayChangeInstructionalGoal: false,
+
+      mayChangeTeachingMove: false,
+
+      mayChangeThinkingMove: false,
+
+      mayIntroduceNewTeachingMove: false,
+
+      mayInferStudentIntent: false,
+
+      mayInferStudentUnderstanding: false,
+
+      mayInferStudentEmotion: false,
+
+      mayClaimUnsupportedProgress: false,
+
+      mayClaimRelationshipEstablished:
+        relationshipStatus === "established",
+
+      mayClaimRelationshipNotEstablished:
+        relationshipStatus ===
+          "notEstablished",
+    },
+
+    relationshipStatus,
+
+    preserveStudentOwnership: true,
+
+    advanceOneThinkingStep: true,
+  };
+}
+
+// ------------------------------------------------------
+// INSTRUCTIONAL COMMUNICATION RESPONSE VALIDATION
+//
+// Evaluates whether an AI-generated response remained
+// within the deterministic Communication License.
+//
+// This validator does not judge style or instructional
+// quality. It checks only observable license conditions.
+// ------------------------------------------------------
+
+function validateInstructionalCommunicationResponse(
+  response,
+  communicationLicense
+) {
+  const text =
+    cleanText(response);
+
+  const lower =
+    text.toLowerCase();
+
+  const violations = [];
+
+  const questionCount =
+    (text.match(/\?/g) || []).length;
+
+  if (!text) {
+    violations.push("emptyResponse");
+  }
+
+  if (
+    communicationLicense?.permissions
+      ?.maximumQuestions === 1 &&
+    questionCount !== 1
+  ) {
+    violations.push("questionCountViolation");
+  }
+
+  const unsupportedPraisePatterns = [
+    "great job",
+    "good job",
+    "excellent",
+    "nice work",
+    "well done",
+    "you got it",
+    "you are correct",
+    "that's correct",
+    "that is correct",
+    "strong answer",
+    "great answer",
+  ];
+
+  if (
+    communicationLicense?.prohibitions
+      ?.mayClaimUnsupportedProgress === false &&
+    unsupportedPraisePatterns.some(
+      (pattern) => lower.includes(pattern)
+    )
+  ) {
+    violations.push("unsupportedProgressClaim");
+  }
+
+  const suppliedWorkPatterns = [
+    "you could write",
+    "write that",
+    "your answer should be",
+    "the answer is",
+    "use this detail",
+    "an example is",
+    "for example, teens",
+    "for example teens",
+  ];
+
+  if (
+    communicationLicense?.prohibitions
+      ?.mayGenerateStudentWork === false &&
+    suppliedWorkPatterns.some(
+      (pattern) => lower.includes(pattern)
+    )
+  ) {
+    violations.push("studentWorkSupplied");
+  }
+
+  const relationshipClaims = [
+    "this supports",
+    "that supports",
+    "this proves",
+    "that proves",
+    "this does not support",
+    "that does not support",
+    "doesn't support",
+    "fails to support",
+  ];
+
+  const relationshipStatus =
+    communicationLicense?.relationshipStatus ||
+    "";
+
+  if (
+    relationshipStatus === "undetermined" &&
+    relationshipClaims.some(
+      (pattern) => lower.includes(pattern)
+    )
+  ) {
+    violations.push(
+      "unauthorizedRelationshipClaim"
+    );
+  }
+
+  return {
+    valid:
+      violations.length === 0,
+
+    questionCount,
+
+    violations,
+
+    response:
+      text,
+  };
+}
+
 // ======================================================
 // INSTRUCTIONAL CONTRACT EXECUTION
 // ======================================================
@@ -663,6 +890,11 @@ function buildAIContextualizationPayload(execution) {
     contractId:
       execution.contractId,
 
+    communicationLicense:
+  buildInstructionalCommunicationLicense(
+    execution
+  ),
+
     instructionalGoal:
       execution.instructionalGoal,
 
@@ -743,6 +975,9 @@ async function getInstructionalResponse(activation) {
   
   if (!payload) return null;
 
+    const communicationLicense =
+    payload?.communicationLicense || null;
+
   const communicationPattern =
   getInstructionalCommunicationPattern(
     payload.communicationPattern
@@ -789,6 +1024,9 @@ The instructional decision and instructional findings have already been establis
 Your only job is to express the predetermined Thinking Move using natural, assignment-specific language.
 
 You must follow these rules:
+- The Communication License is authoritative and binding.
+- Perform only actions explicitly permitted by the Communication License.
+- Never perform an action prohibited by the Communication License, even if it might produce a helpful response.
 - Do not rewrite or complete student work.
 - Do not change the Instructional Goal, Teaching Move, or Thinking Move.
 - Do not reinterpret, expand, weaken, strengthen, or replace the established Instructional Finding.
@@ -800,10 +1038,18 @@ You must follow these rules:
 - Ask exactly one concise question.
 - You may include one brief student-facing lead-in before the question only when the Approved Communication Instruction requires it.
 - Any acknowledgement must be directly supported by the established Instructional Finding.
+- Before responding, silently verify that the response remains within every permission and prohibition in the Communication License.
 - Return only the complete student-facing response.`;
   
   const user = `Contract ID:
   ${payload.contractId}
+
+Communication License:
+${JSON.stringify(
+  communicationLicense || {},
+  null,
+  2
+)}
 
 Instructional Goal:
 ${payload.instructionalGoal}
@@ -868,12 +1114,34 @@ Ask exactly one question.`;
       ],
     });
 
-    const response =
-      resp?.choices?.[0]?.message?.content || "";
+const response =
+  resp?.choices?.[0]?.message?.content || "";
 
-    return response
-      ? enforceSingleQuestion(response)
-      : null;
+if (!response) {
+  return null;
+}
+
+const communicationValidation =
+  validateInstructionalCommunicationResponse(
+    response,
+    communicationLicense
+  );
+
+console.log(
+  "COMMUNICATION VALIDATION:",
+  communicationValidation
+);
+
+if (!communicationValidation.valid) {
+  console.warn(
+    "AI communication rejected by license:",
+    communicationValidation.violations
+  );
+
+  return null;
+}
+
+return cleanText(response);
   } catch (error) {
     console.error(
       "Instructional contextualization error:",
