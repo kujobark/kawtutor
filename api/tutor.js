@@ -1394,7 +1394,7 @@ async function runEssentialDetailSelfTests() {
     },
   ];
 
-  const results = tests.map((test) => {
+  let results = tests.map((test) => {
     const actual =
       validateEssentialDetailResponse(
         test.response,
@@ -1418,6 +1418,100 @@ async function runEssentialDetailSelfTests() {
       expected: test.expected,
       actual,
     };
+  });
+
+    // --------------------------------------------------
+  // LIVE RUNTIME TEST
+  //
+  // Confirms that the actual first Essential Detail
+  // pathway blocks an invalid response before saving it.
+  // --------------------------------------------------
+
+  const runtimeState = defaultState();
+
+  runtimeState.frameMeta.assignmentContext = {
+    raw:
+      "Explain how social media can affect teen mental health.",
+    understanding:
+      "Explain how social media can affect teen mental health.",
+    studentSummary:
+      "you're explaining how social media can affect teen mental health.",
+    confidence: "high",
+    needsClarification: false,
+    inferredPurpose: "",
+    childAnchor: "",
+    clarificationCount: 0,
+  };
+
+  runtimeState.frameMeta.purpose = "study";
+
+  runtimeState.frame.keyTopic =
+    "Social Media and Teen Mental Health";
+
+  runtimeState.frame.isAbout =
+    "How social media can affect teen mental health.";
+
+  runtimeState.frame.parentItems = [
+    "Social media can increase anxiety and stress.",
+    "Social media can affect self-esteem.",
+  ];
+
+  runtimeState.frame.details = [
+    [],
+    [],
+  ];
+
+  const runtimeActual =
+    await updateStateFromStudent(
+      runtimeState,
+      "because it does"
+    );
+
+  const runtimePassed =
+    Array.isArray(
+      runtimeActual?.frame?.details?.[0]
+    ) &&
+    runtimeActual.frame.details[0].length === 0 &&
+    runtimeActual?.pending?.type ===
+      "stuckNudge" &&
+    runtimeActual?.pending
+      ?.instructionalFinding
+      ?.diagnosis ===
+      "insufficientObservableEvidence";
+
+  results.push({
+    name:
+      "ED Runtime - First detail blocks circular response",
+
+    passed:
+      runtimePassed,
+
+    response:
+      "because it does",
+
+    expected: {
+      savedDetailCount: 0,
+      pendingType: "stuckNudge",
+      diagnosis:
+        "insufficientObservableEvidence",
+    },
+
+    actual: {
+      savedDetailCount:
+        Array.isArray(
+          runtimeActual?.frame?.details?.[0]
+        )
+          ? runtimeActual.frame.details[0].length
+          : null,
+
+      pendingType:
+        runtimeActual?.pending?.type || null,
+
+      diagnosis:
+        runtimeActual?.pending
+          ?.instructionalFinding
+          ?.diagnosis || null,
+    },
   });
 
   const passedCount =
