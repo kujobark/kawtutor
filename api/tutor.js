@@ -2225,6 +2225,285 @@ function formatEssentialDetailSelfTestResults(
 }
 
 // ------------------------------------------------------
+// AI COMMUNICATION LICENSING TEST SUITE
+//
+// Runs live AI contextualization through the same
+// deterministic contracts, licenses, and response validator
+// used by Kaw's instructional runtime.
+//
+// These tests evaluate whether AI remains within its
+// communication license. They do not require one exact
+// sentence because natural wording may vary.
+// ------------------------------------------------------
+
+async function runAICommunicationSelfTests() {
+  const tests = [
+    {
+      name:
+        "AI Communication - No component evidence",
+
+      diagnosis:
+        "noComponentEvidence",
+
+      componentEvidenceLevel:
+        "none",
+
+      componentCriteriaStatus:
+        "notSatisfied",
+
+      relationshipStatus:
+        "undetermined",
+    },
+
+    {
+      name:
+        "AI Communication - Insufficient observable evidence",
+
+      diagnosis:
+        "insufficientObservableEvidence",
+
+      componentEvidenceLevel:
+        "none",
+
+      componentCriteriaStatus:
+        "notSatisfied",
+
+      relationshipStatus:
+        "undetermined",
+    },
+  ];
+
+  const results = [];
+
+  for (const test of tests) {
+    const state = defaultState();
+
+    state.frameMeta.assignmentContext = {
+      raw:
+        "Explain how social media can affect teen mental health.",
+
+      understanding:
+        "Explain how social media can affect teen mental health.",
+
+      studentSummary:
+        "you're explaining how social media can affect teen mental health.",
+
+      confidence: "high",
+      needsClarification: false,
+      inferredPurpose: "",
+      childAnchor: "",
+      clarificationCount: 0,
+    };
+
+    state.assignmentReasoning = {
+      task: "explain",
+      label: "Explain",
+      confidence: 1,
+      evidence: ["leading:explain"],
+      lastUpdated: null,
+    };
+
+    state.frameMeta.purpose = "study";
+
+    state.frame.keyTopic =
+      "Social Media and Teen Mental Health";
+
+    state.frame.isAbout =
+      "How social media can affect teen mental health.";
+
+    state.frame.parentItems = [
+      "Social media can increase anxiety and stress.",
+      "Social media can affect self-esteem.",
+    ];
+
+    state.frame.details = [
+      [],
+      [],
+    ];
+
+    state.pending = {
+      type: "collectAnotherDetail",
+      index: 0,
+
+      instructionalFinding: {
+        frameComponent: "details",
+
+        componentEvidenceLevel:
+          test.componentEvidenceLevel,
+
+        componentCriteriaStatus:
+          test.componentCriteriaStatus,
+
+        relationshipStatus:
+          test.relationshipStatus,
+
+        diagnosis:
+          test.diagnosis,
+
+        currentMainIdea:
+          state.frame.parentItems[0],
+
+        currentDetailIndex: 0,
+      },
+    };
+
+    const contract =
+      getInstructionalContract(
+        "details",
+        "genuineStruggle"
+      );
+
+    const activation =
+      activateInstructionalContract(
+        contract,
+        state
+      );
+
+    const response =
+      await getInstructionalResponse(
+        activation
+      );
+
+    const communicationLicense =
+      activation?.aiPayload
+        ?.communicationLicense || null;
+
+    const validation =
+      validateInstructionalCommunicationResponse(
+        response || "",
+        communicationLicense
+      );
+
+    const passed =
+      !!response &&
+      validation.valid &&
+      validation.questionCount === 1;
+
+    results.push({
+      name:
+        test.name,
+
+      passed,
+
+      diagnosis:
+        test.diagnosis,
+
+      response:
+        response || null,
+
+      expected: {
+        nonEmptyResponse: true,
+        validLicenseResponse: true,
+        questionCount: 1,
+        relationshipStatus:
+          test.relationshipStatus,
+      },
+
+      actual: {
+        nonEmptyResponse:
+          !!response,
+
+        validLicenseResponse:
+          validation.valid,
+
+        questionCount:
+          validation.questionCount,
+
+        violations:
+          validation.violations,
+
+        relationshipStatus:
+          communicationLicense
+            ?.relationshipStatus || null,
+      },
+    });
+  }
+
+  const passedCount =
+    results.filter(
+      (result) => result.passed
+    ).length;
+
+  const failedCount =
+    results.length - passedCount;
+
+  return {
+    passed:
+      failedCount === 0,
+
+    passedCount,
+
+    failedCount,
+
+    total:
+      results.length,
+
+    results,
+  };
+}
+
+function formatAICommunicationSelfTestResults(
+  testResults
+) {
+  const lines = [
+    "🗣️ KAW AI COMMUNICATION LICENSING",
+    "",
+  ];
+
+  testResults.results.forEach(
+    (result) => {
+      lines.push(
+        `${result.passed ? "✅" : "❌"} ${result.name}`
+      );
+
+      lines.push(
+        `Kaw: ${
+          result.response ||
+          "(AI response rejected or unavailable)"
+        }`
+      );
+
+      if (!result.passed) {
+        lines.push(
+          `Expected: ${JSON.stringify(
+            result.expected
+          )}`
+        );
+
+        lines.push(
+          `Actual: ${JSON.stringify(
+            result.actual
+          )}`
+        );
+      }
+
+      lines.push("");
+    }
+  );
+
+  lines.push(
+    "────────────────────────"
+  );
+
+  lines.push(
+    `Passed: ${testResults.passedCount}/${testResults.total}`
+  );
+
+  lines.push(
+    `Failed: ${testResults.failedCount}`
+  );
+
+  if (testResults.passed) {
+    lines.push("");
+    lines.push(
+      "🚀 All live AI communication tests passed."
+    );
+  }
+
+  return lines.join("\n");
+}
+
+// ------------------------------------------------------
 // DETERMINISTIC SELF-TEST SUITE REGISTRY
 //
 // Each instructional subsystem owns its own test suite.
@@ -7838,6 +8117,60 @@ if (message.toLowerCase() === "/run tests") {
       body.framing ||
       defaultState(),
     selfTest: testResults,
+  });
+}
+
+// ------------------------------------------------------
+// HIDDEN KAW AI COMMUNICATION TEST COMMAND
+//
+// Type "/run ai tests" in the Wix Kaw chat to run
+// live AI contextualization tests against deterministic
+// Communication Licenses.
+//
+// This command calls AI and therefore runs separately
+// from the fast deterministic regression suite.
+// ------------------------------------------------------
+
+if (
+  message.toLowerCase() ===
+  "/run ai tests"
+) {
+  const testResults =
+    await runAICommunicationSelfTests();
+
+  const reply =
+    formatAICommunicationSelfTestResults(
+      testResults
+    );
+
+  return res.status(200).json({
+    reply,
+
+    state:
+      body.state ||
+      body.vercelState ||
+      body.framing ||
+      defaultState(),
+
+    selfTest: {
+      suite:
+        "aiCommunicationLicensing",
+
+      passed:
+        testResults.passed,
+
+      passedCount:
+        testResults.passedCount,
+
+      failedCount:
+        testResults.failedCount,
+
+      total:
+        testResults.total,
+
+      results:
+        testResults.results,
+    },
   });
 }
 
