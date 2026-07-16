@@ -1299,6 +1299,166 @@ function validateEssentialDetailResponse(
   };
 }
 
+// ======================================================
+// KAW ESSENTIAL DETAIL SELF-TESTS
+// ======================================================
+//
+// Purpose:
+// Quickly verify deterministic Essential Detail validation
+// without building a full Frame or calling AI.
+//
+// These tests do not change production behavior.
+// They run only when explicitly called.
+// ======================================================
+
+function runEssentialDetailSelfTests() {
+  const currentMainIdea =
+    "Social media can increase anxiety and stress.";
+
+  const tests = [
+    {
+      name: "ED - Stuck response",
+      response: "idk",
+      expected: {
+        valid: false,
+        componentEvidenceLevel: "none",
+        componentCriteriaStatus: "notSatisfied",
+        relationshipStatus: "undetermined",
+        diagnosis: "noComponentEvidence",
+      },
+    },
+
+    {
+      name: "ED - Circular vague response",
+      response: "because it does",
+      expected: {
+        valid: false,
+        componentEvidenceLevel: "none",
+        componentCriteriaStatus: "notSatisfied",
+        relationshipStatus: "undetermined",
+        diagnosis: "insufficientObservableEvidence",
+      },
+    },
+
+    {
+      name: "ED - Too little observable evidence",
+      response: "They compare",
+      expected: {
+        valid: false,
+        componentEvidenceLevel: "limited",
+        componentCriteriaStatus: "notSatisfied",
+        relationshipStatus: "undetermined",
+        diagnosis: "insufficientObservableEvidence",
+      },
+    },
+
+    {
+      name: "ED - Repeats Main Idea",
+      response:
+        "Social media can increase anxiety and stress.",
+      expected: {
+        valid: false,
+        componentEvidenceLevel: "limited",
+        componentCriteriaStatus: "notSatisfied",
+        relationshipStatus: "notEstablished",
+        diagnosis: "repeatsMainIdea",
+      },
+    },
+
+    {
+      name: "ED - Substantive but relationship pending",
+      response:
+        "Teens compare themselves to people online.",
+      expected: {
+        valid: true,
+        componentEvidenceLevel: "substantive",
+        componentCriteriaStatus:
+          "provisionallySatisfied",
+        relationshipStatus: "pendingAnalysis",
+        diagnosis: null,
+      },
+    },
+
+    {
+      name: "ED - Complete relationship currently pending",
+      response:
+        "Teens compare themselves to influencers, which can make them feel inadequate and increase anxiety.",
+      expected: {
+        valid: true,
+        componentEvidenceLevel: "substantive",
+        componentCriteriaStatus:
+          "provisionallySatisfied",
+        relationshipStatus: "pendingAnalysis",
+        diagnosis: null,
+      },
+    },
+  ];
+
+  const results = tests.map((test) => {
+    const actual =
+      validateEssentialDetailResponse(
+        test.response,
+        currentMainIdea
+      );
+
+    const passed =
+      actual.valid === test.expected.valid &&
+      actual.componentEvidenceLevel ===
+        test.expected.componentEvidenceLevel &&
+      actual.componentCriteriaStatus ===
+        test.expected.componentCriteriaStatus &&
+      actual.relationshipStatus ===
+        test.expected.relationshipStatus &&
+      actual.diagnosis === test.expected.diagnosis;
+
+    return {
+      name: test.name,
+      passed,
+      response: test.response,
+      expected: test.expected,
+      actual,
+    };
+  });
+
+  const passedCount =
+    results.filter((result) => result.passed).length;
+
+  const failedCount =
+    results.length - passedCount;
+
+  console.log("");
+  console.log("======================================");
+  console.log("KAW ESSENTIAL DETAIL SELF-TEST RESULTS");
+  console.log("======================================");
+  console.log(
+    `Passed: ${passedCount}/${results.length}`
+  );
+  console.log(`Failed: ${failedCount}`);
+  console.log("");
+
+  results.forEach((result) => {
+    if (result.passed) {
+      console.log(`✅ ${result.name}`);
+      return;
+    }
+
+    console.log(`❌ ${result.name}`);
+    console.log("Response:", result.response);
+    console.log("Expected:", result.expected);
+    console.log("Actual:", result.actual);
+    console.log("");
+  });
+
+  return {
+    passed:
+      failedCount === 0,
+    passedCount,
+    failedCount,
+    total: results.length,
+    results,
+  };
+}
+
 // ------------------------------------------------------
 // STUDENT OWNERSHIP CHECK
 // Ensures Kaw never replaces student thinking.
@@ -6695,6 +6855,30 @@ export default async function handler(req, res) {
   try {
     const body = req.body && typeof req.body === "object" ? req.body : {};
     const message = cleanText(body.message || "");
+
+  // ------------------------------------------------------
+// TEMPORARY KAW SELF-TEST TRIGGER
+//
+// Send:
+// {
+//   "runSelfTests": true
+// }
+//
+// This bypasses the student interaction flow and returns
+// deterministic Essential Detail test results.
+// Remove or disable before public production use.
+// ------------------------------------------------------
+if (body.runSelfTests === true) {
+  const testResults =
+    runEssentialDetailSelfTests();
+
+  return res.status(200).json({
+    selfTest: true,
+    suite:
+      "essentialDetailDeterministicValidation",
+    ...testResults,
+  });
+}
 
   let incoming = body.state || body.vercelState || body.framing || {};
   let state = normalizeIncomingState(incoming);
