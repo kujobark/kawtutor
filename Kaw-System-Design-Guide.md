@@ -1,163 +1,173 @@
-KAW COMPANION
-Architecture & System Design Guide
-Instructional Reasoning, AI Governance, and System Engineering
+Exactly. Before Chapter 1, we want the document to feel like a professional architecture manual.
 
-Version: 1.0
-Status: Official Architecture Specification
-Project: Kaw Companion
-Maintained By: KU-CRL AI Research Project
-Last Updated: July 2026
+Here's the structure I'd recommend:
 
-Computer science provides the architecture. Instructional science provides the intelligence. Artificial intelligence provides the voice.
+---
+
+# Cover Page
+
+# Document Information
+
+# Guiding Principle
+
+# Executive Summary
+
+# Kaw at a Glance
+
+# Core Principles
+
+# Table of Contents
+
+# Revision History
+
+---
+
+# PART I — Foundations
+
+## 1. Project Overview
+
+---
+
+I also want to make one recommendation after thinking about it.
+
+I would **remove the old "Purpose" section** that currently sits before Chapter 1.
+
+The **Executive Summary** replaces it and does a much better job of introducing the project.
+
+So the flow becomes much cleaner:
+
+```
+Cover
+
+↓
 
 Guiding Principle
 
-Deterministic instructional reasoning establishes instructional truth.
-
-Artificial Intelligence communicates that instructional truth naturally while preserving teacher voice and student ownership.
-
-Everything within the Kaw architecture flows from this principle.
-
-The instructional engine—not artificial intelligence—is responsible for understanding assignments, interpreting student evidence, selecting instructional goals, determining Teaching Moves and Thinking Moves, validating learning, protecting student work, and governing progression.
-
-Artificial intelligence serves a different purpose.
-
-Its responsibility is to communicate deterministic instructional decisions in a natural, conversational manner that reflects teacher voice, maintains assignment context, and supports student thinking without replacing it.
-
-This separation between instructional reasoning and language generation defines the architecture of Kaw and distinguishes it from traditional AI tutoring systems.
+↓
 
 Executive Summary
-Purpose
 
-Kaw Companion is an instructional reasoning system designed to support student thinking through the KU-CRL Framing Routine.
-
-Unlike traditional AI tutoring systems, Kaw does not rely on artificial intelligence to determine instructional decisions. Instead, it separates instructional reasoning from language generation through a deterministic instructional engine that evaluates student evidence, determines the next instructional move, and authorizes AI to communicate that decision.
-
-The result is an instructional system that remains explainable, testable, consistent, and grounded in established instructional practice while still providing students with natural, personalized coaching.
-
-Architectural Philosophy
-
-The architecture is founded on a simple principle:
-
-Instruction should be deterministic. Communication should be natural.
-
-Rather than asking an AI model to decide how to teach, Kaw first establishes instructional understanding through structured reasoning.
-
-Only after instructional decisions have been made does AI generate the student-facing response.
-
-This sequence preserves instructional integrity while leveraging the strengths of modern language models.
-
-Architectural Layers
-
-Each layer depends on the integrity of the layers preceding it.
-
-Instructional understanding always precedes instructional communication.
+↓
 
 Kaw at a Glance
-End-to-End Architecture
-Instructional Flow
-Observe
 
 ↓
-
-Orient
-
-↓
-
-Analyze
-
-↓
-
-Decide
-
-↓
-
-Coach
-
-↓
-
-Observe Again
-
-This instructional cycle governs every interaction within Kaw.
 
 Core Principles
 
-Every architectural decision should strengthen these principles.
-
-Instruction Before Language
-
-Instructional reasoning always precedes AI communication.
-
-Evidence Before Assumption
-
-Observable student evidence is the foundation of every instructional decision.
-
-One Thinking Step
-
-Kaw advances one meaningful cognitive step at a time.
-
-Build from Student Success
-
-Valid student thinking is preserved and extended rather than replaced.
-
-Preserve Student Ownership
-
-Students remain responsible for the intellectual work.
-
-Preserve Instructional Continuity
-
-Instruction builds across Assignment Context, Parent Anchors, Child Anchors, and validated student work.
-
-Deterministic Instructional Truth
-
-Instructional decisions belong to the deterministic instructional engine.
-
-Explainability
-
-Every instructional decision should be traceable and explainable.
-
-Governance over Convenience
-
-Architectural convenience should never compromise instructional integrity.
+↓
 
 Table of Contents
-Part I — Foundations
-Project Overview
-Design Philosophy
-Kaw Instructional Commitments
-Kaw Instructional Model
-Part II — Instructional Reasoning
-Instructional Knowledge
-Assignment Context
-Thinking Tasks
-Parent and Child Anchors
-Instructional Decision Cycle
-Part III — Instructional Decisions
-Instructional Contracts
-Validation Framework
-Student Progression
-Part IV — AI Communication
-AI Governance
-Communication Licensing
-Prompt Construction
-Runtime Communication
-Part V — System Engineering
-System Architecture
-Application Flow
-Data Structures
-Testing Framework
-Deployment
-Development Standards
-Architecture Decision Records
-Roadmap
-Appendices
 
-A. Complete Student Walkthrough
+↓
 
-B. Example Instructional Contracts
+Revision History
 
-C. Glossary
+↓
 
-D. Repository Structure
+──────────────────────────────
+PART I — Foundations
+──────────────────────────────
 
-E. Contributor Workflow
+1. Project Overview
+```
+
+---
+
+## Even better...
+
+I would actually make the cover page feel like a real technical publication.
+
+Something like:
+
+---
+
+# Kaw Companion
+
+## Architecture & System Design Guide
+
+### Version 1.0
+
+**Instructional Reasoning • AI Governance • System Engineering**
+
+---
+
+KU-CRL AI Research Project
+
+July 2026
+
+---
+
+> *Computer science provides the architecture.*
+>
+> *Instructional science provides the intelligence.*
+>
+> *Artificial intelligence provides the voice.*
+
+---
+
+I LOVE that as the opening page.
+
+Someone immediately understands:
+
+> "This isn't a prompt library."
+
+> "This isn't documentation."
+
+> "This is the architectural specification."
+
+---
+
+## 🚀 I also have one idea I didn't think of until just now...
+
+Right after the cover...
+
+I'd insert a page called:
+
+# How to Read This Guide
+
+Only about half a page.
+
+Something like:
+
+---
+
+## Intended Audience
+
+This guide is written for:
+
+* Software engineers
+* AI engineers
+* Instructional designers
+* Researchers
+* Future contributors
+
+---
+
+## What This Guide Is
+
+This document defines the instructional architecture of Kaw.
+
+It explains not only **what** the system does, but **why** it was designed that way.
+
+Whenever implementation details conflict with this guide, the architectural principles documented here should take precedence until the architecture itself is intentionally revised.
+
+---
+
+That is something you see in professional architecture specifications all the time, and I think it belongs here.
+
+## My proposed front matter
+
+1. **Cover Page**
+2. **Document Information**
+3. **How to Read This Guide**
+4. **Guiding Principle**
+5. **Executive Summary**
+6. **Kaw at a Glance**
+7. **Core Principles**
+8. **Table of Contents**
+9. **Revision History**
+10. **PART I — Foundations**
+11. **Chapter 1**
+
+I actually like this even more than what I proposed earlier. It sets expectations before readers dive into the architecture, and it makes the guide feel like a polished technical publication from the very first page. I think this is a stronger foundation for Version 1.0.
