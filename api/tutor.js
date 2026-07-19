@@ -1467,132 +1467,138 @@ function looksLikeMechanism(text) {
 // ------------------------------------------------------
 // ESSENTIAL DETAIL RELATIONSHIP ANALYSIS
 //
-// Establishes whether observable student evidence supports
-// the current Main Idea without asking AI to make the
-// instructional decision.
+// Instructional Contract:
 //
-// This is intentionally conservative:
-// - established: an observable supporting connection exists
-// - incomplete: the response is related, but the support
-//   relationship is not yet explicit
-// - notEstablished: no observable connection is present
+// An Essential Detail must explicitly demonstrate how or
+// why the student's detail supports the accepted Main Idea.
+//
+// This analyzer evaluates only observable structure.
+// It does not use assignment-specific vocabulary,
+// infer unstated meaning, or decide whether a claim is true.
+//
+// Deterministic outcomes:
+//
+// - established:
+//   The response contains an observable relationship to
+//   the Main Idea.
+//
+// - incomplete:
+//   The response contains substantive detail content, but
+//   the supporting relationship is not explicit enough to
+//   establish without reader inference.
+//
+// A substantive response is not classified as unrelated
+// merely because lexical overlap is absent. That would
+// require semantic inference beyond deterministic rules.
 // ------------------------------------------------------
 
 const ESSENTIAL_DETAIL_STOP_WORDS = new Set([
-  "a", "an", "and", "are", "as", "at", "be", "because",
-  "been", "being", "by", "can", "could", "did", "do", "does",
-  "for", "from", "had", "has", "have", "he", "her", "hers",
-  "him", "his", "how", "i", "in", "into", "is", "it", "its",
-  "may", "might", "more", "most", "of", "on", "or", "our",
-  "she", "should", "so", "some", "than", "that", "the", "their",
-  "them", "then", "there", "these", "they", "this", "those",
-  "to", "too", "us", "was", "we", "were", "what", "when",
-  "where", "which", "who", "why", "will", "with", "would",
-  "you", "your"
+  "a",
+  "an",
+  "and",
+  "are",
+  "as",
+  "at",
+  "be",
+  "been",
+  "being",
+  "by",
+  "can",
+  "could",
+  "did",
+  "do",
+  "does",
+  "for",
+  "from",
+  "had",
+  "has",
+  "have",
+  "he",
+  "her",
+  "hers",
+  "him",
+  "his",
+  "how",
+  "i",
+  "in",
+  "into",
+  "is",
+  "it",
+  "its",
+  "may",
+  "might",
+  "of",
+  "on",
+  "or",
+  "our",
+  "she",
+  "should",
+  "so",
+  "some",
+  "than",
+  "that",
+  "the",
+  "their",
+  "them",
+  "then",
+  "there",
+  "these",
+  "they",
+  "this",
+  "those",
+  "to",
+  "us",
+  "was",
+  "we",
+  "were",
+  "what",
+  "when",
+  "where",
+  "which",
+  "who",
+  "why",
+  "will",
+  "with",
+  "would",
+  "you",
+  "your",
 ]);
 
-const ESSENTIAL_DETAIL_CONCEPT_GROUPS = [
-  [
-    "social",
-    "media",
-    "online",
-    "internet",
-    "platform",
-    "platforms",
-    "influencer",
-    "influencers",
-    "post",
-    "posts",
-    "posting"
-  ],
-
-  [
-    "anxiety",
-    "anxious",
-    "stress",
-    "stressed",
-    "worry",
-    "worried",
-    "pressure",
-    "overwhelmed",
-    "inadequate",
-    "inadequacy"
-  ],
-
-  [
-    "self",
-    "esteem",
-    "confidence",
-    "worth",
-    "image",
-    "appearance"
-  ],
-
-  [
-    "compare",
-    "compares",
-    "compared",
-    "comparing",
-    "comparison"
-  ],
-
-  [
-    "cause",
-    "causes",
-    "caused",
-    "causing",
-    "lead",
-    "leads",
-    "led",
-    "result",
-    "results",
-    "resulted",
-    "increase",
-    "increases",
-    "increased",
-    "increasing",
-    "decrease",
-    "decreases",
-    "decreased",
-    "affect",
-    "affects",
-    "affected",
-    "impact",
-    "impacts",
-    "impacted"
-  ]
-];
-
 function normalizeInstructionalToken(token) {
-  let t = cleanText(token)
-    .toLowerCase()
-    .replace(/[^a-z0-9'-]/g, "");
+  let normalized =
+    cleanText(token)
+      .toLowerCase()
+      .replace(/[^a-z0-9'-]/g, "");
 
-  if (!t) return "";
+  if (!normalized) return "";
 
   if (
-    t.length > 5 &&
-    t.endsWith("ing")
+    normalized.length > 5 &&
+    normalized.endsWith("ing")
   ) {
-    t = t.slice(0, -3);
+    normalized =
+      normalized.slice(0, -3);
   } else if (
-    t.length > 4 &&
-    t.endsWith("ed")
+    normalized.length > 4 &&
+    normalized.endsWith("ed")
   ) {
-    t = t.slice(0, -2);
+    normalized =
+      normalized.slice(0, -2);
   } else if (
-    t.length > 4 &&
-    t.endsWith("es")
+    normalized.length > 4 &&
+    normalized.endsWith("es")
   ) {
-    t = t.slice(0, -2);
+    normalized =
+      normalized.slice(0, -2);
   } else if (
-    t.length > 3 &&
-    t.endsWith("s")
+    normalized.length > 3 &&
+    normalized.endsWith("s")
   ) {
-    t = t.slice(0, -1);
+    normalized =
+      normalized.slice(0, -1);
   }
 
-  return t;
+  return normalized;
 }
 
 function getInstructionalContentTokens(text) {
@@ -1604,61 +1610,15 @@ function getInstructionalContentTokens(text) {
       (token) =>
         token &&
         token.length >= 3 &&
-        !ESSENTIAL_DETAIL_STOP_WORDS.has(token)
+        !ESSENTIAL_DETAIL_STOP_WORDS.has(
+          token
+        )
     );
 }
 
-function getConceptGroupMatches(tokens) {
-  const tokenSet = new Set(tokens);
-
-  return ESSENTIAL_DETAIL_CONCEPT_GROUPS
-    .map((group, index) => {
-      const normalizedGroup =
-        group.map(normalizeInstructionalToken);
-
-      return normalizedGroup.some(
-        (term) => tokenSet.has(term)
-      )
-        ? index
-        : null;
-    })
-    .filter(
-      (index) => index !== null
-    );
-}
-
-function analyzeEssentialDetailRelationship(
-  response,
-  currentMainIdea
+function hasObservableRelationshipLanguage(
+  response
 ) {
-  const responseTokens =
-    getInstructionalContentTokens(response);
-
-  const mainIdeaTokens =
-    getInstructionalContentTokens(
-      currentMainIdea
-    );
-
-  const responseSet =
-    new Set(responseTokens);
-
-  const sharedTokens =
-    [...new Set(mainIdeaTokens)].filter(
-      (token) => responseSet.has(token)
-    );
-
-  const responseGroups =
-    getConceptGroupMatches(responseTokens);
-
-  const mainIdeaGroups =
-    getConceptGroupMatches(mainIdeaTokens);
-
-  const sharedConceptGroups =
-    mainIdeaGroups.filter(
-      (group) =>
-        responseGroups.includes(group)
-    );
-
   const lower =
     cleanText(response).toLowerCase();
 
@@ -1667,12 +1627,20 @@ function analyzeEssentialDetailRelationship(
     "which can",
     "which may",
     "which makes",
+    "which means",
+    "this can",
+    "this may",
     "this makes",
+    "this means",
+    "that can",
+    "that may",
     "that makes",
+    "that means",
     "leads to",
     "lead to",
     "causes",
     "caused",
+    "causing",
     "results in",
     "resulted in",
     "as a result",
@@ -1681,67 +1649,87 @@ function analyzeEssentialDetailRelationship(
     "due to",
     "increases",
     "increase",
+    "increasing",
     "decreases",
     "decrease",
+    "decreasing",
     "affects",
     "affect",
+    "affecting",
     "impacts",
     "impact",
-    "shows",
-    "demonstrates",
-    "explains",
-    "supports"
+    "impacting",
+    "shows how",
+    "demonstrates how",
+    "explains how",
+    "supports the idea",
   ];
 
-  const hasRelationshipMarker =
-    relationshipMarkers.some(
-      (marker) => lower.includes(marker)
+  return relationshipMarkers.some(
+    (marker) => lower.includes(marker)
+  );
+}
+
+function analyzeEssentialDetailRelationship(
+  response,
+  currentMainIdea
+) {
+  const responseTokens =
+    getInstructionalContentTokens(
+      response
     );
 
-  const hasTopicConnection =
-    sharedTokens.length > 0 ||
-    sharedConceptGroups.length > 0;
-
-  const hasStrongConnection =
-    sharedTokens.length >= 2 ||
-    sharedConceptGroups.length >= 2 ||
-    (
-      hasTopicConnection &&
-      hasRelationshipMarker
+  const mainIdeaTokens =
+    getInstructionalContentTokens(
+      currentMainIdea
     );
 
-  if (hasStrongConnection) {
+  const responseTokenSet =
+    new Set(responseTokens);
+
+  const sharedTokens =
+    [...new Set(mainIdeaTokens)].filter(
+      (token) =>
+        responseTokenSet.has(token)
+    );
+
+  const hasRelationshipLanguage =
+    hasObservableRelationshipLanguage(
+      response
+    );
+
+  const hasObservableConnection =
+    hasRelationshipLanguage &&
+    sharedTokens.length > 0;
+
+  if (hasObservableConnection) {
     return {
-      relationshipStatus: "established",
+      relationshipStatus:
+        "established",
 
       relationshipEvidence: {
         sharedTokens,
-        sharedConceptGroups,
-        hasRelationshipMarker
-      }
-    };
-  }
 
-  if (hasTopicConnection) {
-    return {
-      relationshipStatus: "incomplete",
+        hasRelationshipLanguage,
 
-      relationshipEvidence: {
-        sharedTokens,
-        sharedConceptGroups,
-        hasRelationshipMarker
-      }
+        readerInferenceRequired:
+          false,
+      },
     };
   }
 
   return {
-    relationshipStatus: "notEstablished",
+    relationshipStatus:
+      "incomplete",
 
     relationshipEvidence: {
       sharedTokens,
-      sharedConceptGroups,
-      hasRelationshipMarker
-    }
+
+      hasRelationshipLanguage,
+
+      readerInferenceRequired:
+        true,
+    },
   };
 }
 
@@ -2010,32 +1998,36 @@ async function runEssentialDetailSelfTests() {
     },
 
     {
-      name: "ED - Substantive but relationship pending",
-      response:
-        "Teens compare themselves to people online.",
-      expected: {
-        valid: true,
-        componentEvidenceLevel: "substantive",
-        componentCriteriaStatus:
-          "provisionallySatisfied",
-        relationshipStatus: "pendingAnalysis",
-        diagnosis: null,
-      },
-    },
 
-    {
-      name: "ED - Complete relationship currently pending",
-      response:
-        "Teens compare themselves to influencers, which can make them feel inadequate and increase anxiety.",
-      expected: {
-        valid: true,
-        componentEvidenceLevel: "substantive",
-        componentCriteriaStatus:
-          "provisionallySatisfied",
-        relationshipStatus: "pendingAnalysis",
-        diagnosis: null,
-      },
-    },
+  {
+  name: "ED - Substantive but relationship incomplete",
+  response:
+    "Teens compare themselves to people online.",
+  expected: {
+    valid: false,
+    componentEvidenceLevel: "substantive",
+    componentCriteriaStatus:
+      "partiallySatisfied",
+    relationshipStatus: "incomplete",
+    diagnosis:
+      "relationshipIncomplete",
+  },
+},
+
+{
+  name: "ED - Explicit supporting relationship",
+  response:
+    "Teens compare themselves to influencers, which can make them feel inadequate and increase anxiety.",
+  expected: {
+    valid: true,
+    componentEvidenceLevel: "substantive",
+    componentCriteriaStatus:
+      "satisfied",
+    relationshipStatus:
+      "established",
+    diagnosis: null,
+  },
+},
   ];
 
   let results = tests.map((test) => {
@@ -2294,8 +2286,8 @@ async function runEssentialDetailSelfTests() {
   ];
 
   const validRuntimeResponse =
-    "Teens compare themselves to people online.";
-
+    "Teens compare themselves to influencers, which can make them feel inadequate and increase anxiety.";
+  
   const validRuntimeActual =
     await updateStateFromStudent(
       validRuntimeState,
