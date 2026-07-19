@@ -792,6 +792,43 @@ function selectEDGS001ThinkingMove(
     );
   }
 
+    // --------------------------------------------------
+  // RELATIONSHIP INCOMPLETE
+  //
+  // The response is related to the Main Idea, but the
+  // supporting relationship is not yet explicit enough
+  // to satisfy the Essential Detail criteria.
+  // --------------------------------------------------
+  if (
+    diagnosis ===
+    "relationshipIncomplete"
+  ) {
+    return (
+      "Reference the student's observable idea without claiming it already " +
+      "supports the Main Idea. Ask the student to explain how that fact, " +
+      "example, observation, explanation, or evidence connects to the " +
+      "accepted Main Idea. Do not supply the connection."
+    );
+  }
+
+  // --------------------------------------------------
+  // RELATIONSHIP NOT ESTABLISHED
+  //
+  // The response contains substantive content, but no
+  // observable connection to the accepted Main Idea exists.
+  // --------------------------------------------------
+  if (
+    diagnosis ===
+    "relationshipNotEstablished"
+  ) {
+    return (
+      "Refocus the student on the accepted Main Idea and ask for one fact, " +
+      "example, observation, explanation, or piece of evidence that directly " +
+      "supports it. Do not evaluate the student's unrelated idea beyond the " +
+      "deterministic finding, and do not generate the replacement Detail."
+    );
+  }
+  
   // Preserve the teacher-authored contract move when no
   // diagnosis-specific Thinking Move has been established.
   return fallbackThinkingMove;
@@ -1427,6 +1464,287 @@ function looksLikeMechanism(text) {
   return markers.some((p) => t.includes(p));
 }
 
+// ------------------------------------------------------
+// ESSENTIAL DETAIL RELATIONSHIP ANALYSIS
+//
+// Establishes whether observable student evidence supports
+// the current Main Idea without asking AI to make the
+// instructional decision.
+//
+// This is intentionally conservative:
+// - established: an observable supporting connection exists
+// - incomplete: the response is related, but the support
+//   relationship is not yet explicit
+// - notEstablished: no observable connection is present
+// ------------------------------------------------------
+
+const ESSENTIAL_DETAIL_STOP_WORDS = new Set([
+  "a", "an", "and", "are", "as", "at", "be", "because",
+  "been", "being", "by", "can", "could", "did", "do", "does",
+  "for", "from", "had", "has", "have", "he", "her", "hers",
+  "him", "his", "how", "i", "in", "into", "is", "it", "its",
+  "may", "might", "more", "most", "of", "on", "or", "our",
+  "she", "should", "so", "some", "than", "that", "the", "their",
+  "them", "then", "there", "these", "they", "this", "those",
+  "to", "too", "us", "was", "we", "were", "what", "when",
+  "where", "which", "who", "why", "will", "with", "would",
+  "you", "your"
+]);
+
+const ESSENTIAL_DETAIL_CONCEPT_GROUPS = [
+  [
+    "social",
+    "media",
+    "online",
+    "internet",
+    "platform",
+    "platforms",
+    "influencer",
+    "influencers",
+    "post",
+    "posts",
+    "posting"
+  ],
+
+  [
+    "anxiety",
+    "anxious",
+    "stress",
+    "stressed",
+    "worry",
+    "worried",
+    "pressure",
+    "overwhelmed",
+    "inadequate",
+    "inadequacy"
+  ],
+
+  [
+    "self",
+    "esteem",
+    "confidence",
+    "worth",
+    "image",
+    "appearance"
+  ],
+
+  [
+    "compare",
+    "compares",
+    "compared",
+    "comparing",
+    "comparison"
+  ],
+
+  [
+    "cause",
+    "causes",
+    "caused",
+    "causing",
+    "lead",
+    "leads",
+    "led",
+    "result",
+    "results",
+    "resulted",
+    "increase",
+    "increases",
+    "increased",
+    "increasing",
+    "decrease",
+    "decreases",
+    "decreased",
+    "affect",
+    "affects",
+    "affected",
+    "impact",
+    "impacts",
+    "impacted"
+  ]
+];
+
+function normalizeInstructionalToken(token) {
+  let t = cleanText(token)
+    .toLowerCase()
+    .replace(/[^a-z0-9'-]/g, "");
+
+  if (!t) return "";
+
+  if (
+    t.length > 5 &&
+    t.endsWith("ing")
+  ) {
+    t = t.slice(0, -3);
+  } else if (
+    t.length > 4 &&
+    t.endsWith("ed")
+  ) {
+    t = t.slice(0, -2);
+  } else if (
+    t.length > 4 &&
+    t.endsWith("es")
+  ) {
+    t = t.slice(0, -2);
+  } else if (
+    t.length > 3 &&
+    t.endsWith("s")
+  ) {
+    t = t.slice(0, -1);
+  }
+
+  return t;
+}
+
+function getInstructionalContentTokens(text) {
+  return cleanText(text)
+    .toLowerCase()
+    .split(/\s+/)
+    .map(normalizeInstructionalToken)
+    .filter(
+      (token) =>
+        token &&
+        token.length >= 3 &&
+        !ESSENTIAL_DETAIL_STOP_WORDS.has(token)
+    );
+}
+
+function getConceptGroupMatches(tokens) {
+  const tokenSet = new Set(tokens);
+
+  return ESSENTIAL_DETAIL_CONCEPT_GROUPS
+    .map((group, index) => {
+      const normalizedGroup =
+        group.map(normalizeInstructionalToken);
+
+      return normalizedGroup.some(
+        (term) => tokenSet.has(term)
+      )
+        ? index
+        : null;
+    })
+    .filter(
+      (index) => index !== null
+    );
+}
+
+function analyzeEssentialDetailRelationship(
+  response,
+  currentMainIdea
+) {
+  const responseTokens =
+    getInstructionalContentTokens(response);
+
+  const mainIdeaTokens =
+    getInstructionalContentTokens(
+      currentMainIdea
+    );
+
+  const responseSet =
+    new Set(responseTokens);
+
+  const sharedTokens =
+    [...new Set(mainIdeaTokens)].filter(
+      (token) => responseSet.has(token)
+    );
+
+  const responseGroups =
+    getConceptGroupMatches(responseTokens);
+
+  const mainIdeaGroups =
+    getConceptGroupMatches(mainIdeaTokens);
+
+  const sharedConceptGroups =
+    mainIdeaGroups.filter(
+      (group) =>
+        responseGroups.includes(group)
+    );
+
+  const lower =
+    cleanText(response).toLowerCase();
+
+  const relationshipMarkers = [
+    "because",
+    "which can",
+    "which may",
+    "which makes",
+    "this makes",
+    "that makes",
+    "leads to",
+    "lead to",
+    "causes",
+    "caused",
+    "results in",
+    "resulted in",
+    "as a result",
+    "therefore",
+    "so that",
+    "due to",
+    "increases",
+    "increase",
+    "decreases",
+    "decrease",
+    "affects",
+    "affect",
+    "impacts",
+    "impact",
+    "shows",
+    "demonstrates",
+    "explains",
+    "supports"
+  ];
+
+  const hasRelationshipMarker =
+    relationshipMarkers.some(
+      (marker) => lower.includes(marker)
+    );
+
+  const hasTopicConnection =
+    sharedTokens.length > 0 ||
+    sharedConceptGroups.length > 0;
+
+  const hasStrongConnection =
+    sharedTokens.length >= 2 ||
+    sharedConceptGroups.length >= 2 ||
+    (
+      hasTopicConnection &&
+      hasRelationshipMarker
+    );
+
+  if (hasStrongConnection) {
+    return {
+      relationshipStatus: "established",
+
+      relationshipEvidence: {
+        sharedTokens,
+        sharedConceptGroups,
+        hasRelationshipMarker
+      }
+    };
+  }
+
+  if (hasTopicConnection) {
+    return {
+      relationshipStatus: "incomplete",
+
+      relationshipEvidence: {
+        sharedTokens,
+        sharedConceptGroups,
+        hasRelationshipMarker
+      }
+    };
+  }
+
+  return {
+    relationshipStatus: "notEstablished",
+
+    relationshipEvidence: {
+      sharedTokens,
+      sharedConceptGroups,
+      hasRelationshipMarker
+    }
+  };
+}
+
 function validateEssentialDetailResponse(
   response,
   currentMainIdea = ""
@@ -1541,29 +1859,73 @@ function validateEssentialDetailResponse(
     };
   }
 
-  // At this stage, the deterministic engine has enough
-  // observable student content to continue relationship
-  // analysis, but it has not yet established whether the
-  // response fully supports the current Main Idea.
-  //
-  // The next architectural step will determine whether the
-  // relationship is:
-  // - established
-  // - incomplete
-  // - not established
-  //
-  // Until that logic is added, the response remains
-  // provisionally valid under the current runtime behavior.
+  const relationshipAnalysis =
+    analyzeEssentialDetailRelationship(
+      text,
+      currentMainIdea
+    );
+
+  if (
+    relationshipAnalysis.relationshipStatus ===
+    "established"
+  ) {
+    return {
+      valid: true,
+
+      componentEvidenceLevel: "substantive",
+
+      componentCriteriaStatus: "satisfied",
+
+      relationshipStatus: "established",
+
+      diagnosis: null,
+
+      relationshipEvidence:
+        relationshipAnalysis
+          .relationshipEvidence
+    };
+  }
+
+  if (
+    relationshipAnalysis.relationshipStatus ===
+    "incomplete"
+  ) {
+    return {
+      valid: false,
+
+      componentEvidenceLevel: "substantive",
+
+      componentCriteriaStatus:
+        "partiallySatisfied",
+
+      relationshipStatus: "incomplete",
+
+      diagnosis:
+        "relationshipIncomplete",
+
+      relationshipEvidence:
+        relationshipAnalysis
+          .relationshipEvidence
+    };
+  }
+
   return {
-    valid: true,
+    valid: false,
 
     componentEvidenceLevel: "substantive",
 
-    componentCriteriaStatus: "provisionallySatisfied",
+    componentCriteriaStatus:
+      "notSatisfied",
 
-    relationshipStatus: "pendingAnalysis",
+    relationshipStatus:
+      "notEstablished",
 
-    diagnosis: null,
+    diagnosis:
+      "relationshipNotEstablished",
+
+    relationshipEvidence:
+      relationshipAnalysis
+        .relationshipEvidence
   };
 }
 
