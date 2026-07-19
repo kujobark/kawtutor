@@ -114,60 +114,350 @@ Kaw maintains continuity across the assignment, Frame component, previous studen
 
 # 4. Kaw Instructional Model
 
-## Level 1: Instructional Commitments
+## Purpose
 
-What Kaw promises every student:
+The Kaw Instructional Model defines the instructional architecture that governs every interaction between Kaw and a student.
 
-- Begin with Student Evidence
-- Let Evidence Drive Instruction
-- Advance One Thinking Step
-- Build from Student Success
-- Preserve Instructional Continuity
+Rather than generating feedback directly from student input, Kaw first establishes a structured understanding of the instructional situation. This ensures that every instructional decision is grounded in observable student evidence, aligned to the assignment, and consistent with Kaw's instructional commitments.
 
-## Level 2: Instructional Knowledge
+The instructional model separates instructional reasoning from communication. Deterministic instructional reasoning establishes instructional truth before AI is introduced to communicate that truth naturally.
 
-What Kaw understands:
+---
+
+## Why This Exists
+
+During early development, Kaw relied primarily on deterministic prompts. While this approach worked for individual instructional situations, it became increasingly difficult to scale as the number of possible student responses grew.
+
+More importantly, we realized that expert teachers do not simply respond to student answers. They first establish an understanding of the instructional context before deciding how to respond.
+
+This insight fundamentally changed Kaw's architecture.
+
+Instead of asking:
+
+> "What should Kaw say?"
+
+The system now asks:
+
+> "What instructional understanding must exist before an expert teacher can confidently make the next instructional move?"
+
+The Kaw Instructional Model exists to answer that question consistently for every student interaction.
+
+---
+
+## Architecture Overview
+
+The instructional model is organized into five interconnected levels.
+
+Each level builds upon the previous level.
+
+Instructional decisions always flow downward through the model.
+
+```
+Level 1
+Instructional Commitments
+        ↓
+Level 2
+Instructional Knowledge
+        ↓
+Level 3
+Instructional Decision Cycle
+        ↓
+Level 4
+Instructional Contracts
+        ↓
+Level 5
+Teacher Voice
+```
+
+No level bypasses the level above it.
+
+---
+
+# Level 1 — Kaw Instructional Commitments
+
+## Why This Exists
+
+Every instructional decision should be governed by consistent educational principles rather than implementation details.
+
+The instructional commitments represent those non-negotiable principles.
+
+Regardless of subject area, assignment, or Frame component, every interaction should reflect these commitments.
+
+## What It Is
+
+The instructional commitments define what Kaw promises every student.
+
+• Begin with Student Evidence
+
+• Let Evidence Drive Instruction
+
+• Advance One Thinking Step
+
+• Build from Student Success
+
+• Preserve Instructional Continuity
+
+## How It Works
+
+These commitments constrain every subsequent level of the instructional model.
+
+If an instructional decision violates one of these commitments, the decision should be reconsidered regardless of whether it appears technically correct.
+
+## Governing Decisions
+
+Instructional commitments always take precedence over implementation convenience.
+
+No instructional pathway should:
+
+- assume understanding that is not observable;
+- advance multiple thinking steps simultaneously;
+- disregard prior student success;
+- break instructional continuity;
+- generate student work.
+
+---
+
+# Level 2 — Instructional Knowledge
+
+## Why This Exists
+
+Expert teachers rarely make instructional decisions from a single student response.
+
+Instead, they consider the broader instructional context.
+
+Without sufficient instructional knowledge, coaching quickly becomes generic.
+
+Instructional Knowledge exists to provide the contextual understanding required for responsible instructional decision-making.
+
+## What It Is
+
+Instructional Knowledge represents everything Kaw understands before coaching begins.
+
+Current instructional knowledge includes:
 
 - Assignment Context
 - Thinking Task
 - Framing Routine
 - Component Success Criteria
-- Parent and Child Anchors
+- Parent Anchors
+- Child Anchors
 - Instructional Expectations
 
-## Level 3: Instructional Decision Cycle
+## How It Works
 
-Observe  
-↓  
-Orient  
-↓  
-Analyze  
-↓  
-Decide  
-↓  
-Coach  
-↓  
+Instructional Knowledge establishes the context that allows the Decision Engine to interpret student evidence accurately.
+
+Rather than treating every response independently, Kaw evaluates student work within the assignment, the Thinking Task, the student's location within the Frame, and the relationships among Frame components.
+
+## Governing Decisions
+
+Instructional decisions should never be made without sufficient instructional context.
+
+When necessary information is unavailable, Kaw should gather additional context before attempting to coach.
+
+---
+
+# Level 3 — Instructional Decision Cycle
+
+## Why This Exists
+
+Instruction should be driven by reasoning rather than reaction.
+
+The Decision Cycle provides a repeatable process for moving from student evidence to instructional action.
+
+## What It Is
+
+The Instructional Decision Cycle consists of six stages.
+
+Observe
+
+↓
+
+Orient
+
+↓
+
+Analyze
+
+↓
+
+Decide
+
+↓
+
+Coach
+
+↓
+
 Observe Again
 
-## Level 4: Instructional Contracts
+## How It Works
 
-What instructional move should occur:
+Each stage has a distinct instructional responsibility.
+
+Observe identifies the student's evidence.
+
+Orient establishes instructional context.
+
+Analyze evaluates the evidence.
+
+Decide selects the instructional goal.
+
+Coach determines the teaching move.
+
+Observe Again begins the next cycle.
+
+## Governing Decisions
+
+Every coaching interaction should progress through the complete decision cycle.
+
+AI should never bypass any stage.
+
+---
+
+# Level 4 — Instructional Contracts
+
+## Why This Exists
+
+Instructional decisions should be deterministic rather than improvised.
+
+Instructional Contracts convert validated student evidence into governed instructional behavior.
+
+## What It Is
+
+Instructional Contracts define how Kaw should respond to specific instructional situations.
+
+Current contract families include:
 
 - KT-GS-001
 - IA-GS-001
 - MI-GS-001
 - ED-GS-001
 - SW-GS-001
+
+Future contract families may include:
+
+- Celebration
 - Revision
-- Celebrate
-- Clarify
-- Misconception
+- Clarification
+- Misconceptions
+- Additional instructional pathways
 
-## Level 5: Teacher Voice
+## How It Works
 
-How the predetermined move is communicated naturally, clearly, and in context.
+Each contract defines:
+
+- entry conditions;
+- instructional findings;
+- instructional goal;
+- teaching move;
+- thinking move;
+- communication license;
+- progression rules;
+- validation requirements.
+
+The Decision Engine selects a contract before AI communication occurs.
+
+## Governing Decisions
+
+Contracts own instructional behavior.
+
+AI does not replace or reinterpret contractual decisions.
 
 ---
+
+# Level 5 — Teacher Voice
+
+## Why This Exists
+
+Students should experience instructional coaching that feels natural, supportive, and assignment-specific without sacrificing instructional consistency.
+
+Teacher Voice exists to humanize deterministic instructional reasoning.
+
+## What It Is
+
+Teacher Voice represents the communication layer of the architecture.
+
+Once instructional reasoning has determined:
+
+- instructional understanding;
+- instructional goal;
+- teaching move;
+- thinking move;
+- communication license;
+
+AI communicates that predetermined instructional decision naturally.
+
+## How It Works
+
+Teacher Voice contextualizes deterministic instructional reasoning into conversational language while preserving teacher voice and student ownership.
+
+Responses may differ linguistically while remaining instructionally equivalent.
+
+## Governing Decisions
+
+Teacher Voice communicates instructional intent.
+
+It never changes instructional intent.
+
+AI may:
+
+- contextualize;
+- personalize;
+- reference assignment context;
+- reference observable student evidence.
+
+AI may not:
+
+- change instructional goals;
+- change teaching moves;
+- generate student thinking;
+- advance students;
+- override validation.
+
+---
+
+# Relationship Among the Five Levels
+
+The Kaw Instructional Model should be understood as a layered instructional architecture rather than five independent components.
+
+Each level constrains the level beneath it.
+
+```
+Instructional Commitments
+
+↓
+
+Instructional Knowledge
+
+↓
+
+Instructional Decision Cycle
+
+↓
+
+Instructional Contracts
+
+↓
+
+Teacher Voice
+```
+
+As a result, AI never makes instructional decisions.
+
+It communicates instructional decisions that have already been established through deterministic instructional reasoning.
+
+---
+
+## Related Sections
+
+See also:
+
+- Section 2 — Design Philosophy
+- Section 5 — Instructional Knowledge
+- Section 9 — Instructional Decision Cycle
+- Section 13 — AI Governance
+- Section 14 — Communication Licensing
 
 # 5. Instructional Knowledge
 
