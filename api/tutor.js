@@ -1997,8 +1997,6 @@ async function runEssentialDetailSelfTests() {
       },
     },
 
-    {
-
   {
   name: "ED - Substantive but relationship incomplete",
   response:
