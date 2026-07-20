@@ -892,7 +892,10 @@ function selectIAGS001ThinkingMove(
   // and asks for an explanation of the whole topic without
   // supplying the paraphrase.
   // --------------------------------------------------
-  if (diagnosis === "noComponentEvidence") {
+    if (
+      diagnosis === "emptyResponse" ||
+      diagnosis === "noComponentEvidence"
+  ) {
     return (
       "Using the accepted Key Topic, invite the student to explain what " +
       "the whole topic is about in their own understandable words. " +
@@ -7323,66 +7326,142 @@ function applyIsAboutCapture(s, msg) {
       s.frame?.keyTopic || ""
     );
 
-  if (!validation.valid) {
-    s.pending = {
-      type: "stuckNudge",
-      stage: "isAbout",
+ if (!validation.valid) {
+  const instructionalFinding = {
+    frameComponent:
+      "isAbout",
 
-      instructionalFinding: {
-        frameComponent:
-          "isAbout",
+    componentEvidenceLevel:
+      validation.componentEvidenceLevel,
 
-        componentEvidenceLevel:
-          validation.componentEvidenceLevel,
+    componentCriteriaStatus:
+      validation.componentCriteriaStatus,
 
-        componentCriteriaStatus:
-          validation.componentCriteriaStatus,
+    relationshipStatus:
+      validation.relationshipStatus,
 
-        relationshipStatus:
-          validation.relationshipStatus,
+    diagnosis:
+      validation.diagnosis,
 
-        diagnosis:
-          validation.diagnosis,
+    keyTopic:
+      s.frame?.keyTopic || "",
 
-        keyTopic:
-          s.frame?.keyTopic || "",
+    attemptedIsAbout:
+      cleanText(msg),
 
-        attemptedIsAbout:
-          cleanText(msg),
+    relationshipEvidence:
+      validation.relationshipEvidence || null,
+  };
 
-        relationshipEvidence:
-          validation.relationshipEvidence || null,
-      },
+  const instructionalContract =
+    getInstructionalContract(
+      "isAbout",
+      "genuineStruggle"
+    );
 
-      resumePending: {
-        type: "reviseIsAbout",
-      },
+  const activationState = {
+    ...s,
 
-      resumeQuestion:
-        getComponentPrompt(
-          "isAbout",
-          "revisePrompt"
-        ),
+    pending: {
+      type: "reviseIsAbout",
 
-      miniQuestion:
-        getComponentPrompt(
-          "isAbout",
-          "initialPrompt",
-          {
-            keyTopic:
-              s.frame?.keyTopic || "",
+      instructionalFinding,
+    },
+  };
+
+  const instructionalActivation =
+    instructionalContract
+      ? activateInstructionalContract(
+          instructionalContract,
+          activationState
+        )
+      : null;
+
+  s.pending = {
+    type: "stuckNudge",
+    stage: "isAbout",
+
+    instructionalFinding,
+
+    instructionalContract:
+      instructionalContract
+        ? {
+            contractId:
+              instructionalContract.contractId,
+
+            frameComponent:
+              instructionalContract.frameComponent,
+
+            instructionalSituation:
+              instructionalContract
+                .instructionalSituation,
+
+            instructionalGoal:
+              instructionalContract
+                .instructionalGoal,
+
+            teachingMove:
+              instructionalContract.teachingMove,
+
+            thinkingMove:
+              instructionalContract.thinkingMove,
+
+            communicationPattern:
+              instructionalContract
+                .communicationPattern,
+
+            aiContextualizes:
+              instructionalContract
+                .aiContextualizes,
           }
-        ),
+        : null,
 
-      nudgeText:
-        "Your Is About statement should explain the whole Key Topic in your own words.\n\nWhat is this topic mainly about?",
+    instructionalActivation:
+      instructionalActivation
+        ? {
+            contractId:
+              instructionalActivation.contractId,
 
-      tone:
-        "neutral",
-    };
+            execution:
+              instructionalActivation.execution,
 
-    return s;
-  }  
+            aiPayload:
+              instructionalActivation.aiPayload,
+          }
+        : null,
+
+    resumePending: {
+      type: "reviseIsAbout",
+    },
+
+    resumeQuestion:
+      getComponentPrompt(
+        "isAbout",
+        "revisePrompt"
+      ),
+
+    miniQuestion:
+      getComponentPrompt(
+        "isAbout",
+        "initialPrompt",
+        {
+          keyTopic:
+            s.frame?.keyTopic || "",
+        }
+      ),
+
+    // Temporary deterministic fallback only.
+    // The governed AI response is used when contract
+    // activation and communication validation succeed.
+    nudgeText:
+      "Your Is About statement should explain the whole Key Topic in your own words.\n\nWhat is this topic mainly about?",
+
+    tone:
+      "neutral",
+  };
+
+  return s;
+}
 
   // Write + causeEffect must include "leads to" and we parse/store cause/effect
   if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
