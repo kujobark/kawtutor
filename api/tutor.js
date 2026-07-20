@@ -6910,6 +6910,72 @@ function parseCauseEffectFromLeadsTo(msg) {
 }
 
 function applyIsAboutCapture(s, msg) {
+  const validation =
+    validateIsAboutResponse(
+      msg,
+      s.frame?.keyTopic || ""
+    );
+
+  if (!validation.valid) {
+    s.pending = {
+      type: "stuckNudge",
+      stage: "isAbout",
+
+      instructionalFinding: {
+        frameComponent:
+          "isAbout",
+
+        componentEvidenceLevel:
+          validation.componentEvidenceLevel,
+
+        componentCriteriaStatus:
+          validation.componentCriteriaStatus,
+
+        relationshipStatus:
+          validation.relationshipStatus,
+
+        diagnosis:
+          validation.diagnosis,
+
+        keyTopic:
+          s.frame?.keyTopic || "",
+
+        attemptedIsAbout:
+          cleanText(msg),
+
+        relationshipEvidence:
+          validation.relationshipEvidence || null,
+      },
+
+      resumePending: {
+        type: "reviseIsAbout",
+      },
+
+      resumeQuestion:
+        getComponentPrompt(
+          "isAbout",
+          "revisePrompt"
+        ),
+
+      miniQuestion:
+        getComponentPrompt(
+          "isAbout",
+          "initialPrompt",
+          {
+            keyTopic:
+              s.frame?.keyTopic || "",
+          }
+        ),
+
+      nudgeText:
+        "Your Is About statement should explain the whole Key Topic in your own words.\n\nWhat is this topic mainly about?",
+
+      tone:
+        "neutral",
+    };
+
+    return s;
+  }  
 
   // Write + causeEffect must include "leads to" and we parse/store cause/effect
   if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
