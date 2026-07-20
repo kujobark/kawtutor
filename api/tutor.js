@@ -1660,8 +1660,20 @@ function hasObservableRelationshipLanguage(
     "impact",
     "impacting",
     "shows how",
+    "shows that",
+    "which shows",
+    "this shows",
+    "that shows",
     "demonstrates how",
+    "demonstrates that",
+    "which demonstrates",
+    "this demonstrates",
+    "that demonstrates",
     "explains how",
+    "explains why",
+    "which explains",
+    "this explains",
+    "that explains",
     "supports the idea",
   ];
 
@@ -2024,6 +2036,30 @@ async function runEssentialDetailSelfTests() {
     relationshipStatus:
       "established",
     diagnosis: null,
+  },
+},
+
+{
+  name:
+    "ED - Explicit theme relationship using which shows",
+
+  response:
+    "Some friends risk their own safety to protect each other, which shows that true friendship sometimes requires sacrifice.",
+
+  expected: {
+    valid: true,
+
+    componentEvidenceLevel:
+      "substantive",
+
+    componentCriteriaStatus:
+      "satisfied",
+
+    relationshipStatus:
+      "established",
+
+    diagnosis:
+      null,
   },
 },
   ];
