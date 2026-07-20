@@ -10696,6 +10696,8 @@ function runInstructionalValidationLab() {
 
     console.clear();
 
+    console.clear();
+
     console.log("");
     console.log("=================================================");
     console.log("     KAW INSTRUCTIONAL VALIDATION LAB");
@@ -10712,20 +10714,4 @@ function runInstructionalValidationLab() {
 
 }
 
-function runInstructionalValidationLab() {
-
-    console.clear();
-
-    console.log("");
-    console.log("===========================================");
-    console.log(" KAW INSTRUCTIONAL VALIDATION LAB");
-    console.log("===========================================");
-
-    runIVLEssentialDetailBenchmarks();
-
-    console.log("");
-    console.log("===========================================");
-    console.log(" IVL COMPLETE");
-    console.log("===========================================");
-
-}
+runInstructionalValidationLab();
