@@ -3090,6 +3090,203 @@ async function runIsAboutSelfTests() {
       };
     });
 
+  // --------------------------------------------------
+  // LIVE RUNTIME TEST
+  //
+  // Confirms that repeating the Key Topic is blocked
+  // before the response is saved as the Is About.
+  // --------------------------------------------------
+
+  const repeatedTopicState =
+    defaultState();
+
+  repeatedTopicState.frameMeta.assignmentContext = {
+    raw:
+      "Explain how photosynthesis helps plants make food.",
+
+    understanding:
+      "Explain how photosynthesis helps plants make food.",
+
+    studentSummary:
+      "you're explaining how photosynthesis helps plants make food.",
+
+    confidence:
+      "high",
+
+    needsClarification:
+      false,
+
+    inferredPurpose:
+      "",
+
+    childAnchor:
+      "",
+
+    clarificationCount:
+      0,
+  };
+
+  repeatedTopicState.frameMeta.purpose =
+    "study";
+
+  repeatedTopicState.frame.keyTopic =
+    "Photosynthesis";
+
+  const repeatedTopicActual =
+    await updateStateFromStudent(
+      repeatedTopicState,
+      "Photosynthesis"
+    );
+
+  const repeatedTopicPassed =
+    repeatedTopicActual?.frame?.isAbout ===
+      "" &&
+
+    repeatedTopicActual?.pending?.type ===
+      "stuckNudge" &&
+
+    repeatedTopicActual?.pending
+      ?.instructionalFinding
+      ?.diagnosis ===
+      "repeatsKeyTopic" &&
+
+    repeatedTopicActual?.pending
+      ?.resumePending
+      ?.type ===
+      "reviseIsAbout";
+
+  results.push({
+    name:
+      "IA Runtime - Repeated Key Topic is blocked",
+
+    passed:
+      repeatedTopicPassed,
+
+    response:
+      "Photosynthesis",
+
+    expected: {
+      savedIsAbout:
+        "",
+
+      pendingType:
+        "stuckNudge",
+
+      diagnosis:
+        "repeatsKeyTopic",
+
+      resumePendingType:
+        "reviseIsAbout",
+    },
+
+    actual: {
+      savedIsAbout:
+        repeatedTopicActual?.frame
+          ?.isAbout || "",
+
+      pendingType:
+        repeatedTopicActual?.pending
+          ?.type || null,
+
+      diagnosis:
+        repeatedTopicActual?.pending
+          ?.instructionalFinding
+          ?.diagnosis || null,
+
+      resumePendingType:
+        repeatedTopicActual?.pending
+          ?.resumePending
+          ?.type || null,
+    },
+  });
+
+  // --------------------------------------------------
+  // LIVE RUNTIME TEST
+  //
+  // Confirms that a valid Is About paraphrase is saved
+  // and advances to the confirmation checkpoint.
+  // --------------------------------------------------
+
+  const validIsAboutState =
+    defaultState();
+
+  validIsAboutState.frameMeta.assignmentContext = {
+    raw:
+      "Explain how photosynthesis helps plants make food.",
+
+    understanding:
+      "Explain how photosynthesis helps plants make food.",
+
+    studentSummary:
+      "you're explaining how photosynthesis helps plants make food.",
+
+    confidence:
+      "high",
+
+    needsClarification:
+      false,
+
+    inferredPurpose:
+      "",
+
+    childAnchor:
+      "",
+
+    clarificationCount:
+      0,
+  };
+
+  validIsAboutState.frameMeta.purpose =
+    "study";
+
+  validIsAboutState.frame.keyTopic =
+    "Photosynthesis";
+
+  const validIsAboutResponse =
+    "Photosynthesis is the process plants use to make food using sunlight.";
+
+  const validIsAboutActual =
+    await updateStateFromStudent(
+      validIsAboutState,
+      validIsAboutResponse
+    );
+
+  const validIsAboutPassed =
+    validIsAboutActual?.frame?.isAbout ===
+      validIsAboutResponse &&
+
+    validIsAboutActual?.pending?.type ===
+      "confirmIsAbout";
+
+  results.push({
+    name:
+      "IA Runtime - Valid paraphrase is saved and advances",
+
+    passed:
+      validIsAboutPassed,
+
+    response:
+      validIsAboutResponse,
+
+    expected: {
+      savedIsAbout:
+        validIsAboutResponse,
+
+      pendingType:
+        "confirmIsAbout",
+    },
+
+    actual: {
+      savedIsAbout:
+        validIsAboutActual?.frame
+          ?.isAbout || null,
+
+      pendingType:
+        validIsAboutActual?.pending
+          ?.type || null,
+    },
+  });
+  
   const passedCount =
     results.filter(
       (result) =>
