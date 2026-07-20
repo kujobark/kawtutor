@@ -10524,3 +10524,208 @@ return res.status(200).json({ reply, state });
     });
   }
 }
+
+// ======================================================
+// INSTRUCTIONAL VALIDATION LAB (IVL)
+// ======================================================
+//
+// Purpose:
+// Provides an isolated environment for validating
+// instructional behavior without affecting student runtime.
+//
+// Components:
+// • Is About
+// • Main Ideas
+// • Essential Details
+// • So What
+//
+// This section is never called during normal tutoring.
+// ======================================================
+
+const IVL = {
+  prompts: {},
+
+  benchmarks: {
+    isAbout: [],
+    mainIdeas: [],
+    essentialDetails: [],
+    soWhat: []
+  },
+
+results: {
+  isAbout: null,
+  mainIdeas: null,
+  essentialDetails: null,
+  soWhat: null,
+  overall: null
+}};
+
+IVL.benchmarks.essentialDetails.push({
+  id: "ED-001",
+  title: "Repeats Main Idea",
+
+  context: {
+    keyTopic: "Social Media",
+    isAbout: "How social media affects mental health",
+    mainIdea: "Social media can increase anxiety and stress."
+  },
+
+  studentResponse:
+    "Social media can increase anxiety and stress.",
+
+  expected: {
+    valid: false,
+    diagnosis: "repeatsMainIdea"
+  }
+});
+
+IVL.benchmarks.essentialDetails.push({
+  id: "ED-002",
+  title: "Specific Support With Inferable Relationship",
+
+  context: {
+    keyTopic: "Renewable Energy",
+    isAbout: "How renewable energy helps the environment",
+    mainIdea: "Renewable energy reduces pollution."
+  },
+
+  studentResponse:
+    "Solar panels generate electricity without burning fossil fuels.",
+
+  expected: {
+    valid: true,
+    diagnosis: null
+  }
+});
+
+function runIVLEssentialDetailBenchmarks() {
+  console.log("");
+  console.log("====================================");
+  console.log("IVL - Essential Detail Benchmarks");
+  console.log("====================================");
+
+  const results = IVL.benchmarks.essentialDetails.map(
+    (benchmark) => {
+      const actual =
+        validateEssentialDetailResponse(
+          benchmark.studentResponse,
+          benchmark.context.mainIdea
+        );
+
+      const passed =
+        actual.valid ===
+          benchmark.expected.valid &&
+        actual.diagnosis ===
+          benchmark.expected.diagnosis;
+
+      const result = {
+        id: benchmark.id,
+        title: benchmark.title,
+        component: "essentialDetails",
+        passed,
+        studentResponse:
+          benchmark.studentResponse,
+        expected: benchmark.expected,
+        actual
+      };
+
+      console.log("");
+      console.log(
+        `${passed ? "✅ PASS" : "❌ FAIL"} — ${benchmark.id}: ${benchmark.title}`
+      );
+
+      if (!passed) {
+        console.log(
+          "Student Response:",
+          benchmark.studentResponse
+        );
+        console.log(
+          "Expected:",
+          benchmark.expected
+        );
+        console.log(
+          "Actual:",
+          actual
+        );
+      }
+
+      return result;
+    }
+  );
+
+  const passedCount =
+    results.filter(
+      (result) => result.passed
+    ).length;
+
+  const failedCount =
+    results.length - passedCount;
+
+  const summary = {
+    component: "essentialDetails",
+    passed: failedCount === 0,
+    passedCount,
+    failedCount,
+    total: results.length,
+    results
+  };
+
+  IVL.results.essentialDetails = summary;
+
+  console.log("");
+  console.log("------------------------------------");
+  console.log(
+    `Passed: ${passedCount}/${results.length}`
+  );
+  console.log(`Failed: ${failedCount}`);
+  console.log("------------------------------------");
+
+  return summary;
+}
+
+function runInstructionalValidationLab() {
+
+    // Reset previous results
+    IVL.results = {
+        isAbout: null,
+        mainIdeas: null,
+        essentialDetails: null,
+        soWhat: null,
+        overall: null
+    };
+
+    console.clear();
+
+    console.log("");
+    console.log("=================================================");
+    console.log("     KAW INSTRUCTIONAL VALIDATION LAB");
+    console.log("=================================================");
+
+    runIVLEssentialDetailBenchmarks();
+
+    console.log("");
+    console.log("=================================================");
+    console.log("             IVL COMPLETE");
+    console.log("=================================================");
+
+    console.log(IVL.results);
+
+}
+
+function runInstructionalValidationLab() {
+
+    console.clear();
+
+    console.log("");
+    console.log("===========================================");
+    console.log(" KAW INSTRUCTIONAL VALIDATION LAB");
+    console.log("===========================================");
+
+    runIVLEssentialDetailBenchmarks();
+
+    console.log("");
+    console.log("===========================================");
+    console.log(" IVL COMPLETE");
+    console.log("===========================================");
+
+}
