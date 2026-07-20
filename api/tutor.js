@@ -3235,7 +3235,67 @@ async function runStudentSimulationSelfTests() {
   });
 
   // --------------------------------------------------
-  // STEP 9: Incomplete Essential Detail is blocked
+// STEP 9: Decline an optional third Main Idea
+// --------------------------------------------------
+
+state = await updateStateFromStudent(
+  state,
+  "2"
+);
+
+const declineAdditionalMainIdeaPassed =
+  state?.pending?.type ===
+    "confirmMainIdeas";
+
+results.push({
+  name:
+    "Student Simulation - Optional third Main Idea declined",
+
+  passed:
+    declineAdditionalMainIdeaPassed,
+
+  expected: {
+    pendingType:
+      "confirmMainIdeas",
+  },
+
+  actual: {
+    pendingType:
+      state?.pending?.type || null,
+  },
+});
+
+// --------------------------------------------------
+// STEP 10: Confirm Main Ideas
+// --------------------------------------------------
+
+state = await updateStateFromStudent(
+  state,
+  "1"
+);
+
+const confirmMainIdeasPassed =
+  state?.pending === null;
+
+results.push({
+  name:
+    "Student Simulation - Main Ideas confirmed",
+
+  passed:
+    confirmMainIdeasPassed,
+
+  expected: {
+    pendingType: null,
+  },
+
+  actual: {
+    pendingType:
+      state?.pending?.type || null,
+  },
+});
+
+  // --------------------------------------------------
+  // STEP 11: Incomplete Essential Detail is blocked
   // --------------------------------------------------
 
   state = await updateStateFromStudent(
@@ -3278,7 +3338,7 @@ async function runStudentSimulationSelfTests() {
   });
 
   // --------------------------------------------------
-  // STEP 10: Revised Essential Detail is accepted
+  // STEP 12: Revised Essential Detail is accepted
   // --------------------------------------------------
 
   state = await updateStateFromStudent(
