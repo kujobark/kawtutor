@@ -911,13 +911,14 @@ function selectIAGS001ThinkingMove(
   // explain or paraphrase what the whole topic is about.
   // --------------------------------------------------
   if (diagnosis === "repeatsKeyTopic") {
-    return (
-      "Refocus the student on the difference between naming the Key Topic " +
-      "and explaining what the whole topic is about. Ask the student to " +
-      "describe the accepted Key Topic in their own understandable words. " +
-      "Do not provide the paraphrase."
-    );
-  }
+  return (
+    "Briefly reassure the student without implying success. " +
+    "Acknowledge that they have named the Key Topic, then clarify that " +
+    "the Is About statement explains what the whole topic is about. " +
+    "Ask the student to describe the accepted Key Topic in their own words. " +
+    "Do not provide or suggest the paraphrase."
+  );
+}
 
   // --------------------------------------------------
   // INSUFFICIENT OBSERVABLE EVIDENCE
