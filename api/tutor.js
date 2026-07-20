@@ -10595,6 +10595,55 @@ results: {
   overall: null
 }};
 
+const IVL = {
+
+  prompts: {},
+
+  benchmarks: {
+    isAbout: [],
+    mainIdeas: [],
+    essentialDetails: [],
+    soWhat: []
+  },
+
+  results: {
+    ...
+  }
+};
+
+// ======================================================
+// IS ABOUT BENCHMARKS
+// ======================================================
+
+IVL.benchmarks.isAbout.push({
+
+    id: "IA-001",
+
+    title: "Empty Response",
+
+    context: {
+        keyTopic: "Renewable Energy"
+    },
+
+    studentResponse: "",
+
+    expected: {
+        valid: false,
+        diagnosis: "emptyResponse"
+    }
+
+});
+
+// ======================================================
+// MAIN IDEA BENCHMARKS
+// ======================================================
+
+// ======================================================
+// ESSENTIAL DETAIL BENCHMARKS
+// ======================================================
+
+IVL.benchmarks.essentialDetails.push({
+
 IVL.benchmarks.essentialDetails.push({
   id: "ED-001",
   title: "Repeats Main Idea",
@@ -10614,6 +10663,7 @@ IVL.benchmarks.essentialDetails.push({
   }
 });
 
+
 IVL.benchmarks.essentialDetails.push({
   id: "ED-002",
   title: "Specific Support With Inferable Relationship",
@@ -10632,6 +10682,65 @@ IVL.benchmarks.essentialDetails.push({
     diagnosis: null
   }
 });
+
+function runIVLIsAboutBenchmarks() {
+
+    const results = [];
+
+    for (const benchmark of IVL.benchmarks.isAbout) {
+
+        const actual =
+            validateIsAboutResponse({
+
+                keyTopic:
+                    benchmark.context.keyTopic,
+
+                response:
+                    benchmark.studentResponse
+
+            });
+
+        const passed =
+            actual.valid === benchmark.expected.valid &&
+            actual.diagnosis === benchmark.expected.diagnosis;
+
+        results.push({
+
+            id: benchmark.id,
+            title: benchmark.title,
+            studentResponse:
+                benchmark.studentResponse,
+
+            expected:
+                benchmark.expected,
+
+            actual,
+
+            passed
+
+        });
+
+    }
+
+    const summary = {
+
+        total: results.length,
+
+        passedCount:
+            results.filter(r => r.passed).length,
+
+        failedCount:
+            results.filter(r => !r.passed).length,
+
+        results
+
+    };
+
+    IVL.results.isAbout = summary;
+
+    return summary;
+
+}
 
 function runIVLEssentialDetailBenchmarks() {
   console.log("");
