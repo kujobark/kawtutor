@@ -835,15 +835,16 @@ function executeIAGS001(contract, state) {
     instructionalGoal:
       contract.instructionalGoal,
 
-    teachingMove:
-    instructionalDecision.teachingMove,
+   teachingMove:
+    contract.teachingMove,
 
-    thinkingMove:
-      instructionalDecision.thinkingMove,
+  thinkingMove:
+    selectedThinkingMove,
+
+  communicationPattern:
+    contract.communicationPattern ||
+    "questionOnly",
     
-    communicationPattern:
-      instructionalDecision.communicationPattern,
-
     aiContextualizes:
       contract.aiContextualizes,
 
@@ -1096,91 +1097,6 @@ function selectEDGS001InstructionalDecision(
   return fallbackDecision;
 }
 
-  const diagnosis =
-    instructionalFinding?.diagnosis || "";
-
-  // --------------------------------------------------
-  // NO COMPONENT EVIDENCE
-  //
-  // The student has not provided observable content that
-  // can be evaluated as an Essential Detail.
-  //
-  // Kaw reduces cognitive load and cues the student to
-  // retrieve one concrete form of support for the accepted
-  // Main Idea without implying progress or supplying content.
-  // --------------------------------------------------
-  if (diagnosis === "noComponentEvidence") {
-    return (
-      "Using the accepted Main Idea, invite the student to think of " +
-      "one concrete fact, example, observation, explanation, or piece " +
-      "of evidence that could support it. Reduce cognitive load without " +
-      "suggesting or generating the Essential Detail."
-    );
-  }
-
-  // --------------------------------------------------
-  // INSUFFICIENT OBSERVABLE EVIDENCE
-  //
-  // The response is too vague, circular, or incomplete to
-  // determine whether the required supporting relationship
-  // to the Main Idea has been established.
-  //
-  // Kaw may not infer alignment. It should prompt the student
-  // to provide observable information that makes the possible
-  // relationship clear.
-  // --------------------------------------------------
-  if (diagnosis === "insufficientObservableEvidence") {
-    return (
-      "Using the accepted Main Idea, ask the student for one concrete " +
-      "fact, example, observation, explanation, or piece of evidence " +
-      "that makes clear how the detail could support the Main Idea. " +
-      "Do not claim that the current response supports or fails to " +
-      "support the Main Idea because alignment remains undetermined."
-    );
-  }
-
-    // --------------------------------------------------
-  // RELATIONSHIP INCOMPLETE
-  //
-  // The response is related to the Main Idea, but the
-  // supporting relationship is not yet explicit enough
-  // to satisfy the Essential Detail criteria.
-  // --------------------------------------------------
-  if (
-    diagnosis ===
-    "relationshipIncomplete"
-  ) {
-    return (
-      "Reference the student's observable idea without claiming it already " +
-      "supports the Main Idea. Ask the student to explain how that fact, " +
-      "example, observation, explanation, or evidence connects to the " +
-      "accepted Main Idea. Do not supply the connection."
-    );
-  }
-
-  // --------------------------------------------------
-  // RELATIONSHIP NOT ESTABLISHED
-  //
-  // The response contains substantive content, but no
-  // observable connection to the accepted Main Idea exists.
-  // --------------------------------------------------
-  if (
-    diagnosis ===
-    "relationshipNotEstablished"
-  ) {
-    return (
-      "Refocus the student on the accepted Main Idea and ask for one fact, " +
-      "example, observation, explanation, or piece of evidence that directly " +
-      "supports it. Do not evaluate the student's unrelated idea beyond the " +
-      "deterministic finding, and do not generate the replacement Detail."
-    );
-  }
-  
-  // Preserve the teacher-authored contract move when no
-  // diagnosis-specific Thinking Move has been established.
-  return fallbackThinkingMove;
-}
-
 function executeEDGS001(contract, state) {
   const ideas =
     getIdeaList(state).filter(Boolean);
@@ -1222,16 +1138,15 @@ function executeEDGS001(contract, state) {
 
     instructionalGoal:
       contract.instructionalGoal,
-
+  
     teachingMove:
-      contract.teachingMove,
+      instructionalDecision.teachingMove,
 
     thinkingMove:
-      selectedThinkingMove,
+      instructionalDecision.thinkingMove,
 
     communicationPattern:
-      contract.communicationPattern ||
-      "questionOnly",
+      instructionalDecision.communicationPattern,
 
     aiContextualizes:
       contract.aiContextualizes,
