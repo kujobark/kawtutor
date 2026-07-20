@@ -10263,6 +10263,41 @@ if (
   });
 }
 
+  // ------------------------------------------------------
+// HIDDEN KAW INSTRUCTIONAL VALIDATION LAB COMMAND
+//
+// Type "/ivl" in the Wix Kaw chat to run the current
+// instructional benchmark library.
+//
+// This command does not modify the student's active Frame.
+// ------------------------------------------------------
+
+if (
+  message.toLowerCase() ===
+  "/ivl"
+) {
+  const ivlResults =
+    runInstructionalValidationLab();
+
+  const reply =
+    formatInstructionalValidationLabResults(
+      ivlResults
+    );
+
+  return res.status(200).json({
+    reply,
+
+    state:
+      body.state ||
+      body.vercelState ||
+      body.framing ||
+      defaultState(),
+
+    instructionalValidationLab:
+      ivlResults
+  });
+}
+    
   let incoming = body.state || body.vercelState || body.framing || {};
   let state = normalizeIncomingState(incoming);
 
@@ -10684,34 +10719,118 @@ function runIVLEssentialDetailBenchmarks() {
 }
 
 function runInstructionalValidationLab() {
+  IVL.results = {
+    isAbout: null,
+    mainIdeas: null,
+    essentialDetails: null,
+    soWhat: null,
+    overall: null
+  };
 
-    // Reset previous results
-    IVL.results = {
-        isAbout: null,
-        mainIdeas: null,
-        essentialDetails: null,
-        soWhat: null,
-        overall: null
-    };
-
-    console.clear();
-
-    console.clear();
-
-    console.log("");
-    console.log("=================================================");
-    console.log("     KAW INSTRUCTIONAL VALIDATION LAB");
-    console.log("=================================================");
-
+  const essentialDetails =
     runIVLEssentialDetailBenchmarks();
 
-    console.log("");
-    console.log("=================================================");
-    console.log("             IVL COMPLETE");
-    console.log("=================================================");
+  const componentResults = [
+    essentialDetails
+  ].filter(Boolean);
 
-    console.log(IVL.results);
+  const passedCount =
+    componentResults.reduce(
+      (total, component) =>
+        total + component.passedCount,
+      0
+    );
 
+  const failedCount =
+    componentResults.reduce(
+      (total, component) =>
+        total + component.failedCount,
+      0
+    );
+
+  const total =
+    componentResults.reduce(
+      (sum, component) =>
+        sum + component.total,
+      0
+    );
+
+  IVL.results.overall = {
+    passed: failedCount === 0,
+    passedCount,
+    failedCount,
+    total
+  };
+
+  return IVL.results;
 }
 
-runInstructionalValidationLab();
+function formatInstructionalValidationLabResults(
+  ivlResults
+) {
+  const detailSuite =
+    ivlResults?.essentialDetails;
+
+  const lines = [
+    "🧪 KAW INSTRUCTIONAL VALIDATION LAB",
+    "",
+    "Essential Details",
+    ""
+  ];
+
+  if (!detailSuite) {
+    lines.push(
+      "No Essential Detail results were returned."
+    );
+  } else {
+    detailSuite.results.forEach(
+      (result) => {
+        lines.push(
+          `${result.passed ? "✅" : "❌"} ${result.id}: ${result.title}`
+        );
+
+        lines.push(
+          `Student response: ${result.studentResponse}`
+        );
+
+        lines.push(
+          `Expected: ${JSON.stringify(
+            result.expected
+          )}`
+        );
+
+        lines.push(
+          `Actual: ${JSON.stringify(
+            result.actual
+          )}`
+        );
+
+        lines.push("");
+      }
+    );
+
+    lines.push("────────────────────────");
+
+    lines.push(
+      `Essential Details: ${detailSuite.passedCount}/${detailSuite.total} passed`
+    );
+  }
+
+  const overall =
+    ivlResults?.overall;
+
+  if (overall) {
+    lines.push("");
+    lines.push(
+      `Overall: ${overall.passedCount}/${overall.total} passed`
+    );
+
+    lines.push(
+      overall.passed
+        ? "🚀 All current IVL benchmarks passed."
+        : "⚠️ One or more IVL benchmarks did not match the expected instructional outcome."
+    );
+  }
+
+  return lines.join("\n");
+}
