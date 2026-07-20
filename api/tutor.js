@@ -912,20 +912,19 @@ function selectIAGS001ThinkingMove(
   // --------------------------------------------------
 if (diagnosis === "repeatsKeyTopic") {
   return (
-    "Use Kaw's Celebrate, Orient, Think communication pattern. " +
+    "The student has successfully identified the Key Topic but has not yet explained what it is about. " +
 
-    "Celebrate: Acknowledge that the student has correctly identified the Key Topic. " +
+    "Respond like an encouraging teacher working beside a student, not like an assessment system or instructional manual. " +
 
-    "Orient: Invite the student to shift from naming the topic to thinking about what the whole topic is about. " +
+    "First, briefly acknowledge the student's success identifying the Key Topic. " +
+    "Next, naturally redirect their thinking toward what the whole topic is about. " +
+    "Finally, ask one simple question inviting them to explain the topic in their own words. " +
 
-    "Think: Ask exactly one question inviting the student to describe the accepted Key Topic in their own words. " +
+    "The response should feel conversational, warm, and supportive. " +
 
-    "Write exactly three short, natural, student-friendly sentences: " +
-    "one Celebrate sentence, one Orient sentence, and one Think question. " +
-
-    "Do not mention validation, criteria, an Is About statement, or an incorrect response. " +
-    "Do not combine the Celebrate and Orient steps. " +
-    "Do not provide, suggest, begin, or model the student's paraphrase."
+    "Avoid phrases like 'shift from,' 'criteria,' 'statement,' 'validation,' 'correct,' or 'incorrect.' " +
+    "Do not explain the rubric or the task requirements. " +
+    "Do not provide, suggest, or begin the student's answer."
   );
 }
 
