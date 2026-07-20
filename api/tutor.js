@@ -2111,8 +2111,8 @@ async function runEssentialDetailSelfTests() {
     const actual =
       validateEssentialDetailResponse(
         test.response,
-        currentMainIdea
-      );
+        test.mainIdea || currentMainIdea
+);
 
     const passed =
       actual.valid === test.expected.valid &&
