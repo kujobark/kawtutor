@@ -369,6 +369,74 @@ soWhat: {
 // only when the selected contract explicitly allows it.
 
 const INSTRUCTIONAL_PLAYBOOK = {
+  isAbout: {
+    genuineStruggle: {
+      contractId: "IA-GS-001",
+
+      frameComponent: "isAbout",
+      instructionalSituation: "genuineStruggle",
+
+      instructionalGoal: "restartThinking",
+
+      teachingMove: "clarify",
+
+      thinkingMove:
+        "Explain what the whole Key Topic is about using your own understandable words.",
+
+      communicationPattern:
+        "briefReassuranceThenQuestion",
+
+      aiContextualizes: true,
+
+      validation: {
+        type: "isAbout",
+        description:
+          "The student provides an Is About statement that observably paraphrases and summarizes the whole Key Topic.",
+      },
+
+      resumeBehavior: {
+        type: "returnToExactInstructionalLocation",
+        description:
+          "Return to the Is About statement where support was requested and validate the student's next response.",
+      },
+
+      progressiveSupport: {
+        principle:
+          "If the first intervention does not restart productive thinking, provide progressively more targeted support without supplying the student's Is About statement.",
+
+        scaffolds: [
+          {
+            level: 1,
+            move: "refocus",
+            purpose:
+              "Reconnect the student to the accepted Key Topic.",
+          },
+          {
+            level: 2,
+            move: "remind",
+            purpose:
+              "Remind the student that Is About explains the whole Key Topic in their own words.",
+          },
+          {
+            level: 3,
+            move: "thinkingPrompt",
+            purpose:
+              "Ask what someone unfamiliar with the topic should understand about it.",
+          },
+        ],
+      },
+
+      studentWorkProtection: {
+        preserveExistingWork: true,
+        neverSaveStruggleLanguage: true,
+        neverGenerateStudentWork: true,
+        neverSupplyParaphrase: true,
+        neverReplaceKeyTopic: true,
+        neverInferMeaning: true,
+      },
+    },
+  },
+
   details: {
     genuineStruggle: {
       contractId: "ED-GS-001",
@@ -385,7 +453,7 @@ const INSTRUCTIONAL_PLAYBOOK = {
 
       communicationPattern:
         "briefReassuranceThenQuestion",
-      
+
       aiContextualizes: true,
 
       validation: {
@@ -736,6 +804,8 @@ function executeInstructionalContract(contract, state) {
   if (!contract) return null;
 
   switch (contract.contractId) {
+    case "IA-GS-001":
+      return executeIAGS001(contract, state);
 
     case "ED-GS-001":
       return executeEDGS001(contract, state);
@@ -743,6 +813,146 @@ function executeInstructionalContract(contract, state) {
     default:
       return null;
   }
+}
+
+function executeIAGS001(contract, state) {
+  const instructionalFinding =
+    state?.pending?.instructionalFinding ||
+    state?.pending?.resumePending
+      ?.instructionalFinding ||
+    null;
+
+  const selectedThinkingMove =
+    selectIAGS001ThinkingMove(
+      instructionalFinding,
+      contract.thinkingMove
+    );
+
+  return {
+    contractId:
+      contract.contractId,
+
+    instructionalGoal:
+      contract.instructionalGoal,
+
+    teachingMove:
+      contract.teachingMove,
+
+    thinkingMove:
+      selectedThinkingMove,
+
+    communicationPattern:
+      contract.communicationPattern ||
+      "questionOnly",
+
+    aiContextualizes:
+      contract.aiContextualizes,
+
+    instructionalFinding,
+
+    context: {
+      assignmentContext:
+        state?.frameMeta?.assignmentContext || {},
+
+      thinkingTask:
+        state?.assignmentReasoning || {},
+
+      frameComponent:
+        contract.frameComponent,
+
+      keyTopic:
+        state?.frame?.keyTopic || "",
+
+      isAbout:
+        state?.frame?.isAbout || "",
+
+      currentMainIdea:
+        "",
+
+      existingDetails:
+        [],
+    },
+  };
+}
+
+function selectIAGS001ThinkingMove(
+  instructionalFinding,
+  fallbackThinkingMove
+) {
+  const diagnosis =
+    instructionalFinding?.diagnosis || "";
+
+  // --------------------------------------------------
+  // NO COMPONENT EVIDENCE
+  //
+  // The student has not provided observable Is About
+  // content that can be evaluated.
+  //
+  // Kaw reconnects the student to the accepted Key Topic
+  // and asks for an explanation of the whole topic without
+  // supplying the paraphrase.
+  // --------------------------------------------------
+  if (diagnosis === "noComponentEvidence") {
+    return (
+      "Using the accepted Key Topic, invite the student to explain what " +
+      "the whole topic is about in their own understandable words. " +
+      "Reduce cognitive load without suggesting or generating the " +
+      "Is About statement."
+    );
+  }
+
+  // --------------------------------------------------
+  // REPEATS KEY TOPIC
+  //
+  // The response repeats the Key Topic but does not yet
+  // explain or paraphrase what the whole topic is about.
+  // --------------------------------------------------
+  if (diagnosis === "repeatsKeyTopic") {
+    return (
+      "Refocus the student on the difference between naming the Key Topic " +
+      "and explaining what the whole topic is about. Ask the student to " +
+      "describe the accepted Key Topic in their own understandable words. " +
+      "Do not provide the paraphrase."
+    );
+  }
+
+  // --------------------------------------------------
+  // INSUFFICIENT OBSERVABLE EVIDENCE
+  //
+  // The response may contain the beginning of an idea,
+  // but there is not enough observable information to
+  // establish a whole-topic paraphrase.
+  // --------------------------------------------------
+  if (
+    diagnosis ===
+    "insufficientObservableEvidence"
+  ) {
+    return (
+      "Using the accepted Key Topic, ask the student to expand the response " +
+      "so someone unfamiliar with the topic could understand what the whole " +
+      "topic is about. Do not infer or supply the missing meaning."
+    );
+  }
+
+  // --------------------------------------------------
+  // RELATIONSHIP UNDETERMINED
+  //
+  // The response contains substantive language, but the
+  // observable relationship to the whole Key Topic has
+  // not been established.
+  // --------------------------------------------------
+  if (
+    diagnosis ===
+    "relationshipUndetermined"
+  ) {
+    return (
+      "Ask the student to make clearer how the response explains the whole " +
+      "accepted Key Topic. Preserve the undetermined relationship and do not " +
+      "claim the response does or does not paraphrase the topic."
+    );
+  }
+
+  return fallbackThinkingMove;
 }
 
 function selectEDGS001ThinkingMove(
