@@ -10690,16 +10690,11 @@ function runIVLIsAboutBenchmarks() {
     for (const benchmark of IVL.benchmarks.isAbout) {
 
         const actual =
-            validateIsAboutResponse({
-
-                keyTopic:
-                    benchmark.context.keyTopic,
-
-                response:
-                    benchmark.studentResponse
-
-            });
-
+         validateIsAboutResponse(
+            benchmark.studentResponse,
+            benchmark.context.keyTopic
+        );
+      
         const passed =
             actual.valid === benchmark.expected.valid &&
             actual.diagnosis === benchmark.expected.diagnosis;
@@ -10740,6 +10735,67 @@ function runIVLIsAboutBenchmarks() {
 
     return summary;
 
+}
+
+function runIVLIsAboutBenchmarks() {
+  const results = [];
+
+  for (
+    const benchmark of
+    IVL.benchmarks.isAbout
+  ) {
+    const actual =
+      validateIsAboutResponse(
+        benchmark.studentResponse,
+        benchmark.context.keyTopic
+      );
+
+    const passed =
+      actual.valid ===
+        benchmark.expected.valid &&
+      actual.diagnosis ===
+        benchmark.expected.diagnosis;
+
+    results.push({
+      id:
+        benchmark.id,
+
+      title:
+        benchmark.title,
+
+      studentResponse:
+        benchmark.studentResponse,
+
+      expected:
+        benchmark.expected,
+
+      actual,
+
+      passed
+    });
+  }
+
+  const summary = {
+    total:
+      results.length,
+
+    passedCount:
+      results.filter(
+        result => result.passed
+      ).length,
+
+    failedCount:
+      results.filter(
+        result => !result.passed
+      ).length,
+
+    results
+  };
+
+  IVL.results.isAbout =
+    summary;
+
+  return summary;
 }
 
 function runIVLEssentialDetailBenchmarks() {
@@ -10836,12 +10892,16 @@ function runInstructionalValidationLab() {
     overall: null
   };
 
+     const isAbout =
+      runIVLIsAboutBenchmarks();
+  
   const essentialDetails =
-    runIVLEssentialDetailBenchmarks();
-
+      runIVLEssentialDetailBenchmarks();
+  
   const componentResults = [
-    essentialDetails
-  ].filter(Boolean);
+      isAbout,
+      essentialDetails
+    ].filter(Boolean);
 
   const passedCount =
     componentResults.reduce(
@@ -10877,16 +10937,63 @@ function runInstructionalValidationLab() {
 function formatInstructionalValidationLabResults(
   ivlResults
 ) {
-  const detailSuite =
-    ivlResults?.essentialDetails;
+  const isAboutSuite =
+  ivlResults?.isAbout;
+
+const detailSuite =
+  ivlResults?.essentialDetails;
 
   const lines = [
     "🧪 KAW INSTRUCTIONAL VALIDATION LAB",
-    "",
-    "Essential Details",
     ""
   ];
 
+  lines.push("Is About");
+lines.push("");
+
+if (!isAboutSuite) {
+
+  lines.push(
+    "No Is About results were returned."
+  );
+
+} else {
+
+  isAboutSuite.results.forEach(result => {
+
+    lines.push(
+      `${result.passed ? "✅" : "❌"} ${result.id}: ${result.title}`
+    );
+
+    lines.push(
+      `Student response: ${result.studentResponse}`
+    );
+
+    lines.push(
+      `Expected: ${JSON.stringify(result.expected)}`
+    );
+
+    lines.push(
+      `Actual: ${JSON.stringify(result.actual)}`
+    );
+
+    lines.push("");
+
+  });
+
+  lines.push("────────────────────────");
+
+  lines.push(
+    `Is About: ${isAboutSuite.passedCount}/${isAboutSuite.total} passed`
+  );
+
+  lines.push("");
+  lines.push("");
+  lines.push("Essential Details");
+  lines.push("");
+
+}
+  
   if (!detailSuite) {
     lines.push(
       "No Essential Detail results were returned."
