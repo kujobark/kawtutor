@@ -10595,22 +10595,6 @@ results: {
   overall: null
 }};
 
-const IVL = {
-
-  prompts: {},
-
-  benchmarks: {
-    isAbout: [],
-    mainIdeas: [],
-    essentialDetails: [],
-    soWhat: []
-  },
-
-  results: {
-    ...
-  }
-};
-
 // ======================================================
 // IS ABOUT BENCHMARKS
 // ======================================================
@@ -10641,8 +10625,6 @@ IVL.benchmarks.isAbout.push({
 // ======================================================
 // ESSENTIAL DETAIL BENCHMARKS
 // ======================================================
-
-IVL.benchmarks.essentialDetails.push({
 
 IVL.benchmarks.essentialDetails.push({
   id: "ED-001",
@@ -10682,60 +10664,6 @@ IVL.benchmarks.essentialDetails.push({
     diagnosis: null
   }
 });
-
-function runIVLIsAboutBenchmarks() {
-
-    const results = [];
-
-    for (const benchmark of IVL.benchmarks.isAbout) {
-
-        const actual =
-         validateIsAboutResponse(
-            benchmark.studentResponse,
-            benchmark.context.keyTopic
-        );
-      
-        const passed =
-            actual.valid === benchmark.expected.valid &&
-            actual.diagnosis === benchmark.expected.diagnosis;
-
-        results.push({
-
-            id: benchmark.id,
-            title: benchmark.title,
-            studentResponse:
-                benchmark.studentResponse,
-
-            expected:
-                benchmark.expected,
-
-            actual,
-
-            passed
-
-        });
-
-    }
-
-    const summary = {
-
-        total: results.length,
-
-        passedCount:
-            results.filter(r => r.passed).length,
-
-        failedCount:
-            results.filter(r => !r.passed).length,
-
-        results
-
-    };
-
-    IVL.results.isAbout = summary;
-
-    return summary;
-
-}
 
 function runIVLIsAboutBenchmarks() {
   const results = [];
