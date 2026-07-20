@@ -910,15 +910,22 @@ function selectIAGS001ThinkingMove(
   // The response repeats the Key Topic but does not yet
   // explain or paraphrase what the whole topic is about.
   // --------------------------------------------------
- if (diagnosis === "repeatsKeyTopic") {
+if (diagnosis === "repeatsKeyTopic") {
   return (
     "Use Kaw's Celebrate, Orient, Think communication pattern. " +
-    "Celebrate by briefly acknowledging that the student has identified the Key Topic. " +
-    "Orient the student by inviting them to think about what the whole topic is about. " +
-    "Then ask exactly one question inviting the student to describe the accepted Key Topic in their own words. " +
-    "Use short, natural, student-friendly sentences. " +
+
+    "Celebrate: Acknowledge that the student has correctly identified the Key Topic. " +
+
+    "Orient: Invite the student to shift from naming the topic to thinking about what the whole topic is about. " +
+
+    "Think: Ask exactly one question inviting the student to describe the accepted Key Topic in their own words. " +
+
+    "Write exactly three short, natural, student-friendly sentences: " +
+    "one Celebrate sentence, one Orient sentence, and one Think question. " +
+
     "Do not mention validation, criteria, an Is About statement, or an incorrect response. " +
-    "Do not provide, suggest, or begin the student's paraphrase."
+    "Do not combine the Celebrate and Orient steps. " +
+    "Do not provide, suggest, begin, or model the student's paraphrase."
   );
 }
 
