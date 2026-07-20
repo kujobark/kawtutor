@@ -10599,24 +10599,255 @@ results: {
 // IS ABOUT BENCHMARKS
 // ======================================================
 
-IVL.benchmarks.isAbout.push({
-
+IVL.benchmarks.isAbout.push(
+  {
     id: "IA-001",
-
     title: "Empty Response",
 
     context: {
-        keyTopic: "Renewable Energy"
+      keyTopic: "Renewable Energy"
     },
 
     studentResponse: "",
 
     expected: {
-        valid: false,
-        diagnosis: "emptyResponse"
+      valid: false,
+      diagnosis: "emptyResponse"
     }
+  },
 
-});
+  {
+    id: "IA-002",
+    title: "Explicit Stuck Response",
+
+    context: {
+      keyTopic: "Renewable Energy"
+    },
+
+    studentResponse: "idk",
+
+    expected: {
+      valid: false,
+      diagnosis: "noComponentEvidence"
+    }
+  },
+
+  {
+    id: "IA-003",
+    title: "Meta Response Instead of Is About",
+
+    context: {
+      keyTopic: "Renewable Energy"
+    },
+
+    studentResponse: "yes",
+
+    expected: {
+      valid: false,
+      diagnosis: "noComponentEvidence"
+    }
+  },
+
+  {
+    id: "IA-004",
+    title: "Repeats Key Topic Exactly",
+
+    context: {
+      keyTopic: "Renewable Energy"
+    },
+
+    studentResponse: "Renewable Energy",
+
+    expected: {
+      valid: false,
+      diagnosis: "repeatsKeyTopic"
+    }
+  },
+
+  {
+    id: "IA-005",
+    title: "Repeats Key Topic With Different Capitalization",
+
+    context: {
+      keyTopic: "Renewable Energy"
+    },
+
+    studentResponse: "renewable energy.",
+
+    expected: {
+      valid: false,
+      diagnosis: "repeatsKeyTopic"
+    }
+  },
+
+  {
+    id: "IA-006",
+    title: "Too Little Observable Evidence",
+
+    context: {
+      keyTopic: "Photosynthesis"
+    },
+
+    studentResponse: "Plants make food",
+
+    expected: {
+      valid: false,
+      diagnosis: "insufficientObservableEvidence"
+    }
+  },
+
+  {
+    id: "IA-007",
+    title: "Short Fragment Related to Topic",
+
+    context: {
+      keyTopic: "Climate Change"
+    },
+
+    studentResponse: "Changing global temperatures",
+
+    expected: {
+      valid: false,
+      diagnosis: "insufficientObservableEvidence"
+    }
+  },
+
+  {
+    id: "IA-008",
+    title: "Substantive Response Without Observable Topic Connection",
+
+    context: {
+      keyTopic: "Renewable Energy"
+    },
+
+    studentResponse:
+      "People use many different resources throughout their daily lives.",
+
+    expected: {
+      valid: false,
+      diagnosis: "relationshipUndetermined"
+    }
+  },
+
+  {
+    id: "IA-009",
+    title: "Unrelated Substantive Response",
+
+    context: {
+      keyTopic: "Photosynthesis"
+    },
+
+    studentResponse:
+      "Ancient civilizations developed complex systems of government and trade.",
+
+    expected: {
+      valid: false,
+      diagnosis: "relationshipUndetermined"
+    }
+  },
+
+  {
+    id: "IA-010",
+    title: "Clear Whole-Topic Paraphrase",
+
+    context: {
+      keyTopic: "Renewable Energy"
+    },
+
+    studentResponse:
+      "Renewable energy is power produced from resources that can naturally be replaced.",
+
+    expected: {
+      valid: true,
+      diagnosis: null
+    }
+  },
+
+  {
+    id: "IA-011",
+    title: "Student-Friendly Science Paraphrase",
+
+    context: {
+      keyTopic: "Photosynthesis"
+    },
+
+    studentResponse:
+      "Photosynthesis is the process plants use to make food from sunlight.",
+
+    expected: {
+      valid: true,
+      diagnosis: null
+    }
+  },
+
+  {
+    id: "IA-012",
+    title: "Clear Social Studies Paraphrase",
+
+    context: {
+      keyTopic: "The Industrial Revolution"
+    },
+
+    studentResponse:
+      "The Industrial Revolution was a period when new machines changed how goods were made.",
+
+    expected: {
+      valid: true,
+      diagnosis: null
+    }
+  },
+
+  {
+    id: "IA-013",
+    title: "Clear Literary Topic Paraphrase",
+
+    context: {
+      keyTopic: "Friendship in The Outsiders"
+    },
+
+    studentResponse:
+      "Friendship in The Outsiders is about how loyalty helps characters survive difficult experiences.",
+
+    expected: {
+      valid: true,
+      diagnosis: null
+    }
+  },
+
+  {
+    id: "IA-014",
+    title: "Clear Cause and Effect Paraphrase",
+
+    context: {
+      keyTopic: "Social Media and Teen Mental Health"
+    },
+
+    studentResponse:
+      "Social media and teen mental health is about how online experiences can affect teenagers emotionally.",
+
+    expected: {
+      valid: true,
+      diagnosis: null
+    }
+  },
+
+  {
+    id: "IA-015",
+    title: "Clear Government Topic Paraphrase",
+
+    context: {
+      keyTopic: "Checks and Balances"
+    },
+
+    studentResponse:
+      "Checks and balances is a system that prevents one branch of government from gaining too much power.",
+
+    expected: {
+      valid: true,
+      diagnosis: null
+    }
+  }
+);
 
 // ======================================================
 // MAIN IDEA BENCHMARKS
