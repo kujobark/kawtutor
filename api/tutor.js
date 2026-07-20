@@ -1622,65 +1622,56 @@ function hasObservableRelationshipLanguage(
   const lower =
     cleanText(response).toLowerCase();
 
-  const relationshipMarkers = [
-    "because",
-    "which can",
-    "which may",
-    "which makes",
-    "which means",
-    "this can",
-    "this may",
-    "this makes",
-    "this means",
-    "that can",
-    "that may",
-    "that makes",
-    "that means",
-    "leads to",
-    "lead to",
-    "causes",
-    "caused",
-    "causing",
-    "results in",
-    "resulted in",
-    "as a result",
-    "therefore",
-    "so that",
-    "due to",
-    "increases",
-    "increase",
-    "increasing",
-    "decreases",
-    "decrease",
-    "decreasing",
-    "affects",
-    "affect",
-    "affecting",
-    "impacts",
-    "impact",
-    "impacting",
-    "shows how",
-    "shows that",
-    "which shows",
-    "this shows",
-    "that shows",
-    "demonstrates how",
-    "demonstrates that",
-    "which demonstrates",
-    "this demonstrates",
-    "that demonstrates",
-    "explains how",
-    "explains why",
-    "which explains",
-    "this explains",
-    "that explains",
-    "supports the idea",
+  if (!lower) return false;
+
+  // --------------------------------------------------
+  // EXPLICIT RELATIONSHIP CONNECTORS
+  //
+  // These words and constructions explicitly connect
+  // one idea to another through cause, consequence,
+  // explanation, interpretation, or support.
+  // --------------------------------------------------
+
+  const connectorPatterns = [
+    /\bbecause\b/,
+    /\bsince\b/,
+    /\btherefore\b/,
+    /\bthus\b/,
+    /\bas a result\b/,
+    /\bdue to\b/,
+    /\bso that\b/,
+
+    /\bleads?\s+to\b/,
+    /\bcaus(?:e|es|ed|ing)\b/,
+    /\bresults?\s+in\b/,
+    /\bresulted\s+in\b/,
+    /\bcontributes?\s+to\b/,
+
+    /\bmakes?\b/,
+    /\bmeans?\b/,
+    /\baffect(?:s|ed|ing)?\b/,
+    /\bimpact(?:s|ed|ing)?\b/,
+    /\bincreas(?:e|es|ed|ing)\b/,
+    /\bdecreas(?:e|es|ed|ing)\b/,
+
+    /\bshow(?:s|ed|ing)?\b/,
+    /\bdemonstrat(?:e|es|ed|ing)\b/,
+    /\billustrat(?:e|es|ed|ing)\b/,
+    /\breveal(?:s|ed|ing)?\b/,
+    /\bindicat(?:e|es|ed|ing)\b/,
+    /\bsuggest(?:s|ed|ing)?\b/,
+
+    /\bexplain(?:s|ed|ing)?\b/,
+    /\bsupport(?:s|ed|ing)?\b/,
+    /\bprov(?:e|es|ed|ing)\b/,
+    /\bconfirm(?:s|ed|ing)?\b/,
   ];
 
-  return relationshipMarkers.some(
-    (marker) => lower.includes(marker)
+  return connectorPatterns.some(
+    (pattern) => pattern.test(lower)
   );
 }
+
 
 function analyzeEssentialDetailRelationship(
   response,
@@ -2062,6 +2053,57 @@ async function runEssentialDetailSelfTests() {
       null,
   },
 },
+
+    },
+{
+  name:
+    "ED - Theme relationship using demonstrates",
+
+  response:
+    "The friends put themselves in danger to protect each other, demonstrating that friendship can require sacrifice.",
+
+  expected: {
+    valid: true,
+
+    componentEvidenceLevel:
+      "substantive",
+
+    componentCriteriaStatus:
+      "satisfied",
+
+    relationshipStatus:
+      "established",
+
+    diagnosis:
+      null,
+  },
+},
+{
+  name:
+    "ED - Relationship language without Main Idea connection",
+
+  response:
+    "This shows that school rules can affect students.",
+
+  expected: {
+    valid: false,
+
+    componentEvidenceLevel:
+      "substantive",
+
+    componentCriteriaStatus:
+      "partiallySatisfied",
+
+    relationshipStatus:
+      "incomplete",
+
+    diagnosis:
+      "relationshipIncomplete",
+  },
+},
+];
+
+    
   ];
 
   let results = tests.map((test) => {
