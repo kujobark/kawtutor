@@ -836,14 +836,13 @@ function executeIAGS001(contract, state) {
       contract.instructionalGoal,
 
     teachingMove:
-      contract.teachingMove,
+    instructionalDecision.teachingMove,
 
     thinkingMove:
-      selectedThinkingMove,
-
+      instructionalDecision.thinkingMove,
+    
     communicationPattern:
-      contract.communicationPattern ||
-      "questionOnly",
+      instructionalDecision.communicationPattern,
 
     aiContextualizes:
       contract.aiContextualizes,
@@ -967,10 +966,136 @@ if (diagnosis === "repeatsKeyTopic") {
   return fallbackThinkingMove;
 }
 
-function selectEDGS001ThinkingMove(
+function selectEDGS001InstructionalDecision(
   instructionalFinding,
-  fallbackThinkingMove
+  contract
 ) {
+  const diagnosis =
+    instructionalFinding?.diagnosis || "";
+
+  const fallbackDecision = {
+    teachingMove:
+      contract?.teachingMove || "recall",
+
+    thinkingMove:
+      contract?.thinkingMove ||
+      "Think of one supporting fact, example, observation, explanation, or piece of evidence that supports this Main Idea.",
+
+    communicationPattern:
+      contract?.communicationPattern ||
+      "briefReassuranceThenQuestion",
+  };
+
+  // --------------------------------------------------
+  // NO COMPONENT EVIDENCE
+  //
+  // The student has not provided observable content that
+  // can be evaluated as an Essential Detail.
+  // --------------------------------------------------
+  if (
+    diagnosis === "emptyResponse" ||
+    diagnosis === "noComponentEvidence"
+  ) {
+    return {
+      teachingMove:
+        "reduceCognitiveLoad",
+
+      thinkingMove:
+        "Reconnect the student to the accepted Main Idea and invite them to identify one concrete fact, example, observation, explanation, or piece of evidence that could support it. Do not suggest or generate the Essential Detail.",
+
+      communicationPattern:
+        "briefReassuranceThenQuestion",
+    };
+  }
+
+  // --------------------------------------------------
+  // INSUFFICIENT OBSERVABLE EVIDENCE
+  //
+  // The response is too brief, vague, circular, or
+  // incomplete to establish a supporting relationship.
+  // --------------------------------------------------
+  if (
+    diagnosis ===
+    "insufficientObservableEvidence"
+  ) {
+    return {
+      teachingMove:
+        "increaseSpecificity",
+
+      thinkingMove:
+        "Ask the student to identify one concrete fact, example, observation, explanation, or piece of evidence related to the accepted Main Idea. Do not infer or supply the missing information.",
+
+      communicationPattern:
+        "briefReassuranceThenQuestion",
+    };
+  }
+
+  // --------------------------------------------------
+  // REPEATS MAIN IDEA
+  //
+  // The student repeated the accepted Main Idea rather
+  // than adding a smaller supporting detail.
+  // --------------------------------------------------
+  if (diagnosis === "repeatsMainIdea") {
+    return {
+      teachingMove:
+        "differentiate",
+
+      thinkingMove:
+        "Acknowledge that the student has returned to the Main Idea, then invite them to think smaller by identifying one specific fact, example, observation, explanation, or piece of evidence that helps explain it. Do not provide the Detail.",
+
+      communicationPattern:
+        "acknowledgeThenQuestion",
+    };
+  }
+
+  // --------------------------------------------------
+  // RELATIONSHIP INCOMPLETE
+  //
+  // The response contains substantive content, but the
+  // supporting relationship is not explicit enough.
+  // --------------------------------------------------
+  if (
+    diagnosis ===
+    "relationshipIncomplete"
+  ) {
+    return {
+      teachingMove:
+        "clarifyConnection",
+
+      thinkingMove:
+        "Reference the student's observable idea without claiming it already supports the Main Idea. Invite the student to explain how the idea connects to the accepted Main Idea. Do not supply the connection.",
+
+      communicationPattern:
+        "acknowledgeThenQuestion",
+    };
+  }
+
+  // --------------------------------------------------
+  // RELATIONSHIP NOT ESTABLISHED
+  //
+  // The response contains observable content, but no
+  // supporting relationship has been established.
+  // --------------------------------------------------
+  if (
+    diagnosis ===
+    "relationshipNotEstablished"
+  ) {
+    return {
+      teachingMove:
+        "refocus",
+
+      thinkingMove:
+        "Redirect the student to the accepted Main Idea and invite them to identify one fact, example, observation, explanation, or piece of evidence that directly supports it. Do not generate a replacement Detail.",
+
+      communicationPattern:
+        "briefReassuranceThenQuestion",
+    };
+  }
+
+  return fallbackDecision;
+}
+
   const diagnosis =
     instructionalFinding?.diagnosis || "";
 
@@ -1085,10 +1210,10 @@ function executeEDGS001(contract, state) {
   // deterministic instructional finding.
   //
   // AI does not choose this move.
-  const selectedThinkingMove =
-    selectEDGS001ThinkingMove(
+   const instructionalDecision =
+    selectEDGS001InstructionalDecision(
       instructionalFinding,
-      contract.thinkingMove
+      contract
     );
 
   return {
