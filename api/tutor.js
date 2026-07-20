@@ -2034,6 +2034,9 @@ async function runEssentialDetailSelfTests() {
   name:
     "ED - Explicit theme relationship using which shows",
 
+  mainIdea:
+    "True friendship requires sacrifice.",
+
   response:
     "Some friends risk their own safety to protect each other, which shows that true friendship sometimes requires sacrifice.",
 
@@ -2054,14 +2057,15 @@ async function runEssentialDetailSelfTests() {
   },
 },
 
-    },
 {
   name:
     "ED - Theme relationship using demonstrates",
 
+  mainIdea:
+    "True friendship requires sacrifice.",
+
   response:
     "The friends put themselves in danger to protect each other, demonstrating that friendship can require sacrifice.",
-
   expected: {
     valid: true,
 
@@ -2102,10 +2106,7 @@ async function runEssentialDetailSelfTests() {
   },
 },
 ];
-
-    
-  ];
-
+  
   let results = tests.map((test) => {
     const actual =
       validateEssentialDetailResponse(
