@@ -1736,6 +1736,260 @@ function analyzeEssentialDetailRelationship(
   };
 }
 
+// ------------------------------------------------------
+// IS ABOUT RELATIONSHIP ANALYSIS
+//
+// Instructional Contract:
+//
+// The Is About statement must paraphrase the Key Topic
+// by expressing what the whole topic is about in language
+// the student can understand.
+//
+// This analyzer evaluates only observable evidence.
+// It does not determine whether the student's statement
+// is factually complete or conceptually accurate beyond
+// what deterministic structure can establish.
+// ------------------------------------------------------
+
+function analyzeIsAboutRelationship(
+  response,
+  keyTopic
+) {
+  const responseTokens =
+    getInstructionalContentTokens(response);
+
+  const keyTopicTokens =
+    getInstructionalContentTokens(keyTopic);
+
+  const responseTokenSet =
+    new Set(responseTokens);
+
+  const sharedTokens =
+    [...new Set(keyTopicTokens)].filter(
+      (token) =>
+        responseTokenSet.has(token)
+    );
+
+  const normalizedResponse =
+    cleanText(response)
+      .toLowerCase()
+      .replace(/[.!?]+$/g, "");
+
+  const normalizedKeyTopic =
+    cleanText(keyTopic)
+      .toLowerCase()
+      .replace(/[.!?]+$/g, "");
+
+  const repeatsKeyTopic =
+    !!normalizedKeyTopic &&
+    normalizedResponse ===
+      normalizedKeyTopic;
+
+  if (repeatsKeyTopic) {
+    return {
+      relationshipStatus:
+        "notEstablished",
+
+      relationshipEvidence: {
+        sharedTokens,
+
+        repeatsKeyTopic: true,
+
+        readerInferenceRequired:
+          false,
+      },
+    };
+  }
+
+  const addsObservableMeaning =
+    responseTokens.length >
+      keyTopicTokens.length &&
+    sharedTokens.length > 0;
+
+  if (addsObservableMeaning) {
+    return {
+      relationshipStatus:
+        "established",
+
+      relationshipEvidence: {
+        sharedTokens,
+
+        repeatsKeyTopic: false,
+
+        readerInferenceRequired:
+          false,
+      },
+    };
+  }
+
+  return {
+    relationshipStatus:
+      "undetermined",
+
+    relationshipEvidence: {
+      sharedTokens,
+
+      repeatsKeyTopic: false,
+
+      readerInferenceRequired:
+        true,
+    },
+  };
+}
+
+function validateIsAboutResponse(
+  response,
+  keyTopic = ""
+) {
+  const text =
+    cleanText(response);
+
+  const words =
+    text
+      .split(/\s+/)
+      .filter(Boolean);
+
+  if (!text) {
+    return {
+      valid: false,
+
+      componentEvidenceLevel:
+        "none",
+
+      componentCriteriaStatus:
+        "notSatisfied",
+
+      relationshipStatus:
+        "undetermined",
+
+      diagnosis:
+        "emptyResponse",
+    };
+  }
+
+  if (
+    isStuckMessage(text) ||
+    isWeakFrameResponse(text) ||
+    isMetaResponse(text)
+  ) {
+    return {
+      valid: false,
+
+      componentEvidenceLevel:
+        "none",
+
+      componentCriteriaStatus:
+        "notSatisfied",
+
+      relationshipStatus:
+        "undetermined",
+
+      diagnosis:
+        "noComponentEvidence",
+    };
+  }
+
+  const relationshipAnalysis =
+    analyzeIsAboutRelationship(
+      text,
+      keyTopic
+    );
+
+  if (
+    relationshipAnalysis
+      .relationshipEvidence
+      ?.repeatsKeyTopic
+  ) {
+    return {
+      valid: false,
+
+      componentEvidenceLevel:
+        "limited",
+
+      componentCriteriaStatus:
+        "notSatisfied",
+
+      relationshipStatus:
+        "notEstablished",
+
+      diagnosis:
+        "repeatsKeyTopic",
+
+      relationshipEvidence:
+        relationshipAnalysis
+          .relationshipEvidence,
+    };
+  }
+
+  if (words.length < 4) {
+    return {
+      valid: false,
+
+      componentEvidenceLevel:
+        "limited",
+
+      componentCriteriaStatus:
+        "partiallySatisfied",
+
+      relationshipStatus:
+        "undetermined",
+
+      diagnosis:
+        "insufficientObservableEvidence",
+
+      relationshipEvidence:
+        relationshipAnalysis
+          .relationshipEvidence,
+    };
+  }
+
+  if (
+    relationshipAnalysis
+      .relationshipStatus ===
+    "established"
+  ) {
+    return {
+      valid: true,
+
+      componentEvidenceLevel:
+        "substantive",
+
+      componentCriteriaStatus:
+        "satisfied",
+
+      relationshipStatus:
+        "established",
+
+      diagnosis:
+        null,
+
+      relationshipEvidence:
+        relationshipAnalysis
+          .relationshipEvidence,
+    };
+  }
+
+  return {
+    valid: false,
+
+    componentEvidenceLevel:
+      "substantive",
+
+    componentCriteriaStatus:
+      "partiallySatisfied",
+
+    relationshipStatus:
+      "undetermined",
+
+    diagnosis:
+      "relationshipUndetermined",
+
+    relationshipEvidence:
+      relationshipAnalysis
+        .relationshipEvidence,
+  };
+}
+
 function validateEssentialDetailResponse(
   response,
   currentMainIdea = ""
@@ -2656,6 +2910,268 @@ function formatEssentialDetailSelfTestResults(
 }
 
 // ------------------------------------------------------
+// Is About Test Suite
+// ------------------------------------------------------
+//
+// Purpose:
+// Verify deterministic Is About validation without
+// changing live tutoring behavior.
+//
+// These tests evaluate whether the student's response
+// observably paraphrases the Key Topic.
+// ------------------------------------------------------
+
+async function runIsAboutSelfTests() {
+  const keyTopic =
+    "Photosynthesis";
+
+  const tests = [
+    {
+      name:
+        "IA - Empty response",
+
+      response:
+        "",
+
+      expected: {
+        valid: false,
+
+        componentEvidenceLevel:
+          "none",
+
+        componentCriteriaStatus:
+          "notSatisfied",
+
+        relationshipStatus:
+          "undetermined",
+
+        diagnosis:
+          "emptyResponse",
+      },
+    },
+
+    {
+      name:
+        "IA - Stuck response",
+
+      response:
+        "idk",
+
+      expected: {
+        valid: false,
+
+        componentEvidenceLevel:
+          "none",
+
+        componentCriteriaStatus:
+          "notSatisfied",
+
+        relationshipStatus:
+          "undetermined",
+
+        diagnosis:
+          "noComponentEvidence",
+      },
+    },
+
+    {
+      name:
+        "IA - Repeats Key Topic",
+
+      response:
+        "Photosynthesis",
+
+      expected: {
+        valid: false,
+
+        componentEvidenceLevel:
+          "limited",
+
+        componentCriteriaStatus:
+          "notSatisfied",
+
+        relationshipStatus:
+          "notEstablished",
+
+        diagnosis:
+          "repeatsKeyTopic",
+      },
+    },
+
+    {
+      name:
+        "IA - Too little observable evidence",
+
+      response:
+        "Plants make food",
+
+      expected: {
+        valid: false,
+
+        componentEvidenceLevel:
+          "limited",
+
+        componentCriteriaStatus:
+          "partiallySatisfied",
+
+        relationshipStatus:
+          "undetermined",
+
+        diagnosis:
+          "insufficientObservableEvidence",
+      },
+    },
+
+    {
+      name:
+        "IA - Observable paraphrase",
+
+      response:
+        "Photosynthesis is the process plants use to make food using sunlight.",
+
+      expected: {
+        valid: true,
+
+        componentEvidenceLevel:
+          "substantive",
+
+        componentCriteriaStatus:
+          "satisfied",
+
+        relationshipStatus:
+          "established",
+
+        diagnosis:
+          null,
+      },
+    },
+  ];
+
+  const results =
+    tests.map((test) => {
+      const actual =
+        validateIsAboutResponse(
+          test.response,
+          keyTopic
+        );
+
+      const passed =
+        actual.valid ===
+          test.expected.valid &&
+
+        actual.componentEvidenceLevel ===
+          test.expected
+            .componentEvidenceLevel &&
+
+        actual.componentCriteriaStatus ===
+          test.expected
+            .componentCriteriaStatus &&
+
+        actual.relationshipStatus ===
+          test.expected
+            .relationshipStatus &&
+
+        actual.diagnosis ===
+          test.expected.diagnosis;
+
+      return {
+        name:
+          test.name,
+
+        passed,
+
+        response:
+          test.response,
+
+        expected:
+          test.expected,
+
+        actual,
+      };
+    });
+
+  const passedCount =
+    results.filter(
+      (result) =>
+        result.passed
+    ).length;
+
+  const failedCount =
+    results.length -
+    passedCount;
+
+  return {
+    passed:
+      failedCount === 0,
+
+    passedCount,
+
+    failedCount,
+
+    total:
+      results.length,
+
+    results,
+  };
+}
+
+function formatIsAboutSelfTestResults(
+  testResults
+) {
+  const lines = [
+    "🧪 KAW DETERMINISTIC SELF-TESTS",
+    "",
+    "Is About Validation",
+    "",
+  ];
+
+  testResults.results.forEach(
+    (result) => {
+      lines.push(
+        `${result.passed ? "✅" : "❌"} ${result.name}`
+      );
+
+      if (!result.passed) {
+        lines.push(
+          `Expected: ${JSON.stringify(
+            result.expected
+          )}`
+        );
+
+        lines.push(
+          `Actual: ${JSON.stringify(
+            result.actual
+          )}`
+        );
+      }
+
+      lines.push("");
+    }
+  );
+
+  lines.push(
+    "────────────────────────"
+  );
+
+  lines.push(
+    `Passed: ${testResults.passedCount}/${testResults.total}`
+  );
+
+  lines.push(
+    `Failed: ${testResults.failedCount}`
+  );
+
+  if (testResults.passed) {
+    lines.push("");
+    lines.push(
+      "🚀 All current Is About tests passed."
+    );
+  }
+
+  return lines.join("\n");
+}
+
+// ------------------------------------------------------
 // AI COMMUNICATION LICENSING TEST SUITE
 //
 // Runs live AI contextualization through the same
@@ -2948,6 +3464,12 @@ const DETERMINISTIC_SELF_TEST_SUITES = [
     label: "Essential Detail Validation",
     run: runEssentialDetailSelfTests,
     format: formatEssentialDetailSelfTestResults,
+  },
+  {
+    id: "isAbout",
+    label: "Is About Validation",
+    run: runIsAboutSelfTests,
+    format: formatIsAboutSelfTestResults,
   },
 ];
 
