@@ -2951,6 +2951,443 @@ const DETERMINISTIC_SELF_TEST_SUITES = [
   },
 ];
 
+// ------------------------------------------------------
+// STUDENT SIMULATION TEST SUITE
+//
+// Runs a scripted student interaction through the actual
+// Kaw state-update and prompt-generation functions.
+//
+// This verifies progression across multiple turns without
+// changing production behavior.
+// ------------------------------------------------------
+
+async function runStudentSimulationSelfTests() {
+  const results = [];
+
+  let state = defaultState();
+
+  // --------------------------------------------------
+  // STEP 1: Assignment capture
+  // --------------------------------------------------
+
+  state = await updateStateFromStudent(
+    state,
+    "Explain how social media can affect teen mental health."
+  );
+
+  const assignmentPassed =
+    state?.frameMeta?.assignmentContext?.raw ===
+      "Explain how social media can affect teen mental health." &&
+    state?.frameMeta?.assignmentContext
+      ?.needsClarification === false &&
+    state?.pending?.type ===
+      "assignmentReasoningIntro";
+
+  results.push({
+    name:
+      "Student Simulation - Assignment is understood",
+
+    passed:
+      assignmentPassed,
+
+    expected: {
+      needsClarification: false,
+      pendingType:
+        "assignmentReasoningIntro",
+    },
+
+    actual: {
+      needsClarification:
+        state?.frameMeta?.assignmentContext
+          ?.needsClarification,
+
+      pendingType:
+        state?.pending?.type || null,
+
+      thinkingTask:
+        state?.assignmentReasoning?.task || null,
+    },
+  });
+
+  // --------------------------------------------------
+  // STEP 2: Choose Build Mode
+  // --------------------------------------------------
+
+  state = await updateStateFromStudent(
+    state,
+    "1"
+  );
+
+  const workflowPassed =
+    state?.interactionMode === "build" &&
+    state?.pending?.type ===
+      "choosePurpose";
+
+  results.push({
+    name:
+      "Student Simulation - Build Mode selected",
+
+    passed:
+      workflowPassed,
+
+    expected: {
+      interactionMode: "build",
+      pendingType: "choosePurpose",
+    },
+
+    actual: {
+      interactionMode:
+        state?.interactionMode || null,
+
+      pendingType:
+        state?.pending?.type || null,
+    },
+  });
+
+  // --------------------------------------------------
+  // STEP 3: Choose Study purpose
+  // --------------------------------------------------
+
+  state = await updateStateFromStudent(
+    state,
+    "1"
+  );
+
+  const purposePassed =
+    state?.frameMeta?.purpose === "study" &&
+    state?.pending === null;
+
+  results.push({
+    name:
+      "Student Simulation - Study purpose selected",
+
+    passed:
+      purposePassed,
+
+    expected: {
+      purpose: "study",
+      pendingType: null,
+    },
+
+    actual: {
+      purpose:
+        state?.frameMeta?.purpose || null,
+
+      pendingType:
+        state?.pending?.type || null,
+    },
+  });
+
+  // --------------------------------------------------
+  // STEP 4: Key Topic capture
+  // --------------------------------------------------
+
+  state = await updateStateFromStudent(
+    state,
+    "Social Media and Teen Mental Health"
+  );
+
+  const keyTopicPassed =
+    state?.frame?.keyTopic ===
+      "Social Media and Teen Mental Health";
+
+  results.push({
+    name:
+      "Student Simulation - Key Topic saved",
+
+    passed:
+      keyTopicPassed,
+
+    expected: {
+      keyTopic:
+        "Social Media and Teen Mental Health",
+    },
+
+    actual: {
+      keyTopic:
+        state?.frame?.keyTopic || null,
+    },
+  });
+
+  // --------------------------------------------------
+  // STEP 5: Is About capture
+  // --------------------------------------------------
+
+  state = await updateStateFromStudent(
+    state,
+    "How social media can affect teen mental health"
+  );
+
+  const isAboutPassed =
+    !!state?.frame?.isAbout &&
+    state?.pending?.type ===
+      "confirmIsAbout";
+
+  results.push({
+    name:
+      "Student Simulation - Is About saved",
+
+    passed:
+      isAboutPassed,
+
+    expected: {
+      pendingType: "confirmIsAbout",
+    },
+
+    actual: {
+      isAbout:
+        state?.frame?.isAbout || null,
+
+      pendingType:
+        state?.pending?.type || null,
+    },
+  });
+
+  // --------------------------------------------------
+  // STEP 6: Confirm Is About
+  // --------------------------------------------------
+
+  state = await updateStateFromStudent(
+    state,
+    "1"
+  );
+
+  const confirmIsAboutPassed =
+    state?.pending === null;
+
+  results.push({
+    name:
+      "Student Simulation - Is About confirmed",
+
+    passed:
+      confirmIsAboutPassed,
+
+    expected: {
+      pendingType: null,
+    },
+
+    actual: {
+      pendingType:
+        state?.pending?.type || null,
+    },
+  });
+
+  // --------------------------------------------------
+  // STEP 7: Main Idea 1
+  // --------------------------------------------------
+
+  state = await updateStateFromStudent(
+    state,
+    "Social media can increase anxiety and stress."
+  );
+
+  const mainIdeaOnePassed =
+    state?.frame?.parentItems?.[0] ===
+      "Social media can increase anxiety and stress.";
+
+  results.push({
+    name:
+      "Student Simulation - First Main Idea saved",
+
+    passed:
+      mainIdeaOnePassed,
+
+    expected: {
+      mainIdeaCount: 1,
+    },
+
+    actual: {
+      mainIdeaCount:
+        state?.frame?.parentItems?.length || 0,
+
+      firstMainIdea:
+        state?.frame?.parentItems?.[0] || null,
+    },
+  });
+
+  // --------------------------------------------------
+  // STEP 8: Main Idea 2
+  // --------------------------------------------------
+
+  state = await updateStateFromStudent(
+    state,
+    "Social media can affect self-esteem."
+  );
+
+  const mainIdeaTwoPassed =
+    state?.frame?.parentItems?.length === 2;
+
+  results.push({
+    name:
+      "Student Simulation - Second Main Idea saved",
+
+    passed:
+      mainIdeaTwoPassed,
+
+    expected: {
+      mainIdeaCount: 2,
+    },
+
+    actual: {
+      mainIdeaCount:
+        state?.frame?.parentItems?.length || 0,
+    },
+  });
+
+  // --------------------------------------------------
+  // STEP 9: Incomplete Essential Detail is blocked
+  // --------------------------------------------------
+
+  state = await updateStateFromStudent(
+    state,
+    "Teens compare themselves to influencers."
+  );
+
+  const incompleteDetailPassed =
+    state?.frame?.details?.[0]?.length === 0 &&
+    state?.pending?.type ===
+      "stuckNudge" &&
+    state?.pending?.instructionalFinding
+      ?.diagnosis ===
+      "relationshipIncomplete";
+
+  results.push({
+    name:
+      "Student Simulation - Incomplete Detail is blocked",
+
+    passed:
+      incompleteDetailPassed,
+
+    expected: {
+      savedDetailCount: 0,
+      pendingType: "stuckNudge",
+      diagnosis: "relationshipIncomplete",
+    },
+
+    actual: {
+      savedDetailCount:
+        state?.frame?.details?.[0]?.length || 0,
+
+      pendingType:
+        state?.pending?.type || null,
+
+      diagnosis:
+        state?.pending?.instructionalFinding
+          ?.diagnosis || null,
+    },
+  });
+
+  // --------------------------------------------------
+  // STEP 10: Revised Essential Detail is accepted
+  // --------------------------------------------------
+
+  state = await updateStateFromStudent(
+    state,
+    "Teens compare themselves to influencers, which can make them feel inadequate and increase anxiety."
+  );
+
+  const revisedDetailPassed =
+    state?.frame?.details?.[0]?.length === 1 &&
+    state?.pending?.type ===
+      "collectAnotherDetail";
+
+  results.push({
+    name:
+      "Student Simulation - Revised Detail is accepted",
+
+    passed:
+      revisedDetailPassed,
+
+    expected: {
+      savedDetailCount: 1,
+      pendingType:
+        "collectAnotherDetail",
+    },
+
+    actual: {
+      savedDetailCount:
+        state?.frame?.details?.[0]?.length || 0,
+
+      pendingType:
+        state?.pending?.type || null,
+    },
+  });
+
+  const passedCount =
+    results.filter(
+      (result) => result.passed
+    ).length;
+
+  const failedCount =
+    results.length - passedCount;
+
+  return {
+    passed:
+      failedCount === 0,
+
+    passedCount,
+
+    failedCount,
+
+    total:
+      results.length,
+
+    results,
+  };
+}
+
+function formatStudentSimulationSelfTestResults(
+  testResults
+) {
+  const lines = [
+    "🎒 KAW STUDENT SIMULATION",
+    "",
+  ];
+
+  testResults.results.forEach(
+    (result) => {
+      lines.push(
+        `${result.passed ? "✅" : "❌"} ${result.name}`
+      );
+
+      if (!result.passed) {
+        lines.push(
+          `Expected: ${JSON.stringify(
+            result.expected
+          )}`
+        );
+
+        lines.push(
+          `Actual: ${JSON.stringify(
+            result.actual
+          )}`
+        );
+      }
+
+      lines.push("");
+    }
+  );
+
+  lines.push("────────────────────────");
+
+  lines.push(
+    `Passed: ${testResults.passedCount}/${testResults.total}`
+  );
+
+  lines.push(
+    `Failed: ${testResults.failedCount}`
+  );
+
+  if (testResults.passed) {
+    lines.push("");
+    lines.push(
+      "🚀 Student simulation passed."
+    );
+  }
+
+  return lines.join("\n");
+}
+
 async function runAllDeterministicSelfTests() {
   const suiteResults = [];
 
@@ -8601,6 +9038,44 @@ if (
 
       results:
         testResults.results,
+    },
+  });
+}
+
+  // ------------------------------------------------------
+// HIDDEN KAW STUDENT SIMULATION COMMAND
+//
+// Type "/run student tests" in the Wix Kaw chat.
+// This runs scripted student interactions through the
+// actual Kaw runtime without modifying the active Frame.
+// ------------------------------------------------------
+
+if (
+  message.toLowerCase() ===
+  "/run student tests"
+) {
+  const testResults =
+    await runStudentSimulationSelfTests();
+
+  const reply =
+    formatStudentSimulationSelfTestResults(
+      testResults
+    );
+
+  return res.status(200).json({
+    reply,
+
+    state:
+      body.state ||
+      body.vercelState ||
+      body.framing ||
+      defaultState(),
+
+    selfTest: {
+      suite:
+        "studentSimulation",
+
+      ...testResults,
     },
   });
 }
