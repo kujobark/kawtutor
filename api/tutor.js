@@ -2098,23 +2098,27 @@ const addsObservableMeaning =
   };
 }
 
-  return {
-  relationshipStatus: "undetermined",
+    return {
+    relationshipStatus:
+      "undetermined",
 
-  relationshipEvidence: {
-    sharedTokens,
+    relationshipEvidence: {
+      sharedTokens,
 
-    repeatsKeyTopic: false,
+      repeatsKeyTopic:
+        false,
 
-    hasAdditionalMeaning,
+      hasAdditionalMeaning,
 
-    hasLexicalConnection,
+      hasLexicalConnection,
 
-    requiresSemanticInference,
+      requiresSemanticInference,
 
-    readerInferenceRequired: true,
-  },
-};
+      readerInferenceRequired:
+        true,
+    },
+  };
+}
 
 function validateIsAboutResponse(
   response,
@@ -10573,6 +10577,87 @@ if (
   });
 }
 
+// ------------------------------------------------------
+// HIDDEN IA-020 GOVERNED SEMANTIC TEST COMMAND
+//
+// Type "/ivl ia020" in the Wix Kaw chat.
+//
+// Runs one controlled Is About benchmark through the
+// governed semantic validator without modifying the
+// student's active Frame.
+// ------------------------------------------------------
+
+if (
+  message.toLowerCase() ===
+  "/ivl ia020"
+) {
+  const result =
+    await runIA020GovernedTest();
+
+  const deterministic =
+    result?.deterministic || {};
+
+  const governed =
+    result?.governed || {};
+
+  const semanticEvidence =
+    governed?.relationshipEvidence || {};
+
+  const reply = [
+    "🧪 IA-020 GOVERNED SEMANTIC TEST",
+    "",
+    `${result.passed ? "✅ PASS" : "❌ FAIL"}`,
+    "",
+    `Key Topic: ${result.keyTopic || "(not found)"}`,
+    "",
+    `Student response: ${result.studentResponse || "(not found)"}`,
+    "",
+    `Expected: ${JSON.stringify(
+      result.expected || {}
+    )}`,
+    "",
+    `Deterministic: ${JSON.stringify(
+      deterministic
+    )}`,
+    "",
+    `Governed: ${JSON.stringify(
+      governed
+    )}`,
+    "",
+    `Validation source: ${
+      governed.validationSource ||
+      "(not returned)"
+    }`,
+    "",
+    `Semantic equivalent: ${
+      semanticEvidence.semanticEquivalent ??
+      "(not returned)"
+    }`,
+    "",
+    `Semantic confidence: ${
+      semanticEvidence.semanticConfidence ??
+      "(not returned)"
+    }`,
+  ].join("\n");
+
+  return res.status(200).json({
+    reply,
+
+    state:
+      body.state ||
+      body.vercelState ||
+      body.framing ||
+      defaultState(),
+
+    instructionalValidationTest: {
+      suite:
+        "isAboutGoverned",
+
+      ...result,
+    },
+  });
+}
+    
   // ------------------------------------------------------
 // HIDDEN KAW INSTRUCTIONAL VALIDATION LAB COMMAND
 //
@@ -11463,86 +11548,6 @@ IVL.benchmarks.essentialDetails.push({
     diagnosis: null
   }
 });
-
-function runIVLIsAboutBenchmarks() {
-  const results = [];
-
-  for (
-    const benchmark of
-    IVL.benchmarks.isAbout
-  ) {
-     const actual =
-    await validateIsAboutResponseGoverned(
-        benchmark.studentResponse,
-        benchmark.context.keyTopic
-    );
-    
-    const passed =
-      actual.valid ===
-        benchmark.expected.valid &&
-      actual.diagnosis ===
-        benchmark.expected.diagnosis;
-
-    results.push({
-      id:
-        benchmark.id,
-
-      title:
-        benchmark.title,
-
-      studentResponse:
-        benchmark.studentResponse,
-
-      expected:
-        benchmark.expected,
-
-      actual,
-
-      passed
-    });
-  }
-
-  async function runIVLIsAboutGovernedBenchmarks() {
-
-  const summary = {
-    total:
-      results.length,
-
-    passedCount:
-      results.filter(
-        result => result.passed
-      ).length,
-
-    failedCount:
-      results.filter(
-        result => !result.passed
-      ).length,
-
-    results
-  };
-
-  IVL.results.isAbout =
-    summary;
-
-  return summary;
-}
-
-  async function runIA020GovernedTest() {
-    const benchmark =
-        IVL.benchmarks.isAbout.find(
-            b => b.id === "IA-020"
-        );
-
-    const actual =
-        await validateIsAboutResponseGoverned(
-            benchmark.studentResponse,
-            benchmark.context.keyTopic
-        );
-
-    console.log("IA-020");
-    console.log("Expected:", benchmark.expected);
-    console.log("Actual:", actual);
-}
 
 function runIVLEssentialDetailBenchmarks() {
   console.log("");
