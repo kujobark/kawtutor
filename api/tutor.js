@@ -2621,6 +2621,124 @@ function validateMainIdeaResponse(
     };
   }
 
+    const normalizedResponse =
+    cleanText(text)
+      .toLowerCase()
+      .replace(/[.!?]+$/g, "");
+
+  const normalizedKeyTopic =
+    cleanText(keyTopic)
+      .toLowerCase()
+      .replace(/[.!?]+$/g, "");
+
+  const normalizedIsAbout =
+    cleanText(isAbout)
+      .toLowerCase()
+      .replace(/[.!?]+$/g, "");
+
+  // --------------------------------------------------
+  // REPEATS KEY TOPIC
+  // --------------------------------------------------
+
+  if (
+    normalizedKeyTopic &&
+    normalizedResponse ===
+      normalizedKeyTopic
+  ) {
+    return {
+      valid: false,
+
+      componentEvidenceLevel:
+        "limited",
+
+      componentCriteriaStatus:
+        "notSatisfied",
+
+      relationshipStatus:
+        "notEstablished",
+
+      diagnosis:
+        "repeatsKeyTopic",
+    };
+  }
+
+  // --------------------------------------------------
+  // REPEATS IS ABOUT
+  // --------------------------------------------------
+
+  if (
+    normalizedIsAbout &&
+    normalizedResponse ===
+      normalizedIsAbout
+  ) {
+    return {
+      valid: false,
+
+      componentEvidenceLevel:
+        "limited",
+
+      componentCriteriaStatus:
+        "notSatisfied",
+
+      relationshipStatus:
+        "notEstablished",
+
+      diagnosis:
+        "repeatsIsAbout",
+    };
+  }
+
+    // --------------------------------------------------
+  // INSUFFICIENT OBSERVABLE EVIDENCE
+  // --------------------------------------------------
+
+  const words =
+    text
+      .split(/\s+/)
+      .filter(Boolean);
+
+  if (words.length < 4) {
+    return {
+      valid: false,
+
+      componentEvidenceLevel:
+        "limited",
+
+      componentCriteriaStatus:
+        "notSatisfied",
+
+      relationshipStatus:
+        "undetermined",
+
+      diagnosis:
+        "insufficientObservableEvidence",
+    };
+  }
+
+  const normalizedText = text.toLowerCase().trim();
+
+const explicitDetailPatterns = [
+    "for example",
+    "for instance",
+    "such as",
+    "including",
+    "because "
+];
+
+if (
+    explicitDetailPatterns.some(pattern =>
+        normalizedText.startsWith(pattern)
+    )
+) {
+    return {
+        valid: false,
+        componentEvidenceLevel: "adequate",
+        componentCriteriaStatus: "notSatisfied",
+        relationshipStatus: "undetermined",
+        diagnosis: "detailInsteadOfCategory",
+    };
+}
+
   // Temporary fallback while the remaining Main Idea
   // diagnoses are added incrementally.
   //
@@ -2693,62 +2811,6 @@ function validateEssentialDetailResponse(
 
       diagnosis: "noComponentEvidence",
     };
-
-    const normalizedKeyTopic =
-    cleanText(keyTopic);
-
-  const normalizedIsAbout =
-    cleanText(isAbout);
-
-  // --------------------------------------------------
-  // REPEATS KEY TOPIC
-  // --------------------------------------------------
-
-  if (
-    normalizedKeyTopic &&
-    text === normalizedKeyTopic
-  ) {
-    return {
-      valid: false,
-
-      componentEvidenceLevel:
-        "minimal",
-
-      componentCriteriaStatus:
-        "notSatisfied",
-
-      relationshipStatus:
-        "undetermined",
-
-      diagnosis:
-        "repeatsKeyTopic",
-    };
-  }
-
-  // --------------------------------------------------
-  // REPEATS IS ABOUT
-  // --------------------------------------------------
-
-  if (
-    normalizedIsAbout &&
-    text === normalizedIsAbout
-  ) {
-    return {
-      valid: false,
-
-      componentEvidenceLevel:
-        "minimal",
-
-      componentCriteriaStatus:
-        "notSatisfied",
-
-        relationshipStatus:
-        "undetermined",
-
-      diagnosis:
-        "repeatsIsAbout",
-    };
-  }
   }
 
   const circularResponses = new Set([
@@ -6108,6 +6170,14 @@ function setCors(res) {
 // ---------------------
 function cleanText(s) {
   return (s || "").toString().trim().replace(/\s+/g, " ");
+}
+
+function normalizeInstructionalComparisonText(
+  text
+) {
+  return cleanText(text)
+    .toLowerCase()
+    .replace(/[.!?]+$/g, "");
 }
 
 function cleanFrameText(s) {
