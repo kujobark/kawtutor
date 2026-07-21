@@ -10846,7 +10846,267 @@ IVL.benchmarks.isAbout.push(
       valid: true,
       diagnosis: null
     }
-  }
+  },
+
+  IVL.benchmarks.isAbout.push(
+
+{
+    id: "IA-016",
+    title: "Single Word Response",
+
+    context: {
+        keyTopic: "Renewable Energy"
+    },
+
+    studentResponse: "Energy",
+
+    expected: {
+        valid: false,
+        diagnosis: "insufficientObservableEvidence"
+    }
+},
+
+{
+    id: "IA-017",
+    title: "Very Short Fragment",
+
+    context: {
+        keyTopic: "Photosynthesis"
+    },
+
+    studentResponse: "Plants",
+
+    expected: {
+        valid: false,
+        diagnosis: "insufficientObservableEvidence"
+    }
+},
+
+{
+    id: "IA-018",
+    title: "Question Instead of Explanation",
+
+    context: {
+        keyTopic: "The Water Cycle"
+    },
+
+    studentResponse: "Isn't this about rain?",
+
+    expected: {
+        valid: false,
+        diagnosis: "relationshipUndetermined"
+    }
+},
+
+{
+    id: "IA-019",
+    title: "Opinion Instead of Topic",
+
+    context: {
+        keyTopic: "Renewable Energy"
+    },
+
+    studentResponse: "I think renewable energy is awesome.",
+
+    expected: {
+        valid: true,
+        diagnosis: null
+    }
+},
+
+{
+    id: "IA-020",
+    title: "Student Uses Everyday Language",
+
+    context: {
+        keyTopic: "Photosynthesis"
+    },
+
+    studentResponse: "It's about how plants make their own food using sunlight.",
+
+    expected: {
+        valid: true,
+        diagnosis: null
+    }
+},
+
+{
+    id: "IA-021",
+    title: "Long Academic Explanation",
+
+    context: {
+        keyTopic: "Checks and Balances"
+    },
+
+    studentResponse:
+        "Checks and balances is the constitutional system that allows each branch of government to limit the power of the others.",
+
+    expected: {
+        valid: true,
+        diagnosis: null
+    }
+},
+
+{
+    id: "IA-022",
+    title: "Excellent Student Paraphrase",
+
+    context: {
+        keyTopic: "Artificial Intelligence"
+
+    },
+
+    studentResponse:
+        "Artificial intelligence is technology that allows computers to perform tasks that usually require human thinking.",
+
+    expected: {
+        valid: true,
+        diagnosis: null
+    }
+},
+
+{
+    id: "IA-023",
+    title: "Strong AP CSP Context",
+
+    context: {
+        keyTopic: "Algorithms"
+    },
+
+    studentResponse:
+        "Algorithms are step-by-step procedures used to solve problems or complete tasks.",
+
+    expected: {
+        valid: true,
+        diagnosis: null
+    }
+},
+
+{
+    id: "IA-024",
+    title: "Strong ELA Context",
+
+    context: {
+        keyTopic: "Theme"
+
+    },
+
+    studentResponse:
+        "A theme is the central message or lesson an author wants readers to understand.",
+
+    expected: {
+        valid: true,
+        diagnosis: null
+    }
+},
+
+{
+    id: "IA-025",
+    title: "Strong Math Context",
+
+    context: {
+        keyTopic: "Linear Functions"
+
+    },
+
+    studentResponse:
+        "Linear functions describe relationships that change at a constant rate.",
+
+    expected: {
+        valid: true,
+        diagnosis: null
+    }
+},
+
+{
+    id: "IA-026",
+    title: "Strong Science Context",
+
+    context: {
+        keyTopic: "Natural Selection"
+
+    },
+
+    studentResponse:
+        "Natural selection explains how organisms with helpful traits are more likely to survive and reproduce.",
+
+    expected: {
+        valid: true,
+        diagnosis: null
+    }
+},
+
+{
+    id: "IA-027",
+    title: "Strong History Context",
+
+    context: {
+        keyTopic: "The American Revolution"
+
+    },
+
+    studentResponse:
+        "The American Revolution was the conflict that led the American colonies to gain independence from Britain.",
+
+    expected: {
+        valid: true,
+        diagnosis: null
+    }
+},
+
+{
+    id: "IA-028",
+    title: "Reader Must Infer Relationship",
+
+    context: {
+        keyTopic: "Internet Safety"
+
+    },
+
+    studentResponse:
+        "People should be careful online.",
+
+    expected: {
+        valid: false,
+        diagnosis: "relationshipUndetermined"
+    }
+},
+
+{
+    id: "IA-029",
+    title: "Very Broad Generalization",
+
+    context: {
+        keyTopic: "Climate Change"
+
+    },
+
+    studentResponse:
+        "The world is changing.",
+
+    expected: {
+        valid: false,
+        diagnosis: "relationshipUndetermined"
+    }
+},
+
+{
+    id: "IA-030",
+    title: "Gold Standard Response",
+
+    context: {
+        keyTopic: "Machine Learning"
+
+    },
+
+    studentResponse:
+        "Machine learning is a branch of artificial intelligence in which computers improve their performance by learning from data rather than being explicitly programmed for every situation.",
+
+    expected: {
+        valid: true,
+        diagnosis: null
+    }
+}
 );
 
 // ======================================================
