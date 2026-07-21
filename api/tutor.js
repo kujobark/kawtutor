@@ -11703,6 +11703,57 @@ IVL.benchmarks.isAbout.push(
         valid: true,
         diagnosis: null
     }
+},
+
+  {
+    id: "IA-031",
+    title: "Strategic Learners - Prepare Monitor Reflect",
+
+    context: {
+        keyTopic: "Strategic learners"
+    },
+
+    studentResponse:
+        "prepare for, monitor, and reflect on learning",
+
+    expected: {
+        valid: true,
+        diagnosis: null
+    }
+},
+
+{
+    id: "IA-032",
+    title: "Strategic Learners - Thinking Strategies",
+
+    context: {
+        keyTopic: "Strategic learners"
+    },
+
+    studentResponse:
+        "how students use thinking strategies before, during, and after learning",
+
+    expected: {
+        valid: true,
+        diagnosis: null
+    }
+},
+
+{
+    id: "IA-033",
+    title: "Strategic Learners - Think Before During After",
+
+    context: {
+        keyTopic: "Strategic learners"
+    },
+
+    studentResponse:
+        "how students think before, during, and after learning",
+
+    expected: {
+        valid: true,
+        diagnosis: null
+    }
 }
 );
 
