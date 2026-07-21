@@ -2472,6 +2472,8 @@ async function validateIsAboutResponseGoverned(
       keyTopic
     );
 
+  console.log("IS ABOUT VALIDATION:", deterministicValidation);
+
   const requiresSemanticInference =
     deterministicValidation
       ?.relationshipEvidence
