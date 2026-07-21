@@ -2078,40 +2078,43 @@ const addsObservableMeaning =
     hasAdditionalMeaning &&
     hasLexicalConnection;
 
-  if (addsObservableMeaning) {
-    return {
-      relationshipEvidence: {
-        sharedTokens,
-      
-        repeatsKeyTopic: false,
-      
-        hasAdditionalMeaning,
-      
-        hasLexicalConnection,
-      
-        requiresSemanticInference,
-      
-        readerInferenceRequired:
-          false,
-      },
-  }
+   if (addsObservableMeaning) {
+  return {
+    relationshipStatus: "established",
+
+    relationshipEvidence: {
+      sharedTokens,
+
+      repeatsKeyTopic: false,
+
+      hasAdditionalMeaning,
+
+      hasLexicalConnection,
+
+      requiresSemanticInference,
+
+      readerInferenceRequired: false,
+    },
+  };
+}
 
   return {
-      relationshipEvidence: {
-        sharedTokens,
-      
-      repeatsKeyTopic: false,
-      
-      hasAdditionalMeaning,
-      
-      hasLexicalConnection,
-      
-      requiresSemanticInference,
-      
-      readerInferenceRequired:
-        true,
-},
-}
+  relationshipStatus: "undetermined",
+
+  relationshipEvidence: {
+    sharedTokens,
+
+    repeatsKeyTopic: false,
+
+    hasAdditionalMeaning,
+
+    hasLexicalConnection,
+
+    requiresSemanticInference,
+
+    readerInferenceRequired: true,
+  },
+};
 
 function validateIsAboutResponse(
   response,
@@ -2263,6 +2266,299 @@ function validateIsAboutResponse(
     relationshipEvidence:
       relationshipAnalysis
         .relationshipEvidence,
+  };
+}
+
+  // ------------------------------------------------------
+// IS ABOUT SEMANTIC EVIDENCE
+//
+// Purpose:
+//
+// Provides narrowly governed semantic evidence only when
+// deterministic analysis confirms that the response is
+// substantive but lacks lexical overlap with the Key Topic.
+//
+// AI does not validate the Is About statement.
+// AI does not determine progression.
+// AI returns semantic evidence only.
+//
+// JavaScript remains the final instructional authority.
+// ------------------------------------------------------
+
+async function getIsAboutSemanticEvidence(
+  response,
+  keyTopic
+) {
+  const studentResponse =
+    cleanText(response);
+
+  const acceptedKeyTopic =
+    cleanText(keyTopic);
+
+  if (
+    !studentResponse ||
+    !acceptedKeyTopic
+  ) {
+    return {
+      semanticEquivalent: false,
+      confidence: 0,
+      source: "notRequested",
+    };
+  }
+
+  const system = `You provide semantic evidence for a deterministic instructional validator supporting the KU Framing Routine.
+
+The accepted Key Topic and the student's proposed Is About statement will be provided.
+
+Determine only whether the student's statement expresses what the whole Key Topic is about using different words.
+
+Rules:
+- Do not rewrite the student's response.
+- Do not improve the student's response.
+- Do not teach the content.
+- Do not judge writing quality.
+- Do not require the exact Key Topic words to appear.
+- Do not treat a related fact, opinion, example, question, or isolated detail as a whole-topic paraphrase.
+- Return semantic evidence only.
+- Return only the required JSON object.`;
+
+  const user = `Accepted Key Topic:
+"${acceptedKeyTopic}"
+
+Student's proposed Is About statement:
+"${studentResponse}"
+
+Does the student's statement express what the whole Key Topic is about using different words?`;
+
+  try {
+    const resp =
+      await client.chat.completions.create({
+        model: DEFAULT_MODEL,
+
+        reasoning_effort:
+          "none",
+
+        temperature:
+          0,
+
+        response_format: {
+          type: "json_schema",
+
+          json_schema: {
+            name:
+              "is_about_semantic_evidence",
+
+            strict:
+              true,
+
+            schema: {
+              type:
+                "object",
+
+              additionalProperties:
+                false,
+
+              properties: {
+                semanticEquivalent: {
+                  type:
+                    "boolean",
+                },
+
+                confidence: {
+                  type:
+                    "number",
+
+                  minimum:
+                    0,
+
+                  maximum:
+                    1,
+                },
+              },
+
+              required: [
+                "semanticEquivalent",
+                "confidence",
+              ],
+            },
+          },
+        },
+
+        messages: [
+          {
+            role:
+              "system",
+
+            content:
+              system,
+          },
+
+          {
+            role:
+              "user",
+
+            content:
+              user,
+          },
+        ],
+      });
+
+    const parsed =
+      JSON.parse(
+        resp?.choices?.[0]?.message
+          ?.content || "{}"
+      );
+
+    const confidence =
+      Number(parsed.confidence || 0);
+
+    return {
+      semanticEquivalent:
+        parsed.semanticEquivalent === true,
+
+      confidence:
+        Number.isFinite(confidence)
+          ? Math.max(
+              0,
+              Math.min(confidence, 1)
+            )
+          : 0,
+
+      source:
+        "aiSemanticEvidence",
+    };
+  } catch (error) {
+    console.error(
+      "Is About semantic evidence error:",
+      error
+    );
+
+    return {
+      semanticEquivalent:
+        false,
+
+      confidence:
+        0,
+
+      source:
+        "semanticEvidenceUnavailable",
+    };
+  }
+}
+
+
+// ------------------------------------------------------
+// GOVERNED IS ABOUT VALIDATION
+//
+// Runs deterministic validation first.
+//
+// Semantic evidence is requested only when deterministic
+// evidence explicitly identifies a semantic inference gap.
+//
+// JavaScript owns the final instructional decision.
+// ------------------------------------------------------
+
+async function validateIsAboutResponseGoverned(
+  response,
+  keyTopic = ""
+) {
+  const deterministicValidation =
+    validateIsAboutResponse(
+      response,
+      keyTopic
+    );
+
+  const requiresSemanticInference =
+    deterministicValidation
+      ?.relationshipEvidence
+      ?.requiresSemanticInference === true;
+
+  // Deterministic results remain authoritative unless
+  // the analyzer explicitly identifies a semantic gap.
+  if (!requiresSemanticInference) {
+    return {
+      ...deterministicValidation,
+
+      validationSource:
+        "deterministic",
+    };
+  }
+
+  const semanticEvidence =
+    await getIsAboutSemanticEvidence(
+      response,
+      keyTopic
+    );
+
+  const semanticRelationshipEstablished =
+    semanticEvidence
+      .semanticEquivalent === true &&
+    semanticEvidence
+      .confidence >= 0.9;
+
+  // JavaScript makes the final decision from the
+  // deterministic gate and bounded semantic evidence.
+  if (semanticRelationshipEstablished) {
+    return {
+      valid:
+        true,
+
+      componentEvidenceLevel:
+        "substantive",
+
+      componentCriteriaStatus:
+        "satisfied",
+
+      relationshipStatus:
+        "established",
+
+      diagnosis:
+        null,
+
+      relationshipEvidence: {
+        ...deterministicValidation
+          .relationshipEvidence,
+
+        semanticEquivalent:
+          true,
+
+        semanticConfidence:
+          semanticEvidence.confidence,
+
+        semanticEvidenceSource:
+          semanticEvidence.source,
+
+        readerInferenceRequired:
+          false,
+      },
+
+      validationSource:
+        "deterministicWithSemanticEvidence",
+    };
+  }
+
+  return {
+    ...deterministicValidation,
+
+    relationshipEvidence: {
+      ...deterministicValidation
+        .relationshipEvidence,
+
+      semanticEquivalent:
+        semanticEvidence
+          .semanticEquivalent,
+
+      semanticConfidence:
+        semanticEvidence
+          .confidence,
+
+      semanticEvidenceSource:
+        semanticEvidence
+          .source,
+    },
+
+    validationSource:
+      "deterministicWithSemanticEvidence",
   };
 }
 
@@ -11175,12 +11471,12 @@ function runIVLIsAboutBenchmarks() {
     const benchmark of
     IVL.benchmarks.isAbout
   ) {
-    const actual =
-      validateIsAboutResponse(
+     const actual =
+    await validateIsAboutResponseGoverned(
         benchmark.studentResponse,
         benchmark.context.keyTopic
-      );
-
+    );
+    
     const passed =
       actual.valid ===
         benchmark.expected.valid &&
@@ -11206,6 +11502,8 @@ function runIVLIsAboutBenchmarks() {
     });
   }
 
+  async function runIVLIsAboutGovernedBenchmarks() {
+
   const summary = {
     total:
       results.length,
@@ -11227,6 +11525,23 @@ function runIVLIsAboutBenchmarks() {
     summary;
 
   return summary;
+}
+
+  async function runIA020GovernedTest() {
+    const benchmark =
+        IVL.benchmarks.isAbout.find(
+            b => b.id === "IA-020"
+        );
+
+    const actual =
+        await validateIsAboutResponseGoverned(
+            benchmark.studentResponse,
+            benchmark.context.keyTopic
+        );
+
+    console.log("IA-020");
+    console.log("Expected:", benchmark.expected);
+    console.log("Actual:", actual);
 }
 
 function runIVLEssentialDetailBenchmarks() {
