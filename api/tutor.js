@@ -2063,40 +2063,54 @@ function analyzeIsAboutRelationship(
     };
   }
 
-  const addsObservableMeaning =
+  const hasAdditionalMeaning =
     responseTokens.length >
-      keyTopicTokens.length &&
+      keyTopicTokens.length;
+
+  const hasLexicalConnection =
     sharedTokens.length > 0;
+
+  const requiresSemanticInference =
+    hasAdditionalMeaning &&
+    !hasLexicalConnection;
+
+const addsObservableMeaning =
+    hasAdditionalMeaning &&
+    hasLexicalConnection;
 
   if (addsObservableMeaning) {
     return {
-      relationshipStatus:
-        "established",
-
       relationshipEvidence: {
         sharedTokens,
-
+      
         repeatsKeyTopic: false,
-
+      
+        hasAdditionalMeaning,
+      
+        hasLexicalConnection,
+      
+        requiresSemanticInference,
+      
         readerInferenceRequired:
           false,
       },
-    };
   }
 
   return {
-    relationshipStatus:
-      "undetermined",
-
-    relationshipEvidence: {
-      sharedTokens,
-
+      relationshipEvidence: {
+        sharedTokens,
+      
       repeatsKeyTopic: false,
-
+      
+      hasAdditionalMeaning,
+      
+      hasLexicalConnection,
+      
+      requiresSemanticInference,
+      
       readerInferenceRequired:
         true,
-    },
-  };
+},
 }
 
 function validateIsAboutResponse(
