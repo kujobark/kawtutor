@@ -7886,9 +7886,9 @@ function parseCauseEffectFromLeadsTo(msg) {
   return { cause, effect };
 }
 
-function applyIsAboutCapture(s, msg) {
+async function applyIsAboutCapture(s, msg) {
   const validation =
-    validateIsAboutResponse(
+    await validateIsAboutResponseGoverned(
       msg,
       s.frame?.keyTopic || ""
     );
