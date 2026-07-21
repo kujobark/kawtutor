@@ -10848,8 +10848,6 @@ IVL.benchmarks.isAbout.push(
     }
   },
 
-  IVL.benchmarks.isAbout.push(
-
 {
     id: "IA-016",
     title: "Single Word Response",
