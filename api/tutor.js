@@ -11549,6 +11549,201 @@ IVL.benchmarks.essentialDetails.push({
   }
 });
 
+// ------------------------------------------------------
+// IS ABOUT IVL BENCHMARK RUNNER
+//
+// Runs the full Is About benchmark library through the
+// deterministic validator only.
+//
+// This preserves the existing IVL baseline and does not
+// call AI.
+// ------------------------------------------------------
+
+function runIVLIsAboutBenchmarks() {
+  const results = [];
+
+  for (
+    const benchmark of
+    IVL.benchmarks.isAbout
+  ) {
+    const actual =
+      validateIsAboutResponse(
+        benchmark.studentResponse,
+        benchmark.context.keyTopic
+      );
+
+    const passed =
+      actual.valid ===
+        benchmark.expected.valid &&
+      actual.diagnosis ===
+        benchmark.expected.diagnosis;
+
+    results.push({
+      id:
+        benchmark.id,
+
+      title:
+        benchmark.title,
+
+      component:
+        "isAbout",
+
+      studentResponse:
+        benchmark.studentResponse,
+
+      expected:
+        benchmark.expected,
+
+      actual,
+
+      passed,
+    });
+  }
+
+  const passedCount =
+    results.filter(
+      (result) => result.passed
+    ).length;
+
+  const failedCount =
+    results.length - passedCount;
+
+  const summary = {
+    component:
+      "isAbout",
+
+    passed:
+      failedCount === 0,
+
+    total:
+      results.length,
+
+    passedCount,
+
+    failedCount,
+
+    results,
+  };
+
+  IVL.results.isAbout =
+    summary;
+
+  return summary;
+}
+
+
+// ------------------------------------------------------
+// IA-020 GOVERNED SEMANTIC TEST
+//
+// Runs only IA-020 through both validators:
+//
+// 1. deterministic validation
+// 2. governed semantic validation
+//
+// This test does not alter the full IVL or student runtime.
+// ------------------------------------------------------
+
+async function runIA020GovernedTest() {
+  const benchmark =
+    IVL.benchmarks.isAbout.find(
+      (item) =>
+        item.id === "IA-020"
+    );
+
+  if (!benchmark) {
+    return {
+      passed:
+        false,
+
+      id:
+        "IA-020",
+
+      error:
+        "IA-020 benchmark was not found.",
+    };
+  }
+
+  const deterministic =
+    validateIsAboutResponse(
+      benchmark.studentResponse,
+      benchmark.context.keyTopic
+    );
+
+  const governed =
+    await validateIsAboutResponseGoverned(
+      benchmark.studentResponse,
+      benchmark.context.keyTopic
+    );
+
+  const passed =
+    governed.valid ===
+      benchmark.expected.valid &&
+
+    governed.diagnosis ===
+      benchmark.expected.diagnosis;
+
+  const result = {
+    id:
+      benchmark.id,
+
+    title:
+      benchmark.title,
+
+    keyTopic:
+      benchmark.context.keyTopic,
+
+    studentResponse:
+      benchmark.studentResponse,
+
+    expected:
+      benchmark.expected,
+
+    deterministic,
+
+    governed,
+
+    passed,
+  };
+
+  console.log("");
+  console.log(
+    "===================================="
+  );
+  console.log(
+    "IA-020 GOVERNED SEMANTIC TEST"
+  );
+  console.log(
+    "===================================="
+  );
+  console.log(
+    passed
+      ? "✅ PASS"
+      : "❌ FAIL"
+  );
+  console.log(
+    "Key Topic:",
+    result.keyTopic
+  );
+  console.log(
+    "Student Response:",
+    result.studentResponse
+  );
+  console.log(
+    "Expected:",
+    result.expected
+  );
+  console.log(
+    "Deterministic:",
+    result.deterministic
+  );
+  console.log(
+    "Governed:",
+    result.governed
+  );
+
+  return result;
+}
+
 function runIVLEssentialDetailBenchmarks() {
   console.log("");
   console.log("====================================");
