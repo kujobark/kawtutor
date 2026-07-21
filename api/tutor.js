@@ -10672,7 +10672,7 @@ if (
   "/ivl"
 ) {
   const ivlResults =
-    runInstructionalValidationLab();
+    await runInstructionalValidationLab();
 
   const reply =
     formatInstructionalValidationLabResults(
@@ -11559,19 +11559,20 @@ IVL.benchmarks.essentialDetails.push({
 // call AI.
 // ------------------------------------------------------
 
-function runIVLIsAboutBenchmarks() {
+async function runIVLIsAboutBenchmarks() {
   const results = [];
 
   for (
     const benchmark of
     IVL.benchmarks.isAbout
   ) {
+    
     const actual =
-      validateIsAboutResponse(
+      await validateIsAboutResponseGoverned(
         benchmark.studentResponse,
         benchmark.context.keyTopic
-      );
-
+  );
+    
     const passed =
       actual.valid ===
         benchmark.expected.valid &&
@@ -11829,7 +11830,7 @@ function runIVLEssentialDetailBenchmarks() {
   return summary;
 }
 
-function runInstructionalValidationLab() {
+async function runInstructionalValidationLab() {
   IVL.results = {
     isAbout: null,
     mainIdeas: null,
@@ -11838,8 +11839,8 @@ function runInstructionalValidationLab() {
     overall: null
   };
 
-     const isAbout =
-      runIVLIsAboutBenchmarks();
+    const isAbout =
+      await runIVLIsAboutBenchmarks();
   
   const essentialDetails =
       runIVLEssentialDetailBenchmarks();
