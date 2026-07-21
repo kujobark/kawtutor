@@ -9504,7 +9504,7 @@ if (s.pending?.type === "stuckNudge") {
 
     if (stage === "isAbout") {
       if (!s.frame.isAbout) {
-        applyIsAboutCapture(s, msg);
+        await applyIsAboutCapture(s, msg);
         clearMatchingSkip(s, "isAbout");
         return s;
       }
@@ -9588,7 +9588,7 @@ if (s.pending?.type === "confirmIsAbout") {
   return s;
 }
 
-    applyIsAboutCapture(s, msg);
+    await applyIsAboutCapture(s, msg);
     return s;
   }
 
@@ -10269,7 +10269,7 @@ return s;
   
     if (!s.frame.isAbout) {
       // If write+c/e, enforce leads-to when capturing isAbout
-      applyIsAboutCapture(s, parsed.isAbout);
+      await applyIsAboutCapture(s, parsed.isAbout);
       clearMatchingSkip(s, "isAbout");
     } else {
       s.pending = { type: "confirmIsAbout" };
@@ -10299,7 +10299,7 @@ return s;
   if (!s.frame.isAbout) {
     const lowered = msg.toLowerCase().trim();
     if (lowered !== "revise" && lowered !== "change") {
-      applyIsAboutCapture(s, msg);
+      await applyIsAboutCapture(s, msg);
       clearMatchingSkip(s, "isAbout");
     }
     return s;
