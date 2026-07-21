@@ -2566,6 +2566,82 @@ async function validateIsAboutResponseGoverned(
   };
 }
 
+function validateMainIdeaResponse(
+  response,
+  keyTopic = "",
+  isAbout = ""
+) {
+  const text =
+    cleanText(response);
+
+  // --------------------------------------------------
+  // NO COMPONENT EVIDENCE
+  //
+  // The student has not provided observable Main Idea
+  // content that can be evaluated.
+  // --------------------------------------------------
+
+  if (!text) {
+    return {
+      valid: false,
+
+      componentEvidenceLevel:
+        "none",
+
+      componentCriteriaStatus:
+        "notSatisfied",
+
+      relationshipStatus:
+        "undetermined",
+
+      diagnosis:
+        "emptyResponse",
+    };
+  }
+
+  if (
+    isStuckMessage(text) ||
+    isWeakFrameResponse(text) ||
+    isMetaResponse(text)
+  ) {
+    return {
+      valid: false,
+
+      componentEvidenceLevel:
+        "none",
+
+      componentCriteriaStatus:
+        "notSatisfied",
+
+      relationshipStatus:
+        "undetermined",
+
+      diagnosis:
+        "noComponentEvidence",
+    };
+  }
+
+  // Temporary fallback while the remaining Main Idea
+  // diagnoses are added incrementally.
+  //
+  // Runtime does not call this validator yet.
+  return {
+    valid: false,
+
+    componentEvidenceLevel:
+      "substantive",
+
+    componentCriteriaStatus:
+      "partiallySatisfied",
+
+    relationshipStatus:
+      "undetermined",
+
+    diagnosis:
+      "relationshipUndetermined",
+  };
+}
+
 function validateEssentialDetailResponse(
   response,
   currentMainIdea = ""
@@ -2617,6 +2693,62 @@ function validateEssentialDetailResponse(
 
       diagnosis: "noComponentEvidence",
     };
+
+    const normalizedKeyTopic =
+    cleanText(keyTopic);
+
+  const normalizedIsAbout =
+    cleanText(isAbout);
+
+  // --------------------------------------------------
+  // REPEATS KEY TOPIC
+  // --------------------------------------------------
+
+  if (
+    normalizedKeyTopic &&
+    text === normalizedKeyTopic
+  ) {
+    return {
+      valid: false,
+
+      componentEvidenceLevel:
+        "minimal",
+
+      componentCriteriaStatus:
+        "notSatisfied",
+
+      relationshipStatus:
+        "undetermined",
+
+      diagnosis:
+        "repeatsKeyTopic",
+    };
+  }
+
+  // --------------------------------------------------
+  // REPEATS IS ABOUT
+  // --------------------------------------------------
+
+  if (
+    normalizedIsAbout &&
+    text === normalizedIsAbout
+  ) {
+    return {
+      valid: false,
+
+      componentEvidenceLevel:
+        "minimal",
+
+      componentCriteriaStatus:
+        "notSatisfied",
+
+        relationshipStatus:
+        "undetermined",
+
+      diagnosis:
+        "repeatsIsAbout",
+    };
+  }
   }
 
   const circularResponses = new Set([
