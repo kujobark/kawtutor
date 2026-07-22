@@ -14724,13 +14724,6 @@ async function runInstructionalValidationLab() {
     overall: null
   };
 
-  // Run each current instructional benchmark suite.
-  //
-  // Is About and Main Ideas are governed validators and
-  // may request semantic evidence.
-  //
-  // Essential Details currently use the deterministic
-  // validator.
   const isAbout =
     await runIVLIsAboutBenchmarks();
 
@@ -14740,8 +14733,6 @@ async function runInstructionalValidationLab() {
   const essentialDetails =
     runIVLEssentialDetailBenchmarks();
 
-  // Include every completed instructional suite in the
-  // overall IVL totals.
   const componentResults = [
     isAbout,
     mainIdeas,
@@ -14782,79 +14773,70 @@ async function runInstructionalValidationLab() {
     components: {
       isAbout: {
         passed:
-          isAbout.passed,
+          isAbout?.passed || false,
 
         passedCount:
-          isAbout.passedCount,
+          isAbout?.passedCount || 0,
 
         failedCount:
-          isAbout.failedCount,
+          isAbout?.failedCount || 0,
 
         total:
-          isAbout.total
+          isAbout?.total || 0
       },
 
       mainIdeas: {
         passed:
-          mainIdeas.passed,
+          mainIdeas?.passed || false,
 
         passedCount:
-          mainIdeas.passedCount,
+          mainIdeas?.passedCount || 0,
 
         failedCount:
-          mainIdeas.failedCount,
+          mainIdeas?.failedCount || 0,
 
         total:
-          mainIdeas.total
+          mainIdeas?.total || 0
       },
 
       essentialDetails: {
         passed:
-          essentialDetails.passed,
+          essentialDetails?.passed || false,
 
         passedCount:
-          essentialDetails.passedCount,
+          essentialDetails?.passedCount || 0,
 
         failedCount:
-          essentialDetails.failedCount,
+          essentialDetails?.failedCount || 0,
 
         total:
-          essentialDetails.total
+          essentialDetails?.total || 0
       }
     }
   };
 
   console.log("");
-  console.log(
-    "===================================="
-  );
-  console.log(
-    "KAW INSTRUCTIONAL VALIDATION LAB"
-  );
-  console.log(
-    "===================================="
-  );
+  console.log("====================================");
+  console.log("IVL - Overall Results");
+  console.log("====================================");
+
   console.log(
     `Is About: ${isAbout.passedCount}/${isAbout.total}`
   );
+
   console.log(
     `Main Ideas: ${mainIdeas.passedCount}/${mainIdeas.total}`
   );
+
   console.log(
     `Essential Details: ${essentialDetails.passedCount}/${essentialDetails.total}`
   );
-  console.log(
-    "------------------------------------"
-  );
+
   console.log(
     `Overall: ${passedCount}/${total}`
   );
-  console.log(
-    `Failed: ${failedCount}`
-  );
-  console.log(
-    "===================================="
-  );
+
+  console.log("====================================");
 
   return IVL.results;
 }
