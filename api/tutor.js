@@ -3509,9 +3509,13 @@ Rules:
 - Do not judge grammar, spelling, style, or factual accuracy.
 - Do not require exact words from the Main Idea.
 - Do not require explicit connector words such as "because," "shows," or "supports."
-- Evaluate the instructional relationship within this specific Main Idea.
+- Evaluate the instructional relationship within the complete Frame context provided.
+- Essential Details on a Frame may be concise words or phrases rather than complete sentences.
+- Do not reduce confidence merely because a valid Essential Detail is brief.
+- Confidence represents how clearly the response functions beneath the accepted Main Idea within the supplied Frame—not certainty about outside factual knowledge.
+- When all four instructional judgments are clear within the supplied Frame, confidence should normally be 0.90 or higher.
 - Return semantic evidence only.
-- Return only the required JSON object.`;
+- Return only the required JSON object.
 
 const user = `Frame context:
 
