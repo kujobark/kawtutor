@@ -14715,6 +14715,141 @@ function runIVLEssentialDetailBenchmarks() {
   return summary;
 }
 
+async function runIVLMainIdeaBenchmarks() {
+  console.log("");
+  console.log("====================================");
+  console.log("IVL - Main Idea Benchmarks");
+  console.log("====================================");
+
+  const results = [];
+
+  for (
+    const benchmark of
+    IVL.benchmarks.mainIdeas
+  ) {
+    const actual =
+      await validateMainIdeaResponseGoverned(
+        benchmark.studentResponse,
+        benchmark.context.keyTopic,
+        benchmark.context.isAbout
+      );
+
+    const expectedDiagnosis =
+      benchmark.expected.diagnosis;
+
+    const allowedDiagnoses =
+      Array.isArray(
+        benchmark.expected.allowedDiagnoses
+      )
+        ? benchmark.expected.allowedDiagnoses
+        : [];
+
+    const diagnosisPassed =
+      allowedDiagnoses.length > 0
+        ? allowedDiagnoses.includes(
+            actual.diagnosis
+          )
+        : actual.diagnosis ===
+            expectedDiagnosis;
+
+    const passed =
+      actual.valid ===
+        benchmark.expected.valid &&
+      diagnosisPassed;
+
+    const result = {
+      id:
+        benchmark.id,
+
+      title:
+        benchmark.title,
+
+      component:
+        "mainIdeas",
+
+      passed,
+
+      studentResponse:
+        benchmark.studentResponse,
+
+      expected:
+        benchmark.expected,
+
+      actual
+    };
+
+    console.log("");
+
+    console.log(
+      `${passed ? "✅ PASS" : "❌ FAIL"} — ${benchmark.id}: ${benchmark.title}`
+    );
+
+    if (!passed) {
+      console.log(
+        "Student Response:",
+        benchmark.studentResponse
+      );
+
+      console.log(
+        "Expected:",
+        benchmark.expected
+      );
+
+      console.log(
+        "Actual:",
+        actual
+      );
+    }
+
+    results.push(result);
+  }
+
+  const passedCount =
+    results.filter(
+      (result) =>
+        result.passed
+    ).length;
+
+  const failedCount =
+    results.length -
+    passedCount;
+
+  const summary = {
+    component:
+      "mainIdeas",
+
+    passed:
+      failedCount === 0,
+
+    passedCount,
+
+    failedCount,
+
+    total:
+      results.length,
+
+    results
+  };
+
+  IVL.results.mainIdeas =
+    summary;
+
+  console.log("");
+  console.log("------------------------------------");
+
+  console.log(
+    `Passed: ${passedCount}/${results.length}`
+  );
+
+  console.log(
+    `Failed: ${failedCount}`
+  );
+
+  console.log("------------------------------------");
+
+  return summary;
+}
+
 async function runInstructionalValidationLab() {
   IVL.results = {
     isAbout: null,
