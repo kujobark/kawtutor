@@ -8545,6 +8545,271 @@ async function applyIsAboutCapture(s, msg) {
 }
 
 // ---------------------
+// MAIN IDEA CAPTURE
+// ---------------------
+//
+// Governed Main Idea capture mirrors the completed
+// Is About capture architecture.
+//
+// Deterministic validation runs first.
+// Governed semantic evidence is requested only when
+// deterministic validation identifies a semantic gap.
+//
+// JavaScript owns validation, state mutation, saving,
+// revision routing, and progression.
+//
+// AI provides bounded semantic evidence only.
+// ------------------------------------------------------
+
+async function applyMainIdeaCapture(
+  s,
+  msg,
+  options = {}
+) {
+  const text =
+    cleanText(msg);
+
+  const captureMode =
+    options.captureMode || "required";
+
+  const revisionIndex =
+    Number.isInteger(options.index)
+      ? options.index
+      : null;
+
+  const isRevision =
+    captureMode === "revision" &&
+    Number.isInteger(revisionIndex);
+
+  const isOptional =
+    captureMode === "optional";
+
+  const isCE =
+    s.frameMeta?.frameType ===
+    "causeEffect";
+
+  const validation =
+    await validateMainIdeaResponseGoverned(
+      text,
+      s.frame?.keyTopic || "",
+      s.frame?.isAbout || ""
+    );
+
+  if (!validation.valid) {
+    const instructionalFinding = {
+      frameComponent:
+        "mainIdeas",
+
+      componentEvidenceLevel:
+        validation.componentEvidenceLevel,
+
+      componentCriteriaStatus:
+        validation.componentCriteriaStatus,
+
+      relationshipStatus:
+        validation.relationshipStatus,
+
+      diagnosis:
+        validation.diagnosis,
+
+      keyTopic:
+        s.frame?.keyTopic || "",
+
+      isAbout:
+        s.frame?.isAbout || "",
+
+      attemptedMainIdea:
+        text,
+
+      captureMode,
+
+      revisionIndex,
+
+      relationshipEvidence:
+        validation.relationshipEvidence || null,
+    };
+
+    let resumePending;
+
+    if (isRevision) {
+      resumePending = {
+        type:
+          "reviseMainIdeaAt",
+
+        index:
+          revisionIndex,
+      };
+    } else if (isOptional) {
+      resumePending = {
+        type:
+          "collectAnotherMainIdea",
+      };
+    } else {
+      resumePending = {
+        type:
+          "collectAnotherMainIdea",
+      };
+    }
+
+    s.pending = {
+      ...resumePending,
+
+      instructionalFinding,
+    };
+
+    return beginStuckSupportFromPending(
+      s,
+      text,
+      {
+        intent:
+          "stuck",
+
+        confidence:
+          1,
+
+        source:
+          `mainIdeaValidation:${validation.diagnosis}`,
+
+        instructionalFinding,
+      }
+    );
+  }
+
+  // Preserve the existing Build Mode lane guardrail.
+  //
+  // Governed component validation determines whether the
+  // response functions as a Main Idea.
+  //
+  // The existing lane check may still enforce specialized
+  // frame-type behavior without replacing governed
+  // validation.
+  const laneCheck =
+    analyzeBuildLane(
+      s,
+      "mainIdeas",
+      text
+    );
+
+  if (laneCheck) {
+    s.pending =
+      laneCheck;
+
+    return s;
+  }
+
+  if (isRevision) {
+    if (isCE) {
+      if (
+        Array.isArray(s.frame.causes) &&
+        s.frame.causes[revisionIndex] !==
+          undefined
+      ) {
+        s.frame.causes[revisionIndex] =
+          text;
+      }
+    } else {
+      if (
+        Array.isArray(
+          s.frame.parentItems
+        ) &&
+        s.frame.parentItems[
+          revisionIndex
+        ] !== undefined
+      ) {
+        s.frame.parentItems[
+          revisionIndex
+        ] = text;
+      }
+    }
+
+    s.pending = {
+      type:
+        "confirmMainIdeas",
+    };
+
+    return s;
+  }
+
+  if (isCE) {
+    if (
+      !Array.isArray(s.frame.causes)
+    ) {
+      s.frame.causes = [];
+    }
+
+    if (
+      !Array.isArray(s.frame.details)
+    ) {
+      s.frame.details = [];
+    }
+
+    s.frame.causes.push(text);
+
+    const newIndex =
+      s.frame.causes.length - 1;
+
+    if (
+      !Array.isArray(
+        s.frame.details[newIndex]
+      )
+    ) {
+      s.frame.details[newIndex] = [];
+    }
+  } else {
+    if (
+      !Array.isArray(
+        s.frame.parentItems
+      )
+    ) {
+      s.frame.parentItems = [];
+    }
+
+    if (
+      !Array.isArray(s.frame.details)
+    ) {
+      s.frame.details = [];
+    }
+
+    s.frame.parentItems.push(text);
+
+    const newIndex =
+      s.frame.parentItems.length - 1;
+
+    if (
+      !Array.isArray(
+        s.frame.details[newIndex]
+      )
+    ) {
+      s.frame.details[newIndex] = [];
+    }
+  }
+
+  clearMatchingSkip(
+    s,
+    "mainIdeas"
+  );
+
+  const count =
+    getIdeaList(s).length;
+
+  if (count >= 5) {
+    s.pending = {
+      type:
+        "confirmMainIdeas",
+    };
+
+    return s;
+  }
+
+  s.pending = {
+    type:
+      "offerAnotherMainIdea",
+  };
+
+  return s;
+}
+
+// ---------------------
 // PROGRESSION
 // ---------------------
 function computeNextQuestion(state) {
@@ -10105,50 +10370,11 @@ if (s.pending?.type === "confirmMainIdeas") {
 }
 
   if (s.pending?.type === "reviseMainIdeaAt") {
-  const idx = Number(s.pending.index);
-  const isCE = s.frameMeta?.frameType === "causeEffect";
+  await applyMainIdeaCapture(
+    s,
+    msg
+  );
 
-  const mutationIntent =
-    await classifyStudentWorkMutationIntent(s, msg);
-
- if (!mutationIntent.accept) {
-  // Genuine struggle or frustration enters the existing
-  // Stuck Support sequence without losing the selected
-  // Main Idea revision location.
-  if (
-    mutationIntent.intent === "stuck" ||
-    mutationIntent.intent === "frustrated"
-  ) {
-    return beginStuckSupportFromPending(
-      s,
-      msg,
-      mutationIntent
-    );
-  }
-
-  // Revision directions, uncertainty, and other non-content
-  // responses remain protected until their coaching behavior
-  // is handled explicitly.
-  return s;
-}
-
-  if (isCE) {
-    if (
-      Array.isArray(s.frame.causes) &&
-      s.frame.causes[idx] !== undefined
-    ) {
-      s.frame.causes[idx] = msg;
-    }
-  } else {
-    if (
-      Array.isArray(s.frame.parentItems) &&
-      s.frame.parentItems[idx] !== undefined
-    ) {
-      s.frame.parentItems[idx] = msg;
-    }
-  }
-
-  s.pending = { type: "confirmMainIdeas" };
   return s;
 }
 
@@ -10172,96 +10398,11 @@ if (s.pending?.type === "confirmMainIdeas") {
   }
 
   if (s.pending?.type === "collectAnotherMainIdea") {
-    const normalized = msg.toLowerCase().trim();
-
-    // This Main Idea is optional. A genuine decline preserves
-    // the existing collection and moves to confirmation.
-    if (isNegative(normalized)) {
-      s.pending = { type: "confirmMainIdeas" };
-      return s;
-    }
-
-    const mutationIntent =
-      await classifyStudentWorkMutationIntent(s, msg);
-
-  if (!mutationIntent.accept) {
-  // Genuine struggle or frustration enters the existing
-  // Stuck Support sequence without losing this exact
-  // optional Main Idea capture location.
-  if (
-    mutationIntent.intent === "stuck" ||
-    mutationIntent.intent === "frustrated"
-  ) {
-    return beginStuckSupportFromPending(
+    await applyMainIdeaCapture(
       s,
-      msg,
-      mutationIntent
+      msg
     );
-  }
 
-  // Revision directions, uncertainty, and other non-content
-  // responses remain protected until their coaching behavior
-  // is handled explicitly.
-  return s;
-}
-
-    const isCE =
-      s.frameMeta?.frameType === "causeEffect";
-
-    const laneCheck =
-      analyzeBuildLane(s, "mainIdeas", msg);
-
-    if (laneCheck) {
-      s.pending = laneCheck;
-      return s;
-    }
-
-    if (isCE) {
-      if (!Array.isArray(s.frame.causes)) {
-        s.frame.causes = [];
-      }
-
-      if (!Array.isArray(s.frame.details)) {
-        s.frame.details = [];
-      }
-
-      s.frame.causes.push(msg);
-
-      if (
-        !Array.isArray(
-          s.frame.details[s.frame.causes.length - 1]
-        )
-      ) {
-        s.frame.details[s.frame.causes.length - 1] = [];
-      }
-    } else {
-      if (!Array.isArray(s.frame.parentItems)) {
-        s.frame.parentItems = [];
-      }
-
-      if (!Array.isArray(s.frame.details)) {
-        s.frame.details = [];
-      }
-
-      s.frame.parentItems.push(msg);
-
-      if (
-        !Array.isArray(
-          s.frame.details[s.frame.parentItems.length - 1]
-        )
-      ) {
-        s.frame.details[s.frame.parentItems.length - 1] = [];
-      }
-    }
-
-    const count = getIdeaList(s).length;
-
-    if (count >= 5) {
-      s.pending = { type: "confirmMainIdeas" };
-      return s;
-    }
-
-    s.pending = { type: "offerAnotherMainIdea" };
     return s;
   }
   
@@ -10781,49 +10922,25 @@ return s;
     return s;
   }
 
-  // 4) Main Ideas capture
+   // 4) Main Ideas capture
   const ideas = getIdeaList(s);
 
   if (ideas.length < 2) {
     if (!isNegative(msg)) {
+      await applyMainIdeaCapture(
+        s,
+        msg
+      );
 
-        const laneCheck = analyzeBuildLane(s, "mainIdeas", msg);
-      if (laneCheck) {
-        s.pending = laneCheck;
-        return s;
-      }
-      
-      if (s.frameMeta?.frameType === "causeEffect") {
-        if (!Array.isArray(s.frame.causes)) s.frame.causes = [];
-        if (!Array.isArray(s.frame.details)) s.frame.details = [];
-
-        s.frame.causes.push(msg);
-        clearMatchingSkip(s, "mainIdeas");
-
-        if (!Array.isArray(s.frame.details[s.frame.causes.length - 1])) {
-          s.frame.details[s.frame.causes.length - 1] = [];
-        }
-
-        s.pending = { type: "offerAnotherMainIdea" };
-      } else {
-        if (!Array.isArray(s.frame.parentItems)) s.frame.parentItems = [];
-        if (!Array.isArray(s.frame.details)) s.frame.details = [];
-
-        s.frame.parentItems.push(msg);
-        clearMatchingSkip(s, "mainIdeas");
-
-        if (!Array.isArray(s.frame.details[s.frame.parentItems.length - 1])) {
-          s.frame.details[s.frame.parentItems.length - 1] = [];
-        }
-
-        if (s.frame.parentItems.length === 2) {
-          s.pending = { type: "offerAnotherMainIdea" };
-        }
-      }
+      clearMatchingSkip(
+        s,
+        "mainIdeas"
+      );
     }
+
     return s;
   }
-
+  
     // 5) Details capture
   for (let i = 0; i < ideas.length; i++) {
     const arr =
