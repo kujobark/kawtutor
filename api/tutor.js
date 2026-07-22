@@ -3422,6 +3422,441 @@ function validateEssentialDetailResponse(
   };
 }
 
+// ------------------------------------------------------
+// ESSENTIAL DETAIL SEMANTIC EVIDENCE
+//
+// Purpose:
+//
+// Provides narrowly governed semantic evidence only when
+// deterministic validation confirms that the student has
+// supplied substantive Essential Detail content but the
+// supporting relationship cannot be established through
+// observable structure alone.
+//
+// AI does not validate or save the Essential Detail.
+// AI does not rewrite or improve student work.
+// AI returns bounded instructional evidence only.
+//
+// JavaScript remains the final instructional authority.
+// ------------------------------------------------------
+
+async function getEssentialDetailSemanticEvidence(
+  response,
+  currentMainIdea
+) {
+  const studentResponse =
+    cleanText(response);
+
+  const acceptedMainIdea =
+    cleanText(currentMainIdea);
+
+  if (
+    !studentResponse ||
+    !acceptedMainIdea
+  ) {
+    return {
+      supportsMainIdea:
+        false,
+
+      functionsAsEssentialDetail:
+        false,
+
+      specificEnough:
+        false,
+
+      introducesSeparateMainIdea:
+        false,
+
+      confidence:
+        0,
+
+      source:
+        "notRequested",
+    };
+  }
+
+  const system = `You provide semantic evidence for a deterministic instructional validator supporting the KU Framing Routine.
+
+The accepted Main Idea and the student's proposed Essential Detail will be provided.
+
+Determine only whether the student's response functions as one valid Essential Detail supporting that Main Idea.
+
+A valid Essential Detail:
+- directly supports, explains, illustrates, demonstrates, or provides evidence for the accepted Main Idea;
+- adds information that is more specific than the Main Idea;
+- can function as a fact, example, observation, explanation, event, or piece of evidence;
+- does not merely repeat the Main Idea;
+- does not function primarily as a separate major organizing Main Idea.
+
+Rules:
+- Do not rewrite the student's response.
+- Do not improve the student's response.
+- Do not generate a replacement Essential Detail.
+- Do not teach the content.
+- Do not judge grammar, spelling, style, or factual accuracy.
+- Do not require exact words from the Main Idea.
+- Do not require explicit connector words such as "because," "shows," or "supports."
+- Evaluate the instructional relationship within this specific Main Idea.
+- Return semantic evidence only.
+- Return only the required JSON object.`;
+
+  const user = `Accepted Main Idea:
+"${acceptedMainIdea}"
+
+Student's proposed Essential Detail:
+"${studentResponse}"
+
+Does this response function as one specific Essential Detail that supports the accepted Main Idea?`;
+
+  try {
+    const resp =
+      await client.chat.completions.create({
+        model:
+          DEFAULT_MODEL,
+
+        reasoning_effort:
+          "none",
+
+        temperature:
+          0,
+
+        response_format: {
+          type:
+            "json_schema",
+
+          json_schema: {
+            name:
+              "essential_detail_semantic_evidence",
+
+            strict:
+              true,
+
+            schema: {
+              type:
+                "object",
+
+              additionalProperties:
+                false,
+
+              properties: {
+                supportsMainIdea: {
+                  type:
+                    "boolean",
+                },
+
+                functionsAsEssentialDetail: {
+                  type:
+                    "boolean",
+                },
+
+                specificEnough: {
+                  type:
+                    "boolean",
+                },
+
+                introducesSeparateMainIdea: {
+                  type:
+                    "boolean",
+                },
+
+                confidence: {
+                  type:
+                    "number",
+
+                  minimum:
+                    0,
+
+                  maximum:
+                    1,
+                },
+              },
+
+              required: [
+                "supportsMainIdea",
+                "functionsAsEssentialDetail",
+                "specificEnough",
+                "introducesSeparateMainIdea",
+                "confidence",
+              ],
+            },
+          },
+        },
+
+        messages: [
+          {
+            role:
+              "system",
+
+            content:
+              system,
+          },
+
+          {
+            role:
+              "user",
+
+            content:
+              user,
+          },
+        ],
+      });
+
+    const parsed =
+      JSON.parse(
+        resp?.choices?.[0]?.message
+          ?.content || "{}"
+      );
+
+    const confidence =
+      Number(
+        parsed.confidence || 0
+      );
+
+    return {
+      supportsMainIdea:
+        parsed.supportsMainIdea ===
+        true,
+
+      functionsAsEssentialDetail:
+        parsed.functionsAsEssentialDetail ===
+        true,
+
+      specificEnough:
+        parsed.specificEnough ===
+        true,
+
+      introducesSeparateMainIdea:
+        parsed.introducesSeparateMainIdea ===
+        true,
+
+      confidence:
+        Number.isFinite(confidence)
+          ? Math.max(
+              0,
+              Math.min(
+                confidence,
+                1
+              )
+            )
+          : 0,
+
+      source:
+        "aiSemanticEvidence",
+    };
+  } catch (error) {
+    console.error(
+      "Essential Detail semantic evidence error:",
+      error
+    );
+
+    return {
+      supportsMainIdea:
+        false,
+
+      functionsAsEssentialDetail:
+        false,
+
+      specificEnough:
+        false,
+
+      introducesSeparateMainIdea:
+        false,
+
+      confidence:
+        0,
+
+      source:
+        "semanticEvidenceUnavailable",
+    };
+  }
+}
+
+
+// ------------------------------------------------------
+// GOVERNED ESSENTIAL DETAIL VALIDATION
+//
+// Runs deterministic validation first.
+//
+// Semantic evidence is requested only when deterministic
+// validation identifies a substantive response whose
+// relationship to the accepted Main Idea requires semantic
+// inference.
+//
+// JavaScript applies the instructional contract and makes
+// the final validation and progression decision.
+// ------------------------------------------------------
+
+async function validateEssentialDetailResponseGoverned(
+  response,
+  currentMainIdea = ""
+) {
+  const deterministicValidation =
+    validateEssentialDetailResponse(
+      response,
+      currentMainIdea
+    );
+
+  console.log(
+    "ESSENTIAL DETAIL VALIDATION:",
+    deterministicValidation
+  );
+
+  const requiresSemanticInference =
+    deterministicValidation
+      ?.componentEvidenceLevel ===
+      "substantive" &&
+
+    deterministicValidation
+      ?.relationshipEvidence
+      ?.readerInferenceRequired ===
+      true;
+
+  // Deterministic outcomes remain authoritative when
+  // semantic inference is not explicitly required.
+  if (!requiresSemanticInference) {
+    return {
+      ...deterministicValidation,
+
+      validationSource:
+        "deterministic",
+    };
+  }
+
+  const semanticEvidence =
+    await getEssentialDetailSemanticEvidence(
+      response,
+      currentMainIdea
+    );
+
+  // --------------------------------------------------
+  // JAVASCRIPT FINAL DECISION
+  //
+  // AI provides bounded evidence.
+  // JavaScript applies the complete instructional contract.
+  // --------------------------------------------------
+
+  const essentialDetailRelationshipEstablished =
+    semanticEvidence
+      .supportsMainIdea === true &&
+
+    semanticEvidence
+      .functionsAsEssentialDetail === true &&
+
+    semanticEvidence
+      .specificEnough === true &&
+
+    semanticEvidence
+      .introducesSeparateMainIdea === false &&
+
+    semanticEvidence
+      .confidence >= 0.9;
+
+  if (
+    essentialDetailRelationshipEstablished
+  ) {
+    return {
+      valid:
+        true,
+
+      componentEvidenceLevel:
+        "substantive",
+
+      componentCriteriaStatus:
+        "satisfied",
+
+      relationshipStatus:
+        "established",
+
+      diagnosis:
+        null,
+
+      relationshipEvidence: {
+        ...deterministicValidation
+          .relationshipEvidence,
+
+        supportsMainIdea:
+          semanticEvidence
+            .supportsMainIdea,
+
+        functionsAsEssentialDetail:
+          semanticEvidence
+            .functionsAsEssentialDetail,
+
+        specificEnough:
+          semanticEvidence
+            .specificEnough,
+
+        introducesSeparateMainIdea:
+          semanticEvidence
+            .introducesSeparateMainIdea,
+
+        semanticConfidence:
+          semanticEvidence.confidence,
+
+        semanticEvidenceSource:
+          semanticEvidence.source,
+
+        readerInferenceRequired:
+          false,
+      },
+
+      validationSource:
+        "deterministicWithSemanticEvidence",
+    };
+  }
+
+  return {
+    valid:
+      false,
+
+    componentEvidenceLevel:
+      "substantive",
+
+    componentCriteriaStatus:
+      "notSatisfied",
+
+    relationshipStatus:
+      "notEstablished",
+
+    diagnosis:
+      semanticEvidence
+        .introducesSeparateMainIdea ===
+        true
+          ? "mainIdeaInsteadOfDetail"
+          : "relationshipNotEstablished",
+
+    relationshipEvidence: {
+      ...deterministicValidation
+        .relationshipEvidence,
+
+      supportsMainIdea:
+        semanticEvidence
+          .supportsMainIdea,
+
+      functionsAsEssentialDetail:
+        semanticEvidence
+          .functionsAsEssentialDetail,
+
+      specificEnough:
+        semanticEvidence
+          .specificEnough,
+
+      introducesSeparateMainIdea:
+        semanticEvidence
+          .introducesSeparateMainIdea,
+
+      semanticConfidence:
+        semanticEvidence.confidence,
+
+      semanticEvidenceSource:
+        semanticEvidence.source,
+    },
+
+    validationSource:
+      "deterministicWithSemanticEvidence",
+  };
+}
+
 // ======================================================
 // DETERMINISTIC SELF-TEST SUITES
 // ======================================================
@@ -15032,10 +15467,10 @@ async function runIVLEssentialDetailBenchmarks(
     benchmarksToRun
   ) {
     const actual =
-      validateEssentialDetailResponse(
-        benchmark.studentResponse,
-        benchmark.context.mainIdea
-      );
+      await validateEssentialDetailResponseGoverned(
+      benchmark.studentResponse,
+      benchmark.context.mainIdea
+  );
 
     const expectedDiagnosis =
       benchmark.expected.diagnosis;
