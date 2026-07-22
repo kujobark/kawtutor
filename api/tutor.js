@@ -2568,6 +2568,29 @@ async function validateIsAboutResponseGoverned(
   };
 }
 
+// ------------------------------------------------------
+// MAIN IDEA VALIDATION
+//
+// Instructional Contract:
+//
+// A Main Idea must express one major organizing idea
+// connected to the accepted Key Topic and Is About.
+//
+// It must be broad enough to organize multiple Essential
+// Details and must not function only as one supporting
+// fact, example, observation, or explanation.
+//
+// Deterministic validation handles only observable
+// conditions that can be established without semantic
+// inference.
+//
+// Governed semantic evidence is requested for substantive
+// responses whose instructional relationship must be
+// evaluated in context.
+//
+// JavaScript remains the final instructional authority.
+// ------------------------------------------------------
+
 function validateMainIdeaResponse(
   response,
   keyTopic = "",
@@ -2578,9 +2601,6 @@ function validateMainIdeaResponse(
 
   // --------------------------------------------------
   // NO COMPONENT EVIDENCE
-  //
-  // The student has not provided observable Main Idea
-  // content that can be evaluated.
   // --------------------------------------------------
 
   if (!text) {
@@ -2623,20 +2643,20 @@ function validateMainIdeaResponse(
     };
   }
 
-    const normalizedResponse =
-    cleanText(text)
-      .toLowerCase()
-      .replace(/[.!?]+$/g, "");
+  const normalizedResponse =
+    normalizeInstructionalComparisonText(
+      text
+    );
 
   const normalizedKeyTopic =
-    cleanText(keyTopic)
-      .toLowerCase()
-      .replace(/[.!?]+$/g, "");
+    normalizeInstructionalComparisonText(
+      keyTopic
+    );
 
   const normalizedIsAbout =
-    cleanText(isAbout)
-      .toLowerCase()
-      .replace(/[.!?]+$/g, "");
+    normalizeInstructionalComparisonText(
+      isAbout
+    );
 
   // --------------------------------------------------
   // REPEATS KEY TOPIC
@@ -2690,8 +2710,16 @@ function validateMainIdeaResponse(
     };
   }
 
-    // --------------------------------------------------
+  // --------------------------------------------------
   // INSUFFICIENT OBSERVABLE EVIDENCE
+  //
+  // One-word responses do not provide enough observable
+  // evidence to determine whether the response functions
+  // as a Main Idea.
+  //
+  // Multiword Main Ideas remain eligible for governed
+  // semantic evidence. This preserves valid concise
+  // responses such as "They think before."
   // --------------------------------------------------
 
   const words =
@@ -2699,7 +2727,7 @@ function validateMainIdeaResponse(
       .split(/\s+/)
       .filter(Boolean);
 
-  if (words.length < 4) {
+  if (words.length < 2) {
     return {
       valid: false,
 
@@ -2707,7 +2735,7 @@ function validateMainIdeaResponse(
         "limited",
 
       componentCriteriaStatus:
-        "notSatisfied",
+        "partiallySatisfied",
 
       relationshipStatus:
         "undetermined",
@@ -2717,34 +2745,16 @@ function validateMainIdeaResponse(
     };
   }
 
-  const normalizedText = text.toLowerCase().trim();
-
-const explicitDetailPatterns = [
-    "for example",
-    "for instance",
-    "such as",
-    "including",
-    "because "
-];
-
-if (
-    explicitDetailPatterns.some(pattern =>
-        normalizedText.startsWith(pattern)
-    )
-) {
-    return {
-        valid: false,
-        componentEvidenceLevel: "adequate",
-        componentCriteriaStatus: "notSatisfied",
-        relationshipStatus: "undetermined",
-        diagnosis: "detailInsteadOfCategory",
-    };
-}
-
-  // Temporary fallback while the remaining Main Idea
-  // diagnoses are added incrementally.
+  // --------------------------------------------------
+  // SEMANTIC INFERENCE GAP
   //
-  // Runtime does not call this validator yet.
+  // The response contains substantive Main Idea content,
+  // but whether it functions as a major organizing idea
+  // cannot be established through exact comparison alone.
+  //
+  // No vocabulary list or phrase pattern is used.
+  // --------------------------------------------------
+
   return {
     valid: false,
 
@@ -2759,6 +2769,472 @@ if (
 
     diagnosis:
       "relationshipUndetermined",
+
+    relationshipEvidence: {
+      requiresSemanticInference:
+        true,
+
+      readerInferenceRequired:
+        true,
+    },
+  };
+}
+
+
+// ------------------------------------------------------
+// MAIN IDEA SEMANTIC EVIDENCE
+//
+// Purpose:
+//
+// Provides narrowly governed semantic evidence only after
+// deterministic validation confirms that the student has
+// supplied substantive Main Idea content.
+//
+// AI does not save the Main Idea.
+// AI does not determine progression.
+// AI does not rewrite or improve student work.
+// AI returns bounded instructional evidence only.
+//
+// JavaScript remains the final instructional authority.
+// ------------------------------------------------------
+
+async function getMainIdeaSemanticEvidence(
+  response,
+  keyTopic,
+  isAbout
+) {
+  const studentResponse =
+    cleanText(response);
+
+  const acceptedKeyTopic =
+    cleanText(keyTopic);
+
+  const acceptedIsAbout =
+    cleanText(isAbout);
+
+  if (
+    !studentResponse ||
+    !acceptedKeyTopic ||
+    !acceptedIsAbout
+  ) {
+    return {
+      connectedToKeyTopic:
+        false,
+
+      supportsIsAbout:
+        false,
+
+      functionsAsOrganizingIdea:
+        false,
+
+      supportableWithMultipleDetails:
+        false,
+
+      functionsOnlyAsDetail:
+        false,
+
+      confidence:
+        0,
+
+      source:
+        "notRequested",
+    };
+  }
+
+  const system = `You provide semantic evidence for a deterministic instructional validator supporting the KU Framing Routine.
+
+The accepted Key Topic, accepted Is About statement, and the student's proposed Main Idea will be provided.
+
+Determine only whether the student's response functions as one valid Main Idea within that Frame.
+
+A valid Main Idea:
+- expresses one major idea connected to the accepted Key Topic;
+- supports or helps organize the accepted Is About statement;
+- can function as a heading or organizing idea;
+- is broad enough to support multiple meaningful Essential Details;
+- is not merely one isolated fact, example, observation, or supporting detail.
+
+Rules:
+- Do not rewrite the student's response.
+- Do not improve the student's response.
+- Do not generate a replacement Main Idea.
+- Do not teach the content.
+- Do not judge grammar, spelling, style, or factual accuracy.
+- Do not require exact words from the Key Topic or Is About statement.
+- Do not reject a response merely because it is concise.
+- Evaluate the instructional function of the response in this specific Frame.
+- Return semantic evidence only.
+- Return only the required JSON object.`;
+
+  const user = `Accepted Key Topic:
+"${acceptedKeyTopic}"
+
+Accepted Is About statement:
+"${acceptedIsAbout}"
+
+Student's proposed Main Idea:
+"${studentResponse}"
+
+Does this response function as one major organizing Main Idea in this Frame?`;
+
+  try {
+    const resp =
+      await client.chat.completions.create({
+        model:
+          DEFAULT_MODEL,
+
+        reasoning_effort:
+          "none",
+
+        temperature:
+          0,
+
+        response_format: {
+          type:
+            "json_schema",
+
+          json_schema: {
+            name:
+              "main_idea_semantic_evidence",
+
+            strict:
+              true,
+
+            schema: {
+              type:
+                "object",
+
+              additionalProperties:
+                false,
+
+              properties: {
+                connectedToKeyTopic: {
+                  type:
+                    "boolean",
+                },
+
+                supportsIsAbout: {
+                  type:
+                    "boolean",
+                },
+
+                functionsAsOrganizingIdea: {
+                  type:
+                    "boolean",
+                },
+
+                supportableWithMultipleDetails: {
+                  type:
+                    "boolean",
+                },
+
+                functionsOnlyAsDetail: {
+                  type:
+                    "boolean",
+                },
+
+                confidence: {
+                  type:
+                    "number",
+
+                  minimum:
+                    0,
+
+                  maximum:
+                    1,
+                },
+              },
+
+              required: [
+                "connectedToKeyTopic",
+                "supportsIsAbout",
+                "functionsAsOrganizingIdea",
+                "supportableWithMultipleDetails",
+                "functionsOnlyAsDetail",
+                "confidence",
+              ],
+            },
+          },
+        },
+
+        messages: [
+          {
+            role:
+              "system",
+
+            content:
+              system,
+          },
+
+          {
+            role:
+              "user",
+
+            content:
+              user,
+          },
+        ],
+      });
+
+    const parsed =
+      JSON.parse(
+        resp?.choices?.[0]?.message
+          ?.content || "{}"
+      );
+
+    const confidence =
+      Number(parsed.confidence || 0);
+
+    return {
+      connectedToKeyTopic:
+        parsed.connectedToKeyTopic ===
+        true,
+
+      supportsIsAbout:
+        parsed.supportsIsAbout ===
+        true,
+
+      functionsAsOrganizingIdea:
+        parsed.functionsAsOrganizingIdea ===
+        true,
+
+      supportableWithMultipleDetails:
+        parsed.supportableWithMultipleDetails ===
+        true,
+
+      functionsOnlyAsDetail:
+        parsed.functionsOnlyAsDetail ===
+        true,
+
+      confidence:
+        Number.isFinite(confidence)
+          ? Math.max(
+              0,
+              Math.min(confidence, 1)
+            )
+          : 0,
+
+      source:
+        "aiSemanticEvidence",
+    };
+  } catch (error) {
+    console.error(
+      "Main Idea semantic evidence error:",
+      error
+    );
+
+    return {
+      connectedToKeyTopic:
+        false,
+
+      supportsIsAbout:
+        false,
+
+      functionsAsOrganizingIdea:
+        false,
+
+      supportableWithMultipleDetails:
+        false,
+
+      functionsOnlyAsDetail:
+        false,
+
+      confidence:
+        0,
+
+      source:
+        "semanticEvidenceUnavailable",
+    };
+  }
+}
+
+
+// ------------------------------------------------------
+// GOVERNED MAIN IDEA VALIDATION
+//
+// Runs deterministic validation first.
+//
+// Semantic evidence is requested only when deterministic
+// validation identifies a semantic inference gap.
+//
+// JavaScript applies the instructional contract and makes
+// the final validation and progression decision.
+// ------------------------------------------------------
+
+async function validateMainIdeaResponseGoverned(
+  response,
+  keyTopic = "",
+  isAbout = ""
+) {
+  const deterministicValidation =
+    validateMainIdeaResponse(
+      response,
+      keyTopic,
+      isAbout
+    );
+
+  console.log(
+    "MAIN IDEA VALIDATION:",
+    deterministicValidation
+  );
+
+  const requiresSemanticInference =
+    deterministicValidation
+      ?.relationshipEvidence
+      ?.requiresSemanticInference ===
+    true;
+
+  // Deterministic outcomes remain authoritative.
+  if (!requiresSemanticInference) {
+    return {
+      ...deterministicValidation,
+
+      validationSource:
+        "deterministic",
+    };
+  }
+
+  const semanticEvidence =
+    await getMainIdeaSemanticEvidence(
+      response,
+      keyTopic,
+      isAbout
+    );
+
+  // --------------------------------------------------
+  // JAVASCRIPT FINAL DECISION
+  //
+  // AI provides bounded evidence.
+  // JavaScript applies the complete instructional contract.
+  // --------------------------------------------------
+
+  const mainIdeaRelationshipEstablished =
+    semanticEvidence
+      .connectedToKeyTopic === true &&
+
+    semanticEvidence
+      .supportsIsAbout === true &&
+
+    semanticEvidence
+      .functionsAsOrganizingIdea === true &&
+
+    semanticEvidence
+      .supportableWithMultipleDetails === true &&
+
+    semanticEvidence
+      .functionsOnlyAsDetail === false &&
+
+    semanticEvidence
+      .confidence >= 0.9;
+
+  if (mainIdeaRelationshipEstablished) {
+    return {
+      valid:
+        true,
+
+      componentEvidenceLevel:
+        "substantive",
+
+      componentCriteriaStatus:
+        "satisfied",
+
+      relationshipStatus:
+        "established",
+
+      diagnosis:
+        null,
+
+      relationshipEvidence: {
+        ...deterministicValidation
+          .relationshipEvidence,
+
+        connectedToKeyTopic:
+          semanticEvidence
+            .connectedToKeyTopic,
+
+        supportsIsAbout:
+          semanticEvidence
+            .supportsIsAbout,
+
+        functionsAsOrganizingIdea:
+          semanticEvidence
+            .functionsAsOrganizingIdea,
+
+        supportableWithMultipleDetails:
+          semanticEvidence
+            .supportableWithMultipleDetails,
+
+        functionsOnlyAsDetail:
+          semanticEvidence
+            .functionsOnlyAsDetail,
+
+        semanticConfidence:
+          semanticEvidence.confidence,
+
+        semanticEvidenceSource:
+          semanticEvidence.source,
+
+        readerInferenceRequired:
+          false,
+      },
+
+      validationSource:
+        "deterministicWithSemanticEvidence",
+    };
+  }
+
+  return {
+    valid:
+      false,
+
+    componentEvidenceLevel:
+      "substantive",
+
+    componentCriteriaStatus:
+      "notSatisfied",
+
+    relationshipStatus:
+      "notEstablished",
+
+    diagnosis:
+      semanticEvidence
+        .functionsOnlyAsDetail === true
+          ? "detailInsteadOfMainIdea"
+          : "relationshipNotEstablished",
+
+    relationshipEvidence: {
+      ...deterministicValidation
+        .relationshipEvidence,
+
+      connectedToKeyTopic:
+        semanticEvidence
+          .connectedToKeyTopic,
+
+      supportsIsAbout:
+        semanticEvidence
+          .supportsIsAbout,
+
+      functionsAsOrganizingIdea:
+        semanticEvidence
+          .functionsAsOrganizingIdea,
+
+      supportableWithMultipleDetails:
+        semanticEvidence
+          .supportableWithMultipleDetails,
+
+      functionsOnlyAsDetail:
+        semanticEvidence
+          .functionsOnlyAsDetail,
+
+      semanticConfidence:
+        semanticEvidence.confidence,
+
+      semanticEvidenceSource:
+        semanticEvidence.source,
+    },
+
+    validationSource:
+      "deterministicWithSemanticEvidence",
   };
 }
 
