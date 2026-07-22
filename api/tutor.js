@@ -4617,6 +4617,1043 @@ function formatIsAboutSelfTestResults(
 }
 
 // ------------------------------------------------------
+// Main Idea Test Suite
+//
+// Purpose:
+//
+// Verifies governed Main Idea validation and the live
+// runtime routes used for required capture, optional
+// capture, and revision.
+//
+// These tests confirm that invalid student responses are
+// blocked before state mutation and that valid responses
+// save and progress through the correct pending states.
+// ------------------------------------------------------
+
+async function runMainIdeaSelfTests() {
+  const keyTopic =
+    "Social Media and Teen Mental Health";
+
+  const isAbout =
+    "How social media can affect teen mental health.";
+
+  const validMainIdea =
+    "Social media can increase anxiety and stress.";
+
+  const secondMainIdea =
+    "Social media can affect self-esteem.";
+
+  const optionalMainIdea =
+    "Social media can increase feelings of isolation.";
+
+  const revisedMainIdea =
+    "Social media can disrupt healthy sleep patterns.";
+
+  const detailOnlyResponse =
+    "A survey found that many teens check social media before bed.";
+
+  const results = [];
+
+  // --------------------------------------------------
+  // TEST STATE FACTORY
+  //
+  // Creates a stable Build Mode state positioned at the
+  // Main Ideas stage.
+  // --------------------------------------------------
+
+  function createMainIdeaTestState() {
+    const state =
+      defaultState();
+
+    state.interactionMode =
+      "build";
+
+    state.frameMeta.assignmentContext = {
+      raw:
+        "Explain how social media can affect teen mental health.",
+
+      understanding:
+        "Explain how social media can affect teen mental health.",
+
+      studentSummary:
+        "you're explaining how social media can affect teen mental health.",
+
+      confidence:
+        "high",
+
+      needsClarification:
+        false,
+
+      inferredPurpose:
+        "",
+
+      childAnchor:
+        "",
+
+      clarificationCount:
+        0,
+    };
+
+    state.frameMeta.purpose =
+      "study";
+
+    state.frame.keyTopic =
+      keyTopic;
+
+    state.frame.isAbout =
+      isAbout;
+
+    state.frame.parentItems =
+      [];
+
+    state.frame.details =
+      [];
+
+    state.pending =
+      null;
+
+    return state;
+  }
+
+  // --------------------------------------------------
+  // DETERMINISTIC VALIDATOR TESTS
+  // --------------------------------------------------
+
+  const deterministicTests = [
+    {
+      name:
+        "MI - Empty response",
+
+      response:
+        "",
+
+      expected: {
+        valid:
+          false,
+
+        componentEvidenceLevel:
+          "none",
+
+        componentCriteriaStatus:
+          "notSatisfied",
+
+        relationshipStatus:
+          "undetermined",
+
+        diagnosis:
+          "emptyResponse",
+      },
+    },
+
+    {
+      name:
+        "MI - Stuck response",
+
+      response:
+        "idk",
+
+      expected: {
+        valid:
+          false,
+
+        componentEvidenceLevel:
+          "none",
+
+        componentCriteriaStatus:
+          "notSatisfied",
+
+        relationshipStatus:
+          "undetermined",
+
+        diagnosis:
+          "noComponentEvidence",
+      },
+    },
+
+    {
+      name:
+        "MI - Repeats Key Topic",
+
+      response:
+        keyTopic,
+
+      expected: {
+        valid:
+          false,
+
+        componentEvidenceLevel:
+          "limited",
+
+        componentCriteriaStatus:
+          "notSatisfied",
+
+        relationshipStatus:
+          "notEstablished",
+
+        diagnosis:
+          "repeatsKeyTopic",
+      },
+    },
+
+    {
+      name:
+        "MI - Repeats Is About",
+
+      response:
+        isAbout,
+
+      expected: {
+        valid:
+          false,
+
+        componentEvidenceLevel:
+          "limited",
+
+        componentCriteriaStatus:
+          "notSatisfied",
+
+        relationshipStatus:
+          "notEstablished",
+
+        diagnosis:
+          "repeatsIsAbout",
+      },
+    },
+
+    {
+      name:
+        "MI - One-word response",
+
+      response:
+        "Anxiety",
+
+      expected: {
+        valid:
+          false,
+
+        componentEvidenceLevel:
+          "limited",
+
+        componentCriteriaStatus:
+          "partiallySatisfied",
+
+        relationshipStatus:
+          "undetermined",
+
+        diagnosis:
+          "insufficientObservableEvidence",
+      },
+    },
+
+    {
+      name:
+        "MI - Substantive response requires semantic evidence",
+
+      response:
+        validMainIdea,
+
+      expected: {
+        valid:
+          false,
+
+        componentEvidenceLevel:
+          "substantive",
+
+        componentCriteriaStatus:
+          "partiallySatisfied",
+
+        relationshipStatus:
+          "undetermined",
+
+        diagnosis:
+          "relationshipUndetermined",
+
+        requiresSemanticInference:
+          true,
+      },
+    },
+  ];
+
+  deterministicTests.forEach(
+    (test) => {
+      const actual =
+        validateMainIdeaResponse(
+          test.response,
+          keyTopic,
+          isAbout
+        );
+
+      const passed =
+        actual.valid ===
+          test.expected.valid &&
+
+        actual.componentEvidenceLevel ===
+          test.expected
+            .componentEvidenceLevel &&
+
+        actual.componentCriteriaStatus ===
+          test.expected
+            .componentCriteriaStatus &&
+
+        actual.relationshipStatus ===
+          test.expected
+            .relationshipStatus &&
+
+        actual.diagnosis ===
+          test.expected.diagnosis &&
+
+        (
+          test.expected
+            .requiresSemanticInference ===
+            undefined ||
+
+          actual?.relationshipEvidence
+            ?.requiresSemanticInference ===
+            test.expected
+              .requiresSemanticInference
+        );
+
+      results.push({
+        name:
+          test.name,
+
+        passed,
+
+        response:
+          test.response,
+
+        expected:
+          test.expected,
+
+        actual,
+      });
+    }
+  );
+
+  // --------------------------------------------------
+  // GOVERNED VALIDATION TEST
+  //
+  // Confirms bounded semantic evidence may establish a
+  // valid Main Idea, while JavaScript retains the final
+  // decision.
+  // --------------------------------------------------
+
+  const governedValidActual =
+    await validateMainIdeaResponseGoverned(
+      validMainIdea,
+      keyTopic,
+      isAbout
+    );
+
+  const governedValidPassed =
+    governedValidActual.valid === true &&
+
+    governedValidActual
+      .componentEvidenceLevel ===
+      "substantive" &&
+
+    governedValidActual
+      .componentCriteriaStatus ===
+      "satisfied" &&
+
+    governedValidActual
+      .relationshipStatus ===
+      "established" &&
+
+    governedValidActual
+      .diagnosis ===
+      null &&
+
+    governedValidActual
+      .validationSource ===
+      "deterministicWithSemanticEvidence";
+
+  results.push({
+    name:
+      "MI Governed - Valid organizing idea is accepted",
+
+    passed:
+      governedValidPassed,
+
+    response:
+      validMainIdea,
+
+    expected: {
+      valid:
+        true,
+
+      componentEvidenceLevel:
+        "substantive",
+
+      componentCriteriaStatus:
+        "satisfied",
+
+      relationshipStatus:
+        "established",
+
+      diagnosis:
+        null,
+
+      validationSource:
+        "deterministicWithSemanticEvidence",
+    },
+
+    actual:
+      governedValidActual,
+  });
+
+  // --------------------------------------------------
+  // GOVERNED DETAIL-ONLY TEST
+  //
+  // Confirms an isolated supporting fact does not pass as
+  // a major organizing Main Idea.
+  // --------------------------------------------------
+
+  const governedDetailActual =
+    await validateMainIdeaResponseGoverned(
+      detailOnlyResponse,
+      keyTopic,
+      isAbout
+    );
+
+  const governedDetailPassed =
+    governedDetailActual.valid === false &&
+
+    governedDetailActual
+      .relationshipStatus ===
+      "notEstablished" &&
+
+    (
+      governedDetailActual
+        .diagnosis ===
+        "detailInsteadOfMainIdea" ||
+
+      governedDetailActual
+        .diagnosis ===
+        "relationshipNotEstablished"
+    );
+
+  results.push({
+    name:
+      "MI Governed - Isolated detail is blocked",
+
+    passed:
+      governedDetailPassed,
+
+    response:
+      detailOnlyResponse,
+
+    expected: {
+      valid:
+        false,
+
+      relationshipStatus:
+        "notEstablished",
+
+      allowedDiagnoses: [
+        "detailInsteadOfMainIdea",
+        "relationshipNotEstablished",
+      ],
+    },
+
+    actual:
+      governedDetailActual,
+  });
+
+  // --------------------------------------------------
+  // LIVE RUNTIME: REQUIRED CAPTURE
+  //
+  // Confirms the first required Main Idea routes through
+  // governed validation, saves, and advances.
+  // --------------------------------------------------
+
+  const requiredState =
+    createMainIdeaTestState();
+
+  const requiredActual =
+    await updateStateFromStudent(
+      requiredState,
+      validMainIdea
+    );
+
+  const requiredPassed =
+    Array.isArray(
+      requiredActual?.frame?.parentItems
+    ) &&
+
+    requiredActual
+      .frame
+      .parentItems
+      .length ===
+      1 &&
+
+    requiredActual
+      .frame
+      .parentItems[0] ===
+      validMainIdea &&
+
+    Array.isArray(
+      requiredActual?.frame?.details?.[0]
+    ) &&
+
+    requiredActual
+      ?.pending
+      ?.type ===
+      "offerAnotherMainIdea";
+
+  results.push({
+    name:
+      "MI Runtime - Required Main Idea saves and advances",
+
+    passed:
+      requiredPassed,
+
+    response:
+      validMainIdea,
+
+    expected: {
+      mainIdeaCount:
+        1,
+
+      firstMainIdea:
+        validMainIdea,
+
+      firstDetailBucketExists:
+        true,
+
+      pendingType:
+        "offerAnotherMainIdea",
+    },
+
+    actual: {
+      mainIdeaCount:
+        requiredActual?.frame
+          ?.parentItems?.length || 0,
+
+      firstMainIdea:
+        requiredActual?.frame
+          ?.parentItems?.[0] || null,
+
+      firstDetailBucketExists:
+        Array.isArray(
+          requiredActual?.frame
+            ?.details?.[0]
+        ),
+
+      pendingType:
+        requiredActual?.pending
+          ?.type || null,
+    },
+  });
+
+  // --------------------------------------------------
+  // LIVE RUNTIME: OPTIONAL CAPTURE
+  //
+  // Confirms collectAnotherMainIdea uses optional capture
+  // mode, appends the new Main Idea, and advances.
+  // --------------------------------------------------
+
+  const optionalState =
+    createMainIdeaTestState();
+
+  optionalState.frame.parentItems = [
+    validMainIdea,
+    secondMainIdea,
+  ];
+
+  optionalState.frame.details = [
+    [],
+    [],
+  ];
+
+  optionalState.pending = {
+    type:
+      "collectAnotherMainIdea",
+  };
+
+  const optionalActual =
+    await updateStateFromStudent(
+      optionalState,
+      optionalMainIdea
+    );
+
+  const optionalPassed =
+    optionalActual?.frame
+      ?.parentItems?.length ===
+      3 &&
+
+    optionalActual?.frame
+      ?.parentItems?.[2] ===
+      optionalMainIdea &&
+
+    Array.isArray(
+      optionalActual?.frame
+        ?.details?.[2]
+    ) &&
+
+    optionalActual?.pending
+      ?.type ===
+      "offerAnotherMainIdea";
+
+  results.push({
+    name:
+      "MI Runtime - Optional Main Idea saves and advances",
+
+    passed:
+      optionalPassed,
+
+    response:
+      optionalMainIdea,
+
+    expected: {
+      mainIdeaCount:
+        3,
+
+      optionalMainIdea:
+        optionalMainIdea,
+
+      optionalDetailBucketExists:
+        true,
+
+      pendingType:
+        "offerAnotherMainIdea",
+    },
+
+    actual: {
+      mainIdeaCount:
+        optionalActual?.frame
+          ?.parentItems?.length || 0,
+
+      optionalMainIdea:
+        optionalActual?.frame
+          ?.parentItems?.[2] || null,
+
+      optionalDetailBucketExists:
+        Array.isArray(
+          optionalActual?.frame
+            ?.details?.[2]
+        ),
+
+      pendingType:
+        optionalActual?.pending
+          ?.type || null,
+    },
+  });
+
+  // --------------------------------------------------
+  // LIVE RUNTIME: REVISION
+  //
+  // Confirms revision capture replaces the selected Main
+  // Idea instead of appending a new one.
+  // --------------------------------------------------
+
+  const revisionState =
+    createMainIdeaTestState();
+
+  revisionState.frame.parentItems = [
+    validMainIdea,
+    secondMainIdea,
+  ];
+
+  revisionState.frame.details = [
+    [],
+    [],
+  ];
+
+  revisionState.pending = {
+    type:
+      "reviseMainIdeaAt",
+
+    index:
+      0,
+  };
+
+  const revisionActual =
+    await updateStateFromStudent(
+      revisionState,
+      revisedMainIdea
+    );
+
+  const revisionPassed =
+    revisionActual?.frame
+      ?.parentItems?.length ===
+      2 &&
+
+    revisionActual?.frame
+      ?.parentItems?.[0] ===
+      revisedMainIdea &&
+
+    revisionActual?.frame
+      ?.parentItems?.[1] ===
+      secondMainIdea &&
+
+    revisionActual?.pending
+      ?.type ===
+      "confirmMainIdeas";
+
+  results.push({
+    name:
+      "MI Runtime - Revision replaces selected Main Idea",
+
+    passed:
+      revisionPassed,
+
+    response:
+      revisedMainIdea,
+
+    expected: {
+      mainIdeaCount:
+        2,
+
+      revisedMainIdea:
+        revisedMainIdea,
+
+      preservedSecondMainIdea:
+        secondMainIdea,
+
+      pendingType:
+        "confirmMainIdeas",
+    },
+
+    actual: {
+      mainIdeaCount:
+        revisionActual?.frame
+          ?.parentItems?.length || 0,
+
+      revisedMainIdea:
+        revisionActual?.frame
+          ?.parentItems?.[0] || null,
+
+      preservedSecondMainIdea:
+        revisionActual?.frame
+          ?.parentItems?.[1] || null,
+
+      pendingType:
+        revisionActual?.pending
+          ?.type || null,
+    },
+  });
+
+  // --------------------------------------------------
+  // LIVE RUNTIME: INVALID REVISION
+  //
+  // Confirms invalid revision content does not overwrite
+  // the existing Main Idea and preserves the exact resume
+  // location.
+  // --------------------------------------------------
+
+  const invalidRevisionState =
+    createMainIdeaTestState();
+
+  invalidRevisionState.frame.parentItems = [
+    validMainIdea,
+    secondMainIdea,
+  ];
+
+  invalidRevisionState.frame.details = [
+    [],
+    [],
+  ];
+
+  invalidRevisionState.pending = {
+    type:
+      "reviseMainIdeaAt",
+
+    index:
+      0,
+  };
+
+  const invalidRevisionActual =
+    await updateStateFromStudent(
+      invalidRevisionState,
+      keyTopic
+    );
+
+  const invalidRevisionPassed =
+    invalidRevisionActual?.frame
+      ?.parentItems?.length ===
+      2 &&
+
+    invalidRevisionActual?.frame
+      ?.parentItems?.[0] ===
+      validMainIdea &&
+
+    invalidRevisionActual?.pending
+      ?.type ===
+      "stuckNudge" &&
+
+    invalidRevisionActual?.pending
+      ?.instructionalFinding
+      ?.diagnosis ===
+      "repeatsKeyTopic" &&
+
+    invalidRevisionActual?.pending
+      ?.resumePending
+      ?.type ===
+      "reviseMainIdeaAt" &&
+
+    invalidRevisionActual?.pending
+      ?.resumePending
+      ?.index ===
+      0;
+
+  results.push({
+    name:
+      "MI Runtime - Invalid revision preserves original work",
+
+    passed:
+      invalidRevisionPassed,
+
+    response:
+      keyTopic,
+
+    expected: {
+      mainIdeaCount:
+        2,
+
+      preservedMainIdea:
+        validMainIdea,
+
+      pendingType:
+        "stuckNudge",
+
+      diagnosis:
+        "repeatsKeyTopic",
+
+      resumePendingType:
+        "reviseMainIdeaAt",
+
+      resumePendingIndex:
+        0,
+    },
+
+    actual: {
+      mainIdeaCount:
+        invalidRevisionActual?.frame
+          ?.parentItems?.length || 0,
+
+      preservedMainIdea:
+        invalidRevisionActual?.frame
+          ?.parentItems?.[0] || null,
+
+      pendingType:
+        invalidRevisionActual?.pending
+          ?.type || null,
+
+      diagnosis:
+        invalidRevisionActual?.pending
+          ?.instructionalFinding
+          ?.diagnosis || null,
+
+      resumePendingType:
+        invalidRevisionActual?.pending
+          ?.resumePending
+          ?.type || null,
+
+      resumePendingIndex:
+        Number.isInteger(
+          invalidRevisionActual?.pending
+            ?.resumePending?.index
+        )
+          ? invalidRevisionActual
+              .pending
+              .resumePending
+              .index
+          : null,
+    },
+  });
+
+  // --------------------------------------------------
+  // LIVE RUNTIME: INVALID OPTIONAL CAPTURE
+  //
+  // Confirms invalid optional content is not appended and
+  // Kaw returns to the optional Main Idea capture location.
+  // --------------------------------------------------
+
+  const invalidOptionalState =
+    createMainIdeaTestState();
+
+  invalidOptionalState.frame.parentItems = [
+    validMainIdea,
+    secondMainIdea,
+  ];
+
+  invalidOptionalState.frame.details = [
+    [],
+    [],
+  ];
+
+  invalidOptionalState.pending = {
+    type:
+      "collectAnotherMainIdea",
+  };
+
+  const invalidOptionalActual =
+    await updateStateFromStudent(
+      invalidOptionalState,
+      isAbout
+    );
+
+  const invalidOptionalPassed =
+    invalidOptionalActual?.frame
+      ?.parentItems?.length ===
+      2 &&
+
+    invalidOptionalActual?.frame
+      ?.parentItems?.[0] ===
+      validMainIdea &&
+
+    invalidOptionalActual?.frame
+      ?.parentItems?.[1] ===
+      secondMainIdea &&
+
+    invalidOptionalActual?.pending
+      ?.type ===
+      "stuckNudge" &&
+
+    invalidOptionalActual?.pending
+      ?.instructionalFinding
+      ?.diagnosis ===
+      "repeatsIsAbout" &&
+
+    invalidOptionalActual?.pending
+      ?.resumePending
+      ?.type ===
+      "collectAnotherMainIdea";
+
+  results.push({
+    name:
+      "MI Runtime - Invalid optional Main Idea is not saved",
+
+    passed:
+      invalidOptionalPassed,
+
+    response:
+      isAbout,
+
+    expected: {
+      mainIdeaCount:
+        2,
+
+      pendingType:
+        "stuckNudge",
+
+      diagnosis:
+        "repeatsIsAbout",
+
+      resumePendingType:
+        "collectAnotherMainIdea",
+    },
+
+    actual: {
+      mainIdeaCount:
+        invalidOptionalActual?.frame
+          ?.parentItems?.length || 0,
+
+      pendingType:
+        invalidOptionalActual?.pending
+          ?.type || null,
+
+      diagnosis:
+        invalidOptionalActual?.pending
+          ?.instructionalFinding
+          ?.diagnosis || null,
+
+      resumePendingType:
+        invalidOptionalActual?.pending
+          ?.resumePending
+          ?.type || null,
+    },
+  });
+
+  const passedCount =
+    results.filter(
+      (result) =>
+        result.passed
+    ).length;
+
+  const failedCount =
+    results.length -
+    passedCount;
+
+  return {
+    passed:
+      failedCount === 0,
+
+    passedCount,
+
+    failedCount,
+
+    total:
+      results.length,
+
+    results,
+  };
+}
+
+function formatMainIdeaSelfTestResults(
+  testResults
+) {
+  const lines = [
+    "🧪 KAW GOVERNED SELF-TESTS",
+    "",
+    "Main Idea Validation",
+    "",
+  ];
+
+  testResults.results.forEach(
+    (result) => {
+      lines.push(
+        `${result.passed ? "✅" : "❌"} ${result.name}`
+      );
+
+      if (!result.passed) {
+        lines.push(
+          `Response: ${JSON.stringify(
+            result.response
+          )}`
+        );
+
+        lines.push(
+          `Expected: ${JSON.stringify(
+            result.expected
+          )}`
+        );
+
+        lines.push(
+          `Actual: ${JSON.stringify(
+            result.actual
+          )}`
+        );
+      }
+
+      lines.push("");
+    }
+  );
+
+  lines.push(
+    "────────────────────────"
+  );
+
+  lines.push(
+    `Passed: ${testResults.passedCount}/${testResults.total}`
+  );
+
+  lines.push(
+    `Failed: ${testResults.failedCount}`
+  );
+
+  if (testResults.passed) {
+    lines.push("");
+    lines.push(
+      "🚀 All current Main Idea tests passed."
+    );
+  }
+
+  return lines.join("\n");
+}
+
+// ------------------------------------------------------
 // AI COMMUNICATION LICENSING TEST SUITE
 //
 // Runs live AI contextualization through the same
