@@ -12505,50 +12505,153 @@ if (
   });
 }
 
-    // ------------------------------------------------------
-// HIDDEN MAIN IDEA IVL COMMAND
+// ------------------------------------------------------
+// HIDDEN BATCHED MAIN IDEA IVL COMMAND
 //
-// Type "/ivl mainideas" in the Wix Kaw chat.
+// Available commands:
 //
-// Runs only the Main Idea benchmark suite so the request
-// does not execute the full Instructional Validation Lab.
+// /ivl mainideas
+// /ivl mainideas 1
+// /ivl mainideas 2
+// etc.
+//
+// Each numbered command runs five Main Idea benchmarks.
 // ------------------------------------------------------
 
-if (
-  message.toLowerCase() ===
-  "/ivl mainideas"
-) {
+const mainIdeaIVLCommand =
+  message
+    .toLowerCase()
+    .match(
+      /^\/ivl\s+mainideas(?:\s+(\d+))?$/
+    );
+
+if (mainIdeaIVLCommand) {
+  const requestedBatch =
+    Number(
+      mainIdeaIVLCommand[1]
+    );
+
+  const batchSize =
+    5;
+
+  const totalBatches =
+    Math.ceil(
+      IVL.benchmarks.mainIdeas.length /
+      batchSize
+    );
+
+  if (
+    !Number.isInteger(
+      requestedBatch
+    ) ||
+    requestedBatch < 1
+  ) {
+    const reply = [
+      "🧪 MAIN IDEA IVL",
+      "",
+      "Choose a batch number.",
+      "",
+      `Available batches: 1–${totalBatches}`,
+      "",
+      "Example:",
+      "/ivl mainideas 1",
+    ].join("\n");
+
+    return res.status(200).json({
+      reply,
+
+      state:
+        body.state ||
+        body.vercelState ||
+        body.framing ||
+        defaultState(),
+    });
+  }
+
+  if (
+    requestedBatch >
+    totalBatches
+  ) {
+    const reply = [
+      "🧪 MAIN IDEA IVL",
+      "",
+      `Batch ${requestedBatch} does not exist.`,
+      "",
+      `Available batches: 1–${totalBatches}`,
+    ].join("\n");
+
+    return res.status(200).json({
+      reply,
+
+      state:
+        body.state ||
+        body.vercelState ||
+        body.framing ||
+        defaultState(),
+    });
+  }
+
   IVL.results.mainIdeas =
     null;
 
   const mainIdeaResults =
-    await runIVLMainIdeaBenchmarks();
+    await runIVLMainIdeaBenchmarks(
+      requestedBatch,
+      batchSize
+    );
+
+  const replyLines = [
+    "🧪 KAW MAIN IDEA IVL",
+    "",
+    `Batch: ${mainIdeaResults.batchNumber}/${mainIdeaResults.totalBatches}`,
+    "",
+  ];
+
+  mainIdeaResults.results.forEach(
+    (result) => {
+      replyLines.push(
+        `${result.passed ? "✅" : "❌"} ${result.id}: ${result.title}`
+      );
+
+      replyLines.push(
+        `Student response: ${
+          result.studentResponse ||
+          "(empty response)"
+        }`
+      );
+
+      if (!result.passed) {
+        replyLines.push(
+          `Expected: ${JSON.stringify(
+            result.expected
+          )}`
+        );
+
+        replyLines.push(
+          `Actual: ${JSON.stringify(
+            result.actual
+          )}`
+        );
+      }
+
+      replyLines.push("");
+    }
+  );
+
+  replyLines.push(
+    "────────────────────────"
+  );
+
+  replyLines.push(
+    `Passed: ${mainIdeaResults.passedCount}/${mainIdeaResults.total}`
+  );
+
+  replyLines.push(
+    `Failed: ${mainIdeaResults.failedCount}`
+  );
 
   const reply =
-    formatInstructionalValidationLabResults({
-      isAbout:
-        null,
-
-      mainIdeas:
-        mainIdeaResults,
-
-      essentialDetails:
-        null,
-
-      overall: {
-        passed:
-          mainIdeaResults.passed,
-
-        passedCount:
-          mainIdeaResults.passedCount,
-
-        failedCount:
-          mainIdeaResults.failedCount,
-
-        total:
-          mainIdeaResults.total,
-      },
-    });
+    replyLines.join("\n");
 
   return res.status(200).json({
     reply,
