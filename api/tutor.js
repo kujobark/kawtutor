@@ -12504,8 +12504,71 @@ if (
     },
   });
 }
+
+    // ------------------------------------------------------
+// HIDDEN MAIN IDEA IVL COMMAND
+//
+// Type "/ivl mainideas" in the Wix Kaw chat.
+//
+// Runs only the Main Idea benchmark suite so the request
+// does not execute the full Instructional Validation Lab.
+// ------------------------------------------------------
+
+if (
+  message.toLowerCase() ===
+  "/ivl mainideas"
+) {
+  IVL.results.mainIdeas =
+    null;
+
+  const mainIdeaResults =
+    await runIVLMainIdeaBenchmarks();
+
+  const reply =
+    formatInstructionalValidationLabResults({
+      isAbout:
+        null,
+
+      mainIdeas:
+        mainIdeaResults,
+
+      essentialDetails:
+        null,
+
+      overall: {
+        passed:
+          mainIdeaResults.passed,
+
+        passedCount:
+          mainIdeaResults.passedCount,
+
+        failedCount:
+          mainIdeaResults.failedCount,
+
+        total:
+          mainIdeaResults.total,
+      },
+    });
+
+  return res.status(200).json({
+    reply,
+
+    state:
+      body.state ||
+      body.vercelState ||
+      body.framing ||
+      defaultState(),
+
+    instructionalValidationLab: {
+      suite:
+        "mainIdeas",
+
+      ...mainIdeaResults,
+    },
+  });
+}
     
-  // ------------------------------------------------------
+// ------------------------------------------------------
 // HIDDEN KAW INSTRUCTIONAL VALIDATION LAB COMMAND
 //
 // Type "/ivl" in the Wix Kaw chat to run the current
