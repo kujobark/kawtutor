@@ -13403,6 +13403,994 @@ IVL.benchmarks.isAbout.push(
 // ======================================================
 // MAIN IDEA BENCHMARKS
 // ======================================================
+//
+// Instructional Contract v1.0:
+//
+// A valid Main Idea:
+//
+// 1. Organizes one major part of the Key Topic.
+// 2. Supports the accepted Is About statement.
+// 3. Can function as a heading for multiple Essential Details.
+// 4. Fits the organizational pattern of the Frame.
+// 5. Can reasonably be expanded with two or more
+//    Essential Details.
+//
+// Invalid responses include:
+//
+// - repeated Key Topics;
+// - repeated Is About statements;
+// - isolated Essential Details;
+// - unrelated responses;
+// - responses too vague to organize information;
+// - responses that cannot reasonably support multiple Details.
+//
+// These benchmarks are derived from instructional examples
+// in the KU Framing Routine manual.
+//
+// ======================================================
+
+IVL.benchmarks.mainIdeas.push(
+
+  // ====================================================
+  // COLUMBUS — REASONS / CATEGORIES
+  // ====================================================
+
+  {
+    id: "MI-001",
+    title:
+      "Columbus - Financial Reasons",
+
+    context: {
+      keyTopic:
+        "What motivated Columbus?",
+
+      isAbout:
+        "Why did Columbus cross the Atlantic Ocean?"
+    },
+
+    studentResponse:
+      "Financial Reasons",
+
+    expected: {
+      valid: true,
+      diagnosis: null
+    }
+  },
+
+  {
+    id: "MI-002",
+    title:
+      "Columbus - Religious Reasons",
+
+    context: {
+      keyTopic:
+        "What motivated Columbus?",
+
+      isAbout:
+        "Why did Columbus cross the Atlantic Ocean?"
+    },
+
+    studentResponse:
+      "Religious Reasons",
+
+    expected: {
+      valid: true,
+      diagnosis: null
+    }
+  },
+
+  {
+    id: "MI-003",
+    title:
+      "Columbus - Egotistical Reasons",
+
+    context: {
+      keyTopic:
+        "What motivated Columbus?",
+
+      isAbout:
+        "Why did Columbus cross the Atlantic Ocean?"
+    },
+
+    studentResponse:
+      "Egotistical Reasons",
+
+    expected: {
+      valid: true,
+      diagnosis: null
+    }
+  },
+
+  {
+    id: "MI-004",
+    title:
+      "Columbus - Repeats Key Topic",
+
+    context: {
+      keyTopic:
+        "What motivated Columbus?",
+
+      isAbout:
+        "Why did Columbus cross the Atlantic Ocean?"
+    },
+
+    studentResponse:
+      "What motivated Columbus?",
+
+    expected: {
+      valid: false,
+      diagnosis: "repeatsKeyTopic"
+    }
+  },
+
+  {
+    id: "MI-005",
+    title:
+      "Columbus - Repeats Is About",
+
+    context: {
+      keyTopic:
+        "What motivated Columbus?",
+
+      isAbout:
+        "Why did Columbus cross the Atlantic Ocean?"
+    },
+
+    studentResponse:
+      "Why did Columbus cross the Atlantic Ocean?",
+
+    expected: {
+      valid: false,
+      diagnosis: "repeatsIsAbout"
+    }
+  },
+
+  {
+    id: "MI-006",
+    title:
+      "Columbus - Financial Detail Instead of Main Idea",
+
+    context: {
+      keyTopic:
+        "What motivated Columbus?",
+
+      isAbout:
+        "Why did Columbus cross the Atlantic Ocean?"
+    },
+
+    studentResponse:
+      "Get rich by selling spices at home",
+
+    expected: {
+      valid: false,
+
+      allowedDiagnoses: [
+        "detailInsteadOfMainIdea",
+        "relationshipNotEstablished"
+      ]
+    }
+  },
+
+  {
+    id: "MI-007",
+    title:
+      "Columbus - Religious Detail Instead of Main Idea",
+
+    context: {
+      keyTopic:
+        "What motivated Columbus?",
+
+      isAbout:
+        "Why did Columbus cross the Atlantic Ocean?"
+    },
+
+    studentResponse:
+      "Spread Christianity to other parts of the world",
+
+    expected: {
+      valid: false,
+
+      allowedDiagnoses: [
+        "detailInsteadOfMainIdea",
+        "relationshipNotEstablished"
+      ]
+    }
+  },
+
+  {
+    id: "MI-008",
+    title:
+      "Columbus - Egotistical Detail Instead of Main Idea",
+
+    context: {
+      keyTopic:
+        "What motivated Columbus?",
+
+      isAbout:
+        "Why did Columbus cross the Atlantic Ocean?"
+    },
+
+    studentResponse:
+      "Gain respect",
+
+    expected: {
+      valid: false,
+
+      allowedDiagnoses: [
+        "detailInsteadOfMainIdea",
+        "relationshipNotEstablished"
+      ]
+    }
+  },
+
+  // ====================================================
+  // FRENCH REVOLUTION — ANTICIPATION CATEGORIES
+  // ====================================================
+
+  {
+    id: "MI-009",
+    title:
+      "French Revolution - Know Already",
+
+    context: {
+      keyTopic:
+        "French Revolution",
+
+      isAbout:
+        "A war that resulted from a bad social situation"
+    },
+
+    studentResponse:
+      "Know already",
+
+    expected: {
+      valid: true,
+      diagnosis: null
+    }
+  },
+
+  {
+    id: "MI-010",
+    title:
+      "French Revolution - Expect to Learn",
+
+    context: {
+      keyTopic:
+        "French Revolution",
+
+      isAbout:
+        "A war that resulted from a bad social situation"
+    },
+
+    studentResponse:
+      "Expect to learn",
+
+    expected: {
+      valid: true,
+      diagnosis: null
+    }
+  },
+
+  {
+    id: "MI-011",
+    title:
+      "French Revolution - Want to Know",
+
+    context: {
+      keyTopic:
+        "French Revolution",
+
+      isAbout:
+        "A war that resulted from a bad social situation"
+    },
+
+    studentResponse:
+      "Want to know",
+
+    expected: {
+      valid: true,
+      diagnosis: null
+    }
+  },
+
+  {
+    id: "MI-012",
+    title:
+      "French Revolution - Repeats Key Topic",
+
+    context: {
+      keyTopic:
+        "French Revolution",
+
+      isAbout:
+        "A war that resulted from a bad social situation"
+    },
+
+    studentResponse:
+      "French Revolution",
+
+    expected: {
+      valid: false,
+      diagnosis: "repeatsKeyTopic"
+    }
+  },
+
+  {
+    id: "MI-013",
+    title:
+      "French Revolution - Repeats Is About",
+
+    context: {
+      keyTopic:
+        "French Revolution",
+
+      isAbout:
+        "A war that resulted from a bad social situation"
+    },
+
+    studentResponse:
+      "A war that resulted from a bad social situation",
+
+    expected: {
+      valid: false,
+      diagnosis: "repeatsIsAbout"
+    }
+  },
+
+  {
+    id: "MI-014",
+    title:
+      "French Revolution - Detail Instead of Main Idea",
+
+    context: {
+      keyTopic:
+        "French Revolution",
+
+      isAbout:
+        "A war that resulted from a bad social situation"
+    },
+
+    studentResponse:
+      "Many poor people were imprisoned in the Bastille for no reason",
+
+    expected: {
+      valid: false,
+
+      allowedDiagnoses: [
+        "detailInsteadOfMainIdea",
+        "relationshipNotEstablished"
+      ]
+    }
+  },
+
+  {
+    id: "MI-015",
+    title:
+      "French Revolution - Another Detail Instead of Main Idea",
+
+    context: {
+      keyTopic:
+        "French Revolution",
+
+      isAbout:
+        "A war that resulted from a bad social situation"
+    },
+
+    studentResponse:
+      "The French Revolution used the guillotine frequently",
+
+    expected: {
+      valid: false,
+
+      allowedDiagnoses: [
+        "detailInsteadOfMainIdea",
+        "relationshipNotEstablished"
+      ]
+    }
+  },
+
+  // ====================================================
+  // CUBAN MISSILE CRISIS — CHRONOLOGICAL EVENTS
+  // ====================================================
+
+  {
+    id: "MI-016",
+    title:
+      "Cuban Missile Crisis - Castro Comes to Power",
+
+    context: {
+      keyTopic:
+        "Cuban Missile Crisis",
+
+      isAbout:
+        "A political crisis that nearly led to nuclear war with the USSR"
+    },
+
+    studentResponse:
+      "Castro comes to power in Cuba",
+
+    expected: {
+      valid: true,
+      diagnosis: null
+    }
+  },
+
+  {
+    id: "MI-017",
+    title:
+      "Cuban Missile Crisis - Bay of Pigs Invasion",
+
+    context: {
+      keyTopic:
+        "Cuban Missile Crisis",
+
+      isAbout:
+        "A political crisis that nearly led to nuclear war with the USSR"
+    },
+
+    studentResponse:
+      "Bay of Pigs Invasion",
+
+    expected: {
+      valid: true,
+      diagnosis: null
+    }
+  },
+
+  {
+    id: "MI-018",
+    title:
+      "Cuban Missile Crisis - Nuclear Face-Off",
+
+    context: {
+      keyTopic:
+        "Cuban Missile Crisis",
+
+      isAbout:
+        "A political crisis that nearly led to nuclear war with the USSR"
+    },
+
+    studentResponse:
+      "Nuclear face off with the USSR",
+
+    expected: {
+      valid: true,
+      diagnosis: null
+    }
+  },
+
+  {
+    id: "MI-019",
+    title:
+      "Cuban Missile Crisis - Repeats Key Topic",
+
+    context: {
+      keyTopic:
+        "Cuban Missile Crisis",
+
+      isAbout:
+        "A political crisis that nearly led to nuclear war with the USSR"
+    },
+
+    studentResponse:
+      "Cuban Missile Crisis",
+
+    expected: {
+      valid: false,
+      diagnosis: "repeatsKeyTopic"
+    }
+  },
+
+  {
+    id: "MI-020",
+    title:
+      "Cuban Missile Crisis - Castro Detail Instead of Main Idea",
+
+    context: {
+      keyTopic:
+        "Cuban Missile Crisis",
+
+      isAbout:
+        "A political crisis that nearly led to nuclear war with the USSR"
+    },
+
+    studentResponse:
+      "Castro nationalized United States-owned businesses",
+
+    expected: {
+      valid: false,
+
+      allowedDiagnoses: [
+        "detailInsteadOfMainIdea",
+        "relationshipNotEstablished"
+      ]
+    }
+  },
+
+  {
+    id: "MI-021",
+    title:
+      "Cuban Missile Crisis - Bay of Pigs Detail Instead of Main Idea",
+
+    context: {
+      keyTopic:
+        "Cuban Missile Crisis",
+
+      isAbout:
+        "A political crisis that nearly led to nuclear war with the USSR"
+    },
+
+    studentResponse:
+      "Twenty thousand Cuban troops defeated fourteen hundred invaders",
+
+    expected: {
+      valid: false,
+
+      allowedDiagnoses: [
+        "detailInsteadOfMainIdea",
+        "relationshipNotEstablished"
+      ]
+    }
+  },
+
+  {
+    id: "MI-022",
+    title:
+      "Cuban Missile Crisis - Face-Off Detail Instead of Main Idea",
+
+    context: {
+      keyTopic:
+        "Cuban Missile Crisis",
+
+      isAbout:
+        "A political crisis that nearly led to nuclear war with the USSR"
+    },
+
+    studentResponse:
+      "The USSR agreed to remove its missiles",
+
+    expected: {
+      valid: false,
+
+      allowedDiagnoses: [
+        "detailInsteadOfMainIdea",
+        "relationshipNotEstablished"
+      ]
+    }
+  },
+
+  // ====================================================
+  // TITANIC — CONTRIBUTING FACTORS
+  // ====================================================
+
+  {
+    id: "MI-023",
+    title:
+      "Titanic - Lack of Planning",
+
+    context: {
+      keyTopic:
+        "Sinking of the Titanic",
+
+      isAbout:
+        "An event that taught lessons about society and safety"
+    },
+
+    studentResponse:
+      "Lack of planning",
+
+    expected: {
+      valid: true,
+      diagnosis: null
+    }
+  },
+
+  {
+    id: "MI-024",
+    title:
+      "Titanic - Class System",
+
+    context: {
+      keyTopic:
+        "Sinking of the Titanic",
+
+      isAbout:
+        "An event that taught lessons about society and safety"
+    },
+
+    studentResponse:
+      "Class system",
+
+    expected: {
+      valid: true,
+      diagnosis: null
+    }
+  },
+
+  {
+    id: "MI-025",
+    title:
+      "Titanic - Competition",
+
+    context: {
+      keyTopic:
+        "Sinking of the Titanic",
+
+      isAbout:
+        "An event that taught lessons about society and safety"
+    },
+
+    studentResponse:
+      "Competition",
+
+    expected: {
+      valid: true,
+      diagnosis: null
+    }
+  },
+
+  {
+    id: "MI-026",
+    title:
+      "Titanic - Repeats Key Topic",
+
+    context: {
+      keyTopic:
+        "Sinking of the Titanic",
+
+      isAbout:
+        "An event that taught lessons about society and safety"
+    },
+
+    studentResponse:
+      "Sinking of the Titanic",
+
+    expected: {
+      valid: false,
+      diagnosis: "repeatsKeyTopic"
+    }
+  },
+
+  {
+    id: "MI-027",
+    title:
+      "Titanic - Planning Detail Instead of Main Idea",
+
+    context: {
+      keyTopic:
+        "Sinking of the Titanic",
+
+      isAbout:
+        "An event that taught lessons about society and safety"
+    },
+
+    studentResponse:
+      "There were not enough lifeboats",
+
+    expected: {
+      valid: false,
+
+      allowedDiagnoses: [
+        "detailInsteadOfMainIdea",
+        "relationshipNotEstablished"
+      ]
+    }
+  },
+
+  {
+    id: "MI-028",
+    title:
+      "Titanic - Class Detail Instead of Main Idea",
+
+    context: {
+      keyTopic:
+        "Sinking of the Titanic",
+
+      isAbout:
+        "An event that taught lessons about society and safety"
+    },
+
+    studentResponse:
+      "Wealthy passengers stayed on the upper deck",
+
+    expected: {
+      valid: false,
+
+      allowedDiagnoses: [
+        "detailInsteadOfMainIdea",
+        "relationshipNotEstablished"
+      ]
+    }
+  },
+
+  {
+    id: "MI-029",
+    title:
+      "Titanic - Competition Detail Instead of Main Idea",
+
+    context: {
+      keyTopic:
+        "Sinking of the Titanic",
+
+      isAbout:
+        "An event that taught lessons about society and safety"
+    },
+
+    studentResponse:
+      "The ship traveled at a fast speed to break the crossing record",
+
+    expected: {
+      valid: false,
+
+      allowedDiagnoses: [
+        "detailInsteadOfMainIdea",
+        "relationshipNotEstablished"
+      ]
+    }
+  },
+
+  // ====================================================
+  // FEMINIST MOVEMENT — PERSPECTIVES
+  // ====================================================
+
+  {
+    id: "MI-030",
+    title:
+      "Feminist Movement - Views of Opponents",
+
+    context: {
+      keyTopic:
+        "Feminist Movement",
+
+      isAbout:
+        "Different perspectives on efforts to expand women's rights"
+    },
+
+    studentResponse:
+      "Views of opponents",
+
+    expected: {
+      valid: true,
+      diagnosis: null
+    }
+  },
+
+  {
+    id: "MI-031",
+    title:
+      "Feminist Movement - Views of Supporters",
+
+    context: {
+      keyTopic:
+        "Feminist Movement",
+
+      isAbout:
+        "Different perspectives on efforts to expand women's rights"
+    },
+
+    studentResponse:
+      "Views of supporters",
+
+    expected: {
+      valid: true,
+      diagnosis: null
+    }
+  },
+
+  {
+    id: "MI-032",
+    title:
+      "Feminist Movement - Our Perspective",
+
+    context: {
+      keyTopic:
+        "Feminist Movement",
+
+      isAbout:
+        "Different perspectives on efforts to expand women's rights"
+    },
+
+    studentResponse:
+      "Our perspective",
+
+    expected: {
+      valid: true,
+      diagnosis: null
+    }
+  },
+
+  {
+    id: "MI-033",
+    title:
+      "Feminist Movement - Repeats Key Topic",
+
+    context: {
+      keyTopic:
+        "Feminist Movement",
+
+      isAbout:
+        "Different perspectives on efforts to expand women's rights"
+    },
+
+    studentResponse:
+      "Feminist Movement",
+
+    expected: {
+      valid: false,
+      diagnosis: "repeatsKeyTopic"
+    }
+  },
+
+  {
+    id: "MI-034",
+    title:
+      "Feminist Movement - Repeats Is About",
+
+    context: {
+      keyTopic:
+        "Feminist Movement",
+
+      isAbout:
+        "Different perspectives on efforts to expand women's rights"
+    },
+
+    studentResponse:
+      "Different perspectives on efforts to expand women's rights",
+
+    expected: {
+      valid: false,
+      diagnosis: "repeatsIsAbout"
+    }
+  },
+
+  // ====================================================
+  // GENERAL INSTRUCTIONAL BOUNDARIES
+  // ====================================================
+
+  {
+    id: "MI-035",
+    title:
+      "General - Empty Response",
+
+    context: {
+      keyTopic:
+        "Sinking of the Titanic",
+
+      isAbout:
+        "An event that taught lessons about society and safety"
+    },
+
+    studentResponse:
+      "",
+
+    expected: {
+      valid: false,
+      diagnosis: "emptyResponse"
+    }
+  },
+
+  {
+    id: "MI-036",
+    title:
+      "General - Stuck Response",
+
+    context: {
+      keyTopic:
+        "Sinking of the Titanic",
+
+      isAbout:
+        "An event that taught lessons about society and safety"
+    },
+
+    studentResponse:
+      "idk",
+
+    expected: {
+      valid: false,
+      diagnosis: "noComponentEvidence"
+    }
+  },
+
+  {
+    id: "MI-037",
+    title:
+      "General - Meta Response",
+
+    context: {
+      keyTopic:
+        "Cuban Missile Crisis",
+
+      isAbout:
+        "A political crisis that nearly led to nuclear war with the USSR"
+    },
+
+    studentResponse:
+      "yes",
+
+    expected: {
+      valid: false,
+      diagnosis: "noComponentEvidence"
+    }
+  },
+
+  {
+    id: "MI-038",
+    title:
+      "General - Unrelated Organizing Category",
+
+    context: {
+      keyTopic:
+        "Sinking of the Titanic",
+
+      isAbout:
+        "An event that taught lessons about society and safety"
+    },
+
+    studentResponse:
+      "Types of renewable energy",
+
+    expected: {
+      valid: false,
+
+      allowedDiagnoses: [
+        "relationshipNotEstablished",
+        "detailInsteadOfMainIdea"
+      ]
+    }
+  },
+
+  {
+    id: "MI-039",
+    title:
+      "General - Vague Non-Organizing Phrase",
+
+    context: {
+      keyTopic:
+        "Cuban Missile Crisis",
+
+      isAbout:
+        "A political crisis that nearly led to nuclear war with the USSR"
+    },
+
+    studentResponse:
+      "Important things",
+
+    expected: {
+      valid: false,
+
+      allowedDiagnoses: [
+        "relationshipNotEstablished",
+        "detailInsteadOfMainIdea"
+      ]
+    }
+  },
+
+  {
+    id: "MI-040",
+    title:
+      "General - Related but Non-Organizing Comment",
+
+    context: {
+      keyTopic:
+        "Feminist Movement",
+
+      isAbout:
+        "Different perspectives on efforts to expand women's rights"
+    },
+
+    studentResponse:
+      "The movement was important",
+
+    expected: {
+      valid: false,
+
+      allowedDiagnoses: [
+        "relationshipNotEstablished",
+        "detailInsteadOfMainIdea"
+      ]
+    }
+  }
+);
 
 // ======================================================
 // ESSENTIAL DETAIL BENCHMARKS
@@ -13529,7 +14517,6 @@ async function runIVLIsAboutBenchmarks() {
 
   return summary;
 }
-
 
 // ------------------------------------------------------
 // IA-020 GOVERNED SEMANTIC TEST
