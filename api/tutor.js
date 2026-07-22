@@ -15161,47 +15161,724 @@ IVL.benchmarks.mainIdeas.push(
 );
 
 // ======================================================
+// ======================================================
 // ESSENTIAL DETAIL BENCHMARKS
+//
+// Benchmark structure:
+//
+// Section A:
+// Known architecture and regression cases.
+//
+// Section B:
+// Canonical examples taken from completed Frames in
+// the KU Framing Routine manual.
+//
+// Section C:
+// Manual-grounded contrast cases testing whether a
+// response belongs under the selected Main Idea.
+//
+// These benchmarks treat the instructional manual as
+// executable instructional documentation.
 // ======================================================
 
-IVL.benchmarks.essentialDetails.push({
-  id: "ED-001",
-  title: "Repeats Main Idea",
+IVL.benchmarks.essentialDetails.push(
+  // ====================================================
+  // SECTION A
+  // ARCHITECTURE AND REGRESSION CASES
+  // ====================================================
 
-  context: {
-    keyTopic: "Social Media",
-    isAbout: "How social media affects mental health",
-    mainIdea: "Social media can increase anxiety and stress."
+  {
+    id:
+      "ED-001",
+
+    title:
+      "Regression — Repeats Main Idea",
+
+    source:
+      "Kaw regression",
+
+    context: {
+      keyTopic:
+        "Social Media",
+
+      isAbout:
+        "How social media affects mental health",
+
+      mainIdea:
+        "Social media can increase anxiety and stress.",
+    },
+
+    studentResponse:
+      "Social media can increase anxiety and stress.",
+
+    expected: {
+      valid:
+        false,
+
+      diagnosis:
+        "repeatsMainIdea",
+    },
   },
 
-  studentResponse:
-    "Social media can increase anxiety and stress.",
+  {
+    id:
+      "ED-002",
 
-  expected: {
-    valid: false,
-    diagnosis: "repeatsMainIdea"
-  }
-});
+    title:
+      "Regression — Inferable Supporting Relationship",
 
+    source:
+      "Kaw regression",
 
-IVL.benchmarks.essentialDetails.push({
-  id: "ED-002",
-  title: "Specific Support With Inferable Relationship",
+    context: {
+      keyTopic:
+        "Renewable Energy",
 
-  context: {
-    keyTopic: "Renewable Energy",
-    isAbout: "How renewable energy helps the environment",
-    mainIdea: "Renewable energy reduces pollution."
+      isAbout:
+        "How renewable energy helps the environment",
+
+      mainIdea:
+        "Renewable energy reduces pollution.",
+    },
+
+    studentResponse:
+      "Solar panels generate electricity without burning fossil fuels.",
+
+    expected: {
+      valid:
+        true,
+
+      diagnosis:
+        null,
+    },
   },
 
-  studentResponse:
-    "Solar panels generate electricity without burning fossil fuels.",
+  // ====================================================
+  // SECTION B
+  // KU MANUAL — PROGRESSIVE ERA FRAME
+  // ====================================================
 
-  expected: {
-    valid: true,
-    diagnosis: null
+  {
+    id:
+      "ED-003",
+
+    title:
+      "Manual Figure 1 — Social Problem",
+
+    source:
+      "KU Framing Routine Manual — Figure 1",
+
+    context: {
+      keyTopic:
+        "Progressive Era",
+
+      isAbout:
+        "A period of social change in the U.S.",
+
+      mainIdea:
+        "Social Problems",
+    },
+
+    studentResponse:
+      "Unsafe food",
+
+    expected: {
+      valid:
+        true,
+
+      diagnosis:
+        null,
+    },
+  },
+
+  {
+    id:
+      "ED-004",
+
+    title:
+      "Manual Figure 1 — Tool for Social Change",
+
+    source:
+      "KU Framing Routine Manual — Figure 1",
+
+    context: {
+      keyTopic:
+        "Progressive Era",
+
+      isAbout:
+        "A period of social change in the U.S.",
+
+      mainIdea:
+        "Tools for Social Change",
+    },
+
+    studentResponse:
+      "Muckrakers wrote about problems",
+
+    expected: {
+      valid:
+        true,
+
+      diagnosis:
+        null,
+    },
+  },
+
+  {
+    id:
+      "ED-005",
+
+    title:
+      "Manual Figure 1 — Social Change",
+
+    source:
+      "KU Framing Routine Manual — Figure 1",
+
+    context: {
+      keyTopic:
+        "Progressive Era",
+
+      isAbout:
+        "A period of social change in the U.S.",
+
+      mainIdea:
+        "Social Changes",
+    },
+
+    studentResponse:
+      "Meat Inspection Act",
+
+    expected: {
+      valid:
+        true,
+
+      diagnosis:
+        null,
+    },
+  },
+
+  // ====================================================
+  // KU MANUAL — STRATEGIC LEARNERS FRAME
+  // ====================================================
+
+  {
+    id:
+      "ED-006",
+
+    title:
+      "Manual Figure 2 — Think Before",
+
+    source:
+      "KU Framing Routine Manual — Figure 2",
+
+    context: {
+      keyTopic:
+        "Strategic Learners",
+
+      isAbout:
+        "Students who use good study plans",
+
+      mainIdea:
+        "They think BEFORE",
+    },
+
+    studentResponse:
+      "By organizing books and materials",
+
+    expected: {
+      valid:
+        true,
+
+      diagnosis:
+        null,
+    },
+  },
+
+  {
+    id:
+      "ED-007",
+
+    title:
+      "Manual Figure 2 — Think During",
+
+    source:
+      "KU Framing Routine Manual — Figure 2",
+
+    context: {
+      keyTopic:
+        "Strategic Learners",
+
+      isAbout:
+        "Students who use good study plans",
+
+      mainIdea:
+        "They think DURING",
+    },
+
+    studentResponse:
+      "By asking and answering questions",
+
+    expected: {
+      valid:
+        true,
+
+      diagnosis:
+        null,
+    },
+  },
+
+  {
+    id:
+      "ED-008",
+
+    title:
+      "Manual Figure 2 — Think After",
+
+    source:
+      "KU Framing Routine Manual — Figure 2",
+
+    context: {
+      keyTopic:
+        "Strategic Learners",
+
+      isAbout:
+        "Students who use good study plans",
+
+      mainIdea:
+        "They think AFTER",
+    },
+
+    studentResponse:
+      "By evaluating results",
+
+    expected: {
+      valid:
+        true,
+
+      diagnosis:
+        null,
+    },
+  },
+
+  // ====================================================
+  // KU MANUAL — COLUMBUS FRAME
+  // ====================================================
+
+  {
+    id:
+      "ED-009",
+
+    title:
+      "Manual Figure 3 — Financial Reason",
+
+    source:
+      "KU Framing Routine Manual — Figure 3",
+
+    context: {
+      keyTopic:
+        "What Motivated Columbus?",
+
+      isAbout:
+        "Why Columbus crossed the Atlantic Ocean",
+
+      mainIdea:
+        "Financial Reasons",
+    },
+
+    studentResponse:
+      "Get rich by selling spices at home",
+
+    expected: {
+      valid:
+        true,
+
+      diagnosis:
+        null,
+    },
+  },
+
+  {
+    id:
+      "ED-010",
+
+    title:
+      "Manual Figure 3 — Religious Reason",
+
+    source:
+      "KU Framing Routine Manual — Figure 3",
+
+    context: {
+      keyTopic:
+        "What Motivated Columbus?",
+
+      isAbout:
+        "Why Columbus crossed the Atlantic Ocean",
+
+      mainIdea:
+        "Religious Reasons",
+    },
+
+    studentResponse:
+      "Spread Christianity to other parts of the world",
+
+    expected: {
+      valid:
+        true,
+
+      diagnosis:
+        null,
+    },
+  },
+
+  {
+    id:
+      "ED-011",
+
+    title:
+      "Manual Figure 3 — Egotistical Reason",
+
+    source:
+      "KU Framing Routine Manual — Figure 3",
+
+    context: {
+      keyTopic:
+        "What Motivated Columbus?",
+
+      isAbout:
+        "Why Columbus crossed the Atlantic Ocean",
+
+      mainIdea:
+        "Egotistical Reasons",
+    },
+
+    studentResponse:
+      "Gain respect",
+
+    expected: {
+      valid:
+        true,
+
+      diagnosis:
+        null,
+    },
+  },
+
+  {
+    id:
+      "ED-012",
+
+    title:
+      "Manual Figure 3 — Desire for Recognition",
+
+    source:
+      "KU Framing Routine Manual — Figure 3",
+
+    context: {
+      keyTopic:
+        "What Motivated Columbus?",
+
+      isAbout:
+        "Why Columbus crossed the Atlantic Ocean",
+
+      mainIdea:
+        "Egotistical Reasons",
+    },
+
+    studentResponse:
+      "Be the first to prove the world was round",
+
+    expected: {
+      valid:
+        true,
+
+      diagnosis:
+        null,
+    },
+  },
+
+  // ====================================================
+  // KU MANUAL — TITANIC FRAME
+  // ====================================================
+
+  {
+    id:
+      "ED-013",
+
+    title:
+      "Manual Figure 6 — Lack of Planning",
+
+    source:
+      "KU Framing Routine Manual — Figure 6",
+
+    context: {
+      keyTopic:
+        "Sinking of the Titanic",
+
+      isAbout:
+        "An event that taught lessons about society",
+
+      mainIdea:
+        "Lack of Planning",
+    },
+
+    studentResponse:
+      "Not enough lifeboats",
+
+    expected: {
+      valid:
+        true,
+
+      diagnosis:
+        null,
+    },
+  },
+
+  {
+    id:
+      "ED-014",
+
+    title:
+      "Manual Figure 6 — Class System",
+
+    source:
+      "KU Framing Routine Manual — Figure 6",
+
+    context: {
+      keyTopic:
+        "Sinking of the Titanic",
+
+      isAbout:
+        "An event that taught lessons about society",
+
+      mainIdea:
+        "Class System",
+    },
+
+    studentResponse:
+      "Rich passengers stayed on the upper deck in luxury",
+
+    expected: {
+      valid:
+        true,
+
+      diagnosis:
+        null,
+    },
+  },
+
+  {
+    id:
+      "ED-015",
+
+    title:
+      "Manual Figure 6 — Competition",
+
+    source:
+      "KU Framing Routine Manual — Figure 6",
+
+    context: {
+      keyTopic:
+        "Sinking of the Titanic",
+
+      isAbout:
+        "An event that taught lessons about society",
+
+      mainIdea:
+        "Competition",
+    },
+
+    studentResponse:
+      "The ship traveled at its fastest speed to break a crossing record.",
+
+    expected: {
+      valid:
+        true,
+
+      diagnosis:
+        null,
+    },
+  },
+
+  // ====================================================
+  // KU MANUAL — FEMINIST MOVEMENT FRAME
+  // ====================================================
+
+  {
+    id:
+      "ED-016",
+
+    title:
+      "Manual Figure 7 — View of Opponents",
+
+    source:
+      "KU Framing Routine Manual — Figure 7",
+
+    context: {
+      keyTopic:
+        "Feminist Movement",
+
+      isAbout:
+        "Women having the same rights as men and being treated equally",
+
+      mainIdea:
+        "Views of Opponents",
+    },
+
+    studentResponse:
+      "A woman's place is in the home.",
+
+    expected: {
+      valid:
+        true,
+
+      diagnosis:
+        null,
+    },
+  },
+
+  {
+    id:
+      "ED-017",
+
+    title:
+      "Manual Figure 7 — View of Supporters",
+
+    source:
+      "KU Framing Routine Manual — Figure 7",
+
+    context: {
+      keyTopic:
+        "Feminist Movement",
+
+      isAbout:
+        "Women having the same rights as men and being treated equally",
+
+      mainIdea:
+        "Views of Supporters",
+    },
+
+    studentResponse:
+      "Men should equally share home responsibilities.",
+
+    expected: {
+      valid:
+        true,
+
+      diagnosis:
+        null,
+    },
+  },
+
+  {
+    id:
+      "ED-018",
+
+    title:
+      "Manual Figure 7 — Equal Treatment",
+
+    source:
+      "KU Framing Routine Manual — Figure 7",
+
+    context: {
+      keyTopic:
+        "Feminist Movement",
+
+      isAbout:
+        "Women having the same rights as men and being treated equally",
+
+      mainIdea:
+        "Views of Supporters",
+    },
+
+    studentResponse:
+      "Laws are needed to ensure equal treatment.",
+
+    expected: {
+      valid:
+        true,
+
+      diagnosis:
+        null,
+    },
+  },
+
+  // ====================================================
+  // SECTION C
+  // MANUAL-GROUNDED CONTRAST CASES
+  // ====================================================
+
+  {
+    id:
+      "ED-019",
+
+    title:
+      "Manual Contrast — Detail Belongs to Opposing Main Idea",
+
+    source:
+      "KU Framing Routine Manual — Figure 7 contrast",
+
+    context: {
+      keyTopic:
+        "Feminist Movement",
+
+      isAbout:
+        "Women having the same rights as men and being treated equally",
+
+      mainIdea:
+        "Views of Supporters",
+    },
+
+    studentResponse:
+      "A woman's place is in the home.",
+
+    expected: {
+      valid:
+        false,
+
+      allowedDiagnoses: [
+        "relationshipNotEstablished",
+        "relationshipIncomplete",
+        "mainIdeaInsteadOfDetail",
+      ],
+    },
+  },
+
+  {
+    id:
+      "ED-020",
+
+    title:
+      "Manual Contrast — Esoteric Trivia",
+
+    source:
+      "KU Framing Routine Manual — Essential Detail classification",
+
+    context: {
+      keyTopic:
+        "What Motivated Columbus?",
+
+      isAbout:
+        "Why Columbus crossed the Atlantic Ocean",
+
+      mainIdea:
+        "Financial Reasons",
+    },
+
+    studentResponse:
+      "Columbus sailed on the Niña, the Pinta, and the Santa María.",
+
+    expected: {
+      valid:
+        false,
+
+      allowedDiagnoses: [
+        "relationshipNotEstablished",
+        "relationshipIncomplete",
+      ],
+    },
   }
-});
+);
+
 
 // ------------------------------------------------------
 // IS ABOUT IVL BENCHMARK RUNNER
