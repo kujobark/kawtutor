@@ -3701,15 +3701,42 @@ async function validateEssentialDetailResponseGoverned(
     deterministicValidation
   );
 
-  const requiresSemanticInference =
-    deterministicValidation
-      ?.componentEvidenceLevel ===
-      "substantive" &&
+  const semanticInferenceDiagnoses = [
+  "insufficientObservableEvidence",
+  "relationshipIncomplete",
+  "relationshipNotEstablished",
+];
 
+const limitedResponseCanBeReviewed =
+  deterministicValidation
+    ?.componentEvidenceLevel ===
+    "limited" &&
+
+  semanticInferenceDiagnoses.includes(
+    deterministicValidation
+      ?.diagnosis
+  );
+
+const substantiveResponseCanBeReviewed =
+  deterministicValidation
+    ?.componentEvidenceLevel ===
+    "substantive" &&
+
+  (
     deterministicValidation
       ?.relationshipEvidence
       ?.readerInferenceRequired ===
-      true;
+      true ||
+
+    semanticInferenceDiagnoses.includes(
+      deterministicValidation
+        ?.diagnosis
+    )
+  );
+
+const requiresSemanticInference =
+  limitedResponseCanBeReviewed ||
+  substantiveResponseCanBeReviewed;
 
   // Deterministic outcomes remain authoritative when
   // semantic inference is not explicitly required.
@@ -3759,7 +3786,8 @@ async function validateEssentialDetailResponseGoverned(
         true,
 
       componentEvidenceLevel:
-        "substantive",
+        deterministicValidation
+          .componentEvidenceLevel,
 
       componentCriteriaStatus:
         "satisfied",
@@ -3809,8 +3837,9 @@ async function validateEssentialDetailResponseGoverned(
     valid:
       false,
 
-    componentEvidenceLevel:
-      "substantive",
+     componentEvidenceLevel:
+      deterministicValidation
+        .componentEvidenceLevel,
 
     componentCriteriaStatus:
       "notSatisfied",
