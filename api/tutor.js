@@ -3442,13 +3442,26 @@ function validateEssentialDetailResponse(
 
 async function getEssentialDetailSemanticEvidence(
   response,
-  currentMainIdea
+  currentMainIdea,
+  instructionalContext = {}
 ) {
   const studentResponse =
     cleanText(response);
 
   const acceptedMainIdea =
     cleanText(currentMainIdea);
+
+  const keyTopic =
+  cleanText(
+    instructionalContext
+      ?.keyTopic
+  );
+
+const isAbout =
+  cleanText(
+    instructionalContext
+      ?.isAbout
+  );
 
   if (
     !studentResponse ||
@@ -3500,14 +3513,22 @@ Rules:
 - Return semantic evidence only.
 - Return only the required JSON object.`;
 
-  const user = `Accepted Main Idea:
+const user = `Frame context:
+
+Key Topic:
+"${keyTopic || "(not provided)"}"
+
+Is About:
+"${isAbout || "(not provided)"}"
+
+Accepted Main Idea:
 "${acceptedMainIdea}"
 
 Student's proposed Essential Detail:
 "${studentResponse}"
 
-Does this response function as one specific Essential Detail that supports the accepted Main Idea?`;
-
+Determine whether the student's response functions as one essential detail beneath the accepted Main Idea within this specific Frame context.`;
+  
   try {
     const resp =
       await client.chat.completions.create({
@@ -3688,7 +3709,8 @@ Does this response function as one specific Essential Detail that supports the a
 
 async function validateEssentialDetailResponseGoverned(
   response,
-  currentMainIdea = ""
+  currentMainIdea = "",
+  instructionalContext = {}
 ) {
   const deterministicValidation =
     validateEssentialDetailResponse(
@@ -3750,10 +3772,11 @@ const requiresSemanticInference =
   }
 
   const semanticEvidence =
-    await getEssentialDetailSemanticEvidence(
-      response,
-      currentMainIdea
-    );
+  await getEssentialDetailSemanticEvidence(
+    response,
+    currentMainIdea,
+    instructionalContext
+  );
 
   // --------------------------------------------------
   // JAVASCRIPT FINAL DECISION
@@ -16174,8 +16197,9 @@ async function runIVLEssentialDetailBenchmarks(
   ) {
     const actual =
       await validateEssentialDetailResponseGoverned(
-      benchmark.studentResponse,
-      benchmark.context.mainIdea
+        benchmark.studentResponse,
+        benchmark.context.mainIdea,
+        benchmark.context
   );
 
     const expectedDiagnosis =
