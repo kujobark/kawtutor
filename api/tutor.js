@@ -12670,6 +12670,173 @@ if (mainIdeaIVLCommand) {
     },
   });
 }
+
+// ------------------------------------------------------
+// HIDDEN BATCHED ESSENTIAL DETAIL IVL COMMAND
+//
+// Available commands:
+//
+// /ivl essentialdetails
+// /ivl essentialdetails 1
+// /ivl essentialdetails 2
+// etc.
+//
+// Each numbered command runs five Essential Detail
+// benchmarks.
+// ------------------------------------------------------
+
+const essentialDetailIVLCommand =
+  message
+    .toLowerCase()
+    .match(
+      /^\/ivl\s+essentialdetails(?:\s+(\d+))?$/
+    );
+
+if (essentialDetailIVLCommand) {
+  const requestedBatch =
+    Number(
+      essentialDetailIVLCommand[1]
+    );
+
+  const batchSize =
+    5;
+
+  const totalBatches =
+    Math.ceil(
+      IVL.benchmarks.essentialDetails.length /
+      batchSize
+    );
+
+  if (
+    !Number.isInteger(
+      requestedBatch
+    ) ||
+    requestedBatch < 1
+  ) {
+    const reply = [
+      "🧪 ESSENTIAL DETAIL IVL",
+      "",
+      "Choose a batch number.",
+      "",
+      `Available batches: 1–${totalBatches}`,
+      "",
+      "Example:",
+      "/ivl essentialdetails 1",
+    ].join("\n");
+
+    return res.status(200).json({
+      reply,
+
+      state:
+        body.state ||
+        body.vercelState ||
+        body.framing ||
+        defaultState(),
+    });
+  }
+
+  if (
+    requestedBatch >
+    totalBatches
+  ) {
+    const reply = [
+      "🧪 ESSENTIAL DETAIL IVL",
+      "",
+      `Batch ${requestedBatch} does not exist.`,
+      "",
+      `Available batches: 1–${totalBatches}`,
+    ].join("\n");
+
+    return res.status(200).json({
+      reply,
+
+      state:
+        body.state ||
+        body.vercelState ||
+        body.framing ||
+        defaultState(),
+    });
+  }
+
+  IVL.results.essentialDetails =
+    null;
+
+  const essentialDetailResults =
+    await runIVLEssentialDetailBenchmarks(
+      requestedBatch,
+      batchSize
+    );
+
+  const replyLines = [
+    "🧪 KAW ESSENTIAL DETAIL IVL",
+    "",
+    `Batch: ${essentialDetailResults.batchNumber}/${essentialDetailResults.totalBatches}`,
+    "",
+  ];
+
+  essentialDetailResults.results.forEach(
+    (result) => {
+      replyLines.push(
+        `${result.passed ? "✅" : "❌"} ${result.id}: ${result.title}`
+      );
+
+      replyLines.push(
+        `Student response: ${
+          result.studentResponse ||
+          "(empty response)"
+        }`
+      );
+
+      if (!result.passed) {
+        replyLines.push(
+          `Expected: ${JSON.stringify(
+            result.expected
+          )}`
+        );
+
+        replyLines.push(
+          `Actual: ${JSON.stringify(
+            result.actual
+          )}`
+        );
+      }
+
+      replyLines.push("");
+    }
+  );
+
+  replyLines.push(
+    "────────────────────────"
+  );
+
+  replyLines.push(
+    `Passed: ${essentialDetailResults.passedCount}/${essentialDetailResults.total}`
+  );
+
+  replyLines.push(
+    `Failed: ${essentialDetailResults.failedCount}`
+  );
+
+  const reply =
+    replyLines.join("\n");
+
+  return res.status(200).json({
+    reply,
+
+    state:
+      body.state ||
+      body.vercelState ||
+      body.framing ||
+      defaultState(),
+
+    instructionalValidationLab: {
+      suite:
+        "essentialDetails",
+
+      ...essentialDetailResults,
+    },
+  });
+}
     
 // ------------------------------------------------------
 // HIDDEN KAW INSTRUCTIONAL VALIDATION LAB COMMAND
@@ -14796,86 +14963,200 @@ async function runIA020GovernedTest() {
   return result;
 }
 
-function runIVLEssentialDetailBenchmarks() {
+async function runIVLEssentialDetailBenchmarks(
+  batchNumber = null,
+  batchSize = 5
+) {
   console.log("");
   console.log("====================================");
   console.log("IVL - Essential Detail Benchmarks");
   console.log("====================================");
 
-  const results = IVL.benchmarks.essentialDetails.map(
-    (benchmark) => {
-      const actual =
-        validateEssentialDetailResponse(
-          benchmark.studentResponse,
-          benchmark.context.mainIdea
-        );
+  const allBenchmarks =
+    IVL.benchmarks.essentialDetails;
 
-      const passed =
-        actual.valid ===
-          benchmark.expected.valid &&
-        actual.diagnosis ===
-          benchmark.expected.diagnosis;
+  const totalBenchmarks =
+    allBenchmarks.length;
 
-      const result = {
-        id: benchmark.id,
-        title: benchmark.title,
-        component: "essentialDetails",
-        passed,
-        studentResponse:
-          benchmark.studentResponse,
-        expected: benchmark.expected,
-        actual
-      };
+  const totalBatches =
+    Math.ceil(
+      totalBenchmarks /
+      batchSize
+    );
 
-      console.log("");
-      console.log(
-        `${passed ? "✅ PASS" : "❌ FAIL"} — ${benchmark.id}: ${benchmark.title}`
+  let benchmarksToRun =
+    allBenchmarks;
+
+  let normalizedBatchNumber =
+    null;
+
+  if (
+    Number.isInteger(batchNumber) &&
+    batchNumber >= 1
+  ) {
+    normalizedBatchNumber =
+      Math.min(
+        batchNumber,
+        totalBatches
       );
 
-      if (!passed) {
-        console.log(
-          "Student Response:",
-          benchmark.studentResponse
-        );
-        console.log(
-          "Expected:",
-          benchmark.expected
-        );
-        console.log(
-          "Actual:",
-          actual
-        );
-      }
+    const startIndex =
+      (normalizedBatchNumber - 1) *
+      batchSize;
 
-      return result;
-    }
+    const endIndex =
+      startIndex +
+      batchSize;
+
+    benchmarksToRun =
+      allBenchmarks.slice(
+        startIndex,
+        endIndex
+      );
+  }
+
+  console.log(
+    normalizedBatchNumber
+      ? `Batch: ${normalizedBatchNumber}/${totalBatches}`
+      : "Batch: all"
   );
+
+  console.log(
+    `Benchmarks in this run: ${benchmarksToRun.length}`
+  );
+
+  const results = [];
+
+  for (
+    const benchmark of
+    benchmarksToRun
+  ) {
+    const actual =
+      validateEssentialDetailResponse(
+        benchmark.studentResponse,
+        benchmark.context.mainIdea
+      );
+
+    const expectedDiagnosis =
+      benchmark.expected.diagnosis;
+
+    const allowedDiagnoses =
+      Array.isArray(
+        benchmark.expected.allowedDiagnoses
+      )
+        ? benchmark.expected.allowedDiagnoses
+        : [];
+
+    const diagnosisPassed =
+      allowedDiagnoses.length > 0
+        ? allowedDiagnoses.includes(
+            actual.diagnosis
+          )
+        : actual.diagnosis ===
+            expectedDiagnosis;
+
+    const passed =
+      actual.valid ===
+        benchmark.expected.valid &&
+      diagnosisPassed;
+
+    const result = {
+      id:
+        benchmark.id,
+
+      title:
+        benchmark.title,
+
+      component:
+        "essentialDetails",
+
+      passed,
+
+      studentResponse:
+        benchmark.studentResponse,
+
+      expected:
+        benchmark.expected,
+
+      actual
+    };
+
+    console.log("");
+
+    console.log(
+      `${passed ? "✅ PASS" : "❌ FAIL"} — ${benchmark.id}: ${benchmark.title}`
+    );
+
+    if (!passed) {
+      console.log(
+        "Student Response:",
+        benchmark.studentResponse
+      );
+
+      console.log(
+        "Expected:",
+        benchmark.expected
+      );
+
+      console.log(
+        "Actual:",
+        actual
+      );
+    }
+
+    results.push(result);
+  }
 
   const passedCount =
     results.filter(
-      (result) => result.passed
+      (result) =>
+        result.passed
     ).length;
 
   const failedCount =
-    results.length - passedCount;
+    results.length -
+    passedCount;
 
   const summary = {
-    component: "essentialDetails",
-    passed: failedCount === 0,
+    component:
+      "essentialDetails",
+
+    batchNumber:
+      normalizedBatchNumber,
+
+    totalBatches,
+
+    batchSize,
+
+    passed:
+      failedCount === 0,
+
     passedCount,
+
     failedCount,
-    total: results.length,
+
+    total:
+      results.length,
+
+    totalBenchmarks,
+
     results
   };
 
-  IVL.results.essentialDetails = summary;
+  IVL.results.essentialDetails =
+    summary;
 
   console.log("");
   console.log("------------------------------------");
+
   console.log(
     `Passed: ${passedCount}/${results.length}`
   );
-  console.log(`Failed: ${failedCount}`);
+
+  console.log(
+    `Failed: ${failedCount}`
+  );
+
   console.log("------------------------------------");
 
   return summary;
