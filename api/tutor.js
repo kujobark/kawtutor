@@ -14724,16 +14724,29 @@ async function runInstructionalValidationLab() {
     overall: null
   };
 
-    const isAbout =
-      await runIVLIsAboutBenchmarks();
-  
+  // Run each current instructional benchmark suite.
+  //
+  // Is About and Main Ideas are governed validators and
+  // may request semantic evidence.
+  //
+  // Essential Details currently use the deterministic
+  // validator.
+  const isAbout =
+    await runIVLIsAboutBenchmarks();
+
+  const mainIdeas =
+    await runIVLMainIdeaBenchmarks();
+
   const essentialDetails =
-      runIVLEssentialDetailBenchmarks();
-  
+    runIVLEssentialDetailBenchmarks();
+
+  // Include every completed instructional suite in the
+  // overall IVL totals.
   const componentResults = [
-      isAbout,
-      essentialDetails
-    ].filter(Boolean);
+    isAbout,
+    mainIdeas,
+    essentialDetails
+  ].filter(Boolean);
 
   const passedCount =
     componentResults.reduce(
@@ -14757,11 +14770,91 @@ async function runInstructionalValidationLab() {
     );
 
   IVL.results.overall = {
-    passed: failedCount === 0,
+    passed:
+      failedCount === 0,
+
     passedCount,
+
     failedCount,
-    total
+
+    total,
+
+    components: {
+      isAbout: {
+        passed:
+          isAbout.passed,
+
+        passedCount:
+          isAbout.passedCount,
+
+        failedCount:
+          isAbout.failedCount,
+
+        total:
+          isAbout.total
+      },
+
+      mainIdeas: {
+        passed:
+          mainIdeas.passed,
+
+        passedCount:
+          mainIdeas.passedCount,
+
+        failedCount:
+          mainIdeas.failedCount,
+
+        total:
+          mainIdeas.total
+      },
+
+      essentialDetails: {
+        passed:
+          essentialDetails.passed,
+
+        passedCount:
+          essentialDetails.passedCount,
+
+        failedCount:
+          essentialDetails.failedCount,
+
+        total:
+          essentialDetails.total
+      }
+    }
   };
+
+  console.log("");
+  console.log(
+    "===================================="
+  );
+  console.log(
+    "KAW INSTRUCTIONAL VALIDATION LAB"
+  );
+  console.log(
+    "===================================="
+  );
+  console.log(
+    `Is About: ${isAbout.passedCount}/${isAbout.total}`
+  );
+  console.log(
+    `Main Ideas: ${mainIdeas.passedCount}/${mainIdeas.total}`
+  );
+  console.log(
+    `Essential Details: ${essentialDetails.passedCount}/${essentialDetails.total}`
+  );
+  console.log(
+    "------------------------------------"
+  );
+  console.log(
+    `Overall: ${passedCount}/${total}`
+  );
+  console.log(
+    `Failed: ${failedCount}`
+  );
+  console.log(
+    "===================================="
+  );
 
   return IVL.results;
 }
@@ -14770,108 +14863,111 @@ function formatInstructionalValidationLabResults(
   ivlResults
 ) {
   const isAboutSuite =
-  ivlResults?.isAbout;
+    ivlResults?.isAbout;
 
-const detailSuite =
-  ivlResults?.essentialDetails;
+  const mainIdeaSuite =
+    ivlResults?.mainIdeas;
+
+  const detailSuite =
+    ivlResults?.essentialDetails;
+
+  const overall =
+    ivlResults?.overall;
 
   const lines = [
     "🧪 KAW INSTRUCTIONAL VALIDATION LAB",
     ""
   ];
 
-  lines.push("Is About");
-lines.push("");
-
-if (!isAboutSuite) {
-
-  lines.push(
-    "No Is About results were returned."
-  );
-
-} else {
-
-  isAboutSuite.results.forEach(result => {
-
-    lines.push(
-      `${result.passed ? "✅" : "❌"} ${result.id}: ${result.title}`
-    );
-
-    lines.push(
-      `Student response: ${result.studentResponse}`
-    );
-
-    lines.push(
-      `Expected: ${JSON.stringify(result.expected)}`
-    );
-
-    lines.push(
-      `Actual: ${JSON.stringify(result.actual)}`
-    );
-
+  function addSuiteResults(
+    label,
+    suite,
+    emptyMessage
+  ) {
+    lines.push(label);
     lines.push("");
 
-  });
+    if (!suite) {
+      lines.push(emptyMessage);
+      lines.push("");
+      return;
+    }
 
-  lines.push("────────────────────────");
-
-  lines.push(
-    `Is About: ${isAboutSuite.passedCount}/${isAboutSuite.total} passed`
-  );
-
-  lines.push("");
-  lines.push("");
-  lines.push("Essential Details");
-  lines.push("");
-
-}
-  
-  if (!detailSuite) {
-    lines.push(
-      "No Essential Detail results were returned."
-    );
-  } else {
-    detailSuite.results.forEach(
+    suite.results.forEach(
       (result) => {
         lines.push(
           `${result.passed ? "✅" : "❌"} ${result.id}: ${result.title}`
         );
 
         lines.push(
-          `Student response: ${result.studentResponse}`
+          `Student response: ${
+            result.studentResponse ||
+            "(empty response)"
+          }`
         );
 
-        lines.push(
-          `Expected: ${JSON.stringify(
-            result.expected
-          )}`
-        );
+        if (!result.passed) {
+          lines.push(
+            `Expected: ${JSON.stringify(
+              result.expected
+            )}`
+          );
 
-        lines.push(
-          `Actual: ${JSON.stringify(
-            result.actual
-          )}`
-        );
+          lines.push(
+            `Actual: ${JSON.stringify(
+              result.actual
+            )}`
+          );
+        }
 
         lines.push("");
       }
     );
 
-    lines.push("────────────────────────");
+    lines.push(
+      "────────────────────────"
+    );
 
     lines.push(
-      `Essential Details: ${detailSuite.passedCount}/${detailSuite.total} passed`
+      `${label}: ${suite.passedCount}/${suite.total} passed`
     );
+
+    lines.push("");
+    lines.push("");
   }
 
-  const overall =
-    ivlResults?.overall;
+  addSuiteResults(
+    "Is About",
+    isAboutSuite,
+    "No Is About results were returned."
+  );
+
+  addSuiteResults(
+    "Main Ideas",
+    mainIdeaSuite,
+    "No Main Idea results were returned."
+  );
+
+  addSuiteResults(
+    "Essential Details",
+    detailSuite,
+    "No Essential Detail results were returned."
+  );
 
   if (overall) {
-    lines.push("");
+    lines.push(
+      "================================"
+    );
+
     lines.push(
       `Overall: ${overall.passedCount}/${overall.total} passed`
     );
+
+    lines.push(
+      `Failed: ${overall.failedCount}`
+    );
+
+    lines.push("");
 
     lines.push(
       overall.passed
