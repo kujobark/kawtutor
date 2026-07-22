@@ -14778,17 +14778,73 @@ function runIVLEssentialDetailBenchmarks() {
   return summary;
 }
 
-async function runIVLMainIdeaBenchmarks() {
+async function runIVLMainIdeaBenchmarks(
+  batchNumber = null,
+  batchSize = 5
+) {
   console.log("");
   console.log("====================================");
   console.log("IVL - Main Idea Benchmarks");
   console.log("====================================");
 
+  const allBenchmarks =
+    IVL.benchmarks.mainIdeas;
+
+  const totalBenchmarks =
+    allBenchmarks.length;
+
+  const totalBatches =
+    Math.ceil(
+      totalBenchmarks /
+      batchSize
+    );
+
+  let benchmarksToRun =
+    allBenchmarks;
+
+  let normalizedBatchNumber =
+    null;
+
+  if (
+    Number.isInteger(batchNumber) &&
+    batchNumber >= 1
+  ) {
+    normalizedBatchNumber =
+      Math.min(
+        batchNumber,
+        totalBatches
+      );
+
+    const startIndex =
+      (normalizedBatchNumber - 1) *
+      batchSize;
+
+    const endIndex =
+      startIndex +
+      batchSize;
+
+    benchmarksToRun =
+      allBenchmarks.slice(
+        startIndex,
+        endIndex
+      );
+  }
+
+  console.log(
+    normalizedBatchNumber
+      ? `Batch: ${normalizedBatchNumber}/${totalBatches}`
+      : "Batch: all"
+  );
+
+  console.log(
+    `Benchmarks in this run: ${benchmarksToRun.length}`
+  );
+
   const results = [];
 
   for (
     const benchmark of
-    IVL.benchmarks.mainIdeas
+    benchmarksToRun
   ) {
     const actual =
       await validateMainIdeaResponseGoverned(
@@ -14880,6 +14936,15 @@ async function runIVLMainIdeaBenchmarks() {
   const summary = {
     component:
       "mainIdeas",
+
+    batchNumber:
+      normalizedBatchNumber,
+
+    batchSize,
+
+    totalBatches,
+
+    totalBenchmarks,
 
     passed:
       failedCount === 0,
