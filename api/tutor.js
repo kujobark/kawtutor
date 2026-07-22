@@ -5953,6 +5953,12 @@ const DETERMINISTIC_SELF_TEST_SUITES = [
     run: runIsAboutSelfTests,
     format: formatIsAboutSelfTestResults,
   },
+  {
+    id: "mainIdeas",
+    label: "Main Idea Validation",
+    run: runMainIdeaSelfTests,
+    format: formatMainIdeaSelfTestResults,
+  },
 ];
 
 // ------------------------------------------------------
