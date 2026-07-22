@@ -10369,14 +10369,18 @@ if (s.pending?.type === "confirmMainIdeas") {
   return s;
 }
 
-  if (s.pending?.type === "reviseMainIdeaAt") {
-  await applyMainIdeaCapture(
-    s,
-    msg
-  );
+   if (s.pending?.type === "reviseMainIdeaAt") {
+    await applyMainIdeaCapture(
+      s,
+      msg,
+      {
+        captureMode: "revision",
+        index: Number(s.pending.index),
+      }
+    );
 
-  return s;
-}
+    return s;
+  }
 
   if (s.pending?.type === "offerAnotherMainIdea") {
     const normalized = msg.toLowerCase().trim();
@@ -10397,10 +10401,13 @@ if (s.pending?.type === "confirmMainIdeas") {
     return s;
   }
 
-  if (s.pending?.type === "collectAnotherMainIdea") {
+    if (s.pending?.type === "collectAnotherMainIdea") {
     await applyMainIdeaCapture(
       s,
-      msg
+      msg,
+      {
+        captureMode: "optional",
+      }
     );
 
     return s;
