@@ -4757,6 +4757,26 @@ async function validateSoWhatResponseGoverned(
   // - whether progression may continue.
   // --------------------------------------------------
 
+    // --------------------------------------------------
+  // SUPPORTED SYNTHESIS STANDARD
+  //
+  // A So What is supported when the semantic evidence:
+  //
+  // - anchors the response to the Key Topic;
+  // - traces the response to the completed Frame;
+  // - confirms the completed Frame supports the response;
+  // - communicates meaningful understanding;
+  // - is specific enough to understand; and
+  // - does more than repeat earlier Frame content.
+  //
+  // The confidence threshold is intentionally bounded
+  // rather than set near certainty. So What statements
+  // may express conclusions, applications, metaphors,
+  // real-world connections, unit connections, or basic
+  // life truths. These forms can require legitimate
+  // inference while still being fully supported.
+  // --------------------------------------------------
+
   const supportedSynthesis =
     semanticEvidence
       .anchoredToKeyTopic === true &&
@@ -4777,7 +4797,7 @@ async function validateSoWhatResponseGoverned(
       .merelyRepeatsEarlierFrameContent === false &&
 
     semanticEvidence
-      .confidence >= 0.9;
+      .confidence >= 0.75;
 
   if (supportedSynthesis) {
     return {
