@@ -15016,6 +15016,61 @@ export default async function handler(req, res) {
     const message =
       cleanText(body.message || "");
 
+    // ------------------------------------------------------
+// HIDDEN KAW DEVELOPER COMMAND
+//
+// Type "/run tests" in the Wix Kaw chat to run every
+// registered deterministic and governed validation suite.
+//
+// This bypasses the normal student interaction flow and
+// does not modify the student's active Frame.
+// ------------------------------------------------------
+
+if (
+  message.toLowerCase() ===
+  "/run tests"
+) {
+  const testResults =
+    await runAllDeterministicSelfTests();
+
+  const formattedSuites =
+    testResults.suites.map(
+      (suite) =>
+        suite.format(suite.result)
+    );
+
+  const reply = [
+    ...formattedSuites,
+    "",
+    "════════════════════════",
+    "ALL DETERMINISTIC SUITES",
+    "════════════════════════",
+    "",
+    `Passed: ${testResults.passedCount}/${testResults.total}`,
+    `Failed: ${testResults.failedCount}`,
+    "",
+    testResults.passed
+      ? "🚀 All deterministic suites passed."
+      : "⚠️ One or more deterministic suites failed.",
+  ].join("\n");
+
+  return res.status(200).json({
+    reply,
+
+    state:
+      body.state ||
+      body.vercelState ||
+      body.framing ||
+      defaultState(),
+
+    selfTest:
+      testResults,
+  });
+}
+
+// ------------------------------------------------------
+// HIDDEN KAW AI COMMUNICATION TEST COMMAND
+
 // ------------------------------------------------------
 // HIDDEN KAW AI COMMUNICATION TEST COMMAND
 //
