@@ -5048,6 +5048,45 @@ async function validateSoWhatResponseGoverned(
   };
 }
 
+// ------------------------------------------------------
+// SO WHAT RUNTIME CONTEXT
+//
+// Builds the complete instructional context required by
+// governed So What validation.
+//
+// This helper is read-only.
+// It does not validate, save, or modify student work.
+// ------------------------------------------------------
+
+function buildSoWhatValidationContext(state) {
+  return {
+    assignmentContext:
+      state?.frameMeta?.assignmentContext || {},
+
+    thinkingTask:
+      state?.assignmentReasoning || {},
+
+    keyTopic:
+      state?.frame?.keyTopic || "",
+
+    isAbout:
+      state?.frame?.isAbout || "",
+
+    mainIdeas:
+      getIdeaList(state).filter(Boolean),
+
+    details:
+      Array.isArray(state?.frame?.details)
+        ? state.frame.details.map(
+            (bucket) =>
+              Array.isArray(bucket)
+                ? bucket.filter(Boolean)
+                : []
+          )
+        : [],
+  };
+}
+
 // ======================================================
 // DETERMINISTIC SELF-TEST SUITES
 // ======================================================
