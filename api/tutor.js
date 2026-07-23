@@ -7280,6 +7280,827 @@ function formatMainIdeaSelfTestResults(
 }
 
 // ------------------------------------------------------
+// So What Test Suite
+//
+// Purpose:
+//
+// Verifies deterministic and governed So What validation.
+//
+// These tests confirm that:
+//
+// - empty and struggle responses are blocked;
+// - exact repetition of earlier Frame content is blocked;
+// - substantive responses are routed to governed semantic
+//   evidence;
+// - supported synthesis is accepted;
+// - emerging synthesis is preserved as legitimate thinking
+//   that needs one additional instructional move;
+// - unsupported conclusions do not pass merely because
+//   they sound meaningful.
+//
+// Runtime save-path tests will be added after governed
+// validation is connected to So What capture and revision.
+// ------------------------------------------------------
+
+async function runSoWhatSelfTests() {
+  const instructionalContext = {
+    assignmentContext: {
+      raw:
+        "Explain how social media can affect teen mental health.",
+
+      understanding:
+        "Explain how social media can affect teen mental health.",
+
+      studentSummary:
+        "you're explaining how social media can affect teen mental health.",
+    },
+
+    thinkingTask: {
+      task:
+        "explain",
+
+      label:
+        "Explain",
+    },
+
+    keyTopic:
+      "Social Media and Teen Mental Health",
+
+    isAbout:
+      "How social media can affect teen mental health.",
+
+    mainIdeas: [
+      "Social media can increase anxiety and stress.",
+      "Social media can affect self-esteem.",
+    ],
+
+    details: [
+      [
+        "Teens may compare themselves to carefully edited images online.",
+        "Constant notifications can make it difficult for teens to relax.",
+      ],
+
+      [
+        "Teens may judge their lives against the lives people display online.",
+        "Negative comments can make teens question their appearance or abilities.",
+      ],
+    ],
+  };
+
+  const supportedSoWhat =
+    "Social media can harm teen mental health when online comparison and constant pressure increase anxiety and weaken self-esteem.";
+
+  const emergingSoWhat =
+    "Social media has important effects on teenagers.";
+
+  const unsupportedSoWhat =
+    "Schools should completely ban phones because students cannot learn while using them.";
+
+  const results = [];
+
+  // --------------------------------------------------
+  // DETERMINISTIC VALIDATOR TESTS
+  // --------------------------------------------------
+
+  const deterministicTests = [
+    {
+      name:
+        "SW - Empty response",
+
+      response:
+        "",
+
+      expected: {
+        valid:
+          false,
+
+        componentEvidenceLevel:
+          "none",
+
+        componentCriteriaStatus:
+          "notSatisfied",
+
+        relationshipStatus:
+          "undetermined",
+
+        synthesisState:
+          "none",
+
+        diagnosis:
+          "emptyResponse",
+      },
+    },
+
+    {
+      name:
+        "SW - Stuck response",
+
+      response:
+        "idk",
+
+      expected: {
+        valid:
+          false,
+
+        componentEvidenceLevel:
+          "none",
+
+        componentCriteriaStatus:
+          "notSatisfied",
+
+        relationshipStatus:
+          "undetermined",
+
+        synthesisState:
+          "none",
+
+        diagnosis:
+          "noComponentEvidence",
+      },
+    },
+
+    {
+      name:
+        "SW - Repeats Key Topic",
+
+      response:
+        instructionalContext.keyTopic,
+
+      expected: {
+        valid:
+          false,
+
+        componentEvidenceLevel:
+          "limited",
+
+        componentCriteriaStatus:
+          "notSatisfied",
+
+        relationshipStatus:
+          "notEstablished",
+
+        synthesisState:
+          "none",
+
+        diagnosis:
+          "repeatsKeyTopic",
+      },
+    },
+
+    {
+      name:
+        "SW - Repeats Is About",
+
+      response:
+        instructionalContext.isAbout,
+
+      expected: {
+        valid:
+          false,
+
+        componentEvidenceLevel:
+          "limited",
+
+        componentCriteriaStatus:
+          "notSatisfied",
+
+        relationshipStatus:
+          "notEstablished",
+
+        synthesisState:
+          "none",
+
+        diagnosis:
+          "repeatsIsAbout",
+      },
+    },
+
+    {
+      name:
+        "SW - Repeats Main Idea",
+
+      response:
+        instructionalContext.mainIdeas[0],
+
+      expected: {
+        valid:
+          false,
+
+        componentEvidenceLevel:
+          "limited",
+
+        componentCriteriaStatus:
+          "notSatisfied",
+
+        relationshipStatus:
+          "notEstablished",
+
+        synthesisState:
+          "none",
+
+        diagnosis:
+          "repeatsMainIdea",
+      },
+    },
+
+    {
+      name:
+        "SW - Repeats Essential Detail",
+
+      response:
+        instructionalContext.details[0][0],
+
+      expected: {
+        valid:
+          false,
+
+        componentEvidenceLevel:
+          "limited",
+
+        componentCriteriaStatus:
+          "notSatisfied",
+
+        relationshipStatus:
+          "notEstablished",
+
+        synthesisState:
+          "none",
+
+        diagnosis:
+          "repeatsEssentialDetail",
+      },
+    },
+
+    {
+      name:
+        "SW - Too little observable evidence",
+
+      response:
+        "It really matters",
+
+      expected: {
+        valid:
+          false,
+
+        componentEvidenceLevel:
+          "limited",
+
+        componentCriteriaStatus:
+          "partiallySatisfied",
+
+        relationshipStatus:
+          "undetermined",
+
+        synthesisState:
+          "emerging",
+
+        diagnosis:
+          "insufficientObservableEvidence",
+      },
+    },
+
+    {
+      name:
+        "SW - Substantive response requires semantic evidence",
+
+      response:
+        supportedSoWhat,
+
+      expected: {
+        valid:
+          false,
+
+        componentEvidenceLevel:
+          "substantive",
+
+        componentCriteriaStatus:
+          "partiallySatisfied",
+
+        relationshipStatus:
+          "undetermined",
+
+        synthesisState:
+          "undetermined",
+
+        diagnosis:
+          "synthesisUndetermined",
+
+        requiresSemanticInference:
+          true,
+      },
+    },
+  ];
+
+  deterministicTests.forEach(
+    (test) => {
+      const actual =
+        validateSoWhatResponse(
+          test.response,
+          instructionalContext
+        );
+
+      const passed =
+        actual.valid ===
+          test.expected.valid &&
+
+        actual.componentEvidenceLevel ===
+          test.expected
+            .componentEvidenceLevel &&
+
+        actual.componentCriteriaStatus ===
+          test.expected
+            .componentCriteriaStatus &&
+
+        actual.relationshipStatus ===
+          test.expected
+            .relationshipStatus &&
+
+        actual.synthesisState ===
+          test.expected
+            .synthesisState &&
+
+        actual.diagnosis ===
+          test.expected.diagnosis &&
+
+        (
+          test.expected
+            .requiresSemanticInference ===
+            undefined ||
+
+          actual?.relationshipEvidence
+            ?.requiresSemanticInference ===
+            test.expected
+              .requiresSemanticInference
+        );
+
+      results.push({
+        name:
+          test.name,
+
+        passed,
+
+        response:
+          test.response,
+
+        expected:
+          test.expected,
+
+        actual,
+      });
+    }
+  );
+
+  // --------------------------------------------------
+  // GOVERNED SUPPORTED SYNTHESIS
+  //
+  // Confirms a meaningful understanding that is anchored,
+  // traceable, and supported by the completed Frame passes.
+  // --------------------------------------------------
+
+  const governedSupportedActual =
+    await validateSoWhatResponseGoverned(
+      supportedSoWhat,
+      instructionalContext
+    );
+
+  const governedSupportedPassed =
+    governedSupportedActual.valid ===
+      true &&
+
+    governedSupportedActual
+      .componentEvidenceLevel ===
+      "substantive" &&
+
+    governedSupportedActual
+      .componentCriteriaStatus ===
+      "satisfied" &&
+
+    governedSupportedActual
+      .relationshipStatus ===
+      "established" &&
+
+    governedSupportedActual
+      .synthesisState ===
+      "supported" &&
+
+    governedSupportedActual
+      .diagnosis ===
+      null &&
+
+    governedSupportedActual
+      .validationSource ===
+      "deterministicWithSemanticEvidence";
+
+  results.push({
+    name:
+      "SW Governed - Supported synthesis is accepted",
+
+    passed:
+      governedSupportedPassed,
+
+    response:
+      supportedSoWhat,
+
+    expected: {
+      valid:
+        true,
+
+      componentEvidenceLevel:
+        "substantive",
+
+      componentCriteriaStatus:
+        "satisfied",
+
+      relationshipStatus:
+        "established",
+
+      synthesisState:
+        "supported",
+
+      diagnosis:
+        null,
+
+      validationSource:
+        "deterministicWithSemanticEvidence",
+    },
+
+    actual:
+      governedSupportedActual,
+  });
+
+  // --------------------------------------------------
+  // GOVERNED EMERGING SYNTHESIS
+  //
+  // Confirms Kaw may recognize a legitimate foundation
+  // while still asking the student to become more specific
+  // or meaningful.
+  //
+  // This test intentionally allows the governed model to
+  // select the most accurate emerging-synthesis diagnosis.
+  // --------------------------------------------------
+
+  const governedEmergingActual =
+    await validateSoWhatResponseGoverned(
+      emergingSoWhat,
+      instructionalContext
+    );
+
+  const allowedEmergingDiagnoses =
+    new Set([
+      "needsMoreSpecificSynthesis",
+      "needsMoreMeaningfulSynthesis",
+      "repeatsEarlierFrameContent",
+    ]);
+
+  const governedEmergingPassed =
+    governedEmergingActual.valid ===
+      false &&
+
+    governedEmergingActual
+      .componentEvidenceLevel ===
+      "substantive" &&
+
+    governedEmergingActual
+      .componentCriteriaStatus ===
+      "partiallySatisfied" &&
+
+    governedEmergingActual
+      .relationshipStatus ===
+      "incomplete" &&
+
+    governedEmergingActual
+      .synthesisState ===
+      "emerging" &&
+
+    allowedEmergingDiagnoses.has(
+      governedEmergingActual.diagnosis
+    ) &&
+
+    governedEmergingActual
+      .validationSource ===
+      "deterministicWithSemanticEvidence";
+
+  results.push({
+    name:
+      "SW Governed - Broad takeaway remains emerging synthesis",
+
+    passed:
+      governedEmergingPassed,
+
+    response:
+      emergingSoWhat,
+
+    expected: {
+      valid:
+        false,
+
+      componentEvidenceLevel:
+        "substantive",
+
+      componentCriteriaStatus:
+        "partiallySatisfied",
+
+      relationshipStatus:
+        "incomplete",
+
+      synthesisState:
+        "emerging",
+
+      allowedDiagnoses: [
+        "needsMoreSpecificSynthesis",
+        "needsMoreMeaningfulSynthesis",
+        "repeatsEarlierFrameContent",
+      ],
+
+      validationSource:
+        "deterministicWithSemanticEvidence",
+    },
+
+    actual:
+      governedEmergingActual,
+  });
+
+  // --------------------------------------------------
+  // GOVERNED UNSUPPORTED SYNTHESIS
+  //
+  // Confirms a meaningful-sounding conclusion does not
+  // pass when its central claim is not supported by the
+  // completed Frame.
+  // --------------------------------------------------
+
+  const governedUnsupportedActual =
+    await validateSoWhatResponseGoverned(
+      unsupportedSoWhat,
+      instructionalContext
+    );
+
+  const allowedUnsupportedDiagnoses =
+    new Set([
+      "notAnchoredToKeyTopic",
+      "notTraceableToCompletedFrame",
+      "notSupportedByCompletedFrame",
+      "synthesisNotEstablished",
+    ]);
+
+  const governedUnsupportedPassed =
+    governedUnsupportedActual.valid ===
+      false &&
+
+    governedUnsupportedActual
+      .componentCriteriaStatus ===
+      "notSatisfied" &&
+
+    governedUnsupportedActual
+      .relationshipStatus ===
+      "notEstablished" &&
+
+    governedUnsupportedActual
+      .synthesisState ===
+      "unsupported" &&
+
+    allowedUnsupportedDiagnoses.has(
+      governedUnsupportedActual.diagnosis
+    ) &&
+
+    governedUnsupportedActual
+      .validationSource ===
+      "deterministicWithSemanticEvidence";
+
+  results.push({
+    name:
+      "SW Governed - Unsupported conclusion is blocked",
+
+    passed:
+      governedUnsupportedPassed,
+
+    response:
+      unsupportedSoWhat,
+
+    expected: {
+      valid:
+        false,
+
+      componentCriteriaStatus:
+        "notSatisfied",
+
+      relationshipStatus:
+        "notEstablished",
+
+      synthesisState:
+        "unsupported",
+
+      allowedDiagnoses: [
+        "notAnchoredToKeyTopic",
+        "notTraceableToCompletedFrame",
+        "notSupportedByCompletedFrame",
+        "synthesisNotEstablished",
+      ],
+
+      validationSource:
+        "deterministicWithSemanticEvidence",
+    },
+
+    actual:
+      governedUnsupportedActual,
+  });
+
+  // --------------------------------------------------
+  // GOVERNED VALUE STATEMENT
+  //
+  // Confirms the validator does not reject a So What only
+  // because it uses normative or value-oriented language.
+  // The statement must still be supported by the Frame.
+  // --------------------------------------------------
+
+  const valueStatement =
+    "People should use social media carefully because online comparison and constant pressure can damage teen mental health.";
+
+  const governedValueActual =
+    await validateSoWhatResponseGoverned(
+      valueStatement,
+      instructionalContext
+    );
+
+  const governedValuePassed =
+    governedValueActual.valid ===
+      true &&
+
+    governedValueActual
+      .synthesisState ===
+      "supported" &&
+
+    governedValueActual
+      .relationshipStatus ===
+      "established";
+
+  results.push({
+    name:
+      "SW Governed - Supported value statement is accepted",
+
+    passed:
+      governedValuePassed,
+
+    response:
+      valueStatement,
+
+    expected: {
+      valid:
+        true,
+
+      synthesisState:
+        "supported",
+
+      relationshipStatus:
+        "established",
+    },
+
+    actual:
+      governedValueActual,
+  });
+
+  // --------------------------------------------------
+  // GOVERNED SUPPORTED INFERENCE
+  //
+  // Confirms the So What does not need to repeat every
+  // Main Idea or Detail when the larger takeaway can be
+  // reasonably traced to the completed Frame.
+  // --------------------------------------------------
+
+  const supportedInference =
+    "The way teens experience social media matters as much as how often they use it because comparison and social pressure can shape how they feel about themselves.";
+
+  const governedInferenceActual =
+    await validateSoWhatResponseGoverned(
+      supportedInference,
+      instructionalContext
+    );
+
+  const governedInferencePassed =
+    governedInferenceActual.valid ===
+      true &&
+
+    governedInferenceActual
+      .synthesisState ===
+      "supported" &&
+
+    governedInferenceActual
+      .relationshipStatus ===
+      "established";
+
+  results.push({
+    name:
+      "SW Governed - Supported inference is accepted",
+
+    passed:
+      governedInferencePassed,
+
+    response:
+      supportedInference,
+
+    expected: {
+      valid:
+        true,
+
+      synthesisState:
+        "supported",
+
+      relationshipStatus:
+        "established",
+    },
+
+    actual:
+      governedInferenceActual,
+  });
+
+  const passedCount =
+    results.filter(
+      (result) =>
+        result.passed
+    ).length;
+
+  const failedCount =
+    results.length -
+    passedCount;
+
+  return {
+    passed:
+      failedCount === 0,
+
+    passedCount,
+
+    failedCount,
+
+    total:
+      results.length,
+
+    results,
+  };
+}
+
+
+function formatSoWhatSelfTestResults(
+  testResults
+) {
+  const lines = [
+    "🧠 KAW GOVERNED SELF-TESTS",
+    "",
+    "So What Validation",
+    "",
+  ];
+
+  testResults.results.forEach(
+    (result) => {
+      lines.push(
+        `${result.passed ? "✅" : "❌"} ${result.name}`
+      );
+
+      if (!result.passed) {
+        lines.push(
+          `Response: ${JSON.stringify(
+            result.response
+          )}`
+        );
+
+        lines.push(
+          `Expected: ${JSON.stringify(
+            result.expected
+          )}`
+        );
+
+        lines.push(
+          `Actual: ${JSON.stringify(
+            result.actual
+          )}`
+        );
+      }
+
+      lines.push("");
+    }
+  );
+
+  lines.push(
+    "────────────────────────"
+  );
+
+  lines.push(
+    `Passed: ${testResults.passedCount}/${testResults.total}`
+  );
+
+  lines.push(
+    `Failed: ${testResults.failedCount}`
+  );
+
+  if (testResults.passed) {
+    lines.push("");
+    lines.push(
+      "🚀 All current So What tests passed."
+    );
+  }
+
+  return lines.join("\n");
+}
+
+// ------------------------------------------------------
 // AI COMMUNICATION LICENSING TEST SUITE
 //
 // Runs live AI contextualization through the same
