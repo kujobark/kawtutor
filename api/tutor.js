@@ -8406,6 +8406,12 @@ const DETERMINISTIC_SELF_TEST_SUITES = [
     run: runMainIdeaSelfTests,
     format: formatMainIdeaSelfTestResults,
   },
+  {
+    id: "soWhat",
+    label: "So What Validation",
+    run: runSoWhatSelfTests,
+    format: formatSoWhatSelfTestResults,
+  },
 ];
 
 // ------------------------------------------------------
