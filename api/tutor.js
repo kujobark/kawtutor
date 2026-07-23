@@ -14982,7 +14982,40 @@ if (s.pending?.type === "reviseDetailAt") {
 
     return s;
   }
-  
+
+  return s;
+}
+
+// ---------------------
+// HANDLER
+// ---------------------
+export default async function handler(req, res) {
+  setCors(res);
+
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
+  if (req.method !== "POST") {
+    return res
+      .status(405)
+      .json({ error: "Method not allowed" });
+  }
+
+  // Preserve the last safely normalized incoming state so an
+  // unexpected error never erases the student's work or location.
+  let safeState = defaultState();
+
+  try {
+    const body =
+      req.body &&
+      typeof req.body === "object"
+        ? req.body
+        : {};
+
+    const message =
+      cleanText(body.message || "");
+
 // ------------------------------------------------------
 // HIDDEN KAW AI COMMUNICATION TEST COMMAND
 //
