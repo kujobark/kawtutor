@@ -4411,53 +4411,77 @@ async function getSoWhatSemanticEvidence(
     };
   }
 
-  const system = `You provide semantic evidence for a deterministic instructional validator supporting the KU Framing Routine.
+  const system = `You provide bounded semantic evidence for a deterministic instructional validator supporting the KU Framing Routine.
 
 The student's assignment context, Thinking Task, completed Frame, and proposed So What will be provided.
 
 Determine only whether the student's response functions as a supported culminating understanding within that specific completed Frame.
 
-The So What communicates an important understanding about the Key Topic that is supported by the completed Frame.
+The So What should communicate an important understanding about the Key Topic that is supported by the completed Frame.
 
-A successful So What:
-- remains anchored to the accepted Key Topic;
-- can be traced to ideas or evidence developed in the completed Frame;
-- is supported by the completed Frame;
-- communicates a meaningful understanding or takeaway;
-- is specific enough for a reader to understand the student's takeaway;
-- goes beyond merely repeating the Key Topic, Is About, one Main Idea, or one Essential Detail.
-
-The So What may naturally function as:
-- a conclusion;
-- a definition;
-- a principle;
-- a theme;
-- an implication;
-- a consequence;
-- a recommendation;
-- a warning;
-- a generalization;
+A successful So What may take different legitimate forms, including:
+- a conclusion or generalization;
+- an application or implication;
+- a connection to another topic or real-world situation;
+- a metaphor or analogy;
 - a value statement;
-- a call to action;
-- another supported culminating understanding.
+- a basic life truth.
 
-Rules:
-- Do not require one predetermined or uniquely correct So What.
-- Do not reject a response merely because it expresses an opinion, recommendation, value statement, implication, or warning.
-- An opinion or recommendation must still be traceable to and supported by the completed Frame.
-- Do not require the response to summarize every Main Idea or Detail.
-- Do not require exact vocabulary from the completed Frame.
-- Do not require a particular rhetorical form.
-- Do not judge grammar, spelling, style, or outside factual accuracy.
-- Do not rewrite the student's response.
-- Do not improve the student's response.
-- Do not generate a replacement So What.
-- Do not teach the content.
-- Do not add evidence that is absent from the completed Frame.
-- Evaluate only the instructional function of the student's response within the supplied Frame.
-- Confidence represents how clearly the instructional relationship can be established from the supplied Frame.
+Do not require one fixed sentence structure or one predetermined conclusion.
+
+Evaluate each evidence field independently.
+
+anchoredToKeyTopic:
+- true when the response clearly concerns the accepted Key Topic;
+- false when the response shifts to an unrelated subject.
+
+traceableToCompletedFrame:
+- true when a reasonable reader can connect the response to ideas, relationships, examples, or evidence developed in the completed Frame;
+- the response may use new wording and may make a supported inference;
+- false when the completed Frame provides no meaningful basis for the response.
+
+supportedByCompletedFrame:
+- true when the completed Frame reasonably supports the takeaway, connection, implication, metaphor, value, or generalization;
+- false when the response introduces an unsupported conclusion or recommendation.
+
+communicatesMeaningfulUnderstanding:
+- true only when the response communicates what the student understands after considering the whole Frame;
+- the response must express an actual takeaway, relationship, implication, significance, lesson, or conclusion;
+- false when the response merely says the topic is important, has effects, matters, is interesting, is good, is bad, or affects people without explaining what is important, meaningful, or consequential;
+- false for broad statements such as "Social media has important effects on teenagers" because the reader still does not know what the important understanding is.
+
+specificEnoughToUnderstand:
+- true when the reader can identify the student's actual takeaway, even when the response uses a metaphor, analogy, application, or broad life truth;
+- false when the wording is so general that it could apply to many topics without meaningful change;
+- false when the reader would still need to ask "What effect?", "Why does it matter?", "What does this show?", or "What is the actual takeaway?";
+- specificity does not require copying Main Ideas or Essential Details.
+
+merelyRepeatsEarlierFrameContent:
+- true when the response simply restates the Key Topic, Is About statement, one Main Idea, or one Essential Detail without creating a larger understanding;
+- false when the response synthesizes, generalizes, applies, connects, interprets, or explains significance.
+
+Important distinctions:
+- A response may be traceable and supported but still lack a meaningful or specific culminating understanding.
+- Being grammatically complete does not make a response a successful So What.
+- Mentioning the Key Topic does not by itself establish synthesis.
+- Do not mark a vague response successful merely because it is generally true.
+- Legitimate manual-style metaphors, applications, real-world connections, unit connections, and basic life truths may be fully successful when their meaning is understandable and supported by the completed Frame.
+- Do not rewrite, improve, or complete the student's response.
+- Do not decide whether the response is accepted.
 - Return semantic evidence only.
-- Return only the required JSON object.`;
+
+Return ONLY valid JSON using exactly this structure:
+{
+  "anchoredToKeyTopic": true,
+  "traceableToCompletedFrame": true,
+  "supportedByCompletedFrame": true,
+  "communicatesMeaningfulUnderstanding": true,
+  "specificEnoughToUnderstand": true,
+  "merelyRepeatsEarlierFrameContent": false,
+  "confidence": 0.00
+}
+
+Use a confidence from 0 to 1 representing confidence in the complete evidence assessment.`;
 
   const user = `Assignment Context:
 "${assignment || "(not provided)"}"
