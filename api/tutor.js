@@ -14278,111 +14278,264 @@ if (s.pending?.type === "reviseDetailAt") {
   return s;
 }
   
+  // --------------------------------------------------
+  // SO WHAT OPTIONAL EXPANSION
+  // --------------------------------------------------
+
   if (s.pending?.type === "offerMoreSoWhat") {
-    const normalized = msg.toLowerCase().trim();
+    const normalized =
+      msg.toLowerCase().trim();
+
     if (isAffirmative(normalized)) {
-      s.pending = { type: "collectMoreSoWhat" };
+      s.pending = {
+        type: "collectMoreSoWhat",
+      };
+
       return s;
     }
-    s.pending = { type: "confirmSoWhat" };
+
+    s.pending = {
+      type: "confirmSoWhat",
+    };
+
     return s;
   }
 
-    if (s.pending?.type === "collectMoreSoWhat") {
-    const normalized = msg.toLowerCase().trim();
+  // --------------------------------------------------
+  // SO WHAT ADDITIONAL CONTENT
+  //
+  // The student's existing So What and proposed additional
+  // sentence are validated together before state mutation.
+  // --------------------------------------------------
 
-    // A genuine decline keeps the existing So What unchanged
-    // and returns the student to the confirmation checkpoint.
-    if (isNegative(normalized) || normalized === "2") {
-    s.pending = { type: "confirmSoWhat" };
-    return s;
-}
+  if (s.pending?.type === "collectMoreSoWhat") {
+    const normalized =
+      msg.toLowerCase().trim();
 
-    const mutationIntent =
-      await classifyStudentWorkMutationIntent(s, msg);
+    // A genuine decline preserves the existing So What.
+    if (
+      isNegative(normalized) ||
+      normalized === "2"
+    ) {
+      s.pending = {
+        type: "confirmSoWhat",
+      };
 
-  if (!mutationIntent.accept) {
-  // Genuine struggle or frustration enters the existing
-  // Stuck Support sequence without losing the exact
-  // additional So What sentence location.
-  if (
-    mutationIntent.intent === "stuck" ||
-    mutationIntent.intent === "frustrated"
-  ) {
-    return beginStuckSupportFromPending(
-      s,
-      msg,
-      mutationIntent
-    );
-  }
-
-  // Revision directions, uncertainty, and other non-content
-  // responses remain protected until their coaching behavior
-  // is handled explicitly.
-  return s;
-}
-
-    s.frame.soWhat =
-      cleanText(`${s.frame.soWhat} ${msg}`);
-
-    s.pending = { type: "confirmSoWhat" };
-    return s;
-  }
-
- if (s.pending?.type === "confirmSoWhat") {
-  const normalized = msg.toLowerCase().trim();
-
-  if (isAffirmative(normalized)) {
-    s.pending = null;
-
-    if (isFrameComplete(s) && !s.flags.exportOffered) {
-      s.flags.exportOffered = true;
-      s.pending = { type: "offerExport" };
+      return s;
     }
 
+    const mutationIntent =
+      await classifyStudentWorkMutationIntent(
+        s,
+        msg
+      );
+
+    if (!mutationIntent.accept) {
+      if (
+        mutationIntent.intent === "stuck" ||
+        mutationIntent.intent === "frustrated"
+      ) {
+        return beginStuckSupportFromPending(
+          s,
+          msg,
+          mutationIntent
+        );
+      }
+
+      return s;
+    }
+
+    const proposedSoWhat =
+      cleanText(
+        `${s.frame.soWhat} ${msg}`
+      );
+
+    const soWhatValidation =
+      await validateSoWhatResponseGoverned(
+        proposedSoWhat,
+        buildSoWhatValidationContext(s)
+      );
+
+    if (!soWhatValidation.valid) {
+      const instructionalFinding = {
+        frameComponent:
+          "soWhat",
+
+        componentEvidenceLevel:
+          soWhatValidation
+            .componentEvidenceLevel,
+
+        componentCriteriaStatus:
+          soWhatValidation
+            .componentCriteriaStatus,
+
+        relationshipStatus:
+          soWhatValidation
+            .relationshipStatus,
+
+        synthesisState:
+          soWhatValidation
+            .synthesisState,
+
+        diagnosis:
+          soWhatValidation
+            .diagnosis,
+
+        relationshipEvidence:
+          soWhatValidation
+            .relationshipEvidence || {},
+      };
+
+      return beginStuckSupportFromPending(
+        s,
+        msg,
+        {
+          intent:
+            "stuck",
+
+          confidence:
+            1,
+
+          source:
+            `soWhatValidation:${soWhatValidation.diagnosis}`,
+
+          instructionalFinding,
+        }
+      );
+    }
+
+    // Save only after governed validation.
+    s.frame.soWhat =
+      proposedSoWhat;
+
+    s.pending = {
+      type: "confirmSoWhat",
+    };
+
     return s;
   }
 
-  const mutationIntent =
-    await classifyStudentWorkMutationIntent(s, msg);
+  // --------------------------------------------------
+  // SO WHAT CONFIRMATION AND REVISION
+  // --------------------------------------------------
 
-  // The student wants to revise but has not yet supplied
-  // replacement wording. Preserve the existing So What and
-  // remain at the current confirmation step.
-  if (
-    isNegative(normalized) ||
-    normalized === "2" ||
-    mutationIntent.intent === "revision_direction"
-  ) {
+  if (s.pending?.type === "confirmSoWhat") {
+    const normalized =
+      msg.toLowerCase().trim();
+
+    if (isAffirmative(normalized)) {
+      s.pending = null;
+
+      if (
+        isFrameComplete(s) &&
+        !s.flags.exportOffered
+      ) {
+        s.flags.exportOffered = true;
+
+        s.pending = {
+          type: "offerExport",
+        };
+      }
+
+      return s;
+    }
+
+    const mutationIntent =
+      await classifyStudentWorkMutationIntent(
+        s,
+        msg
+      );
+
+    // Preserve the current So What until the student
+    // supplies actual replacement wording.
+    if (
+      isNegative(normalized) ||
+      normalized === "2" ||
+      mutationIntent.intent ===
+        "revision_direction"
+    ) {
+      return s;
+    }
+
+    if (!mutationIntent.accept) {
+      if (
+        mutationIntent.intent === "stuck" ||
+        mutationIntent.intent === "frustrated"
+      ) {
+        return beginStuckSupportFromPending(
+          s,
+          msg,
+          mutationIntent
+        );
+      }
+
+      return s;
+    }
+
+    const soWhatValidation =
+      await validateSoWhatResponseGoverned(
+        msg,
+        buildSoWhatValidationContext(s)
+      );
+
+    if (!soWhatValidation.valid) {
+      const instructionalFinding = {
+        frameComponent:
+          "soWhat",
+
+        componentEvidenceLevel:
+          soWhatValidation
+            .componentEvidenceLevel,
+
+        componentCriteriaStatus:
+          soWhatValidation
+            .componentCriteriaStatus,
+
+        relationshipStatus:
+          soWhatValidation
+            .relationshipStatus,
+
+        synthesisState:
+          soWhatValidation
+            .synthesisState,
+
+        diagnosis:
+          soWhatValidation
+            .diagnosis,
+
+        relationshipEvidence:
+          soWhatValidation
+            .relationshipEvidence || {},
+      };
+
+      return beginStuckSupportFromPending(
+        s,
+        msg,
+        {
+          intent:
+            "stuck",
+
+          confidence:
+            1,
+
+          source:
+            `soWhatValidation:${soWhatValidation.diagnosis}`,
+
+          instructionalFinding,
+        }
+      );
+    }
+
+    // Replace only after governed validation.
+    s.frame.soWhat =
+      msg;
+
+    s.pending = {
+      type: "confirmSoWhat",
+    };
+
     return s;
   }
-
-  // Accept only validated student-authored replacement content.
-  if (mutationIntent.accept) {
-    s.frame.soWhat = msg;
-    s.pending = null;
-    return s;
-  }
-
-  // Genuine struggle or frustration enters the existing
-// Stuck Support sequence without losing the So What
-// confirmation location.
-if (
-  mutationIntent.intent === "stuck" ||
-  mutationIntent.intent === "frustrated"
-) {
-  return beginStuckSupportFromPending(
-    s,
-    msg,
-    mutationIntent
-  );
-}
-
-// Uncertainty, off-task responses, and other non-content
-// replies preserve the existing So What and remain at
-// the current confirmation step.
-return s;
-}
 
   if (s.pending?.type === "offerExport") {
     const normalized = msg.toLowerCase().trim();
@@ -14724,106 +14877,112 @@ return s;
     }
   }
 
-  // 6) So What capture
+   // --------------------------------------------------
+  // 6) SO WHAT INITIAL CAPTURE
+  //
+  // The student's first proposed So What must pass
+  // governed validation before it is saved.
+  // --------------------------------------------------
+
   if (!s.frame.soWhat) {
-    if (!isNegative(msg)) {
-
-      // VALID SAVE PATH 1: normal So What capture (after evaluation)
-      s.frame.soWhat = msg;
-      clearMatchingSkip(s, "soWhat");
-      s.pending = { type: "offerMoreSoWhat" };
+    if (isNegative(msg)) {
+      return s;
     }
-    return s;
-  }
 
-  return s;
-}
+    const mutationIntent =
+      await classifyStudentWorkMutationIntent(
+        s,
+        msg
+      );
 
-// ---------------------
-// HANDLER
-// ---------------------
-export default async function handler(req, res) {
-  setCors(res);
+    if (!mutationIntent.accept) {
+      if (
+        mutationIntent.intent === "stuck" ||
+        mutationIntent.intent === "frustrated" ||
+        mutationIntent.intent ===
+          "revision_direction"
+      ) {
+        return beginStuckSupportFromPending(
+          s,
+          msg,
+          mutationIntent
+        );
+      }
 
-  if (req.method === "OPTIONS") return res.status(200).end();
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+      return s;
+    }
 
-  // Preserve the last safely normalized incoming state so an
-  // unexpected error never erases the student's work or location.
-  let safeState = defaultState();
+    const soWhatValidation =
+      await validateSoWhatResponseGoverned(
+        msg,
+        buildSoWhatValidationContext(s)
+      );
 
-  try {
-    const body = req.body && typeof req.body === "object" ? req.body : {};
-    const message = cleanText(body.message || "");
+    if (!soWhatValidation.valid) {
+      const instructionalFinding = {
+        frameComponent:
+          "soWhat",
 
-  // ------------------------------------------------------
-// TEMPORARY KAW SELF-TEST TRIGGER
-//
-// Send:
-// {
-//   "runSelfTests": true
-// }
-//
-// This bypasses the student interaction flow and returns
-// deterministic Essential Detail test results.
-// Remove or disable before public production use.
-// ------------------------------------------------------
-if (body.runSelfTests === true) {
-  const testResults =
-    await runEssentialDetailSelfTests();
+        componentEvidenceLevel:
+          soWhatValidation
+            .componentEvidenceLevel,
 
-  return res.status(200).json({
-    selfTest: true,
-    suite:
-      "essentialDetailDeterministicValidation",
-    ...testResults,
-  });
-}
+        componentCriteriaStatus:
+          soWhatValidation
+            .componentCriteriaStatus,
 
-  // ------------------------------------------------------
-// HIDDEN KAW DEVELOPER COMMAND
-//
-// Type "/run tests" in the Wix Kaw chat to run the
-// deterministic Essential Detail validation suite.
-//
-// This command bypasses the normal student interaction
-// flow and does not modify the student's Frame or state.
-// ------------------------------------------------------
-if (message.toLowerCase() === "/run tests") {
-  const testResults =
-    await runAllDeterministicSelfTests();
+        relationshipStatus:
+          soWhatValidation
+            .relationshipStatus,
 
-  const formattedSuites =
-    testResults.suites.map((suite) =>
-      suite.format(suite.result)
+        synthesisState:
+          soWhatValidation
+            .synthesisState,
+
+        diagnosis:
+          soWhatValidation
+            .diagnosis,
+
+        relationshipEvidence:
+          soWhatValidation
+            .relationshipEvidence || {},
+      };
+
+      return beginStuckSupportFromPending(
+        s,
+        msg,
+        {
+          intent:
+            "stuck",
+
+          confidence:
+            1,
+
+          source:
+            `soWhatValidation:${soWhatValidation.diagnosis}`,
+
+          instructionalFinding,
+        }
+      );
+    }
+
+    // Save only after governed validation.
+    s.frame.soWhat =
+      msg;
+
+    clearMatchingSkip(
+      s,
+      "soWhat"
     );
 
-  const reply = [
-    ...formattedSuites,
-    "",
-    "════════════════════════",
-    "ALL DETERMINISTIC SUITES",
-    "════════════════════════",
-    "",
-    `Passed: ${testResults.passedCount}/${testResults.total}`,
-    `Failed: ${testResults.failedCount}`,
-    "",
-    testResults.passed
-      ? "🚀 All deterministic suites passed."
-      : "⚠️ One or more deterministic suites failed.",
-  ].join("\n");
+    s.pending = {
+      type:
+        "offerMoreSoWhat",
+    };
 
-  return res.status(200).json({
-    reply,
-    state:
-      body.state ||
-      body.vercelState ||
-      body.framing ||
-      defaultState(),
-    selfTest: testResults,
-  });
-}
-
+    return s;
+  }
+  
 // ------------------------------------------------------
 // HIDDEN KAW AI COMMUNICATION TEST COMMAND
 //
