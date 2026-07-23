@@ -8051,6 +8051,276 @@ async function runSoWhatSelfTests() {
       governedInferenceActual,
   });
 
+    // ==================================================
+  // KU FRAMING ROUTINE MANUAL SO WHAT PRESSURE TESTS
+  //
+  // These governed benchmarks use completed Frames and
+  // approved So What examples from the KU manual.
+  //
+  // Their purpose is to confirm that Kaw:
+  //
+  // - accepts the manual's completed So What statements;
+  // - accepts different manual-approved rhetorical forms;
+  // - evaluates support from the completed Frame;
+  // - does not require one fixed So What sentence pattern.
+  // ==================================================
+
+  const runManualSupportedSoWhatTest =
+    async ({
+      name,
+      response,
+      context,
+    }) => {
+      const actual =
+        await validateSoWhatResponseGoverned(
+          response,
+          context
+        );
+
+      const passed =
+        actual.valid ===
+          true &&
+
+        actual.componentEvidenceLevel ===
+          "substantive" &&
+
+        actual.componentCriteriaStatus ===
+          "satisfied" &&
+
+        actual.relationshipStatus ===
+          "established" &&
+
+        actual.synthesisState ===
+          "supported" &&
+
+        actual.diagnosis ===
+          null &&
+
+        actual.validationSource ===
+          "deterministicWithSemanticEvidence";
+
+      results.push({
+        name,
+
+        passed,
+
+        response,
+
+        expected: {
+          valid:
+            true,
+
+          componentEvidenceLevel:
+            "substantive",
+
+          componentCriteriaStatus:
+            "satisfied",
+
+          relationshipStatus:
+            "established",
+
+          synthesisState:
+            "supported",
+
+          diagnosis:
+            null,
+
+          validationSource:
+            "deterministicWithSemanticEvidence",
+        },
+
+        actual,
+      });
+    };
+
+  // --------------------------------------------------
+  // MANUAL FRAME 1: STRATEGIC LEARNERS
+  // --------------------------------------------------
+
+  const strategicLearnersContext = {
+    assignmentContext:
+      "Understand what strategic learners do before, during, and after learning.",
+
+    thinkingTask:
+      "explain",
+
+    keyTopic:
+      "Strategic Learners",
+
+    isAbout:
+      "students who use good study plans",
+
+    mainIdeas: [
+      "They think BEFORE",
+      "They think DURING",
+      "They think AFTER",
+    ],
+
+    details: [
+      [
+        "By organizing books and materials",
+        "By setting goals and making plans",
+        "By scheduling time wisely",
+      ],
+
+      [
+        "By asking and answering questions",
+        "By linking new information to background knowledge",
+        "By looking for patterns",
+      ],
+
+      [
+        "By thinking how new information can be used",
+        "By evaluating results",
+        "By anticipating future needs",
+      ],
+    ],
+  };
+
+  await runManualSupportedSoWhatTest({
+    name:
+      "SW Manual - Strategic Learners completed So What is accepted",
+
+    response:
+      "Strategic learners actively and purposefully use smart strategies before, during, and after learning.",
+
+    context:
+      strategicLearnersContext,
+  });
+
+  // --------------------------------------------------
+  // MANUAL FRAME 2: PROGRESSIVE ERA
+  // --------------------------------------------------
+
+  const progressiveEraContext = {
+    assignmentContext:
+      "Understand the social problems, tools for change, and social changes of the Progressive Era.",
+
+    thinkingTask:
+      "explain",
+
+    keyTopic:
+      "Progressive Era",
+
+    isAbout:
+      "a period of social change in the U.S.",
+
+    mainIdeas: [
+      "Social Problems",
+      "Tools for Social Change",
+      "Social Changes",
+    ],
+
+    details: [
+      [
+        "Unsafe food",
+        "Monopolies",
+        "Unsafe and unfair working conditions",
+        "Limited voting rights",
+      ],
+
+      [
+        "Muckrakers wrote about problems",
+        "Bully pulpits forced new laws",
+        "Activists organized protests",
+        "Demonstrators created public pressure",
+      ],
+
+      [
+        "Meat Inspection Act",
+        "Anti-trust Act",
+        "Commerce and Labor Departments",
+        "Voting rights expanded",
+      ],
+    ],
+  };
+
+  await runManualSupportedSoWhatTest({
+    name:
+      "SW Manual - Progressive Era completed So What is accepted",
+
+    response:
+      "To really create social change, many people have to be organized, outspoken, and persistent!",
+
+    context:
+      progressiveEraContext,
+  });
+
+  // --------------------------------------------------
+  // MANUAL-APPROVED REAL-WORLD CONNECTION
+  // --------------------------------------------------
+
+  await runManualSupportedSoWhatTest({
+    name:
+      "SW Manual - Progressive Era real-world connection is accepted",
+
+    response:
+      "Considering the disparity between the lifestyles of the wealthy versus the poor, this country could use another Progressive Era now.",
+
+    context:
+      progressiveEraContext,
+  });
+
+  // --------------------------------------------------
+  // MANUAL-APPROVED METAPHOR
+  // --------------------------------------------------
+
+  await runManualSupportedSoWhatTest({
+    name:
+      "SW Manual - Progressive Era metaphor is accepted",
+
+    response:
+      "The Progressive Era is like Habitat for Humanity because both involve leaders, organization, awareness, lots of involvement, persistence, and hard work. In addition, both are about improving things.",
+
+    context:
+      progressiveEraContext,
+  });
+
+  // --------------------------------------------------
+  // MANUAL-APPROVED UNIT CONNECTION
+  // --------------------------------------------------
+
+  await runManualSupportedSoWhatTest({
+    name:
+      "SW Manual - Progressive Era unit connection is accepted",
+
+    response:
+      "The Progressive Era resulted from abuses of wealth and power, plus a weak federal government.",
+
+    context:
+      progressiveEraContext,
+  });
+
+  // --------------------------------------------------
+  // MANUAL-APPROVED APPLICATION OR IMPLICATION
+  // --------------------------------------------------
+
+  await runManualSupportedSoWhatTest({
+    name:
+      "SW Manual - Progressive Era implication is accepted",
+
+    response:
+      "To change things, many people have to be organized, outspoken, and persistent!",
+
+    context:
+      progressiveEraContext,
+  });
+
+  // --------------------------------------------------
+  // MANUAL-APPROVED BASIC LIFE TRUTH
+  // --------------------------------------------------
+
+  await runManualSupportedSoWhatTest({
+    name:
+      "SW Manual - Progressive Era basic life truth is accepted",
+
+    response:
+      "The behavior of governments often swings like a pendulum, from too little control and regulation to too much control and regulation. The Progressive Era marked the beginning of a swing away from too little control.",
+
+    context:
+      progressiveEraContext,
+  });
+
   const passedCount =
     results.filter(
       (result) =>
@@ -8075,7 +8345,6 @@ async function runSoWhatSelfTests() {
     results,
   };
 }
-
 
 function formatSoWhatSelfTestResults(
   testResults
