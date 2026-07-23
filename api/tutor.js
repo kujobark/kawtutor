@@ -3914,6 +3914,1140 @@ const requiresSemanticInference =
   };
 }
 
+// ------------------------------------------------------
+// SO WHAT VALIDATION
+//
+// Instructional Contract:
+//
+// The So What communicates an important understanding
+// about the accepted Key Topic that is supported by the
+// completed Frame.
+//
+// The completed Frame includes:
+//
+// - Assignment Context
+// - Thinking Task
+// - Key Topic
+// - Is About
+// - Main Ideas
+// - Essential Details
+//
+// A successful So What must:
+//
+// - remain anchored to the Key Topic;
+// - be traceable to the completed Frame;
+// - be supported by the completed Frame;
+// - communicate a meaningful understanding or takeaway;
+// - go beyond merely repeating an earlier Frame component.
+//
+// The So What may take different rhetorical forms,
+// including a conclusion, definition, principle, theme,
+// implication, recommendation, warning, value statement,
+// generalization, or call to action.
+//
+// Rhetorical form does not determine validity.
+//
+// Deterministic validation handles only observable
+// conditions that can be established without semantic
+// inference.
+//
+// Governed semantic evidence evaluates the student's
+// synthesis within the completed Frame.
+//
+// JavaScript remains the final instructional authority.
+// ------------------------------------------------------
+
+function validateSoWhatResponse(
+  response,
+  instructionalContext = {}
+) {
+  const text =
+    cleanText(response);
+
+  const keyTopic =
+    cleanText(
+      instructionalContext?.keyTopic
+    );
+
+  const isAbout =
+    cleanText(
+      instructionalContext?.isAbout
+    );
+
+  const mainIdeas =
+    Array.isArray(
+      instructionalContext?.mainIdeas
+    )
+      ? instructionalContext.mainIdeas
+          .map(cleanText)
+          .filter(Boolean)
+      : [];
+
+  const details =
+    Array.isArray(
+      instructionalContext?.details
+    )
+      ? instructionalContext.details
+          .flatMap((bucket) =>
+            Array.isArray(bucket)
+              ? bucket
+              : []
+          )
+          .map(cleanText)
+          .filter(Boolean)
+      : [];
+
+  // --------------------------------------------------
+  // NO COMPONENT EVIDENCE
+  // --------------------------------------------------
+
+  if (!text) {
+    return {
+      valid:
+        false,
+
+      componentEvidenceLevel:
+        "none",
+
+      componentCriteriaStatus:
+        "notSatisfied",
+
+      relationshipStatus:
+        "undetermined",
+
+      synthesisState:
+        "none",
+
+      diagnosis:
+        "emptyResponse",
+    };
+  }
+
+  if (
+    isStuckMessage(text) ||
+    isWeakFrameResponse(text) ||
+    isMetaResponse(text)
+  ) {
+    return {
+      valid:
+        false,
+
+      componentEvidenceLevel:
+        "none",
+
+      componentCriteriaStatus:
+        "notSatisfied",
+
+      relationshipStatus:
+        "undetermined",
+
+      synthesisState:
+        "none",
+
+      diagnosis:
+        "noComponentEvidence",
+    };
+  }
+
+  const normalizedResponse =
+    normalizeInstructionalComparisonText(
+      text
+    );
+
+  const normalizedKeyTopic =
+    normalizeInstructionalComparisonText(
+      keyTopic
+    );
+
+  const normalizedIsAbout =
+    normalizeInstructionalComparisonText(
+      isAbout
+    );
+
+  const normalizedMainIdeas =
+    mainIdeas.map(
+      normalizeInstructionalComparisonText
+    );
+
+  const normalizedDetails =
+    details.map(
+      normalizeInstructionalComparisonText
+    );
+
+  // --------------------------------------------------
+  // REPEATS KEY TOPIC
+  //
+  // Naming the topic again does not communicate a
+  // culminating understanding from the completed Frame.
+  // --------------------------------------------------
+
+  if (
+    normalizedKeyTopic &&
+    normalizedResponse ===
+      normalizedKeyTopic
+  ) {
+    return {
+      valid:
+        false,
+
+      componentEvidenceLevel:
+        "limited",
+
+      componentCriteriaStatus:
+        "notSatisfied",
+
+      relationshipStatus:
+        "notEstablished",
+
+      synthesisState:
+        "none",
+
+      diagnosis:
+        "repeatsKeyTopic",
+    };
+  }
+
+  // --------------------------------------------------
+  // REPEATS IS ABOUT
+  //
+  // Repeating the whole-topic paraphrase does not yet
+  // synthesize the completed Frame.
+  // --------------------------------------------------
+
+  if (
+    normalizedIsAbout &&
+    normalizedResponse ===
+      normalizedIsAbout
+  ) {
+    return {
+      valid:
+        false,
+
+      componentEvidenceLevel:
+        "limited",
+
+      componentCriteriaStatus:
+        "notSatisfied",
+
+      relationshipStatus:
+        "notEstablished",
+
+      synthesisState:
+        "none",
+
+      diagnosis:
+        "repeatsIsAbout",
+    };
+  }
+
+  // --------------------------------------------------
+  // REPEATS ONE MAIN IDEA
+  //
+  // A So What should emerge from the completed Frame,
+  // not merely repeat one organizing idea.
+  // --------------------------------------------------
+
+  if (
+    normalizedMainIdeas.includes(
+      normalizedResponse
+    )
+  ) {
+    return {
+      valid:
+        false,
+
+      componentEvidenceLevel:
+        "limited",
+
+      componentCriteriaStatus:
+        "notSatisfied",
+
+      relationshipStatus:
+        "notEstablished",
+
+      synthesisState:
+        "none",
+
+      diagnosis:
+        "repeatsMainIdea",
+    };
+  }
+
+  // --------------------------------------------------
+  // REPEATS ONE ESSENTIAL DETAIL
+  //
+  // Repeating one supporting detail does not communicate
+  // a culminating understanding.
+  // --------------------------------------------------
+
+  if (
+    normalizedDetails.includes(
+      normalizedResponse
+    )
+  ) {
+    return {
+      valid:
+        false,
+
+      componentEvidenceLevel:
+        "limited",
+
+      componentCriteriaStatus:
+        "notSatisfied",
+
+      relationshipStatus:
+        "notEstablished",
+
+      synthesisState:
+        "none",
+
+      diagnosis:
+        "repeatsEssentialDetail",
+    };
+  }
+
+  const words =
+    text
+      .split(/\s+/)
+      .filter(Boolean);
+
+  // --------------------------------------------------
+  // INSUFFICIENT OBSERVABLE EVIDENCE
+  //
+  // Very short responses do not provide enough observable
+  // evidence to establish synthesis.
+  //
+  // They remain eligible for instructional coaching but
+  // are not sent for semantic validation.
+  // --------------------------------------------------
+
+  if (words.length < 4) {
+    return {
+      valid:
+        false,
+
+      componentEvidenceLevel:
+        "limited",
+
+      componentCriteriaStatus:
+        "partiallySatisfied",
+
+      relationshipStatus:
+        "undetermined",
+
+      synthesisState:
+        "emerging",
+
+      diagnosis:
+        "insufficientObservableEvidence",
+    };
+  }
+
+  // --------------------------------------------------
+  // SEMANTIC INFERENCE GAP
+  //
+  // The response contains substantive content.
+  //
+  // Whether it communicates a supported culminating
+  // understanding must be evaluated within the complete
+  // Frame context.
+  // --------------------------------------------------
+
+  return {
+    valid:
+      false,
+
+    componentEvidenceLevel:
+      "substantive",
+
+    componentCriteriaStatus:
+      "partiallySatisfied",
+
+    relationshipStatus:
+      "undetermined",
+
+    synthesisState:
+      "undetermined",
+
+    diagnosis:
+      "synthesisUndetermined",
+
+    relationshipEvidence: {
+      requiresSemanticInference:
+        true,
+
+      readerInferenceRequired:
+        true,
+    },
+  };
+}
+
+
+// ------------------------------------------------------
+// SO WHAT SEMANTIC EVIDENCE
+//
+// Purpose:
+//
+// Provides narrowly governed semantic evidence only after
+// deterministic validation confirms that the student has
+// supplied substantive So What content.
+//
+// AI does not validate or save the So What.
+// AI does not rewrite or improve student work.
+// AI does not determine progression.
+// AI does not require one predetermined conclusion.
+//
+// AI evaluates only whether the student's response
+// functions as a supported culminating understanding
+// within the supplied completed Frame.
+//
+// JavaScript remains the final instructional authority.
+// ------------------------------------------------------
+
+async function getSoWhatSemanticEvidence(
+  response,
+  instructionalContext = {}
+) {
+  const studentResponse =
+    cleanText(response);
+
+  const assignmentContext =
+    instructionalContext
+      ?.assignmentContext || {};
+
+  const assignment =
+    cleanText(
+      assignmentContext
+        ?.understanding ||
+      assignmentContext
+        ?.studentSummary ||
+      assignmentContext
+        ?.raw ||
+      ""
+    );
+
+  const thinkingTask =
+    cleanText(
+      instructionalContext
+        ?.thinkingTask?.label ||
+      instructionalContext
+        ?.thinkingTask?.task ||
+      ""
+    );
+
+  const keyTopic =
+    cleanText(
+      instructionalContext?.keyTopic
+    );
+
+  const isAbout =
+    cleanText(
+      instructionalContext?.isAbout
+    );
+
+  const mainIdeas =
+    Array.isArray(
+      instructionalContext?.mainIdeas
+    )
+      ? instructionalContext.mainIdeas
+          .map(cleanText)
+          .filter(Boolean)
+      : [];
+
+  const detailBuckets =
+    Array.isArray(
+      instructionalContext?.details
+    )
+      ? instructionalContext.details
+      : [];
+
+  const completedFrame =
+    mainIdeas.map(
+      (mainIdea, index) => {
+        const details =
+          Array.isArray(
+            detailBuckets[index]
+          )
+            ? detailBuckets[index]
+                .map(cleanText)
+                .filter(Boolean)
+            : [];
+
+        return {
+          mainIdea,
+          details,
+        };
+      }
+    );
+
+  if (
+    !studentResponse ||
+    !keyTopic
+  ) {
+    return {
+      anchoredToKeyTopic:
+        false,
+
+      traceableToCompletedFrame:
+        false,
+
+      supportedByCompletedFrame:
+        false,
+
+      communicatesMeaningfulUnderstanding:
+        false,
+
+      specificEnoughToUnderstand:
+        false,
+
+      merelyRepeatsEarlierFrameContent:
+        false,
+
+      confidence:
+        0,
+
+      source:
+        "notRequested",
+    };
+  }
+
+  const system = `You provide semantic evidence for a deterministic instructional validator supporting the KU Framing Routine.
+
+The student's assignment context, Thinking Task, completed Frame, and proposed So What will be provided.
+
+Determine only whether the student's response functions as a supported culminating understanding within that specific completed Frame.
+
+The So What communicates an important understanding about the Key Topic that is supported by the completed Frame.
+
+A successful So What:
+- remains anchored to the accepted Key Topic;
+- can be traced to ideas or evidence developed in the completed Frame;
+- is supported by the completed Frame;
+- communicates a meaningful understanding or takeaway;
+- is specific enough for a reader to understand the student's takeaway;
+- goes beyond merely repeating the Key Topic, Is About, one Main Idea, or one Essential Detail.
+
+The So What may naturally function as:
+- a conclusion;
+- a definition;
+- a principle;
+- a theme;
+- an implication;
+- a consequence;
+- a recommendation;
+- a warning;
+- a generalization;
+- a value statement;
+- a call to action;
+- another supported culminating understanding.
+
+Rules:
+- Do not require one predetermined or uniquely correct So What.
+- Do not reject a response merely because it expresses an opinion, recommendation, value statement, implication, or warning.
+- An opinion or recommendation must still be traceable to and supported by the completed Frame.
+- Do not require the response to summarize every Main Idea or Detail.
+- Do not require exact vocabulary from the completed Frame.
+- Do not require a particular rhetorical form.
+- Do not judge grammar, spelling, style, or outside factual accuracy.
+- Do not rewrite the student's response.
+- Do not improve the student's response.
+- Do not generate a replacement So What.
+- Do not teach the content.
+- Do not add evidence that is absent from the completed Frame.
+- Evaluate only the instructional function of the student's response within the supplied Frame.
+- Confidence represents how clearly the instructional relationship can be established from the supplied Frame.
+- Return semantic evidence only.
+- Return only the required JSON object.`;
+
+  const user = `Assignment Context:
+"${assignment || "(not provided)"}"
+
+Thinking Task:
+"${thinkingTask || "(not provided)"}"
+
+Accepted Key Topic:
+"${keyTopic}"
+
+Accepted Is About:
+"${isAbout || "(not provided)"}"
+
+Completed Frame:
+${JSON.stringify(
+  completedFrame,
+  null,
+  2
+)}
+
+Student's proposed So What:
+"${studentResponse}"
+
+Determine whether this response functions as a supported culminating understanding within this completed Frame.`;
+
+  try {
+    const resp =
+      await client.chat.completions.create({
+        model:
+          DEFAULT_MODEL,
+
+        reasoning_effort:
+          "none",
+
+        temperature:
+          0,
+
+        response_format: {
+          type:
+            "json_schema",
+
+          json_schema: {
+            name:
+              "so_what_semantic_evidence",
+
+            strict:
+              true,
+
+            schema: {
+              type:
+                "object",
+
+              additionalProperties:
+                false,
+
+              properties: {
+                anchoredToKeyTopic: {
+                  type:
+                    "boolean",
+                },
+
+                traceableToCompletedFrame: {
+                  type:
+                    "boolean",
+                },
+
+                supportedByCompletedFrame: {
+                  type:
+                    "boolean",
+                },
+
+                communicatesMeaningfulUnderstanding: {
+                  type:
+                    "boolean",
+                },
+
+                specificEnoughToUnderstand: {
+                  type:
+                    "boolean",
+                },
+
+                merelyRepeatsEarlierFrameContent: {
+                  type:
+                    "boolean",
+                },
+
+                confidence: {
+                  type:
+                    "number",
+
+                  minimum:
+                    0,
+
+                  maximum:
+                    1,
+                },
+              },
+
+              required: [
+                "anchoredToKeyTopic",
+                "traceableToCompletedFrame",
+                "supportedByCompletedFrame",
+                "communicatesMeaningfulUnderstanding",
+                "specificEnoughToUnderstand",
+                "merelyRepeatsEarlierFrameContent",
+                "confidence",
+              ],
+            },
+          },
+        },
+
+        messages: [
+          {
+            role:
+              "system",
+
+            content:
+              system,
+          },
+
+          {
+            role:
+              "user",
+
+            content:
+              user,
+          },
+        ],
+      });
+
+    const parsed =
+      JSON.parse(
+        resp?.choices?.[0]?.message
+          ?.content || "{}"
+      );
+
+    const confidence =
+      Number(
+        parsed.confidence || 0
+      );
+
+    return {
+      anchoredToKeyTopic:
+        parsed.anchoredToKeyTopic ===
+        true,
+
+      traceableToCompletedFrame:
+        parsed
+          .traceableToCompletedFrame ===
+        true,
+
+      supportedByCompletedFrame:
+        parsed
+          .supportedByCompletedFrame ===
+        true,
+
+      communicatesMeaningfulUnderstanding:
+        parsed
+          .communicatesMeaningfulUnderstanding ===
+        true,
+
+      specificEnoughToUnderstand:
+        parsed
+          .specificEnoughToUnderstand ===
+        true,
+
+      merelyRepeatsEarlierFrameContent:
+        parsed
+          .merelyRepeatsEarlierFrameContent ===
+        true,
+
+      confidence:
+        Number.isFinite(confidence)
+          ? Math.max(
+              0,
+              Math.min(
+                confidence,
+                1
+              )
+            )
+          : 0,
+
+      source:
+        "aiSemanticEvidence",
+    };
+  } catch (error) {
+    console.error(
+      "So What semantic evidence error:",
+      error
+    );
+
+    return {
+      anchoredToKeyTopic:
+        false,
+
+      traceableToCompletedFrame:
+        false,
+
+      supportedByCompletedFrame:
+        false,
+
+      communicatesMeaningfulUnderstanding:
+        false,
+
+      specificEnoughToUnderstand:
+        false,
+
+      merelyRepeatsEarlierFrameContent:
+        false,
+
+      confidence:
+        0,
+
+      source:
+        "semanticEvidenceUnavailable",
+    };
+  }
+}
+
+
+// ------------------------------------------------------
+// GOVERNED SO WHAT VALIDATION
+//
+// Runs deterministic validation first.
+//
+// Semantic evidence is requested only when deterministic
+// validation identifies substantive So What content whose
+// relationship to the completed Frame requires semantic
+// inference.
+//
+// JavaScript applies the complete instructional contract
+// and determines the student's synthesis state.
+//
+// Supported synthesis:
+// The response satisfies all four instructional
+// constraints and is specific enough to understand.
+//
+// Emerging synthesis:
+// The response remains anchored, traceable, and supported,
+// but the culminating understanding needs greater meaning,
+// specificity, or distinction from earlier Frame content.
+//
+// Unsupported synthesis:
+// The response cannot be sufficiently anchored, traced,
+// or supported by the completed Frame.
+//
+// JavaScript remains the final instructional authority.
+// ------------------------------------------------------
+
+async function validateSoWhatResponseGoverned(
+  response,
+  instructionalContext = {}
+) {
+  const deterministicValidation =
+    validateSoWhatResponse(
+      response,
+      instructionalContext
+    );
+
+  console.log(
+    "SO WHAT VALIDATION:",
+    deterministicValidation
+  );
+
+  const requiresSemanticInference =
+    deterministicValidation
+      ?.relationshipEvidence
+      ?.requiresSemanticInference ===
+    true;
+
+  // Deterministic outcomes remain authoritative when
+  // semantic inference is not explicitly required.
+  if (!requiresSemanticInference) {
+    return {
+      ...deterministicValidation,
+
+      validationSource:
+        "deterministic",
+    };
+  }
+
+  const semanticEvidence =
+    await getSoWhatSemanticEvidence(
+      response,
+      instructionalContext
+    );
+
+  // --------------------------------------------------
+  // JAVASCRIPT FINAL DECISION
+  //
+  // AI provides bounded instructional evidence.
+  //
+  // JavaScript determines:
+  // - whether the So What is accepted;
+  // - the student's synthesis state;
+  // - the instructional diagnosis;
+  // - whether progression may continue.
+  // --------------------------------------------------
+
+  const supportedSynthesis =
+    semanticEvidence
+      .anchoredToKeyTopic === true &&
+
+    semanticEvidence
+      .traceableToCompletedFrame === true &&
+
+    semanticEvidence
+      .supportedByCompletedFrame === true &&
+
+    semanticEvidence
+      .communicatesMeaningfulUnderstanding === true &&
+
+    semanticEvidence
+      .specificEnoughToUnderstand === true &&
+
+    semanticEvidence
+      .merelyRepeatsEarlierFrameContent === false &&
+
+    semanticEvidence
+      .confidence >= 0.9;
+
+  if (supportedSynthesis) {
+    return {
+      valid:
+        true,
+
+      componentEvidenceLevel:
+        "substantive",
+
+      componentCriteriaStatus:
+        "satisfied",
+
+      relationshipStatus:
+        "established",
+
+      synthesisState:
+        "supported",
+
+      diagnosis:
+        null,
+
+      relationshipEvidence: {
+        ...deterministicValidation
+          .relationshipEvidence,
+
+        anchoredToKeyTopic:
+          semanticEvidence
+            .anchoredToKeyTopic,
+
+        traceableToCompletedFrame:
+          semanticEvidence
+            .traceableToCompletedFrame,
+
+        supportedByCompletedFrame:
+          semanticEvidence
+            .supportedByCompletedFrame,
+
+        communicatesMeaningfulUnderstanding:
+          semanticEvidence
+            .communicatesMeaningfulUnderstanding,
+
+        specificEnoughToUnderstand:
+          semanticEvidence
+            .specificEnoughToUnderstand,
+
+        merelyRepeatsEarlierFrameContent:
+          semanticEvidence
+            .merelyRepeatsEarlierFrameContent,
+
+        semanticConfidence:
+          semanticEvidence.confidence,
+
+        semanticEvidenceSource:
+          semanticEvidence.source,
+
+        readerInferenceRequired:
+          false,
+      },
+
+      validationSource:
+        "deterministicWithSemanticEvidence",
+    };
+  }
+
+  // --------------------------------------------------
+  // EMERGING SYNTHESIS
+  //
+  // The response has a legitimate foundation in the
+  // completed Frame but needs one additional thinking move.
+  //
+  // Kaw should ask the student to clarify, deepen, or make
+  // the takeaway more specific rather than declaring the
+  // response incorrect.
+  // --------------------------------------------------
+
+  const emergingSynthesis =
+    semanticEvidence
+      .anchoredToKeyTopic === true &&
+
+    semanticEvidence
+      .traceableToCompletedFrame === true &&
+
+    semanticEvidence
+      .supportedByCompletedFrame === true &&
+
+    semanticEvidence
+      .confidence >= 0.85;
+
+  if (emergingSynthesis) {
+    const repeatsEarlierContent =
+      semanticEvidence
+        .merelyRepeatsEarlierFrameContent ===
+      true;
+
+    const needsMeaning =
+      semanticEvidence
+        .communicatesMeaningfulUnderstanding ===
+      false;
+
+    const needsSpecificity =
+      semanticEvidence
+        .specificEnoughToUnderstand ===
+      false;
+
+    let diagnosis =
+      "needsMoreSpecificSynthesis";
+
+    if (repeatsEarlierContent) {
+      diagnosis =
+        "repeatsEarlierFrameContent";
+    } else if (
+      needsMeaning &&
+      !needsSpecificity
+    ) {
+      diagnosis =
+        "needsMoreMeaningfulSynthesis";
+    }
+
+    return {
+      valid:
+        false,
+
+      componentEvidenceLevel:
+        "substantive",
+
+      componentCriteriaStatus:
+        "partiallySatisfied",
+
+      relationshipStatus:
+        "incomplete",
+
+      synthesisState:
+        "emerging",
+
+      diagnosis,
+
+      relationshipEvidence: {
+        ...deterministicValidation
+          .relationshipEvidence,
+
+        anchoredToKeyTopic:
+          semanticEvidence
+            .anchoredToKeyTopic,
+
+        traceableToCompletedFrame:
+          semanticEvidence
+            .traceableToCompletedFrame,
+
+        supportedByCompletedFrame:
+          semanticEvidence
+            .supportedByCompletedFrame,
+
+        communicatesMeaningfulUnderstanding:
+          semanticEvidence
+            .communicatesMeaningfulUnderstanding,
+
+        specificEnoughToUnderstand:
+          semanticEvidence
+            .specificEnoughToUnderstand,
+
+        merelyRepeatsEarlierFrameContent:
+          semanticEvidence
+            .merelyRepeatsEarlierFrameContent,
+
+        semanticConfidence:
+          semanticEvidence.confidence,
+
+        semanticEvidenceSource:
+          semanticEvidence.source,
+
+        readerInferenceRequired:
+          false,
+      },
+
+      validationSource:
+        "deterministicWithSemanticEvidence",
+    };
+  }
+
+  // --------------------------------------------------
+  // UNSUPPORTED SYNTHESIS
+  //
+  // The response contains substantive content, but the
+  // necessary relationship to the completed Frame has not
+  // been established.
+  // --------------------------------------------------
+
+  let diagnosis =
+    "synthesisNotEstablished";
+
+  if (
+    semanticEvidence
+      .anchoredToKeyTopic === false
+  ) {
+    diagnosis =
+      "notAnchoredToKeyTopic";
+  } else if (
+    semanticEvidence
+      .traceableToCompletedFrame ===
+    false
+  ) {
+    diagnosis =
+      "notTraceableToCompletedFrame";
+  } else if (
+    semanticEvidence
+      .supportedByCompletedFrame ===
+    false
+  ) {
+    diagnosis =
+      "notSupportedByCompletedFrame";
+  }
+
+  return {
+    valid:
+      false,
+
+    componentEvidenceLevel:
+      "substantive",
+
+    componentCriteriaStatus:
+      "notSatisfied",
+
+    relationshipStatus:
+      "notEstablished",
+
+    synthesisState:
+      "unsupported",
+
+    diagnosis,
+
+    relationshipEvidence: {
+      ...deterministicValidation
+        .relationshipEvidence,
+
+      anchoredToKeyTopic:
+        semanticEvidence
+          .anchoredToKeyTopic,
+
+      traceableToCompletedFrame:
+        semanticEvidence
+          .traceableToCompletedFrame,
+
+      supportedByCompletedFrame:
+        semanticEvidence
+          .supportedByCompletedFrame,
+
+      communicatesMeaningfulUnderstanding:
+        semanticEvidence
+          .communicatesMeaningfulUnderstanding,
+
+      specificEnoughToUnderstand:
+        semanticEvidence
+          .specificEnoughToUnderstand,
+
+      merelyRepeatsEarlierFrameContent:
+        semanticEvidence
+          .merelyRepeatsEarlierFrameContent,
+
+      semanticConfidence:
+        semanticEvidence.confidence,
+
+      semanticEvidenceSource:
+        semanticEvidence.source,
+    },
+
+    validationSource:
+      "deterministicWithSemanticEvidence",
+  };
+}
+
 // ======================================================
 // DETERMINISTIC SELF-TEST SUITES
 // ======================================================
