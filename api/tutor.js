@@ -12432,6 +12432,7 @@ s.pending = {
 };
 
 return s;
+}
 
 // ---------------------
 // MAIN IDEA CAPTURE
