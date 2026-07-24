@@ -2332,7 +2332,7 @@ Rules:
   Student's proposed Is About response:
   "${studentResponse}"
     
-  Read the student's response as the completion of this Frame sentence:
+  Interpret the student's response only as the completion of this Frame sentence:
     
   "${acceptedKeyTopic} is about ${studentResponse}"
     
