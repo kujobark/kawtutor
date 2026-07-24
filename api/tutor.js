@@ -13318,9 +13318,9 @@ if (s.pending?.type === "collectAnotherMainIdea") {
   }
 
   return getComponentPrompt("mainIdeas", "additionalPrompt", {
-    keyTopic: s.frame.keyTopic
-  });
-}
+    keyTopic: s.frame.keyTopic,
+    isAbout: s.frame.isAbout
+});
   
 if (s.pending?.type === "offerAnotherDetail") {
   const i = Number(s.pending.index);
@@ -13500,7 +13500,8 @@ const label = "Main Idea";
 const promptType = c === 0 ? "initialPrompt" : "additionalPrompt";
 
 const fallback = getComponentPrompt("mainIdeas", promptType, {
-  keyTopic: s.frame.keyTopic
+  keyTopic: s.frame.keyTopic,
+  isAbout: s.frame.isAbout
 });
 
 return `${label} ${c + 1}:\n\n${fallback}`;
