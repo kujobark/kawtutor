@@ -12231,13 +12231,33 @@ function parseCauseEffectFromLeadsTo(msg) {
 }
 
 async function applyIsAboutCapture(s, msg) {
+  const cleanedIsAbout =
+    cleanFrameText(msg);
+
+  const keyTopic =
+    cleanText(s.frame?.keyTopic || "");
+
+  const keyTopicPrefix =
+    `${keyTopic} is about `;
+
+  const normalizedIsAbout =
+    cleanedIsAbout
+      .toLowerCase()
+      .startsWith(
+        keyTopicPrefix.toLowerCase()
+      )
+        ? cleanedIsAbout.slice(
+            keyTopicPrefix.length
+          )
+        : cleanedIsAbout;
+
   const validation =
     await validateIsAboutResponseGoverned(
-      msg,
-      s.frame?.keyTopic || ""
+      normalizedIsAbout,
+      keyTopic
     );
 
- if (!validation.valid) {
+  if (!validation.valid) {
   const instructionalFinding = {
     frameComponent:
       "isAbout",
