@@ -10593,10 +10593,6 @@ const GENERIC_KEY_TOPICS = new Set(
   KU_FRAME_COMPONENTS.keyTopic.genericNonExamples || []
 );
 
-const GENERIC_KEY_TOPICS = new Set(
-  KU_FRAME_COMPONENTS.keyTopic.genericNonExamples || []
-);
-
 function isBadKeyTopic(keyTopic) {
   const kt = cleanText(keyTopic).toLowerCase();
 
