@@ -13320,8 +13320,9 @@ if (s.pending?.type === "collectAnotherMainIdea") {
   return getComponentPrompt("mainIdeas", "additionalPrompt", {
     keyTopic: s.frame.keyTopic,
     isAbout: s.frame.isAbout
-});
-  
+  });
+}
+
 if (s.pending?.type === "offerAnotherDetail") {
   const i = Number(s.pending.index);
   const mi = getIdeaList(s)[i] || "";
