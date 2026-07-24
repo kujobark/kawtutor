@@ -2413,14 +2413,19 @@ Rules:
         ],
       });
 
-    const parsed =
-      JSON.parse(
-        resp?.choices?.[0]?.message
-          ?.content || "{}"
-      );
+  const parsed =
+    JSON.parse(
+      resp?.choices?.[0]?.message
+        ?.content || "{}"
+    );
+  
+  console.log(
+    "IS ABOUT SEMANTIC EVIDENCE:",
+    parsed
+);
 
-    const confidence =
-      Number(parsed.confidence || 0);
+const confidence =
+  Number(parsed.confidence || 0);
 
     return {
       semanticEquivalent:
