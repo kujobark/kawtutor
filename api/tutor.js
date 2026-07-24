@@ -12427,23 +12427,6 @@ async function applyIsAboutCapture(s, msg) {
     return s;
   }
 
-  const cleanedIsAbout =
-  cleanFrameText(msg);
-
-const keyTopicPrefix =
-  `${cleanText(s.frame.keyTopic)} is about `;
-
-const normalizedIsAbout =
-  cleanedIsAbout
-    .toLowerCase()
-    .startsWith(
-      keyTopicPrefix.toLowerCase()
-    )
-      ? cleanedIsAbout.slice(
-          keyTopicPrefix.length
-        )
-      : cleanedIsAbout;
-
 s.frame.isAbout =
   cleanFrameText(normalizedIsAbout);
 
