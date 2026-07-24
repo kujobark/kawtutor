@@ -2327,12 +2327,18 @@ Rules:
 - Return only the required JSON object.`;
 
   const user = `Accepted Key Topic:
-"${acceptedKeyTopic}"
-
-Student's proposed Is About statement:
-"${studentResponse}"
-
-Does the student's statement express what the whole Key Topic is about using different words?`;
+  "${acceptedKeyTopic}"
+    
+  Student's proposed Is About response:
+  "${studentResponse}"
+    
+  Read the student's response as the completion of this Frame sentence:
+    
+  "${acceptedKeyTopic} is about ${studentResponse}"
+    
+  Does the completed Frame sentence express what the whole Key Topic is about?
+    
+  A response may validly use pronouns such as he, she, they, or it when the pronoun clearly refers to the accepted Key Topic.`;
 
   try {
     const resp =
