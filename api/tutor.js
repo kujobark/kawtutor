@@ -12391,7 +12391,7 @@ async function applyIsAboutCapture(s, msg) {
       "neutral",
   };
 
-  return s;
+    return s;
 }
 
   // Write + causeEffect must include "leads to" and we parse/store cause/effect
