@@ -249,10 +249,10 @@ mainIdeas: {
     friendlyTerm: "important idea",
 
     initialPrompt:
-      'What is one Main Idea that helps explain "{keyTopic}"?',
+    'So far your Frame says:\n\n{keyTopic} is about {isAbout}.\n\nWhat is one Main Idea that helps explain this?',
 
     additionalPrompt:
-      'What is another Main Idea that helps explain "{keyTopic}"?',
+    'So far your Frame says:\n\n{keyTopic} is about {isAbout}.\n\nWhat is another Main Idea that helps explain this?',
 
    revisePrompt:
       "You're close. Try naming a Main Idea that clearly connects to your Key Topic and can be explained with Essential Details.",
@@ -10593,14 +10593,27 @@ const GENERIC_KEY_TOPICS = new Set(
   KU_FRAME_COMPONENTS.keyTopic.genericNonExamples || []
 );
 
+const GENERIC_KEY_TOPICS = new Set(
+  KU_FRAME_COMPONENTS.keyTopic.genericNonExamples || []
+);
+
 function isBadKeyTopic(keyTopic) {
   const kt = cleanText(keyTopic).toLowerCase();
-  if (!kt) return true;
-  if (GENERIC_KEY_TOPICS.has(kt)) return true;
-  if (kt.startsWith("my ")) return true;
+
+  if (!kt) {
+    return true;
+  }
+
+  // Reject only explicitly generic nonexamples.
+  // Natural topic phrases such as "My grandfather,"
+  // "My first job," and "My greatest accomplishment"
+  // are valid Key Topics.
+  if (GENERIC_KEY_TOPICS.has(kt)) {
+    return true;
+  }
+
   return false;
 }
-
 function getKeyTopicFeedback(input) {
   const text = cleanText(input);
   const support = getComponentConversation("keyTopic");
