@@ -12407,10 +12407,31 @@ async function applyIsAboutCapture(s, msg) {
     return s;
   }
 
-   s.frame.isAbout = cleanFrameText(msg);
-   s.pending = { type: "confirmIsAbout" };
-   return s;
-}
+  const cleanedIsAbout =
+  cleanFrameText(msg);
+
+const keyTopicPrefix =
+  `${cleanText(s.frame.keyTopic)} is about `;
+
+const normalizedIsAbout =
+  cleanedIsAbout
+    .toLowerCase()
+    .startsWith(
+      keyTopicPrefix.toLowerCase()
+    )
+      ? cleanedIsAbout.slice(
+          keyTopicPrefix.length
+        )
+      : cleanedIsAbout;
+
+s.frame.isAbout =
+  cleanFrameText(normalizedIsAbout);
+
+s.pending = {
+  type: "confirmIsAbout"
+};
+
+return s;
 
 // ---------------------
 // MAIN IDEA CAPTURE
