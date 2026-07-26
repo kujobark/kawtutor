@@ -16290,21 +16290,16 @@ if (
    studentResponseGovernance;
 
 // Optional debug only; does not affect current behavior.
-  if (
-  state?.settings
-    ?.debugInstructionalPlan
-) {
- if (state?.settings?.debugInstructionalPlan) {
-  console.log("[KAW PLAN]", instructionalPlan);
-  console.log("[KAW STATE]", instructionalState);
-  console.log("[KAW BEHAVIOR]", instructionalBehavior);
+    if (state?.settings?.debugInstructionalPlan) {
+      console.log("[KAW PLAN]", instructionalPlan);
+      console.log("[KAW STATE]", instructionalState);
+      console.log("[KAW BEHAVIOR]", instructionalBehavior);
+      console.log(
+        "[KAW RESPONSE GOVERNANCE]",
+        studentResponseGovernance
+      );
+    }
 
-  console.log(
-    "[KAW RESPONSE GOVERNANCE]",
-    studentResponseGovernance
-  );
-}
-    
     // Safety
     if (message) {
       const safety = await classifyMessage(message);
