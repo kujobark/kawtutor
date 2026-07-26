@@ -13420,38 +13420,39 @@ async function applyMainIdeaCapture(
     "causeEffect";
 
   const validation =
-    await validateMainIdeaResponseGoverned(
-      text,
-      s.frame?.keyTopic || "",
-      s.frame?.isAbout || ""
-    );
+  await validateMainIdeaResponseGoverned(
+    text,
+    s.frame?.keyTopic || "",
+    s.frame?.isAbout || ""
+  );
+
+if (!validation.valid) {
 
   const instructionalFinding = {
-  ...buildComponentInstructionalFinding({
-    frameComponent:
-      "mainIdeas",
+    ...buildComponentInstructionalFinding({
+      frameComponent:
+        "mainIdeas",
 
-    validation,
+      validation,
 
-    evidence: {
-      keyTopic:
-        s.frame?.keyTopic || "",
+      evidence: {
+        keyTopic:
+          s.frame?.keyTopic || "",
 
-      isAbout:
-        s.frame?.isAbout || "",
+        isAbout:
+          s.frame?.isAbout || "",
 
-      attemptedMainIdea:
-        text,
+        attemptedMainIdea:
+          text,
 
-      captureMode,
+        captureMode,
 
-      revisionIndex,
-    },
-  }),
-};
+        revisionIndex,
+      },
+    }),
+  };
 
-    let resumePending;
-
+  let resumePending;
     if (isRevision) {
       resumePending = {
         type:
