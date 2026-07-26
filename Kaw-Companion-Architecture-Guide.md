@@ -80,6 +80,38 @@ The pages that follow define those principles, explain why they exist, and descr
 
 ---
 
+                     CONSTITUTION
+
+          Constitutional Governance
+                 (Permanent)
+
+                      ↓
+
+         Instructional Architecture
+                 (Permanent)
+
+                      ↓
+
+         Communication Architecture
+                 (Permanent)
+
+                      ↓
+
+               System Design
+          (Reference Implementation)
+
+                      ↓
+
+         Instructional Framework
+      (Framing Routine – Current)
+
+                      ↓
+
+            Runtime Implementation
+         (tutor.js and Supporting Code)
+
+---
+
 # Table of Contents
 
 **PART I — Constitutional Governance**
