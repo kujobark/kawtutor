@@ -10218,6 +10218,275 @@ function selectInstructionalBehavior(state, instructionalState) {
   };
 }
 
+// ======================================================
+// UNIFIED STUDENT RESPONSE GOVERNANCE RESULT
+// ======================================================
+//
+// Phase 1 purpose:
+// Normalize existing deterministic instructional-state,
+// behavior, tone, stuck, weak-response, and meta-response
+// signals into one read-only governance result.
+//
+// This function does not select a new contract, change the
+// current pending flow, write student work, or alter runtime
+// behavior. Existing runtime logic remains authoritative.
+// ======================================================
+
+const STUDENT_RESPONSE_GOVERNANCE_VERSION = "1.0";
+
+function buildStudentResponseGovernanceResult(
+  state,
+  message,
+  instructionalState = null,
+  instructionalBehavior = null
+) {
+  const text = cleanText(message);
+
+  const stage =
+    instructionalState?.stage ||
+    state?.pending?.stage ||
+    getStage(state);
+
+  const pendingType =
+    state?.pending?.type || null;
+
+  const resolvedInstructionalState =
+    instructionalState ||
+    detectInstructionalState(
+      state,
+      text
+    );
+
+  const resolvedInstructionalBehavior =
+    instructionalBehavior ||
+    selectInstructionalBehavior(
+      state,
+      resolvedInstructionalState
+    );
+
+  const tone =
+    detectStuckTone(text);
+
+  const stuckSignal =
+    Boolean(text) &&
+    isStuckMessage(text);
+
+  const weakResponseSignal =
+    Boolean(text) &&
+    isWeakFrameResponse(text);
+
+  const metaResponseSignal =
+    Boolean(text) &&
+    isMetaResponse(text);
+
+  const evidence = new Set([
+    ...(
+      resolvedInstructionalState
+        ?.evidence || []
+    ),
+
+    ...(
+      resolvedInstructionalBehavior
+        ?.evidence || []
+    ),
+  ]);
+
+  if (stuckSignal) {
+    evidence.add(
+      "stuckMessage"
+    );
+  }
+
+  if (weakResponseSignal) {
+    evidence.add(
+      "weakFrameResponse"
+    );
+  }
+
+  if (metaResponseSignal) {
+    evidence.add(
+      "metaResponse"
+    );
+  }
+
+  if (
+    tone === "frustration"
+  ) {
+    evidence.add(
+      "frustrationTone"
+    );
+  }
+
+  if (
+    tone === "resistance"
+  ) {
+    evidence.add(
+      "resistanceTone"
+    );
+  }
+
+  let primaryLabel =
+    "productive";
+
+  if (
+    resolvedInstructionalState
+      ?.state === "protected"
+  ) {
+    primaryLabel =
+      "protected";
+  } else if (
+    resolvedInstructionalState
+      ?.state === "drifting"
+  ) {
+    primaryLabel =
+      "off_task";
+  } else if (
+    tone === "frustration"
+  ) {
+    primaryLabel =
+      "frustrated";
+  } else if (
+    stuckSignal ||
+    resolvedInstructionalState
+      ?.state === "struggling"
+  ) {
+    primaryLabel =
+      "stuck";
+  } else if (
+    resolvedInstructionalState
+      ?.state === "uncertain" ||
+    resolvedInstructionalBehavior
+      ?.behavior === "probe"
+  ) {
+    primaryLabel =
+      "uncertain";
+  }
+
+  const secondaryLabels = [];
+
+  if (
+    tone === "frustration" &&
+    primaryLabel !== "frustrated"
+  ) {
+    secondaryLabels.push(
+      "frustrated"
+    );
+  }
+
+  if (
+    stuckSignal &&
+    primaryLabel !== "stuck"
+  ) {
+    secondaryLabels.push(
+      "stuck"
+    );
+  }
+
+  if (metaResponseSignal) {
+    secondaryLabels.push(
+      "meta_response"
+    );
+  }
+
+  if (weakResponseSignal) {
+    secondaryLabels.push(
+      "weak_response"
+    );
+  }
+
+  return {
+    version:
+      STUDENT_RESPONSE_GOVERNANCE_VERSION,
+
+    // Existing instructional location.
+    stage,
+    pendingType,
+
+    // One normalized result for
+    // downstream routing.
+    primaryLabel,
+
+    secondaryLabels: [
+      ...new Set(
+        secondaryLabels
+      ),
+    ],
+
+    confidence:
+      resolvedInstructionalState
+        ?.confidence ?? 0,
+
+    // Existing deterministic outputs
+    // remain visible.
+    instructionalState:
+      resolvedInstructionalState
+        ?.state ||
+      "productive",
+
+    supportLevel:
+      resolvedInstructionalState
+        ?.level ||
+      "none",
+
+    instructionalBehavior:
+      resolvedInstructionalBehavior
+        ?.behavior ||
+      "continue",
+
+    nextBehavior:
+      resolvedInstructionalState
+        ?.nextBehavior ||
+      "continue",
+
+    // Existing signals are normalized,
+    // not rebuilt.
+    signals: {
+      tone,
+      stuck:
+        stuckSignal,
+
+      weakResponse:
+        weakResponseSignal,
+
+      metaResponse:
+        metaResponseSignal,
+
+      evidence: [
+        ...evidence,
+      ],
+    },
+
+    // Governance protections for
+    // future contract routing.
+    preservation: {
+      preserveInstructionalLocation:
+        true,
+
+      preserveAcceptedStudentWork:
+        true,
+
+      preservePendingFlow:
+        resolvedInstructionalState
+          ?.state === "protected",
+    },
+
+    // Phase 1 remains observational only.
+    routing: {
+      authority:
+        "existingRuntime",
+
+      contract:
+        null,
+
+      communicationGateway:
+        null,
+
+      mayChangeRuntimeBehavior:
+        false,
+    },
+  };
+}
+
 // ------------------------------------------------------
 // AI INTENT FALLBACK
 // Used only when deterministic rules do not recognize
@@ -15985,19 +16254,55 @@ if (
 // ---------------------
  const instructionalContext = buildInstructionalContext(state, message);
  const instructionalPlan = createInstructionalPlan(instructionalContext);
- const instructionalState = detectInstructionalState(state, message);
- const instructionalBehavior = selectInstructionalBehavior(state, instructionalState);
+  const instructionalState =
+   detectInstructionalState(
+     state,
+     message
+   );
+
+ const instructionalBehavior =
+   selectInstructionalBehavior(
+     state,
+     instructionalState
+   );
+
+ const studentResponseGovernance =
+   buildStudentResponseGovernanceResult(
+     state,
+     message,
+     instructionalState,
+     instructionalBehavior
+   );
  
- state.instructionalContext = instructionalContext;
- state.instructionalPlan = instructionalPlan;
- state.instructionalState = instructionalState;
- state.instructionalBehavior = instructionalBehavior;
+ state.instructionalContext =
+   instructionalContext;
+
+ state.instructionalPlan =
+   instructionalPlan;
+
+ state.instructionalState =
+   instructionalState;
+
+ state.instructionalBehavior =
+   instructionalBehavior;
+
+ state.studentResponseGovernance =
+   studentResponseGovernance;
 
 // Optional debug only; does not affect current behavior.
-if (state?.settings?.debugInstructionalPlan) {
+  if (
+  state?.settings
+    ?.debugInstructionalPlan
+) {
+ if (state?.settings?.debugInstructionalPlan) {
   console.log("[KAW PLAN]", instructionalPlan);
   console.log("[KAW STATE]", instructionalState);
   console.log("[KAW BEHAVIOR]", instructionalBehavior);
+
+  console.log(
+    "[KAW RESPONSE GOVERNANCE]",
+    studentResponseGovernance
+  );
 }
     
     // Safety
