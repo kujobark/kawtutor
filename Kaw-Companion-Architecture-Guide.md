@@ -2276,6 +2276,11 @@ These responsibilities remain permanently deterministic.
 
 # Appendix D
 
+## Architectural Design Pattern — Immutable Layer Contracts
+Every architectural layer exposes exactly one immutable public artifact while encapsulating its internal implementation. Subsequent layers interact exclusively through those published artifacts. Internal implementation may evolve without affecting surrounding architectural layers, provided the published contract remains unchanged.
+
+---
+
 ## Design Principles
 
 Throughout development, several architectural principles consistently guided system design.
