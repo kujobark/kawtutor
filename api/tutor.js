@@ -13426,23 +13426,14 @@ async function applyMainIdeaCapture(
       s.frame?.isAbout || ""
     );
 
-  if (!validation.valid) {
-    const instructionalFinding = {
-      frameComponent:
-        "mainIdeas",
+  const instructionalFinding = {
+  ...buildComponentInstructionalFinding({
+    frameComponent:
+      "mainIdeas",
 
-      componentEvidenceLevel:
-        validation.componentEvidenceLevel,
+    validation,
 
-      componentCriteriaStatus:
-        validation.componentCriteriaStatus,
-
-      relationshipStatus:
-        validation.relationshipStatus,
-
-      diagnosis:
-        validation.diagnosis,
-
+    evidence: {
       keyTopic:
         s.frame?.keyTopic || "",
 
@@ -13455,10 +13446,9 @@ async function applyMainIdeaCapture(
       captureMode,
 
       revisionIndex,
-
-      relationshipEvidence:
-        validation.relationshipEvidence || null,
-    };
+    },
+  }),
+};
 
     let resumePending;
 
