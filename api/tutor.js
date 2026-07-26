@@ -5371,6 +5371,345 @@ function buildSoWhatValidationContext(state) {
 // ======================================================
 
 // ------------------------------------------------------
+// Evidence State Test Suite
+// ------------------------------------------------------
+//
+// Purpose:
+//
+// Verifies that Evidence State creates one read-only
+// representation of the current instructional evidence.
+//
+// These tests confirm that:
+//
+// - current evidence remains separate from accumulated
+//   evidence;
+// - accepted Frame content is preserved;
+// - instructional location is observable;
+// - pending and feedback context are copied;
+// - the original runtime state is not mutated.
+//
+// ------------------------------------------------------
+
+async function runEvidenceStateSelfTests() {
+  const originalState = {
+    interactionMode:
+      "build",
+
+    frameMeta: {
+      purpose:
+        "study",
+
+      assignmentContext: {
+        raw:
+          "Explain how muckrakers influenced Progressive Era reforms.",
+
+        understanding:
+          "Explain how muckrakers influenced Progressive Era reforms.",
+
+        studentSummary:
+          "you're explaining how muckrakers influenced Progressive Era reforms.",
+      },
+    },
+
+    assignmentReasoning: {
+      task:
+        "explain",
+
+      label:
+        "Explain",
+
+      confidence:
+        1,
+    },
+
+    frame: {
+      keyTopic:
+        "Muckrakers",
+
+      isAbout:
+        "Investigative journalists who exposed social and political problems.",
+
+      parentItems: [
+        "Problems exposed by muckrakers",
+        "Reforms influenced by public awareness",
+      ],
+
+      details: [
+        [
+          "Journalists investigated unsafe working and living conditions.",
+        ],
+
+        [
+          "Public pressure contributed to consumer-protection laws.",
+        ],
+      ],
+
+      soWhat:
+        "Muckrakers showed that journalism could build public support for reform.",
+    },
+
+    pending: {
+      type:
+        "collectAnotherDetail",
+
+      index:
+        1,
+    },
+
+    feedback: {
+      mode:
+        "brief",
+    },
+  };
+
+  const originalSnapshot =
+    structuredClone(originalState);
+
+  const currentResponse =
+    "Public awareness created pressure for reform.";
+
+  const evidenceState =
+    buildEvidenceState(
+      originalState,
+      currentResponse
+    );
+
+  const results = [];
+
+  results.push({
+    name:
+      "Evidence State - Current response is separated",
+
+    passed:
+      evidenceState
+        ?.currentEvidence
+        ?.response ===
+      currentResponse,
+
+    expected: {
+      response:
+        currentResponse,
+    },
+
+    actual: {
+      response:
+        evidenceState
+          ?.currentEvidence
+          ?.response || null,
+    },
+  });
+
+  results.push({
+    name:
+      "Evidence State - Accumulated Frame is preserved",
+
+    passed:
+      evidenceState
+        ?.accumulatedEvidence
+        ?.frame
+        ?.keyTopic ===
+        "Muckrakers" &&
+
+      evidenceState
+        ?.accumulatedEvidence
+        ?.frame
+        ?.mainIdeas
+        ?.length ===
+        2 &&
+
+      evidenceState
+        ?.accumulatedEvidence
+        ?.frame
+        ?.details
+        ?.[0]
+        ?.length ===
+        1,
+
+    expected: {
+      keyTopic:
+        "Muckrakers",
+
+      mainIdeaCount:
+        2,
+
+      firstDetailCount:
+        1,
+    },
+
+    actual: {
+      keyTopic:
+        evidenceState
+          ?.accumulatedEvidence
+          ?.frame
+          ?.keyTopic || null,
+
+      mainIdeaCount:
+        evidenceState
+          ?.accumulatedEvidence
+          ?.frame
+          ?.mainIdeas
+          ?.length || 0,
+
+      firstDetailCount:
+        evidenceState
+          ?.accumulatedEvidence
+          ?.frame
+          ?.details
+          ?.[0]
+          ?.length || 0,
+    },
+  });
+
+  results.push({
+    name:
+      "Evidence State - Instructional location is observable",
+
+    passed:
+      evidenceState
+        ?.instructionalLocation
+        ?.interactionMode ===
+        "build" &&
+
+      evidenceState
+        ?.instructionalLocation
+        ?.pendingType ===
+        "collectAnotherDetail" &&
+
+      evidenceState
+        ?.instructionalLocation
+        ?.parentAnchor !==
+        null,
+
+    expected: {
+      interactionMode:
+        "build",
+
+      pendingType:
+        "collectAnotherDetail",
+
+      parentAnchorAvailable:
+        true,
+    },
+
+    actual: {
+      interactionMode:
+        evidenceState
+          ?.instructionalLocation
+          ?.interactionMode || null,
+
+      pendingType:
+        evidenceState
+          ?.instructionalLocation
+          ?.pendingType || null,
+
+      parentAnchorAvailable:
+        evidenceState
+          ?.instructionalLocation
+          ?.parentAnchor !==
+        null,
+    },
+  });
+
+  results.push({
+    name:
+      "Evidence State - Original state is not mutated",
+
+    passed:
+      JSON.stringify(originalState) ===
+      JSON.stringify(originalSnapshot),
+
+    expected: {
+      stateUnchanged:
+        true,
+    },
+
+    actual: {
+      stateUnchanged:
+        JSON.stringify(originalState) ===
+        JSON.stringify(originalSnapshot),
+    },
+  });
+
+  const passedCount =
+    results.filter(
+      (result) =>
+        result.passed
+    ).length;
+
+  const failedCount =
+    results.length -
+    passedCount;
+
+  return {
+    passed:
+      failedCount === 0,
+
+    passedCount,
+
+    failedCount,
+
+    total:
+      results.length,
+
+    results,
+  };
+}
+
+function formatEvidenceStateSelfTestResults(
+  testResults
+) {
+  const lines = [
+    "🔎 KAW EVIDENCE STATE SELF-TESTS",
+    "",
+  ];
+
+  testResults.results.forEach(
+    (result) => {
+      lines.push(
+        `${result.passed ? "✅" : "❌"} ${result.name}`
+      );
+
+      if (!result.passed) {
+        lines.push(
+          `Expected: ${JSON.stringify(
+            result.expected
+          )}`
+        );
+
+        lines.push(
+          `Actual: ${JSON.stringify(
+            result.actual
+          )}`
+        );
+      }
+
+      lines.push("");
+    }
+  );
+
+  lines.push(
+    "────────────────────────"
+  );
+
+  lines.push(
+    `Passed: ${testResults.passedCount}/${testResults.total}`
+  );
+
+  lines.push(
+    `Failed: ${testResults.failedCount}`
+  );
+
+  if (testResults.passed) {
+    lines.push("");
+    lines.push(
+      "🚀 Evidence State is operating correctly."
+    );
+  }
+
+  return lines.join("\n");
+}
+
+// ------------------------------------------------------
 // Essential Detail Test Suite
 // ------------------------------------------------------
 //
@@ -8963,8 +9302,13 @@ function formatAICommunicationSelfTestResults(
 // The registry allows /run tests to execute every suite
 // without combining all tests into one giant function.
 // ------------------------------------------------------
-
 const DETERMINISTIC_SELF_TEST_SUITES = [
+  {
+    id: "evidenceState",
+    label: "Evidence State",
+    run: runEvidenceStateSelfTests,
+    format: formatEvidenceStateSelfTestResults,
+  },
   {
     id: "essentialDetail",
     label: "Essential Detail Validation",
@@ -14111,12 +14455,27 @@ function clearMatchingSkip(state, completedStage) {
 async function updateStateFromStudent(state, message) {
   const msg = cleanText(message);
   const s = structuredClone(state);
+
   ensureBuckets(s);
 
-if (!s.frameMeta) {
-  s.frameMeta = {
-    purpose: "",
+  if (!s.frameMeta) {
+    s.frameMeta = {
+      purpose: "",
+
       assignmentContext: {
+        raw: "",
+        understanding: "",
+        confidence: "low",
+        needsClarification: true,
+        inferredPurpose: "",
+        childAnchor: "",
+        clarificationCount: 0,
+      },
+    };
+  }
+
+  if (!s.frameMeta.assignmentContext) {
+    s.frameMeta.assignmentContext = {
       raw: "",
       understanding: "",
       confidence: "low",
@@ -14124,21 +14483,34 @@ if (!s.frameMeta) {
       inferredPurpose: "",
       childAnchor: "",
       clarificationCount: 0,
-    },
-  };
-}
+    };
+  }
 
-if (!s.frameMeta.assignmentContext) {
-  s.frameMeta.assignmentContext = {
-    raw: "",
-    understanding: "",
-    confidence: "low",
-    needsClarification: true,
-    inferredPurpose: "",
-    childAnchor: "",
-    clarificationCount: 0,
-  };
-}
+  // --------------------------------------------------
+  // EVIDENCE STATE
+  // --------------------------------------------------
+  //
+  // Every runtime cycle begins by organizing the current
+  // response and accumulated instructional evidence.
+  //
+  // Evidence State is read-only. It does not validate,
+  // select strategy, change progression, or mutate state.
+  //
+  // It is intentionally constructed before the runtime
+  // begins interpreting or responding to the message.
+  // --------------------------------------------------
+
+  const evidenceState =
+    buildEvidenceState(
+      s,
+      msg
+    );
+
+  // Evidence State is not yet consumed by downstream
+  // runtime logic. This explicit reference prevents it
+  // from being treated as an accidental unused variable
+  // while the assessment layer is being connected.
+  void evidenceState;
   
 // Assignment Understanding capture
 if (!s.frameMeta.assignmentContext.raw && !(s.pending && s.pending.type)) {
