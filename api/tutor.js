@@ -17,96 +17,141 @@ const TRANSCRIPT_MAX_TURNS = 200;
 const LANG_DETECT_MIN_CHARS = 18;
 
 // ======================================================
-// KAW v2 ARCHITECTURE MAP
+// KAW OPERATING SYSTEM — DRAFT 1
 // ======================================================
 //
-// Kaw is organized around four layers:
+// Kaw is governed by one coherent instructional operating
+// system.
 //
-// 1. HIGH-IMPACT LEARNING STRATEGY
+// The runtime is organized through the following layers:
+//
+// 1. CONSTITUTIONAL GOVERNANCE
+//    - Defines the permanent principles that govern every
+//      architectural layer and runtime implementation.
+//    - AI never owns instructional decisions.
+//    - Student thinking and student work remain protected.
+//    - Instruction advances one intentional thinking step.
+//
+// 2. INSTRUCTIONAL FRAMEWORK KNOWLEDGE
 //    - Defines what students are building.
-//    - Current strategy: KU Framing Routine.
+//    - Stores the instructional purpose, criteria,
+//      breakdowns, cognitive strategies, and progression
+//      expectations of the active learning framework.
+//    - Current framework: KU Framing Routine.
 //
-// 2. STRUCTURAL ANCHORS
-//    - Parent Anchor controls progression through the routine.
-//    - Child Anchor translates that progression into strategy/component language.
+// 3. EVIDENCE STATE
+//    - Organizes current student evidence, accumulated
+//      student evidence, assignment context, completed
+//      Frame content, and current instructional location.
+//    - Evidence is observed before instruction is selected.
 //
-// 3. INSTRUCTIONAL INTELLIGENCE ENGINE
-//    - Formative Assessment: gathers evidence of student understanding.
-//    - Diagnosis: interprets what the evidence suggests.
-//    - Context Integration: combines assignment, frame, stage, and conversation context.
-//    - Instructional Decision: selects the best instructional move.
-//    - Student Ownership Check: ensures Kaw helps students think without thinking for them.
+// 4. INSTRUCTIONAL ASSESSMENT
+//    - Criteria Assessment determines whether current
+//      evidence fulfills component expectations.
+//    - Relational Assessment determines how current
+//      evidence relates to accepted and accumulated
+//      evidence.
+//    - Interaction Assessment identifies observable
+//      conditions such as productive work, uncertainty,
+//      struggle, frustration, or off-task behavior.
+//    - Assessment produces instructional findings.
+//    - Assessment does not select or communicate the
+//      instructional response.
 //
-// 4. INSTRUCTIONAL MOVE LIBRARY
-//    - Build
-//    - Scaffold
-//    - Clarify
-//    - Probe
-//    - Checkpoint
-//    - Revise
-//    - Expand
-//    - Bridge
-//    - Celebrate
-//    - Refocus
-//    - Remind
-//    - Strategy Cue
-//    - Reflect
+// 5. INSTRUCTIONAL STRATEGY
+//    - Applies predetermined instructional contracts to
+//      the established instructional findings.
+//    - Selects the instructional objective, Teaching Move,
+//      Thinking Move, support level, progression behavior,
+//      and student-work protections.
+//    - Strategy is deterministic and teacher-authored.
+//    - AI does not select pedagogy.
 //
-// Phase 1 goal:
-// Reorganize and label the existing instructional expertise without changing behavior.
+// 6. INSTRUCTIONAL COMMUNICATION
+//    - Converts the predetermined Instructional Strategy
+//      into an approved communication specification.
+//    - Defines communication patterns, permissions,
+//      prohibitions, and contextual information.
+//    - AI may contextualize the predetermined Thinking Move
+//      only within the approved Communication License.
 //
-// Refactor rule:
-// Parent/Child Anchor progression logic is load-bearing.
-// Do not move or rewrite it until the engine sections are stable.
-
-
+// 7. RUNTIME PROGRESSION
+//    - Preserves the student's exact instructional
+//      location.
+//    - Controls capture, validation, confirmation,
+//      revision, optional expansion, interruption,
+//      resumption, and export.
+//    - Parent Anchor progression is load-bearing and
+//      remains authoritative until intentionally migrated.
+//
+// 8. DEVELOPMENT VERIFICATION
+//    - Deterministic self-tests, governed validation tests,
+//      AI communication tests, IVL benchmarks, and student
+//      simulations protect behavior during refactoring.
+//
 // ======================================================
-// INSTRUCTIONAL INTELLIGENCE ENGINE — READ-ONLY SHELL
+// CONSOLIDATION RULE
 // ======================================================
 //
-// This section begins Kaw's engine layer.
-// In Phase 1, it observes and plans only.
-// It does not control runtime behavior yet.
-
-const KAW_ARCHITECTURE = {
- knowledgeLayer: {
-    assignmentContext: true,
-    kuFramingRoutine: true,
-    frameComponentKnowledge: true,
-    cognitiveStrategies: true,
-    instructionalMoves: true,
-},
-
- reasoningLayer: {
-    studentThinkingModel: true,
-    evidenceAnalysis: true,
-    instructionalReasoning: true,
-    adaptiveCoaching: true,
-    instructionalPlanning: true,
-},
-
-  conversationLayer: {
-    buildMode: true,
-    feedbackMode: true,
-    reflection: true,
-    export: true,
-  },
-};
+// Every runtime responsibility must belong to one layer
+// of this operating system.
+//
+// Legacy Kaw 1.0 code must be:
+//
+// - deleted when obsolete;
+// - merged when it duplicates an authoritative subsystem;
+// - revised when useful logic remains;
+// - reused only when it supports the current architecture;
+// - temporarily retained only when removal would endanger
+//   working behavior.
+//
+// Temporary legacy code must have an explicit migration or
+// removal destination.
+//
+// ======================================================
+// REFACTOR SAFETY RULE
+// ======================================================
+//
+// Parent Anchor, Child Anchor, pending-state progression,
+// accepted student work, and validated runtime behavior are
+// load-bearing.
+//
+// Do not rewrite load-bearing behavior merely to improve
+// organization.
+//
+// First establish the new layer around existing behavior.
+// Then migrate responsibility.
+// Then verify behavior.
+// Only then remove the superseded pathway.
 
 // ======================================================
 // HIGH-IMPACT LEARNING STRATEGY — KU FRAMING ROUTINE
 // ======================================================
 //
-// This section defines what students are building.
+// This section defines the instructional knowledge of the
+// active learning framework.
 //
-// The current strategy is the KU Framing Routine.
-// KU_FRAME_COMPONENTS stores the instructional purpose,
-// expected evidence, common breakdowns, cognitive strategies,
-// validation rules, and conversation language for each Frame component.
+// It is permanent instructional knowledge—not runtime
+// evidence, assessment, strategy, or communication.
 //
-// Future goal:
-// Other high-impact learning strategies should be able to provide
-// their own strategy knowledge without changing the core engine.
+// Current framework:
+// KU Framing Routine
+//
+// Responsibilities:
+//
+// • Define each Frame component.
+// • Define instructional purpose.
+// • Define success criteria.
+// • Define common misconceptions.
+// • Define cognitive strategies.
+// • Define progression expectations.
+// • Support deterministic instructional reasoning.
+//
+// This layer describes what Kaw knows about the framework.
+// It does not determine what Kaw does for an individual
+// student.
+//
+// ======================================================
 
 const KU_FRAME_COMPONENTS = {
 
@@ -354,6 +399,157 @@ soWhat: {
 }
 
 };
+
+// ======================================================
+// EVIDENCE STATE
+// ======================================================
+//
+// Evidence State provides one read-only representation of
+// the observable information available to Kaw at the
+// current instructional moment.
+//
+// It organizes:
+//
+// • the student's current response;
+// • accepted and accumulated student work;
+// • assignment and Thinking Task context;
+// • the student's current instructional location;
+// • active pending and feedback context.
+//
+// Evidence State does not:
+//
+// • validate student work;
+// • diagnose an instructional condition;
+// • select an instructional strategy;
+// • change progression;
+// • mutate runtime state;
+// • generate student work.
+//
+// It observes and organizes evidence only.
+//
+// ======================================================
+
+function buildEvidenceState(
+  state,
+  currentResponse = ""
+) {
+  const safeState =
+    state && typeof state === "object"
+      ? state
+      : {};
+
+  const frame =
+    safeState?.frame &&
+    typeof safeState.frame === "object"
+      ? safeState.frame
+      : {};
+
+  const frameMeta =
+    safeState?.frameMeta &&
+    typeof safeState.frameMeta === "object"
+      ? safeState.frameMeta
+      : {};
+
+  const assignmentContext =
+    frameMeta?.assignmentContext &&
+    typeof frameMeta.assignmentContext === "object"
+      ? frameMeta.assignmentContext
+      : {};
+
+  const thinkingTask =
+    safeState?.assignmentReasoning &&
+    typeof safeState.assignmentReasoning === "object"
+      ? safeState.assignmentReasoning
+      : {};
+
+  const mainIdeas =
+    getIdeaList(safeState)
+      .map((idea) => cleanText(idea))
+      .filter(Boolean);
+
+  const details =
+    Array.isArray(frame?.details)
+      ? frame.details.map((detailGroup) =>
+          Array.isArray(detailGroup)
+            ? detailGroup
+                .map((detail) =>
+                  cleanText(detail)
+                )
+                .filter(Boolean)
+            : []
+        )
+      : [];
+
+  const pending =
+    safeState?.pending &&
+    typeof safeState.pending === "object"
+      ? structuredClone(safeState.pending)
+      : null;
+
+  const feedback =
+    safeState?.feedback &&
+    typeof safeState.feedback === "object"
+      ? structuredClone(safeState.feedback)
+      : null;
+
+  return {
+    currentEvidence: {
+      response:
+        cleanText(currentResponse),
+    },
+
+    accumulatedEvidence: {
+      assignmentContext:
+        structuredClone(assignmentContext),
+
+      thinkingTask:
+        structuredClone(thinkingTask),
+
+      frame: {
+        purpose:
+          cleanText(frameMeta?.purpose || ""),
+
+        keyTopic:
+          cleanText(frame?.keyTopic || ""),
+
+        isAbout:
+          cleanText(frame?.isAbout || ""),
+
+        mainIdeas,
+
+        details,
+
+        soWhat:
+          cleanText(frame?.soWhat || ""),
+      },
+    },
+
+    instructionalLocation: {
+      interactionMode:
+        cleanText(
+          safeState?.interactionMode ||
+          "build"
+        ),
+
+      rawStage:
+        getStage(safeState),
+
+      parentAnchor:
+        getParentAnchorContext(safeState),
+
+      pendingType:
+        cleanText(
+          safeState?.pending?.type || ""
+        ),
+
+      pending,
+    },
+
+    interactionContext: {
+      feedback,
+    },
+  };
+}
 
 // ======================================================
 // INSTRUCTIONAL PLAYBOOK
@@ -1452,15 +1648,33 @@ return cleanText(response);
 }
 
 // ======================================================
-// INSTRUCTIONAL INTELLIGENCE ENGINE
+// TRANSITIONAL INSTRUCTIONAL REASONING SHELL
 // ======================================================
 //
-// This section gathers context, interprets student needs,
-// creates an instructional plan, and selects an instructional move.
+// This subsystem predates the unified Kaw Operating
+// System and remains temporarily available for comparison
+// and migration support.
 //
-// Phase 1 status:
-// Read-only planning layer.
-// Existing runtime flow still controls Kaw's actual response.
+// It gathers context, interprets student needs, creates an
+// instructional plan, and selects an instructional move,
+// but it does not currently control Kaw's authoritative
+// runtime response.
+//
+// Current architectural destination:
+//
+// • Evidence-gathering responsibilities move into
+//   Evidence State.
+//
+// • Student-need interpretation moves into
+//   Instructional Assessment.
+//
+// • Instructional planning and move selection move into
+//   Instructional Strategy.
+//
+// This shell must not be expanded with new authority.
+//
+// After its useful logic has been migrated and verified,
+// this subsystem should be removed.
 
 // ------------------------------------------------------
 // FORMATIVE ASSESSMENT
@@ -9772,7 +9986,8 @@ function createInstructionalPlan(context) {
 
     adaptiveCoaching: {
       supportLevel: 0,
-      reason: "Phase 1 shell only — current engine still controls response.",
+      reason:
+        "Transitional planning shell only — the authoritative runtime still controls the response until this logic is migrated into Instructional Assessment and Instructional Strategy.",
     },
 
     move: selectInstructionalMove(context, diagnosis),
@@ -10221,15 +10436,20 @@ function selectInstructionalBehavior(state, instructionalState) {
 // ======================================================
 // UNIFIED STUDENT RESPONSE GOVERNANCE RESULT
 // ======================================================
+// Purpose:
 //
-// Phase 1 purpose:
-// Normalize existing deterministic instructional-state,
-// behavior, tone, stuck, weak-response, and meta-response
-// signals into one read-only governance result.
+// Normalize deterministic interaction signals into a single
+// read-only Student Response Governance result.
 //
-// This function does not select a new contract, change the
-// current pending flow, write student work, or alter runtime
-// behavior. Existing runtime logic remains authoritative.
+// This subsystem synthesizes observable interaction
+// conditions (for example: productive work, uncertainty,
+// stuck behavior, frustration, weak responses, and
+// meta-responses).
+//
+// It provides evidence to the Instructional Assessment
+// layer but does not independently select instructional
+// contracts, change runtime progression, write student
+// work, or alter the authoritative runtime behavior.
 // ======================================================
 
 const STUDENT_RESPONSE_GOVERNANCE_VERSION = "1.0";
@@ -10470,7 +10690,11 @@ function buildStudentResponseGovernanceResult(
           ?.state === "protected",
     },
 
-    // Phase 1 remains observational only.
+     // This governance result is observational only.
+    //
+    // It informs the Instructional Assessment layer but does
+    // not independently modify runtime progression or select
+    // instructional contracts.
     routing: {
       authority:
         "existingRuntime",
@@ -16248,10 +16472,22 @@ if (
   // begins mutating instructional state.
   safeState = structuredClone(state);
 
-// ---------------------
-// INSTRUCTIONAL PLAN SNAPSHOT
-// Phase 1: read-only planning layer
-// ---------------------
+// ------------------
+// TRANSITIONAL INSTRUCTIONAL PLAN SNAPSHOT
+// ------------------
+//
+// Captures the output of the older read-only planning
+// pathway for comparison and migration support.
+//
+// This snapshot does not control the authoritative runtime.
+// Its useful responsibilities will be consolidated into:
+//
+// • Evidence State
+// • Instructional Assessment
+// • Instructional Strategy
+//
+// Do not expand this pathway with new authority.
+    
  const instructionalContext = buildInstructionalContext(state, message);
  const instructionalPlan = createInstructionalPlan(instructionalContext);
   const instructionalState =
