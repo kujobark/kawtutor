@@ -733,6 +733,75 @@ function buildInstructionalAssessment(
   };
 }
 
+// ------------------------------------------------------
+// COMPONENT INSTRUCTIONAL FINDING
+// ------------------------------------------------------
+//
+// Converts completed deterministic validation into one
+// explicit instructional finding.
+//
+// Validation determines whether observable student
+// evidence fulfills component expectations.
+//
+// Instructional Assessment organizes that conclusion for
+// downstream strategy selection.
+//
+// This function does not:
+//
+// • validate the response;
+// • select an instructional contract;
+// • choose a Teaching Move or Thinking Move;
+// • change runtime progression;
+// • generate communication.
+//
+// ------------------------------------------------------
+
+function buildComponentInstructionalFinding({
+  frameComponent = "",
+  validation = null,
+  evidence = {},
+} = {}) {
+  const safeValidation =
+    validation &&
+    typeof validation === "object"
+      ? validation
+      : {};
+
+  const safeEvidence =
+    evidence &&
+    typeof evidence === "object"
+      ? evidence
+      : {};
+
+  return {
+    frameComponent:
+      cleanText(frameComponent),
+
+    componentEvidenceLevel:
+      safeValidation
+        .componentEvidenceLevel || null,
+
+    componentCriteriaStatus:
+      safeValidation
+        .componentCriteriaStatus || null,
+
+    relationshipStatus:
+      safeValidation
+        .relationshipStatus || null,
+
+    diagnosis:
+      safeValidation
+        .diagnosis || null,
+
+    relationshipEvidence:
+      safeValidation
+        .relationshipEvidence || null,
+
+    evidence:
+      structuredClone(safeEvidence),
+  };
+}
+
 // ======================================================================
 // LAYER 6 — INSTRUCTIONAL COMMUNICATION
 //
@@ -13135,32 +13204,37 @@ async function applyIsAboutCapture(s, msg) {
     );
 
   if (!validation.valid) {
+  
   const instructionalFinding = {
+  ...buildComponentInstructionalFinding({
     frameComponent:
       "isAbout",
 
-    componentEvidenceLevel:
-      validation.componentEvidenceLevel,
+    validation,
 
-    componentCriteriaStatus:
-      validation.componentCriteriaStatus,
+    evidence: {
+      keyTopic:
+        s.frame?.keyTopic || "",
 
-    relationshipStatus:
-      validation.relationshipStatus,
+      attemptedIsAbout:
+        cleanText(msg),
+    },
+  }),
 
-    diagnosis:
-      validation.diagnosis,
+  // Transitional compatibility fields.
+  //
+  // Existing contract activation and runtime tests
+  // currently read these values from the top level.
+  // They remain temporarily exposed while downstream
+  // consumers migrate to instructionalFinding.evidence.
 
-    keyTopic:
-      s.frame?.keyTopic || "",
+  keyTopic:
+    s.frame?.keyTopic || "",
 
-    attemptedIsAbout:
-      cleanText(msg),
-
-    relationshipEvidence:
-      validation.relationshipEvidence || null,
-  };
-
+  attemptedIsAbout:
+    cleanText(msg),
+};
+    
   const instructionalContract =
     getInstructionalContract(
       "isAbout",
