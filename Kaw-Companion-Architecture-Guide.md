@@ -1,2566 +1,2401 @@
-# Kaw Companion Architecture & System Design Guide
+**BEGINNING OF OFFICIAL MANUSCRIPT**
 
-**Project:** Kaw Companion  
-**Version:** 1.0  
-**Status:** Working Architecture Specification  
-**Last Updated:** July 2026  
+*Source basis: This draft preserves and builds from the uploaded Version 1.1 architecture guide while incorporating the constitutional governance decisions we finalized, including the updated governance principles, Communication Governance, and the new Communication Validation layer. *
 
 ---
 
-## Document Purpose
+# Kaw Companion Governance & Architecture Guide
 
-The Kaw Companion Architecture & System Design Guide is the canonical internal reference for the Kaw Companion project. It captures the instructional philosophy, architectural decisions, governance principles, instructional reasoning, implementation model, testing framework, and development standards that define how Kaw operates.
+### Constitutional Principles, Instructional Architecture, and System Design
 
-This is a working architecture specification. Its immediate purpose is to preserve the decisions guiding development and the Friday pilot. The document may be refined as implementation and pilot evidence reveal additional needs.
-
-> If a significant instructional or architectural decision is not documented here, it should not be treated as an established part of Kaw.
+**Version 2.0 — Draft 1**
 
 ---
 
-## Guiding Principle
+**Kaw Companion**
 
-> **Deterministic instructional reasoning establishes instructional truth.**
->
-> **Artificial intelligence communicates that instructional truth naturally while preserving teacher voice and student ownership.**
-
-The deterministic instructional engine owns intent classification, instructional goals, Teaching Moves, Thinking Moves, validation, saving, progression, and protection of student work.
-
-AI is limited to contextualizing the predetermined instructional move into natural, assignment-specific communication.
+A Governed Instructional Engine
 
 ---
 
-## Architecture at a Glance
-
-```mermaid
-flowchart TD
-    A[Student Evidence] --> B[Instructional Knowledge]
-    B --> C[Instructional Decision Cycle]
-    C --> D[Validation and Findings]
-    D --> E[Instructional Contract]
-    E --> F[Teaching Move]
-    F --> G[Thinking Move]
-    G --> H[Communication License]
-    H --> I[Prompt Construction]
-    I --> J[AI Communication]
-    J --> K[Student Response]
-    K --> A
-```
+*"The student owns the thinking. Kaw owns the instruction."*
 
 ---
 
-## Core Architectural Principles
+© 2026
 
-- Begin with Student Evidence
-- Let Evidence Drive Instruction
-- Advance One Thinking Step
-- Build from Student Success
-- Preserve Instructional Continuity
-- Preserve Student Ownership
-- Instruction Before Language
-- Evidence Before Assumption
-- Deterministic Instructional Truth
-- Explainable Instructional Decisions
-- Governance Over Convenience
-- AI Communicates; It Does Not Decide
+Working Constitutional Draft
+
+---
+
+# Revision History
+
+| Version           | Date        | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ----------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.0               | Spring 2026 | Initial instructional architecture documenting the Framing Routine implementation.                                                                                                                                                                                                                                                                                                                                                                                           |
+| 1.1               | July 2026   | Introduced the Two-Gate Progression Model, expanded student ownership protections, formalized Communication Governance, and clarified instructional sufficiency.                                                                                                                                                                                                                                                                                                             |
+| **2.0 (Draft 1)** | July 2026   | Reorganized the project as a constitutional governance guide. Established deterministic instructional governance as the foundation of the system, elevated Communication Governance into an architectural layer, introduced Communication Validation following AI contextualization, replaced "instructional truth" with "instructional intent," and generalized the architecture so the Framing Routine becomes the current implementation rather than the defining system. |
+
+---
+
+# Preface
+
+Every mature engineering discipline eventually reaches a point where implementation alone is no longer sufficient.
+
+Software evolves.
+
+Algorithms evolve.
+
+Individual features evolve.
+
+Without an enduring constitutional framework, however, each improvement introduces the possibility of architectural drift. Systems slowly become collections of individually reasonable decisions that no longer operate according to a coherent design philosophy.
+
+The Kaw Companion project reached precisely this point during the development of Version 1.1.
+
+What began as an instructional companion for the KU-CRL Framing Routine gradually revealed a deeper architectural discovery. The project was not merely building an intelligent tutoring system. It was uncovering the constitutional principles required for any governed instructional engine that combines deterministic instructional reasoning with artificial intelligence.
+
+This guide represents that evolution.
+
+Rather than documenting a specific implementation, this manuscript defines the governing principles that every implementation must obey. The Framing Routine remains the current instructional model through which these principles are expressed, but it is no longer the architectural boundary of the system itself.
+
+Throughout this guide, one distinction remains paramount.
+
+Instruction and communication are fundamentally different operations.
+
+Instruction determines what should happen.
+
+Communication determines how that predetermined decision is expressed.
+
+The architecture therefore assigns those responsibilities to different systems.
+
+Deterministic instructional reasoning owns every instructional decision.
+
+Artificial intelligence serves only as a governed communication layer operating within boundaries established by deterministic reasoning.
+
+This separation is not simply a software design preference.
+
+It is the constitutional principle upon which every subsequent architectural decision depends.
+
+The pages that follow define those principles, explain why they exist, and describe the governed instructional architecture that emerges from them.
 
 ---
 
 # Table of Contents
 
-1. Project Overview
-2. Design Philosophy
-3. Kaw Instructional Commitments
-4. Kaw Instructional Model
-5. Instructional Knowledge
-6. Assignment Context
-7. Thinking Tasks
-8. Parent and Child Anchors
-9. Instructional Decision Cycle
-10. Instructional Contracts
-11. Validation Framework
-12. Student Progression
-13. AI Governance
-14. Communication Licensing
-15. Prompt Construction
-16. Runtime Communication
-17. System Architecture
-18. Application Flow
-19. Data Structures
-20. Testing Framework
-21. Deployment
-22. Development Standards
-23. Architecture Decision Records
-24. Roadmap
-25. Appendices
+**PART I — Constitutional Governance**
 
----
-# 1. Project Overview
+Chapter 1 — Why Governance Comes First
 
-## Purpose
+Chapter 2 — Constitutional Principles
 
-Kaw Companion is an instructional coaching system designed to help students strengthen their thinking and writing through the KU-CRL Framing Routine.
+Chapter 3 — Deterministic Instructional Intent
 
-Kaw does not complete student work. It observes student evidence, determines the most appropriate next instructional move, and communicates that move in a natural, assignment-specific way.
+Chapter 4 — Student Ownership and Instructional Responsibility
 
-The purpose of Kaw is not to generate better answers for students.
-
-The purpose of Kaw is to help students think more clearly, independently, and successfully.
+Chapter 5 — Governing Artificial Intelligence
 
 ---
 
-## Why Kaw Exists
+**PART II — Instructional Architecture**
 
-Students often need support before they are ready to complete a strong written response.
+Chapter 6 — The Governed Instructional Engine
 
-They may understand part of an assignment but struggle to:
+Chapter 7 — Instructional Knowledge
 
-- identify the correct topic;
-- explain what the topic is about;
-- develop a meaningful Main Idea;
-- select relevant supporting details;
-- explain why the information matters;
-- connect their ideas into a coherent response.
+Chapter 8 — Instructional Reasoning
 
-Traditional AI systems often respond by generating, rewriting, or completing student work.
+Chapter 9 — Instructional Contracts
 
-Kaw takes a different approach.
-
-Kaw is designed to preserve student ownership by identifying what the student has already demonstrated and selecting the smallest appropriate instructional move that will help the student continue thinking.
+Chapter 10 — The Two-Gate Progression Model
 
 ---
 
-## Core Function
+**PART III — Communication Architecture**
 
-Kaw supports students by:
+Chapter 11 — Communication Governance
 
-1. understanding the assignment;
-2. identifying the Thinking Task;
-3. locating the student within the Framing Routine;
-4. observing the student’s current evidence;
-5. evaluating the quality and relationships of that evidence;
-6. selecting the immediate instructional goal;
-7. selecting the appropriate Teaching Move;
-8. selecting the appropriate Thinking Move;
-9. determining what AI may and may not communicate;
-10. providing a natural, assignment-specific coaching response.
+Chapter 12 — AI Contextualization
+
+Chapter 13 — Communication Validation
+
+Chapter 14 — Recovery Architecture
+
+Chapter 15 — Teacher Voice
 
 ---
 
-## Scope
+**PART IV — System Design**
 
-Kaw currently supports the major components of the Framing Routine:
+Chapter 16 — Instructional State
 
-- Key Topic;
-- Is About;
-- Main Ideas;
-- Essential Details;
-- So What.
+Chapter 17 — Evidence Processing
 
-Each component requires distinct success criteria, validation logic, instructional contracts, and progression rules.
+Chapter 18 — Assignment Context
 
-Kaw should not treat all Frame components as equivalent because each component asks the student to perform different cognitive work.
+Chapter 19 — Extending the Architecture
+
+Chapter 20 — Future Instructional Models
 
 ---
 
-## Architectural Evolution
+**PART V — Appendices**
 
-Early versions of Kaw relied on manually authored deterministic prompts and responses.
+Architectural Diagrams
 
-This approach was useful because it forced the project to make instructional intent explicit. However, it became increasingly difficult to scale as the number of possible student responses and instructional situations grew.
+Governance Rules
 
-The problem was not simply that more prompts were needed.
+Implementation Guidance
 
-The deeper problem was that Kaw needed a structured way to determine:
+Glossary
 
-- what the student had demonstrated;
-- what instructional need remained;
-- what the next instructional goal should be;
-- what Teaching Move should occur;
-- what Thinking Move the student should make next.
-
-This led to a major architectural shift.
-
-Rather than asking AI to determine how to help the student, Kaw now separates instructional reasoning from communication.
-
-The deterministic instructional engine establishes the instructional decision first.
-
-AI is introduced only afterward to communicate that decision naturally.
-
-The governing principle is:
-
-> Deterministic instructional reasoning establishes instructional truth. AI communicates that instructional truth naturally while preserving teacher voice and student ownership.
+Design Principles
 
 ---
 
-## Intended Student Experience
+# PART I
 
-Students should experience Kaw as a supportive instructional conversation.
-
-They should feel that Kaw:
-
-- understands the assignment;
-- recognizes what they have already done successfully;
-- focuses on one manageable next step;
-- asks purposeful questions;
-- helps them improve without taking over;
-- remembers the instructional context;
-- maintains continuity across the Frame.
-
-Students should not experience Kaw as:
-
-- an answer generator;
-- a rewriting tool;
-- a generic chatbot;
-- an evaluator that only says correct or incorrect;
-- a system that completes the Frame for them.
+## Constitutional Governance
 
 ---
 
-## Intended Developer Experience
+# Chapter 1
 
-The Kaw architecture should allow future development to remain:
+## Why Governance Comes First
 
-- deterministic;
-- testable;
-- explainable;
-- maintainable;
-- instructionally governed;
-- resistant to AI drift;
-- protective of student ownership.
+Every instructional system answers two fundamental questions.
 
-Every significant instructional pathway should be traceable from student evidence through the final student-facing response.
+**What should happen next?**
 
----
+**How should that decision be communicated?**
 
-## Related Sections
+Traditional tutoring systems often treat these questions as one. The same mechanism that determines instructional direction also generates the instructional response.
 
-- Section 2 — Design Philosophy
-- Section 3 — Kaw Instructional Commitments
-- Section 4 — Kaw Instructional Model
-- Section 13 — AI Governance
-- Section 17 — System Architecture
+Kaw intentionally rejects this approach.
 
----
+The architecture begins with a constitutional separation between instructional reasoning and instructional communication.
 
-## Revision History
+Instructional reasoning determines the appropriate instructional action.
 
-**Version 0.1**  
-Initial project overview documented.
+Communication expresses that predetermined action.
 
-**Version 0.2**  
-Added architectural evolution and clarified the separation between instructional reasoning and AI communication.
+Although closely related, these are fundamentally different responsibilities requiring different forms of governance.
 
----
+Instructional reasoning must remain completely deterministic.
 
-# 2. Design Philosophy
+Every student response should produce an instructional decision that is explainable, reproducible, and consistent with established instructional principles.
 
-## Purpose
+Communication, by contrast, benefits from flexibility.
 
-The Kaw Design Philosophy defines the beliefs that govern how the system should understand students, make instructional decisions, communicate feedback, and evolve over time.
+Natural language varies.
 
-These principles are not optional implementation preferences.
+Teacher voice varies.
 
-They are the instructional foundation of the system.
+Assignments vary.
 
----
+Students vary.
 
-## Why This Exists
+Artificial intelligence can adapt to these differences, provided that every adaptation remains bounded by deterministic governance.
 
-A system can produce language that sounds helpful while still making poor instructional decisions.
+This distinction transforms AI from an instructional decision-maker into a governed communication partner.
 
-For this reason, Kaw does not begin by asking:
+Rather than deciding what instruction should occur, AI communicates instruction that has already been determined.
 
-> What response would sound encouraging?
+This constitutional separation protects instructional consistency while preserving the conversational qualities that make individualized instruction effective.
 
-Kaw begins by asking:
-
-> What instructional understanding must exist before an expert teacher can confidently make the next instructional move?
-
-This question shaped the architecture.
-
-It requires Kaw to establish instructional understanding before communication begins.
+Everything that follows in this guide builds upon this foundational distinction.
 
 ---
 
-## Instruction Before Language
+# Chapter 2
 
-Kaw separates three functions:
+## Constitutional Principles
 
-1. instructional understanding;
-2. instructional decision-making;
-3. communication.
+Every architectural component described throughout this guide derives from five constitutional principles.
 
-These functions must occur in that order.
+These principles are not implementation details.
 
-Instructional understanding establishes the context.
+They are permanent governance rules that every future implementation must obey.
 
-Instructional decision-making determines the goal and move.
+**Principle One — Deterministic instructional reasoning establishes instructional intent.**
 
-Communication expresses that decision naturally.
+Instructional decisions originate exclusively through deterministic reasoning.
 
-AI should never be used to replace the first two functions.
+The instructional engine determines instructional location, instructional objective, progression, teaching move, thinking move, validation requirements, and recovery strategy before any communication occurs.
 
----
+Artificial intelligence never establishes instructional intent.
 
-## Evidence Before Assumption
-
-Kaw responds only to evidence the student has actually demonstrated.
-
-The system should not assume that a student understands a concept because the response sounds familiar, uses a key word, or resembles a strong answer.
-
-Observable evidence must drive the decision.
-
-When evidence is insufficient, Kaw should clarify or gather more information rather than inventing an interpretation.
+It communicates instructional intent.
 
 ---
 
-## One Thinking Step
+**Principle Two — Instruction precedes communication.**
 
-Kaw should advance the student one thinking step at a time.
+Communication may never determine instruction.
 
-An expert teacher may see several weaknesses in a response, but addressing all of them at once can overwhelm the student and weaken instructional focus.
+Before any instructional response is generated, the instructional engine has already established the precise instructional action to be communicated.
 
-Kaw therefore identifies the most immediate instructional need and selects one purposeful next move.
-
----
-
-## Build from Success
-
-Kaw should begin from what the student has done successfully whenever valid evidence is present.
-
-This does not mean giving empty praise.
-
-It means identifying the part of the student’s thinking that can serve as the foundation for the next instructional move.
-
-For example:
-
-- a valid topic may support a more precise Is About statement;
-- a valid similarity may support a stronger comparison;
-- a strong Main Idea may anchor the development of observable Essential Details.
+Instruction is therefore an architectural prerequisite for communication.
 
 ---
 
-## Preserve Student Ownership
+**Principle Three — The student owns the thinking. Kaw owns the instruction.**
 
-The student must remain responsible for the intellectual work.
+The student remains responsible for every intellectual contribution.
 
-Kaw may:
+Kaw remains responsible for instructional guidance, progression, validation, clarification, and coaching.
 
-- prompt;
-- clarify;
-- focus attention;
-- ask the student to compare;
-- ask the student to recall evidence;
-- ask the student to explain significance;
-- reference the student’s existing work.
+This principle governs every interaction within the system.
 
-Kaw may not:
-
-- write the student’s answer;
-- complete a Frame component;
-- generate evidence;
-- provide the exact conclusion;
-- replace the student’s thinking with stronger language.
+Student ownership is never exchanged for instructional efficiency.
 
 ---
 
-## Preserve Instructional Continuity
+**Principle Four — Recovery means smaller thinking—not different thinking.**
 
-Each interaction should connect to the work that came before it.
+When students struggle, the instructional objective does not change.
 
-Kaw should maintain continuity across:
+Instead, instructional support becomes smaller, more explicit, or more scaffolded until the student can successfully perform the intended thinking.
 
-- Assignment Context;
-- Thinking Task;
-- current Frame component;
-- Parent Anchor;
-- Child Anchor;
-- previous valid student work;
-- prior coaching;
-- current instructional goal.
+Recovery therefore preserves instructional intent while reducing cognitive demand.
 
-A student should not feel that every response begins a new conversation.
+Instructional direction remains unchanged.
 
 ---
 
-## Deterministic Instructional Truth
+**Principle Five — Every non-deterministic operation must be bounded by deterministic governance.**
 
-Instructional decisions should be explicit, governed, and testable.
+Artificial intelligence introduces flexibility into communication.
 
-The deterministic engine owns:
+Flexibility without governance creates inconsistency.
 
-- intent classification;
-- instructional context;
-- validation;
-- instructional findings;
-- instructional goals;
-- Teaching Moves;
-- Thinking Moves;
-- progression;
-- save behavior;
-- student work protection.
+Therefore every non-deterministic operation must operate inside deterministic boundaries established before AI is ever invoked.
 
-AI does not determine instructional truth.
+These boundaries define what AI may communicate, what it may modify, and what it may never change.
 
-AI communicates instructional truth that has already been established.
+Together, these five principles constitute the constitutional foundation of the Kaw Companion architecture.
+
+Every architectural decision presented in later chapters exists to preserve one or more of these governing principles.
 
 ---
 
-## Explainability
+# Chapter 3
 
-Every Kaw response should be explainable.
+## Deterministic Instructional Intent
 
-The system should be able to identify:
+The purpose of deterministic reasoning is not merely consistency.
 
-- what student evidence was observed;
-- what instructional need was diagnosed;
-- what instructional goal was selected;
-- what Teaching Move was chosen;
-- what Thinking Move was assigned;
-- what Communication License governed the response.
+Its purpose is instructional integrity.
 
-If the system cannot explain why a response occurred, the architecture is incomplete.
+Every instructional decision should be explainable without reference to probability, language generation, or statistical inference.
 
----
+Instead, each decision should be traceable through explicit instructional evidence.
 
-## Governance Over Convenience
+Student evidence leads to instructional interpretation.
 
-Instructional integrity takes priority over implementation convenience.
+Instructional interpretation identifies the current instructional situation.
 
-A technically easier solution should not be adopted if it:
+The instructional situation determines the appropriate instructional contract.
 
-- weakens validation;
-- increases AI decision-making;
-- removes traceability;
-- bypasses instructional contracts;
-- risks overwriting student work;
-- advances students prematurely;
-- reduces student ownership.
+The instructional contract establishes instructional intent.
 
----
+Only after instructional intent has been fully established may communication begin.
 
-## Design Principle Summary
+This sequence guarantees that instruction remains stable regardless of how many different ways the same guidance could be expressed.
 
-Kaw should always:
+It also creates complete architectural traceability.
 
-- understand before responding;
-- observe before interpreting;
-- validate before saving;
-- decide before communicating;
-- coach before correcting;
-- advance before completing;
-- preserve before replacing.
+Every instructional response can be traced backward through deterministic reasoning to the evidence that justified it.
+
+Instruction therefore becomes transparent, reproducible, and governable.
+
+The result is an instructional engine whose behavior is defined by constitutional principles rather than emergent language generation.
 
 ---
 
-## Related Sections
+# Chapter 4
 
-- Section 1 — Project Overview
-- Section 3 — Kaw Instructional Commitments
-- Section 4 — Kaw Instructional Model
-- Section 9 — Instructional Decision Cycle
-- Section 13 — AI Governance
+## Student Ownership and Instructional Responsibility
 
----
+The defining characteristic of Kaw is not artificial intelligence.
 
-## Revision History
+It is protected student ownership.
 
-**Version 0.1**  
-Initial Design Philosophy documented.
+Students remain the authors of their own thinking.
 
-**Version 0.2**  
-Added explainability, deterministic instructional truth, and governance-over-convenience principles.
+Kaw never completes intellectual work on a student's behalf.
 
----
+Instead, Kaw performs the responsibilities traditionally held by an expert teacher.
 
-# 3. Kaw Instructional Commitments
+These responsibilities include observing evidence, diagnosing instructional need, selecting appropriate teaching moves, determining progression, validating readiness, providing feedback, and adjusting instructional support.
 
-## Purpose
+Student responsibilities remain equally clear.
 
-The Kaw Instructional Commitments define what Kaw promises every student.
+Students generate ideas.
 
-These commitments govern every instructional pathway, regardless of assignment, content area, grade level, Thinking Task, or Frame component.
+Students explain reasoning.
 
-If a proposed feature, contract, prompt, or response violates one of these commitments, it should be reconsidered.
+Students construct understanding.
 
----
+Students revise their own work.
 
-## Commitment 1: Begin with Student Evidence
+Students ultimately produce the intellectual products required by instruction.
 
-### Why This Exists
+Because these responsibilities remain separated, instructional support never becomes intellectual substitution.
 
-Instructional decisions should begin with what the student has demonstrated, not what the system assumes.
+Normalization may improve readability.
 
-### What It Means
+Clarification may improve understanding.
 
-Kaw identifies the observable evidence present in the student’s work before determining what support is needed.
+Organization may improve coherence.
 
-### Governing Decisions
+None of these actions may strengthen incomplete reasoning or introduce ideas the student has not produced.
 
-Kaw should not:
+Whenever student work remains instructionally insufficient after permissible normalization, Kaw continues coaching rather than rewriting.
 
-- infer understanding without evidence;
-- treat a keyword as proof of understanding;
-- assume a student’s intention;
-- diagnose a misconception without sufficient evidence.
+Instruction continues.
 
-When evidence is unavailable or ambiguous, Kaw should clarify.
+Student ownership remains intact.
 
 ---
 
-## Commitment 2: Let Evidence Drive Instruction
+# Chapter 5
 
-### Why This Exists
+## Governing Artificial Intelligence
 
-Students may arrive at the same Frame component with very different needs.
+Artificial intelligence occupies an essential role within the Kaw architecture.
 
-A generic sequence cannot respond responsibly to every student.
+It is also the most carefully governed component of the system.
 
-### What It Means
+AI is intentionally positioned after deterministic instructional reasoning because its purpose is expressive rather than instructional.
 
-The student’s current evidence determines:
+Its responsibilities include adapting language to assignment context, maintaining natural teacher voice, varying explanation, improving conversational flow, personalizing encouragement, and contextualizing predetermined instructional moves for the student's current work.
 
-- the instructional finding;
-- the instructional goal;
-- the Teaching Move;
-- the Thinking Move;
-- whether revision, clarification, celebration, saving, or progression should occur.
+These capabilities create instructional conversations that feel authentic while remaining architecturally constrained.
 
-### Governing Decisions
+Equally important are the responsibilities AI does not possess.
 
-Kaw should not select a move merely because it is the default next prompt.
+Artificial intelligence may never alter instructional goals.
 
-The evidence must justify the move.
+It may never redirect instructional progression.
+
+It may never select a different instructional contract.
+
+It may never advance or delay instructional location.
+
+It may never invent student thinking.
+
+It may never replace student ownership.
+
+Every AI-generated response therefore operates within deterministic boundaries established before communication begins.
+
+In later sections of this guide, these boundaries will be formalized through two complementary architectural layers.
+
+**Communication Governance** defines what AI is permitted to communicate.
+
+**Communication Validation** verifies that the generated communication faithfully preserves the deterministic instructional intent established by the instructional engine.
+
+Together, these layers transform artificial intelligence from an autonomous instructional system into a governed instructional communication system—one that preserves instructional integrity while delivering the flexibility and natural interaction expected from a modern educational companion.
 
 ---
 
-## Commitment 3: Advance One Thinking Step
+**END OF PART I**
 
-### Why This Exists
+**PART II**
 
-Students benefit from focused instructional support.
+# Instructional Architecture
 
-Attempting to correct every weakness at once can increase cognitive load and reduce ownership.
+---
 
-### What It Means
+# Chapter 6
 
-Kaw identifies the most immediate instructional need and asks the student to make one purposeful cognitive move.
+## The Governed Instructional Engine
+
+Constitutional governance establishes the permanent rules of the system.
+
+Instructional architecture defines how those rules are carried out.
+
+The Kaw Companion is best understood as a governed instructional engine.
+
+Its purpose is not to generate educational conversations.
+
+Its purpose is to execute instructional reasoning that continuously moves students toward greater understanding while preserving teacher intent and student ownership.
+
+The Framing Routine is the first implementation of this engine.
+
+It is not the architecture itself.
+
+Future instructional models may organize learning differently, define different instructional contracts, or use different forms of student evidence. Those implementations may evolve over time, yet the constitutional principles established in Part I remain unchanged.
+
+This distinction is critical.
+
+The architecture exists independently of any individual instructional framework.
+
+As instructional models change, the engine continues to perform the same fundamental responsibilities:
+
+• Observe student evidence.
+
+• Interpret instructional meaning.
+
+• Determine instructional intent.
+
+• Select the appropriate instructional contract.
+
+• Govern communication.
+
+• Validate instructional integrity.
+
+Because these responsibilities remain constant, Kaw becomes extensible rather than framework-dependent.
+
+Every future instructional implementation inherits the same constitutional protections.
+
+---
+
+**The Instructional Architecture**
+
+Every instructional interaction follows the same deterministic sequence.
+
+```
+Student Evidence
+        ↓
+Accumulated Context
+        ↓
+Instructional Framework Knowledge
+        ↓
+Instructional Situation
+        ↓
+Instructional Contract
+        ↓
+Instructional Intent
+        ↓
+Communication Governance
+        ↓
+AI Contextualization
+        ↓
+Communication Validation
+        ↓
+Student Receives Feedback
+        ↓
+New Student Evidence
+```
+
+Each layer performs a single responsibility.
+
+No layer bypasses another.
+
+No layer performs responsibilities belonging to another.
+
+This separation of concerns produces an instructional engine that is explainable, testable, and architecturally stable.
+
+---
+
+## Architectural Responsibility
+
+Each architectural layer answers a different instructional question.
+
+**Student Evidence**
+
+What has the student actually produced?
+
+**Accumulated Context**
+
+What instructional history already exists?
+
+**Instructional Framework Knowledge**
+
+What does the instructional model require?
+
+**Instructional Situation**
+
+What does the student's evidence mean instructionally?
+
+**Instructional Contract**
+
+What teaching move should occur?
+
+**Instructional Intent**
+
+What specific instructional outcome must be communicated?
+
+**Communication Governance**
+
+What communication is permissible?
+
+**AI Contextualization**
+
+How should this predetermined instruction sound?
+
+**Communication Validation**
+
+Did the communication preserve deterministic instructional intent?
+
+Because each layer has one clearly defined responsibility, instructional reasoning becomes transparent.
+
+Every instructional response can be traced backward through every architectural decision that produced it.
+
+---
+
+# Chapter 7
+
+## Instructional Knowledge
+
+Instructional reasoning cannot occur without instructional knowledge.
+
+Before the system can evaluate student evidence, it must already understand the instructional model it is attempting to teach.
+
+Instructional knowledge therefore represents the permanent instructional understanding supplied by curriculum designers rather than generated during conversation.
+
+Unlike student evidence, instructional knowledge changes very little during an interaction.
+
+It serves as the reference against which all instructional reasoning occurs.
+
+---
+
+**Instructional Knowledge Includes**
+
+• Assignment Context
+
+• Instructional Framework
+
+• Thinking Task
+
+• Parent Anchor
+
+• Child Anchor
+
+• Component Expectations
+
+• Success Criteria
+
+• Instructional Progression
+
+• Teaching Moves
+
+• Thinking Moves
+
+• Recovery Strategies
+
+These elements collectively define the instructional expectations for the current learning task.
+
+The instructional engine never invents these expectations.
+
+They are established before instruction begins.
+
+---
+
+## Assignment Context
+
+Assignment Context provides the instructional purpose surrounding a student's work.
+
+Rather than evaluating isolated responses, Kaw interprets evidence within the context of the assignment the student is completing.
+
+Assignment Context establishes questions such as:
+
+What is the student attempting to produce?
+
+What instructional outcome is expected?
+
+What academic discipline is involved?
+
+What constraints govern the assignment?
+
+Without Assignment Context, identical student responses could require different instructional actions depending on the learning objective.
+
+Assignment Context therefore anchors every subsequent instructional decision.
+
+---
+
+## Parent and Child Anchors
+
+Instruction occurs within a hierarchy of instructional ideas.
+
+The Parent Anchor represents the larger instructional concept.
+
+The Child Anchor identifies the specific instructional objective currently being taught.
+
+This relationship enables Kaw to maintain instructional continuity across multiple instructional components.
+
+Students always understand the immediate objective while remaining connected to the broader instructional purpose.
+
+Future instructional frameworks may define different anchors, but the architectural relationship remains unchanged.
+
+Instruction always occurs within an organized hierarchy rather than isolated instructional events.
+
+---
+
+## Thinking Tasks
+
+Every instructional objective ultimately asks students to perform a particular kind of thinking.
 
 Examples include:
 
-- narrow the topic;
-- explain the relationship;
-- identify a shared condition;
-- recall a specific event;
-- connect evidence to a Main Idea;
-- explain why the information matters.
+Explain
 
-### Governing Decisions
-
-A Kaw response should generally contain one central instructional purpose.
-
-It should avoid stacking multiple unrelated questions or directions.
-
----
-
-## Commitment 4: Build from Student Success
-
-### Why This Exists
-
-Valid student thinking should be preserved and extended.
-
-Students should not be required to restart when part of their work is already successful.
-
-### What It Means
-
-Kaw identifies usable evidence and makes it the starting point for the next move.
-
-### Governing Decisions
-
-Kaw should:
-
-- name valid evidence specifically;
-- preserve successful student language when appropriate;
-- avoid replacing work that already meets criteria;
-- connect new thinking to previous success.
-
-Praise should be evidence-based and instructionally useful.
-
----
-
-## Commitment 5: Preserve Instructional Continuity
-
-### Why This Exists
-
-Instructional coaching becomes generic when each response is treated independently.
-
-### What It Means
-
-Kaw maintains awareness of:
-
-- the assignment;
-- the Thinking Task;
-- the current Frame;
-- previous student responses;
-- validated components;
-- Parent and Child Anchors;
-- prior coaching;
-- progression state.
-
-### Governing Decisions
-
-Kaw should not:
-
-- ask students to repeat information already established;
-- contradict previously validated work without evidence;
-- lose saved progress;
-- shift goals unexpectedly;
-- treat resumed work as a new session.
-
----
-
-## Relationship Among the Commitments
-
-The commitments operate together.
-
-For example:
-
-- Beginning with evidence makes it possible to build from success.
-- Letting evidence drive instruction helps Kaw advance one appropriate step.
-- Preserving continuity ensures the next step remains connected to prior work.
-- Advancing one step protects student ownership.
-
-No commitment should be applied in isolation.
-
----
-
-## Instructional Commitment Test
-
-Before approving a new instructional pathway, ask:
-
-1. Does it begin with observable student evidence?
-2. Does the evidence justify the instructional decision?
-3. Does it advance only one primary thinking step?
-4. Does it preserve and build from valid student work?
-5. Does it maintain continuity with the assignment and prior interaction?
-6. Does it preserve student ownership?
-
-If the answer to any question is no, the pathway requires revision.
-
----
-
-## Related Sections
-
-- Section 2 — Design Philosophy
-- Section 4 — Kaw Instructional Model
-- Section 9 — Instructional Decision Cycle
-- Section 12 — Student Progression
-- Section 20 — Testing Framework
-
----
-
-## Revision History
-
-**Version 0.1**  
-Five instructional commitments documented.
-
-**Version 0.2**  
-Added governing decisions and the Instructional Commitment Test.
-
----
-
-# 4. Kaw Instructional Model
-
-## Purpose
-
-The Kaw Instructional Model defines the layered instructional architecture that governs every interaction between Kaw and a student.
-
-Rather than generating feedback directly from student input, Kaw first establishes a structured understanding of the instructional situation.
-
-This ensures that each coaching interaction is:
-
-- grounded in observable student evidence;
-- aligned to the assignment;
-- governed by explicit instructional decisions;
-- consistent with Kaw’s instructional commitments;
-- protective of student ownership.
-
-The model separates instructional reasoning from communication.
-
-Deterministic instructional reasoning establishes instructional truth before AI is introduced to communicate that truth naturally.
-
----
-
-## Why This Exists
-
-Early development focused heavily on manually authored deterministic prompts.
-
-Although this approach worked for specific situations, it did not scale as the number of possible student responses increased.
-
-More importantly, the development process revealed that expert teaching cannot be reduced to selecting the right sentence.
-
-Expert teachers first establish an understanding of:
-
-- the assignment;
-- the thinking required;
-- what the student has demonstrated;
-- what remains incomplete;
-- what instructional goal should come next;
-- what teaching approach will best move the student forward.
-
-This changed the central design question from:
-
-> What should Kaw say?
-
-to:
-
-> What instructional understanding must exist before an expert teacher can confidently make the next instructional move?
-
-The Kaw Instructional Model exists to answer that question consistently.
-
----
-
-## Architecture Overview
-
-The instructional model contains five interconnected levels.
-
-Each level builds upon and constrains the level beneath it.
-
-```text
-Level 1
-Instructional Commitments
-        ↓
-Level 2
-Instructional Knowledge
-        ↓
-Level 3
-Instructional Decision Cycle
-        ↓
-Level 4
-Instructional Contracts
-        ↓
-Level 5
-Teacher Voice
-```
-
----
-# PART II — Instructional Reasoning
-
-Part II defines how Kaw develops an instructional understanding of a student's work before making any instructional decision.
-
-Rather than reacting directly to a student's response, Kaw constructs an instructional model of the learning situation by combining assignment context, instructional expectations, thinking requirements, validated student evidence, and relationships among Framing Routine components.
-
-The goal of Part II is to answer a single question:
-
-> **What must Kaw understand before it can responsibly decide how to teach?**
-
-The chapters that follow define the instructional reasoning process used to answer that question.
-
----
-
-# 5. Instructional Knowledge
-
-## Purpose
-
-Instructional Knowledge represents everything Kaw must understand before making an instructional decision.
-
-Expert teachers do not evaluate student work from a single sentence alone. They interpret responses within the larger instructional context, considering the assignment, the intended thinking, prior student work, success criteria, and the current stage of learning.
-
-Kaw follows the same philosophy.
-
-Instructional Knowledge provides the structured understanding required to transform isolated student responses into meaningful instructional decisions.
-
----
-
-## Why This Exists
-
-Without instructional knowledge, coaching becomes generic.
-
-For example, the same student sentence might be:
-
-- an appropriate Key Topic;
-- an incomplete Main Idea;
-- an unrelated Essential Detail;
-- evidence of a misconception.
-
-The sentence itself does not determine the instructional response.
-
-The instructional context does.
-
-Instructional Knowledge exists to establish that context before any instructional decision is made.
-
----
-
-## Components of Instructional Knowledge
-
-Current instructional knowledge includes:
-
-- Assignment Context
-- Thinking Task
-- Framing Routine Component
-- Component Success Criteria
-- Parent Anchor
-- Child Anchors
-- Instructional Expectations
-- Previously Validated Student Work
-- Student Progression State
-
-Future versions may expand this model as additional instructional capabilities are developed.
-
----
-
-## How It Works
-
-Instructional Knowledge is established before the Instructional Decision Cycle begins.
-
-Each component contributes a different layer of instructional understanding.
-
-Together, these layers allow Kaw to determine:
-
-- what the student is trying to accomplish;
-- what the student has already demonstrated;
-- what success should look like;
-- what instructional need currently exists.
-
-This knowledge becomes the foundation for deterministic instructional reasoning.
-
----
-
-## Governing Decisions
-
-Instructional decisions should never occur without sufficient instructional knowledge.
-
-When critical instructional context is unavailable, Kaw should gather additional information before coaching.
-
-The instructional engine should never substitute assumptions for missing instructional knowledge.
-
----
-
-## Related Sections
-
-- Assignment Context
-- Thinking Tasks
-- Parent & Child Anchors
-- Instructional Decision Cycle
-
----
-
-## Revision History
-
-**Version 0.1**
-
-Initial Instructional Knowledge architecture documented.
-
----
-
-# 6. Assignment Context
-
-## Purpose
-
-Assignment Context establishes the instructional environment in which all student work should be interpreted.
-
-It provides the persistent understanding that allows Kaw to recognize what the assignment is asking students to accomplish.
-
----
-
-## Why This Exists
-
-During early development, Kaw often produced instructionally correct but overly generic coaching.
-
-The primary reason was that Kaw understood the student's response but did not maintain a persistent understanding of the assignment itself.
-
-Introducing Assignment Context solved this problem by giving every instructional decision a shared understanding of the learning task.
-
----
-
-## What Assignment Context Contains
-
-Assignment Context currently includes:
-
-- assignment title;
-- instructional objective;
-- learning target;
-- assignment description;
-- relevant content knowledge;
-- expected student products;
-- Framing Routine expectations;
-- Thinking Task.
-
-Assignment Context is established once and reused throughout the instructional experience.
-
----
-
-## How It Works
-
-Assignment Context is created before students begin working within the Frame.
-
-Every subsequent instructional decision references this shared context.
-
-Rather than asking AI to infer assignment expectations repeatedly, Kaw retrieves the existing Assignment Context and uses it to interpret student evidence consistently.
-
----
-
-## Governing Decisions
-
-Assignment Context should remain stable throughout a student session unless the assignment itself changes.
-
-Instructional reasoning should reference Assignment Context rather than reconstruct it repeatedly.
-
----
-
-## Design Rationale
-
-Assignment Context was introduced after repeated observations that component-level coaching became generic when Kaw lacked a persistent understanding of the assignment.
-
-Separating Assignment Context from individual coaching interactions significantly improved instructional specificity and continuity.
-
----
-
-## Related Sections
-
-- Instructional Knowledge
-- Thinking Tasks
-- Parent & Child Anchors
-
----
-
-## Revision History
-
-**Version 0.1**
-
-Assignment Context introduced as persistent instructional memory.
-
----
-
-# 7. Thinking Tasks
-
-## Purpose
-
-Thinking Tasks define the type of cognitive work students are expected to perform.
-
-Rather than evaluating responses solely by their wording, Kaw evaluates whether students have completed the required thinking.
-
----
-
-## Why This Exists
-
-Two responses may appear similar while requiring entirely different reasoning.
-
-For example:
-
-- comparing;
-- classifying;
-- sequencing;
-- describing;
-- explaining cause and effect.
-
-Each requires different instructional expectations.
-
-Thinking Tasks make those expectations explicit.
-
----
-
-## What Thinking Tasks Do
-
-Thinking Tasks guide:
-
-- validation;
-- success criteria;
-- instructional findings;
-- Teaching Moves;
-- Thinking Moves;
-- Communication Licensing.
-
-Thinking Tasks influence every stage of instructional reasoning.
-
----
-
-## How It Works
-
-Assignment Context establishes the Thinking Task before student coaching begins.
-
-Every instructional contract references the Thinking Task when interpreting student evidence.
-
-This prevents Kaw from evaluating responses using incorrect instructional expectations.
-
----
-
-## Governing Decisions
-
-Thinking Tasks should remain independent of subject area.
-
-The same Thinking Task should behave consistently across multiple assignments.
-
----
-
-## Design Rationale
-
-Separating Thinking Tasks from assignment content allows Kaw to generalize instructional reasoning while preserving assignment-specific coaching.
-
----
-
-## Related Sections
-
-- Assignment Context
-- Instructional Contracts
-- Validation Framework
-
----
-
-## Revision History
-
-**Version 0.1**
-
-Thinking Task architecture documented.
-
----
-
-# 8. Parent & Child Anchors
-
-## Purpose
-
-Parent and Child Anchors model the instructional relationships among Framing Routine components.
-
-Rather than treating each component independently, Kaw understands how ideas develop across the Frame.
-
----
-
-## Why This Exists
-
-Expert teachers rarely evaluate components in isolation.
-
-Instead, they recognize that one component provides the instructional foundation for another.
-
-Modeling these relationships improves instructional continuity and prevents fragmented coaching.
-
----
-
-## What They Are
-
-Parent Anchors represent the instructional foundation supporting a component.
-
-Child Anchors represent components that depend upon that foundation.
-
-These relationships allow Kaw to determine whether later components remain instructionally aligned with earlier work.
-
----
-
-## How They Work
-
-When coaching a component, Kaw references its Parent Anchor to verify instructional alignment.
-
-Likewise, Kaw considers Child Anchors when selecting instructional moves that will strengthen future components.
-
-This creates continuity across the entire Frame rather than isolated coaching events.
-
----
-
-## Governing Decisions
-
-Parent and Child Anchors establish instructional dependencies.
-
-A component should not advance if its Parent Anchor is invalid or unstable.
-
----
-
-## Design Rationale
-
-Parent and Child Anchors emerged from the realization that successful Framing Routine instruction depends not only on individual components but also on the relationships among them.
-
-Representing these relationships explicitly allows Kaw to coach more like an expert teacher.
-
----
-
-## Related Sections
-
-- Assignment Context
-- Thinking Tasks
-- Student Progression
-
----
-
-## Revision History
-
-**Version 0.1**
-
-Parent and Child Anchor architecture documented.
-
----
-
-# 9. Instructional Decision Cycle
-
-## Purpose
-
-The Instructional Decision Cycle defines the repeatable reasoning process Kaw follows when interpreting student evidence and selecting the next instructional move.
-
-It transforms instructional understanding into instructional action.
-
----
-
-## Why This Exists
-
-Instruction should follow a consistent reasoning process rather than reacting to individual student responses.
-
-The Decision Cycle ensures that every instructional action can be traced back to observable evidence and explicit instructional reasoning.
-
----
-
-## The Decision Cycle
-
-Observe
-
-↓
-
-Orient
-
-↓
+Compare
 
 Analyze
 
-↓
+Interpret
 
-Decide
+Evaluate
 
-↓
+Summarize
 
-Coach
+Justify
 
-↓
+Predict
 
-Observe Again
+Infer
 
----
+The Thinking Task determines the intellectual operation students must perform.
 
-## How It Works
+It does not determine the instructional contract.
 
-Each stage has a distinct responsibility.
+Instead, it provides the cognitive expectation that instructional reasoning seeks to develop.
 
-**Observe** identifies the student's evidence.
-
-**Orient** establishes instructional context.
-
-**Analyze** evaluates the quality and relationships of the evidence.
-
-**Decide** selects the instructional goal, Teaching Move, and Thinking Move.
-
-**Coach** communicates the predetermined instructional decision.
-
-**Observe Again** begins the next instructional cycle.
+Because Thinking Tasks remain explicitly represented within instructional knowledge, recovery strategies can reduce cognitive load without abandoning the intended intellectual work.
 
 ---
 
-## Governing Decisions
+# Chapter 8
 
-Every instructional interaction should progress through the complete Decision Cycle.
+## Instructional Reasoning
 
-No instructional stage should be bypassed.
+Instructional reasoning transforms evidence into instructional intent.
 
-Instructional reasoning must always precede communication.
+Unlike conversational AI systems that respond directly to language, Kaw performs multiple deterministic reasoning stages before communication begins.
 
----
+Instructional reasoning asks a sequence of increasingly sophisticated questions.
 
-## Design Rationale
+First:
 
-The Decision Cycle emerged from months of iterative refinement as the team recognized that expert teaching follows a structured reasoning process rather than selecting responses directly.
+What evidence exists?
 
-Explicitly modeling this process improves consistency, explainability, testing, and future extensibility.
+Next:
 
----
+What does that evidence demonstrate?
 
-## Related Sections
+Then:
 
-- Instructional Knowledge
-- Instructional Contracts
-- AI Governance
+What instructional situation now exists?
 
----
+Finally:
 
-## Revision History
+What instructional action should occur?
 
-**Version 0.1**
-
-Instructional Decision Cycle documented.
+Only after these questions have been answered does communication begin.
 
 ---
 
-# PART III — Instructional Decisions
+## Evidence Before Interpretation
 
-Part III defines how Kaw transforms instructional understanding into deterministic instructional action.
+Every reasoning cycle begins with observable student evidence.
 
-Once Kaw has established sufficient instructional knowledge, it must determine what should happen next. Rather than relying on AI to interpret student work or generate instructional behavior, Kaw uses deterministic instructional contracts, explicit validation rules, and governed progression pathways.
+Evidence may include written responses, revisions, selections, corrections, or other instructional artifacts.
 
-The goal of Part III is to answer a single question:
+The architecture deliberately separates observation from interpretation.
 
-> **Given what Kaw understands about the student, what should happen next?**
+Observation records what exists.
 
-These chapters define the instructional engine responsible for making that decision.
+Interpretation determines instructional meaning.
 
----
+This distinction prevents assumptions from entering instructional reasoning prematurely.
 
-# 10. Instructional Contracts
+The instructional engine first identifies evidence.
 
-## Purpose
-
-Instructional Contracts define Kaw's deterministic instructional behavior.
-
-Each contract represents a governed instructional pathway that translates validated student evidence into a specific instructional decision.
-
-Rather than asking AI how to respond, Kaw first determines which instructional contract applies.
-
-The selected contract becomes the source of instructional truth.
+Only afterward does it determine what that evidence signifies.
 
 ---
 
-## Why This Exists
+## Instructional Situations
 
-Early versions of Kaw relied on increasingly complex prompt logic to determine feedback.
+Evidence alone does not determine instruction.
 
-Although functional, this approach mixed instructional reasoning with language generation and became difficult to scale, test, and maintain.
+Instruction depends upon the instructional situation created by that evidence.
 
-Instructional Contracts separate instructional decision-making from communication.
+Examples include:
 
-This makes instructional behavior:
+Student demonstrates success.
 
-- deterministic;
-- testable;
-- explainable;
-- reusable;
-- extensible.
+Student demonstrates partial understanding.
+
+Student demonstrates misconception.
+
+Student demonstrates insufficient evidence.
+
+Student is progressing appropriately.
+
+Student requires recovery.
+
+Student is ready to advance.
+
+Instructional situations therefore function as deterministic descriptions of instructional reality.
+
+They are independent of communication style.
+
+Whether feedback is encouraging, formal, conversational, or highly scaffolded, the underlying instructional situation remains identical.
 
 ---
 
-## What an Instructional Contract Contains
+## Determining Instructional Intent
 
-Each contract defines:
+Once the instructional situation has been identified, deterministic reasoning establishes instructional intent.
 
-- Contract Identifier
-- Instructional Intent
-- Entry Conditions
-- Required Instructional Knowledge
-- Validation Rules
-- Instructional Findings
-- Instructional Goal
-- Teaching Move
-- Thinking Move
-- Communication License
-- Save Behavior
-- Progression Rules
-- Exit Conditions
-- Prohibited Behaviors
+Instructional intent specifies:
 
-Each field is deterministic.
+the instructional objective,
 
-AI does not determine any of these values.
+the desired teaching move,
+
+the required thinking move,
+
+the appropriate progression decision,
+
+and the instructional outcome that communication must preserve.
+
+At this point the instructional engine has completed its work.
+
+Everything afterward exists to faithfully communicate this already-established instructional intent.
+
+---
+
+# Chapter 9
+
+## Instructional Contracts
+
+Instructional Contracts translate instructional intent into explicit instructional actions.
+
+Rather than allowing every situation to produce unique behavior, the architecture groups instructional responses into governed instructional contracts.
+
+A contract represents a predetermined instructional strategy designed for a specific instructional situation.
+
+Because contracts are deterministic, identical instructional situations always produce identical instructional decisions.
+
+Communication may differ.
+
+Instruction never does.
+
+---
+
+## Purpose of Contracts
+
+Instructional contracts accomplish three objectives.
+
+First, they eliminate ambiguity.
+
+Every instructional situation has a predetermined instructional response.
+
+Second, they preserve consistency.
+
+Different AI responses cannot accidentally produce different instructional decisions.
+
+Third, they provide complete traceability.
+
+Every coaching statement can be traced to the instructional contract that authorized it.
 
 ---
 
 ## Contract Families
 
-Current contract families include:
-
-- KT-GS (Key Topic)
-- IA-GS (Is About)
-- MI-GS (Main Idea)
-- ED-GS (Essential Detail)
-- SW-GS (So What)
-
-Future contract families may support:
-
-- Revision
-- Celebration
-- Clarification
-- Misconceptions
-- Cross-component alignment
-- Teacher interventions
-
----
-
-## How Contracts Work
-
-The instructional engine:
-
-1. establishes instructional knowledge;
-2. validates student evidence;
-3. identifies instructional findings;
-4. selects the appropriate contract;
-5. executes deterministic instructional behavior;
-6. authorizes AI communication through the Communication License.
-
-Every coaching interaction follows this sequence.
-
----
-
-## Governing Decisions
-
-Instructional Contracts own instructional behavior.
-
-Contracts may determine:
-
-- instructional goals;
-- Teaching Moves;
-- Thinking Moves;
-- progression;
-- saving;
-- Communication Licensing.
-
-Contracts may not delegate instructional decision-making to AI.
-
----
-
-## Design Rationale
-
-Instructional Contracts emerged from the realization that expert teaching consists of repeatable instructional decisions rather than repeatable sentences.
-
-Separating instructional behavior from communication significantly improved consistency, testing, and future scalability.
-
----
-
-## Related Sections
-
-- Validation Framework
-- Student Progression
-- AI Governance
-- Communication Licensing
-
----
-
-## Revision History
-
-Version 0.1
-
-Initial Instructional Contract architecture documented.
-
----
-
-# 11. Validation Framework
-
-## Purpose
-
-Validation determines whether student work satisfies the instructional expectations for the current component.
-
-Validation establishes instructional truth.
-
----
-
-## Why This Exists
-
-Students deserve instructional feedback based on observable evidence rather than AI confidence.
-
-Validation prevents Kaw from accepting incomplete, inaccurate, or unsupported work.
-
-It also protects students from progressing before demonstrating understanding.
-
----
-
-## Validation Philosophy
-
-Validation answers only one question:
-
-> Has the student demonstrated the required instructional evidence?
-
-Validation does not determine:
-
-- feedback wording;
-- encouragement;
-- coaching style;
-- AI response.
-
-Those occur afterward.
-
----
-
-## Validation Sources
-
-Validation may consider:
-
-- Assignment Context
-- Thinking Task
-- Component Success Criteria
-- Parent Anchors
-- Child Anchors
-- Previously Validated Work
-- Current Student Evidence
-
-Each contributes to determining instructional findings.
-
----
-
-## Validation Outcomes
-
-Validation generally results in one of several instructional findings:
-
-- Valid
-- Partially Valid
-- Needs Clarification
-- Misconception
-- Missing Evidence
-- Misaligned
-- Requires Revision
-
-Each finding maps to one or more Instructional Contracts.
-
----
-
-## Governing Decisions
-
-Validation always precedes:
-
-- saving;
-- progression;
-- celebration;
-- AI communication.
-
-Student work should never be saved simply because it sounds plausible.
-
----
-
-## Design Rationale
-
-Separating validation from communication allows Kaw to explain why a decision occurred while preventing AI from becoming the evaluator.
-
----
-
-## Related Sections
-
-- Instructional Contracts
-- Student Progression
-- AI Governance
-
----
-
-## Revision History
-
-Version 0.1
-
-Validation Framework documented.
-
----
-
-# 12. Student Progression
-
-## Purpose
-
-Student Progression determines when a learner is ready to move forward within the Framing Routine.
-
-Progression protects instructional sequencing.
-
----
-
-## Why This Exists
-
-Completing a response is not the same as demonstrating understanding.
-
-Students should progress because they have met instructional expectations—not because the conversation has ended.
-
----
-
-## Progression Philosophy
-
-Progression occurs only after:
-
-- validation;
-- contractual completion;
-- save authorization;
-- instructional readiness.
-
-Each step must occur in sequence.
-
----
-
-## Progression States
-
-Students may occupy states such as:
-
-- Working
-- Revising
-- Clarifying
-- Validated
-- Saved
-- Ready for Progression
-- Progressed
-
-Future versions may introduce additional instructional states.
-
----
-
-## How Progression Works
-
-The instructional engine evaluates:
-
-1. Has the component been validated?
-2. Has the governing contract completed?
-3. Has student work been saved?
-4. Are Parent Anchors stable?
-5. Is the student instructionally prepared for the next component?
-
-Only then does progression occur.
-
----
-
-## Governing Decisions
-
-Students should never progress because:
-
-- AI generated a convincing response;
-- enough conversation occurred;
-- time elapsed.
-
-Progression is an instructional decision.
-
----
-
-## Design Rationale
-
-Separating progression from communication preserves instructional integrity and ensures that advancement reflects demonstrated understanding rather than conversational completion.
-
----
-
-## Related Sections
-
-- Validation Framework
-- Instructional Contracts
-- Parent & Child Anchors
-
----
-
-## Revision History
-
-Version 0.1
-
-Student Progression architecture documented.
----
-# PART IV — AI Communication
-
-Part IV defines the role of Artificial Intelligence within the Kaw architecture.
-
-Unlike many AI tutoring systems, Kaw does not use AI to determine instructional decisions.
-
-Instead, AI serves as a governed communication layer that translates deterministic instructional decisions into natural, assignment-specific coaching while preserving teacher voice and student ownership.
-
-The goal of Part IV is to answer a single question:
-
-> **Once Kaw has determined what should happen instructionally, how should that decision be communicated to the student?**
-
-These chapters define the boundaries, permissions, and responsibilities of AI within the Kaw architecture.
-
----
-
-# 13. AI Governance
-
-## Purpose
-
-AI Governance defines the instructional boundaries of artificial intelligence within Kaw.
-
-Its purpose is to ensure that AI enhances communication without becoming the instructional decision-maker.
-
----
-
-## Why This Exists
-
-Modern language models are exceptionally effective at generating natural language.
-
-However, they are not inherently instructional systems.
-
-Without governance, AI may:
-
-- infer instructional intent;
-- generate student work;
-- skip instructional steps;
-- provide answers instead of coaching;
-- introduce inconsistencies across identical instructional situations.
-
-AI Governance prevents these behaviors by assigning instructional authority to the deterministic instructional engine.
-
----
-
-## Governance Principle
-
-The central governance principle of Kaw is:
-
-> Deterministic instructional reasoning owns instructional decisions.
->
-> AI owns communication.
-
-This principle applies throughout the system.
-
----
-
-## Instructional Authority
-
-The deterministic instructional engine owns:
-
-- intent classification;
-- Assignment Context;
-- Thinking Task;
-- instructional understanding;
-- validation;
-- instructional findings;
-- instructional goals;
-- Teaching Moves;
-- Thinking Moves;
-- progression;
-- save behavior;
-- Communication Licensing;
-- student work protection.
-
-These responsibilities may never be delegated to AI.
-
----
-
-## AI Authority
-
-AI may:
-
-- communicate naturally;
-- personalize language;
-- reference Assignment Context;
-- reference validated student evidence;
-- ask licensed instructional questions;
-- adapt tone while preserving instructional intent;
-- maintain conversational flow.
-
----
-
-## AI Restrictions
-
-AI may not:
-
-- determine instructional goals;
-- validate student work;
-- override contracts;
-- change Thinking Moves;
-- generate Frame components;
-- complete student thinking;
-- save work;
-- advance students;
-- reinterpret deterministic instructional findings.
-
----
-
-## Governing Decisions
-
-Every AI response must be traceable to a deterministic instructional decision.
-
-If a response cannot be traced to the governing contract and Communication License, the architecture has been violated.
-
----
-
-## Design Rationale
-
-Separating instructional authority from language generation ensures that Kaw remains instructionally consistent while benefiting from the flexibility and conversational quality of modern language models.
-
----
-
-## Related Sections
-
-- Instructional Contracts
-- Validation Framework
-- Communication Licensing
-- Runtime Communication
-
----
-
-## Revision History
-
-Version 0.1
-
-Initial AI Governance documented.
-
----
-
-# 14. Communication Licensing
-
-## Purpose
-
-Communication Licensing defines exactly what AI is authorized to communicate during a coaching interaction.
-
-It protects instructional integrity by limiting AI to approved instructional behaviors.
-
----
-
-## Why This Exists
-
-Even when instructional reasoning is deterministic, unrestricted language generation can unintentionally:
-
-- provide answers;
-- suggest unsupported ideas;
-- advance instruction prematurely;
-- complete student work.
-
-Communication Licensing prevents these outcomes.
-
----
-
-## What a Communication License Defines
-
-Each Communication License specifies:
-
-- communication intent;
-- permitted instructional behaviors;
-- prohibited behaviors;
-- allowable references to student work;
-- allowable references to Assignment Context;
-- questioning strategy;
-- response boundaries.
-
----
-
-## How It Works
-
-After an Instructional Contract is selected, the contract assigns a Communication License.
-
-AI generates responses only within the permissions established by that license.
-
-The Communication License functions as the final instructional safeguard before AI communication begins.
-
----
-
-## Governing Decisions
-
-Communication Licenses authorize communication.
-
-They do not authorize instructional decisions.
-
-Only deterministic instructional reasoning may determine instructional intent.
-
----
-
-## Design Rationale
-
-Communication Licensing emerged after recognizing that instructional quality depends not only on what AI says but also on what AI is prevented from saying.
-
-Explicit communication permissions make AI behavior more predictable, testable, and instructionally consistent.
-
----
-
-## Related Sections
-
-- AI Governance
-- Prompt Construction
-- Runtime Communication
-
----
-
-## Revision History
-
-Version 0.1
-
-Communication Licensing documented.
-
----
-
-# 15. Prompt Construction
-
-## Purpose
-
-Prompt Construction transforms deterministic instructional decisions into structured inputs for AI.
-
-Rather than asking AI to determine instructional behavior, prompts communicate decisions that have already been made.
-
----
-
-## Why This Exists
-
-Prompt engineering should not replace instructional reasoning.
-
-Its purpose is to communicate deterministic instructional decisions as clearly as possible.
-
----
-
-## Prompt Philosophy
-
-Every prompt should communicate:
-
-- Assignment Context;
-- instructional findings;
-- instructional goal;
-- Teaching Move;
-- Thinking Move;
-- Communication License;
-- relevant student evidence.
-
-Prompts should never ask AI to determine these values.
-
----
-
-## How Prompt Construction Works
-
-Prompt generation occurs after:
-
-1. instructional understanding;
-2. validation;
-3. contract selection;
-4. Communication Licensing.
-
-Only then is the runtime prompt assembled.
-
-The prompt functions as an implementation detail rather than the source of instructional reasoning.
-
----
-
-## Governing Decisions
-
-Prompts may organize instructional information.
-
-They may not redefine instructional information.
-
----
-
-## Design Rationale
-
-Separating prompt construction from instructional reasoning allows prompt templates to evolve independently while preserving deterministic instructional behavior.
-
----
-
-## Related Sections
-
-- AI Governance
-- Communication Licensing
-- Runtime Communication
-
----
-
-## Revision History
-
-Version 0.1
-
-Prompt Construction documented.
-
----
-
-# 16. Runtime Communication
-
-## Purpose
-
-Runtime Communication represents the final stage of the instructional architecture.
-
-It is the moment when deterministic instructional reasoning is translated into a student-facing coaching interaction.
-
----
-
-## Why This Exists
-
-Students experience Kaw through conversation rather than through contracts, validation rules, or decision cycles.
-
-Runtime Communication bridges deterministic instructional reasoning with natural instructional dialogue.
-
----
-
-## Runtime Flow
-
-The runtime sequence is:
-
-Instructional Knowledge
-
-↓
-
-Validation
-
-↓
-
-Instructional Findings
-
-↓
-
-Instructional Contract
-
-↓
-
-Teaching Move
-
-↓
-
-Thinking Move
-
-↓
-
-Communication License
-
-↓
-
-Prompt Construction
-
-↓
-
-AI Response
-
-↓
-
-Student Response
-
-↓
-
-Observe Again
-
-Each stage depends on the stages preceding it.
-
----
-
-## Runtime Responsibilities
-
-During runtime:
-
-The deterministic engine:
-
-- reasons;
-- validates;
-- decides;
-- governs.
-
-AI:
-
-- contextualizes;
-- communicates;
-- personalizes;
-- encourages.
-
-The student:
-
-- thinks;
-- responds;
-- revises;
-- progresses.
-
----
-
-## Governing Decisions
-
-Runtime Communication must preserve:
-
-- instructional intent;
-- student ownership;
-- assignment alignment;
-- deterministic instructional decisions;
-- conversational continuity.
-
-Language may vary.
-
-Instructional behavior may not.
-
----
-
-## Design Rationale
-
-The runtime architecture reflects Kaw's central philosophy:
-
-Instruction should be deterministic.
-
-Communication should be natural.
-
-The instructional engine teaches.
-
-AI gives the instruction a human voice.
-
----
-
-## Related Sections
-
-- AI Governance
-- Communication Licensing
-- Prompt Construction
-- Testing Framework
-
----
-
-## Revision History
-
-Version 0.1
-
-Runtime Communication documented.
----
-
-# PART V — System Engineering
-
-Part V defines how the Kaw architecture is implemented, tested, maintained, and evolved.
-
-While the previous sections describe Kaw's instructional philosophy and reasoning, this section describes the engineering practices that ensure the system remains reliable, explainable, maintainable, and instructionally faithful.
-
-The goal of Part V is to answer a single question:
-
-> **How do we build, protect, and evolve the Kaw system while preserving its instructional integrity?**
-
----
-
-# 17. System Architecture
-
-## Purpose
-
-The System Architecture defines the major components of Kaw and the relationships among them.
-
-It describes **what exists**, **why it exists**, and **how information flows** through the system.
-
----
-
-## Why This Exists
-
-As Kaw evolved from a collection of prompts into a deterministic instructional system, a clear architectural model became essential.
-
-The architecture provides a shared understanding of:
-
-- system responsibilities;
-- component boundaries;
-- instructional ownership;
-- communication flow;
-- future extensibility.
-
----
-
-## Architectural Layers
-
-The current architecture consists of five primary layers:
-
-1. User Experience Layer
-2. Instructional Reasoning Layer
-3. Deterministic Decision Engine
-4. AI Communication Layer
-5. Data & Persistence Layer
-
-Each layer has clearly defined responsibilities.
-
----
-
-## Design Principles
-
-The architecture is designed to be:
-
-- modular;
-- deterministic;
-- explainable;
-- testable;
-- extensible;
-- instructionally governed.
-
----
-
-## Governing Decisions
-
-Every new feature should strengthen—not bypass—the architectural layers.
-
-If a feature requires AI to assume instructional authority, the design should be reconsidered.
-
----
-
-## Related Sections
-
-- Project Overview
-- Kaw Instructional Model
-- AI Governance
-- Application Flow
-
----
-
-## Revision History
-
-Version 0.1
-
-Initial architecture documented.
-
----
-
-# 18. Application Flow
-
-## Purpose
-
-Application Flow documents the sequence of operations that occur during a student interaction.
-
-It explains how information moves through the system from student input to instructional coaching.
-
----
-
-## High-Level Flow
-
-Student Response
-
-↓
-
-Instructional Knowledge
-
-↓
-
-Validation
-
-↓
-
-Instructional Findings
-
-↓
-
-Instructional Contract
-
-↓
-
-Teaching Move
-
-↓
-
-Thinking Move
-
-↓
-
-Communication License
-
-↓
-
-Prompt Construction
-
-↓
-
-AI Communication
-
-↓
-
-Student Response
-
----
-
-## Why This Exists
-
-Documenting application flow ensures that every instructional interaction follows the same deterministic pathway.
-
----
-
-## Governing Decisions
-
-Application flow should remain linear and traceable.
-
-No stage should bypass validation, contracts, or governance.
-
----
-
-## Design Rationale
-
-The application flow mirrors the reasoning process of an expert teacher.
-
-Instructional understanding always precedes instructional communication.
-
----
-
-## Related Sections
-
-- Instructional Decision Cycle
-- Runtime Communication
-- Testing Framework
-
----
-
-## Revision History
-
-Version 0.1
-
-Application Flow documented.
-
----
-
-# 19. Data Structures
-
-## Purpose
-
-Data Structures define the information required to support deterministic instructional reasoning.
-
-Rather than documenting implementation-specific code, this section documents the conceptual data model.
-
----
-
-## Core Objects
+Although individual implementations may define different contracts, they generally fall into recurring instructional families.
 
 Examples include:
 
-- Assignment Context
-- Student Session
-- Student Response
-- Validation Result
-- Instructional Finding
-- Instructional Contract
-- Teaching Move
-- Thinking Move
-- Communication License
-- Parent Anchor
-- Child Anchor
-- Progression State
+Validation
 
-Future implementation details may evolve while preserving these conceptual objects.
+Celebration
 
----
+Clarification
 
-## Governing Decisions
+Recovery
 
-Data structures should represent instructional concepts rather than implementation shortcuts.
+Revision
 
----
+Evidence Collection
 
-## Design Rationale
+Misconception Correction
 
-Separating conceptual data structures from implementation details allows Kaw to evolve across technologies without changing its instructional model.
+Instructional Continuation
 
----
+Each contract defines:
 
-## Related Sections
+the instructional objective,
 
-- System Architecture
-- Instructional Knowledge
-- Instructional Contracts
+acceptable evidence,
 
----
+teaching move,
 
-## Revision History
+thinking move,
 
-Version 0.1
+progression rules,
 
-Conceptual data model documented.
+recovery behavior,
+
+communication constraints,
+
+and validation expectations.
+
+Future implementations may expand these contracts without changing the surrounding architecture.
 
 ---
 
-# 20. Testing Framework
+# Chapter 10
 
-## Purpose
+## The Two-Gate Progression Model
 
-The Testing Framework ensures that Kaw behaves consistently, deterministically, and instructionally correctly.
+Progression represents one of the most important responsibilities of the instructional engine.
 
-Testing protects both software quality and instructional integrity.
+Students should advance only when instructionally appropriate.
 
----
+They should also avoid unnecessary repetition once sufficient understanding has been demonstrated.
 
-## Types of Testing
+Version 1.1 introduced the Two-Gate Progression Model to formalize this decision. That model remains a foundational element of the constitutional architecture. 
 
-Current testing includes:
+Rather than asking a single question—
 
-- component validation;
-- instructional contract testing;
-- communication license testing;
-- regression testing;
-- instructional pathway testing;
-- end-to-end experience testing.
+"Is the student's answer correct?"
 
-Future testing may include automated instructional simulations.
+—the architecture asks two separate instructional questions.
+
+These questions protect both instructional accuracy and instructional continuity.
 
 ---
 
-## Testing Philosophy
+**Gate One — Validation**
 
-Tests should verify instructional behavior—not exact wording.
+The first gate determines whether the student has demonstrated the required instructional evidence for the current instructional contract.
 
-Because AI responses may vary linguistically, tests evaluate:
+Validation evaluates whether required expectations have been satisfied.
 
-- instructional findings;
-- Teaching Moves;
-- Thinking Moves;
-- progression;
-- communication permissions.
+If validation fails, instruction remains at the current instructional location.
+
+Appropriate recovery strategies are selected while preserving instructional intent.
 
 ---
 
-## Governing Decisions
+**Gate Two — Instructional Sufficiency**
 
-No architectural change should be considered complete until:
+Passing validation alone is not sufficient for progression.
 
-- implementation is updated;
-- tests are updated;
-- documentation is updated.
+The second gate determines whether accepted student work provides a stable instructional foundation for the next instructional objective.
 
----
+Instructional sufficiency does not require perfection.
 
-## Design Rationale
+Instead, it asks whether the student's work:
 
-Instructional correctness is more important than response consistency.
+• communicates a coherent idea;
 
-Testing should protect instructional intent rather than specific sentences.
+• preserves the student's intended meaning;
 
----
+• provides a stable instructional foundation capable of supporting subsequent instruction.
 
-## Related Sections
-
-- Instructional Contracts
-- AI Governance
-- Runtime Communication
+This distinction allows students to continue learning without requiring unnecessary refinement while simultaneously protecting future instructional success. 
 
 ---
 
-## Revision History
+## When Either Gate Fails
 
-Version 0.1
+Failure at either gate produces the same progression decision.
 
-Testing Framework documented.
+The instructional engine does not advance.
 
----
+Instead, Kaw remains at the current instructional location while adjusting instructional support.
 
-# 21. Deployment
+Recovery therefore modifies instructional support rather than instructional direction.
 
-## Purpose
+Students continue working toward the same instructional objective.
 
-Deployment describes how Kaw is delivered, configured, and maintained across environments.
-
----
-
-## Current Environment
-
-Current deployment includes:
-
-- GitHub source repository;
-- Vercel hosting;
-- deterministic instructional engine;
-- AI communication services;
-- persistent data storage.
-
-Future deployment strategies may expand as the project evolves.
+Instructional continuity remains intact.
 
 ---
 
-## Governing Decisions
+## Progression as Governance
 
-Deployment decisions should never compromise instructional governance.
+The Two-Gate Progression Model illustrates the central philosophy of the Kaw architecture.
 
-Infrastructure should support—not redefine—the instructional architecture.
+Progression is not determined by conversational quality.
 
----
+It is not determined by AI confidence.
 
-## Revision History
+It is not determined by linguistic elegance.
 
-Version 0.1
+Progression is governed exclusively through deterministic instructional reasoning.
 
-Deployment documented.
+Only after both gates have been satisfied may the instructional engine authorize movement to the next instructional objective.
 
----
-
-# 22. Development Standards
-
-## Purpose
-
-Development Standards establish expectations for future contributions to Kaw.
-
-They ensure architectural consistency as the project grows.
+In this way, progression remains one of the strongest constitutional protections within the entire system.
 
 ---
 
-## Development Principles
+**END OF PART II**
 
-All development should:
+**PART III**
 
-- preserve instructional integrity;
-- maintain deterministic reasoning;
-- document architectural decisions;
-- include testing;
-- update documentation;
-- prioritize explainability;
-- protect student ownership.
+# Communication Architecture
 
 ---
 
-## Definition of Done
+# Chapter 11
 
-A feature is complete only when:
+## Communication Governance
 
-✓ Implementation is complete.
+The instructional engine determines **what** instruction should occur.
 
-✓ Tests pass.
+Communication Governance determines **how** that instruction may be expressed.
 
-✓ Documentation is updated.
+This distinction represents one of the most important architectural advancements within the Kaw Companion.
 
-✓ Architectural alignment has been verified.
+Earlier versions of the architecture viewed communication primarily as an extension of instructional reasoning. Continued development revealed that communication deserves its own governed architectural layer.
 
----
+Instruction and communication are related.
 
-## Governing Decisions
+They are not identical.
 
-Convenience should never replace instructional correctness.
+Instruction establishes intent.
 
----
+Communication expresses intent.
 
-## Revision History
-
-Version 0.1
-
-Development Standards documented.
+By separating these responsibilities, Kaw preserves instructional consistency while allowing natural instructional conversations.
 
 ---
 
-# 23. Architecture Decision Records
+**The Purpose of Communication Governance**
 
-## Purpose
+Communication Governance exists to ensure that every generated response faithfully represents the instructional intent already established by deterministic reasoning.
 
-Architecture Decision Records preserve significant architectural decisions and the reasoning behind them.
+It is therefore not another reasoning layer.
 
-It serves as the institutional memory of the project.
+It is a governance layer.
 
----
+Its responsibility is to establish the boundaries within which communication may occur.
 
-## Why This Exists
+These boundaries exist before AI generates a single word.
 
-Many architectural decisions make perfect sense when they are made but become difficult to reconstruct months or years later.
+Communication Governance answers questions such as:
 
-Capturing the rationale behind those decisions preserves the evolution of the system.
+What instructional objective must remain visible?
 
----
+What teaching move must occur?
 
-## Example Entries
+What thinking move must be elicited?
 
-- Separated instructional reasoning from AI communication.
-- Introduced Assignment Context as persistent instructional memory.
-- Added Parent and Child Anchors.
-- Introduced Communication Licensing.
-- Replaced deterministic prompts with deterministic instructional reasoning.
+What instructional location must be preserved?
 
-Future decisions should be added as the architecture evolves.
+What progression decision has already been made?
 
----
+What information may AI adapt?
 
-## Governing Decisions
+What information must remain fixed?
 
-Architectural decisions should document:
-
-- the problem;
-- the alternatives considered;
-- the final decision;
-- the instructional rationale.
+Only after these boundaries have been established may communication proceed.
 
 ---
 
-## Revision History
+**Permissible Communication**
 
-Version 0.1
+Within these governance boundaries, AI possesses considerable expressive flexibility.
 
-Decision Log introduced.
+It may:
 
----
+• Adapt wording.
 
-# 24. Roadmap
+• Adjust sentence structure.
 
-## Purpose
+• Personalize encouragement.
 
-The Roadmap documents the intended evolution of Kaw.
+• Match teacher voice.
 
-It communicates strategic direction without prescribing implementation details.
+• Reference assignment context.
 
----
+• Adjust scaffolding language.
 
-## Near-Term Priorities
+• Improve conversational flow.
 
-- Complete all Framing Routine components.
-- Expand Instructional Contracts.
-- Strengthen Validation Framework.
-- Refine Teacher Voice.
-- Conduct student pilot testing.
-- Refine architecture based on observational data.
+• Eliminate unnecessary repetition.
 
----
+• Simplify explanations.
 
-## Long-Term Vision
+• Clarify confusing language.
 
-Future development may include:
-
-- additional instructional routines;
-- broader curriculum support;
-- teacher dashboards;
-- instructional analytics;
-- expanded testing automation;
-- enhanced developer tooling.
-
-The instructional philosophy and governance principles defined throughout this guide should remain stable even as implementation evolves.
+These changes improve communication without changing instruction.
 
 ---
 
-## Governing Decisions
+**Impermissible Communication**
 
-Future features should extend the architecture rather than replace it.
+Communication Governance also defines what AI may never do.
 
-Every major addition should align with:
+AI may never:
 
-- Design Philosophy;
-- Instructional Commitments;
-- Kaw Instructional Model;
-- AI Governance.
+• Change instructional goals.
 
----
+• Change instructional location.
 
-## Revision History
+• Advance progression.
 
-Version 0.1
+• Delay progression.
 
-Initial roadmap documented.
+• Select a different instructional contract.
 
----
+• Introduce new instructional expectations.
 
-# 25. Appendices
+• Invent student reasoning.
 
-## Canonical Instructional Example Format
+• Strengthen incomplete thinking.
 
-### Instructional Situation
+• Complete intellectual work for the student.
 
-### Before Kaw Responds
+• Redirect instruction toward a different objective.
 
-**Student Evidence (Observe)**  
-What the student has demonstrated.
-
-**Instructional Goal (Decide)**  
-What Kaw is trying to help the student accomplish next.
-
-**Teaching Move (Coach)**  
-How Kaw will support the student.
-
-**Thinking Move (Advance One Thinking Step)**  
-The cognitive move the student is being asked to make.
-
-### Kaw Responds
-
-The contextualized student-facing prompt.
-
-### Why This Response?
-
-An explanation of how the response reflects the evidence, goal, teaching move, thinking move, and governance model.
+These restrictions preserve constitutional governance regardless of communication style.
 
 ---
 
-## Glossary
+## Communication Is a Translation Layer
 
-**Assignment Context**  
-Persistent instructional information required to understand and coach the assignment responsibly.
+Communication should be understood as translation rather than decision making.
 
-**Communication License**  
-A deterministic set of permissions and restrictions governing what AI may communicate.
+The instructional engine has already determined the instructional destination.
 
-**Instructional Contract**  
-A governed pathway mapping findings to a goal, teaching move, thinking move, and Communication License.
+Communication translates that decision into language appropriate for the current student, assignment, and instructional moment.
 
-**Instructional Finding**  
-A structured description of what the student demonstrated and what need remains.
+Multiple responses may therefore communicate identical instructional intent.
 
-**Parent Anchor**  
-An upstream Frame component that constrains interpretation of the current component.
+Although the wording differs, the underlying instruction remains unchanged.
 
-**Child Anchor**  
-A downstream component whose relationship may help validate the current component.
-
-**Teaching Move**  
-The instructional method used to help the student progress.
-
-**Thinking Move**  
-The specific cognitive action the student is asked to take next.
-
-**Thinking Task**  
-The cognitive work required by the assignment.
+This distinction allows Kaw to sound natural without sacrificing instructional consistency.
 
 ---
 
-# Document Maintenance
+# Chapter 12
 
-When a significant change is made to Kaw:
+## AI Contextualization
 
-1. implement the change;
-2. test the change;
-3. update the relevant guide section;
-4. add or update an Architecture Decision Record when architecture or governance changes;
-5. commit code, tests, and documentation together whenever practical.
+Artificial intelligence enters the instructional architecture only after deterministic governance has completed its work.
 
+Its purpose is not instructional reasoning.
+
+Its purpose is contextualization.
+
+AI transforms deterministic instructional intent into language that feels natural, conversational, and appropriate for the student's specific assignment.
+
+Because instructional decisions have already been finalized, AI operates entirely within predetermined boundaries.
+
+Its role resembles that of an experienced teacher selecting the most effective wording for a lesson that has already been planned.
 
 ---
 
-# Version 1.0 Working Notes
+## Contextualization Rather Than Generation
 
-This version consolidates the current instructional architecture into one canonical working document. It is intentionally focused on capturing architectural truth rather than publication-level formatting.
+Many AI systems generate responses from prompts.
 
-Immediate priorities:
+Kaw contextualizes instructional decisions.
 
-1. stabilize Thinking Task behavior;
-2. prepare and conduct the Friday pilot;
-3. use pilot evidence to identify missing or unstable instructional pathways;
-4. begin Parent Anchor inference only after Thinking Task behavior is stable;
-5. update this guide whenever implementation decisions materially change the architecture.
+This difference is subtle but profound.
+
+Generation begins with language.
+
+Contextualization begins with instructional intent.
+
+The AI does not decide what students need.
+
+It receives a deterministic instructional decision and expresses that decision naturally.
+
+Instruction therefore remains stable even though communication varies.
+
+---
+
+## Sources of Context
+
+AI contextualization draws upon multiple sources of instructional context.
+
+These may include:
+
+Assignment Context
+
+Current instructional objective
+
+Student evidence
+
+Accumulated instructional history
+
+Teacher voice
+
+Current recovery level
+
+Thinking task
+
+Instructional contract
+
+Student language
+
+Previous coaching
+
+Because this information has already been governed, AI is free to incorporate it naturally without altering instructional meaning.
+
+---
+
+## Teacher Voice
+
+One of AI's greatest strengths is preserving instructional consistency while allowing authentic teacher voice.
+
+Teacher voice includes characteristics such as:
+
+Level of formality
+
+Sentence length
+
+Encouragement style
+
+Question style
+
+Scaffolding language
+
+Academic vocabulary
+
+Conversational tone
+
+Examples
+
+These stylistic variations help students experience instruction that feels personal rather than mechanical.
+
+Yet beneath these stylistic differences, instructional intent remains identical.
+
+Teacher voice therefore becomes an expressive layer rather than an instructional layer.
+
+---
+
+## Assignment-Specific Communication
+
+Students rarely complete instructional work in isolation.
+
+Assignments differ.
+
+Subjects differ.
+
+Writing prompts differ.
+
+Texts differ.
+
+Projects differ.
+
+AI contextualization enables identical instructional contracts to sound entirely different depending upon assignment context.
+
+A coaching statement for a historical analysis should not sound identical to one supporting scientific explanation or literary interpretation.
+
+The instructional move remains constant.
+
+The communication adapts.
+
+This separation significantly improves instructional authenticity while preserving deterministic governance.
+
+---
+
+# Chapter 13
+
+## Communication Validation
+
+Communication Governance establishes what AI is permitted to communicate.
+
+Communication Validation verifies that AI actually communicated it.
+
+This distinction creates an additional layer of constitutional protection.
+
+Governance defines permissible boundaries before communication occurs.
+
+Validation evaluates the completed communication afterward.
+
+Together they form complementary safeguards surrounding every AI response.
+
+---
+
+## Why Validation Is Necessary
+
+Even governed AI remains non-deterministic.
+
+Given identical instructional intent, multiple acceptable responses may be produced.
+
+Although this flexibility is desirable, it also creates the possibility that communication could unintentionally drift beyond deterministic boundaries.
+
+Communication Validation exists to detect and prevent that drift.
+
+Rather than trusting generated language automatically, the instructional engine evaluates whether the completed response faithfully preserves deterministic instructional intent.
+
+Only validated communication is delivered to students.
+
+---
+
+## What Communication Validation Evaluates
+
+Communication Validation confirms that every generated response:
+
+• Preserves instructional intent.
+
+• Preserves instructional location.
+
+• Preserves progression decisions.
+
+• Preserves the selected instructional contract.
+
+• Preserves the required teaching move.
+
+• Preserves the required thinking move.
+
+• Preserves student ownership.
+
+• Maintains instructional continuity.
+
+• Remains consistent with teacher voice.
+
+If any of these conditions are violated, the communication is rejected.
+
+---
+
+## Validation Is Independent of Style
+
+Communication Validation intentionally ignores stylistic differences.
+
+Two responses may differ dramatically in wording while remaining equally valid.
+
+Validation therefore evaluates instructional fidelity rather than linguistic similarity.
+
+For example, one response may be highly conversational.
+
+Another may be highly academic.
+
+A third may use questions rather than statements.
+
+If each faithfully communicates the same instructional intent, all three satisfy Communication Validation.
+
+This allows expressive flexibility without compromising deterministic governance.
+
+---
+
+## Validation Failure
+
+Occasionally, generated communication may fail validation.
+
+Examples include communication that:
+
+Suggests a different instructional objective.
+
+Introduces new academic expectations.
+
+Strengthens incomplete student reasoning.
+
+Advances progression prematurely.
+
+Requests thinking beyond the selected teaching move.
+
+Reduces student ownership.
+
+When validation fails, the communication is discarded.
+
+The instructional engine does not change its decision.
+
+Instead, AI is given another opportunity to contextualize the same deterministic instructional intent within the existing governance boundaries.
+
+Instruction remains constant.
+
+Only communication changes.
+
+---
+
+## Completing the Instructional Cycle
+
+Communication Validation completes the governed communication architecture.
+
+The complete communication sequence therefore becomes:
+
+```id="gcv829"
+Instructional Intent
+        ↓
+Communication Governance
+        ↓
+AI Contextualization
+        ↓
+Communication Validation
+        ↓
+Student Receives Instruction
+```
+
+This sequence ensures that no student-facing communication bypasses deterministic governance.
+
+Every instructional conversation is therefore both natural and constitutionally protected.
+
+---
+
+# Chapter 14
+
+## Recovery Architecture
+
+Every instructional system must decide what to do when students struggle.
+
+Many systems respond by changing instructional objectives.
+
+Kaw does not.
+
+The constitutional architecture instead follows a single governing principle established in Part I:
+
+**Recovery means smaller thinking—not different thinking.**
+
+Recovery therefore preserves instructional intent while reducing cognitive demand.
+
+---
+
+## Recovery Preserves Instructional Direction
+
+Recovery never changes the destination.
+
+It changes only the pathway.
+
+Students remain responsible for the same intellectual objective.
+
+The instructional engine simply provides additional support appropriate to the student's current evidence.
+
+Examples include:
+
+Breaking one question into two.
+
+Providing an organizational prompt.
+
+Focusing attention on one missing relationship.
+
+Reducing cognitive load.
+
+Providing additional examples.
+
+Clarifying vocabulary.
+
+Directing attention to existing student evidence.
+
+Each strategy supports thinking without replacing thinking.
+
+---
+
+## Recovery as Progressive Scaffolding
+
+Recovery is not a single instructional event.
+
+It represents a continuum of increasingly explicit instructional support.
+
+As evidence accumulates, instructional support may gradually become:
+
+General guidance
+
+Focused prompting
+
+Targeted questioning
+
+Structured scaffolding
+
+Highly explicit coaching
+
+Throughout this progression, instructional intent remains unchanged.
+
+Students continue working toward exactly the same learning objective.
+
+---
+
+## Recovery Protects Student Ownership
+
+Perhaps the greatest temptation during recovery is completing student thinking in order to maintain instructional momentum.
+
+Kaw intentionally refuses this shortcut.
+
+Recovery never introduces reasoning students have not produced.
+
+Recovery never strengthens incomplete arguments.
+
+Recovery never supplies missing intellectual work.
+
+Instead, recovery creates opportunities for students to perform increasingly manageable portions of the required thinking themselves.
+
+The result is slower progress when necessary, but stronger learning over time.
+
+---
+
+# Chapter 15
+
+## Teacher Voice
+
+Instruction is ultimately experienced through language.
+
+Even the strongest instructional architecture fails if communication feels artificial, mechanical, or disconnected from authentic teaching.
+
+Teacher voice therefore occupies a unique position within the communication architecture.
+
+It influences every student interaction without influencing instructional reasoning itself.
+
+---
+
+## Separating Voice from Instruction
+
+Teacher voice is intentionally separated from instructional decisions.
+
+This distinction allows different educators, schools, or implementations to communicate identical instructional intent using different conversational styles.
+
+One implementation may sound highly academic.
+
+Another may sound conversational.
+
+A third may sound encouraging and reflective.
+
+All remain architecturally equivalent provided they preserve deterministic instructional intent.
+
+---
+
+## Characteristics of Teacher Voice
+
+Teacher voice may influence:
+
+Encouragement
+
+Warmth
+
+Sentence rhythm
+
+Question style
+
+Vocabulary
+
+Transitions
+
+Examples
+
+Tone
+
+Conversational pacing
+
+None of these characteristics alter instructional reasoning.
+
+They simply shape how students experience that reasoning.
+
+---
+
+## Consistency Through Governance
+
+Because teacher voice operates inside Communication Governance and Communication Validation, stylistic freedom never compromises instructional integrity.
+
+Every instructional response therefore reflects two complementary goals.
+
+It sounds authentically human.
+
+It remains architecturally governed.
+
+This balance represents one of the defining characteristics of the Kaw Companion.
+
+Students experience individualized instructional conversations.
+
+The instructional engine experiences deterministic constitutional governance.
+
+Together, these principles complete the communication architecture and prepare the foundation for the implementation details described in the next part of this guide.
+
+---
+
+**END OF PART III**
+
+**PART IV**
+
+# System Design
+
+---
+
+# Chapter 16
+
+## Instructional State
+
+Instruction is not a collection of isolated conversations.
+
+It is a continuous process.
+
+Every student response builds upon previous instructional interactions, creating an evolving instructional state that represents the student's current position within the learning process.
+
+Instructional State is therefore the memory of the instructional engine.
+
+Unlike conversational memory, which primarily preserves dialogue, Instructional State preserves instructional meaning.
+
+It remembers not merely what the student said, but what that evidence demonstrated instructionally.
+
+This distinction allows Kaw to remain instructionally coherent across an entire learning experience.
+
+---
+
+**Purpose of Instructional State**
+
+Instructional State exists to answer one fundamental question:
+
+**"Where are we instructionally?"**
+
+The answer cannot be determined from a single student response.
+
+Instead, it emerges from the accumulated instructional history.
+
+Instructional State therefore preserves:
+
+Current instructional location
+
+Current instructional objective
+
+Completed instructional objectives
+
+Current recovery level
+
+Current instructional contract
+
+Student evidence
+
+Instructional sufficiency
+
+Progression status
+
+Assignment Context
+
+Thinking Task
+
+Parent Anchor
+
+Child Anchor
+
+Communication history
+
+Because this information persists across interactions, every instructional decision is informed by the complete instructional context rather than only the most recent student response.
+
+---
+
+## State Is Instructional, Not Conversational
+
+Many conversational systems remember dialogue.
+
+Kaw remembers instruction.
+
+This distinction is fundamental.
+
+A conversational assistant may remember that a student asked a question.
+
+Kaw remembers why that question mattered instructionally.
+
+Likewise, Kaw does not simply remember previous responses.
+
+It remembers whether those responses demonstrated sufficient evidence to support progression.
+
+Instructional State therefore functions as instructional memory rather than conversational memory.
+
+---
+
+## Evidence Accumulates
+
+Students rarely demonstrate complete understanding in a single response.
+
+Instead, understanding develops gradually.
+
+Each instructional interaction contributes additional evidence that strengthens, weakens, or clarifies the instructional picture.
+
+The architecture therefore treats evidence as cumulative.
+
+New evidence is interpreted alongside existing evidence rather than replacing it.
+
+This accumulation enables instructional reasoning to recognize emerging understanding even when individual responses appear incomplete.
+
+---
+
+# Chapter 17
+
+## Evidence Processing
+
+Student evidence is the primary input to the instructional engine.
+
+Everything the system does begins with what students actually produce.
+
+For this reason, evidence processing occupies a privileged position within the architecture.
+
+Rather than asking students to conform to rigid response formats, Kaw interprets naturally occurring instructional evidence while preserving deterministic evaluation.
+
+---
+
+## Student Evidence
+
+Evidence may include:
+
+Written responses
+
+Sentence revisions
+
+Main ideas
+
+Supporting details
+
+Summaries
+
+Explanations
+
+Comparisons
+
+Reflections
+
+Corrections
+
+Clarifications
+
+Each of these represents observable instructional behavior.
+
+The instructional engine evaluates behavior—not assumptions.
+
+---
+
+## Evidence Before Assistance
+
+One of Kaw's defining characteristics is that assistance always follows evidence.
+
+The system never assumes misunderstanding.
+
+It never predicts misconceptions.
+
+It never provides instructional support before determining whether support is actually necessary.
+
+Instead, every instructional decision originates with demonstrated evidence.
+
+This sequence preserves instructional accuracy while minimizing unnecessary intervention.
+
+---
+
+## Evidence Normalization
+
+Students communicate ideas imperfectly.
+
+Grammar varies.
+
+Organization varies.
+
+Vocabulary varies.
+
+Minor structural inconsistencies frequently appear even when instructional understanding is present.
+
+For this reason, Kaw may normalize evidence before instructional interpretation.
+
+Normalization may include:
+
+Correcting obvious transcription errors.
+
+Resolving formatting inconsistencies.
+
+Improving readability.
+
+Separating unrelated ideas.
+
+Clarifying sentence boundaries.
+
+Normalization exists solely to improve evaluation.
+
+It may never strengthen reasoning or alter intended meaning.
+
+If normalization changes instructional meaning, it is no longer normalization.
+
+It has become instruction, which belongs elsewhere in the architecture.
+
+---
+
+## Instructional Interpretation
+
+Once evidence has been normalized, deterministic reasoning determines its instructional significance.
+
+Interpretation asks questions such as:
+
+Has the required evidence been demonstrated?
+
+What instructional contract applies?
+
+What recovery level is appropriate?
+
+Has instructional sufficiency been established?
+
+Is progression authorized?
+
+Only after interpretation has completed does the architecture proceed toward instructional communication.
+
+---
+
+# Chapter 18
+
+## Assignment Context
+
+Assignment Context provides the instructional environment within which every instructional decision occurs.
+
+It answers a deceptively simple question:
+
+**"What is the student trying to accomplish?"**
+
+Without this information, identical responses may require entirely different instructional actions.
+
+Assignment Context therefore anchors deterministic reasoning to the instructional purpose established by the teacher.
+
+---
+
+## Why Assignment Context Matters
+
+Consider two identical student statements.
+
+One appears in a persuasive essay.
+
+The other appears in a scientific explanation.
+
+Although the language may be identical, the instructional expectations are not.
+
+Different assignments require different evidence.
+
+Different evidence requires different instructional contracts.
+
+Assignment Context ensures that instructional reasoning evaluates student work against the correct expectations.
+
+---
+
+## Assignment Context Throughout the Architecture
+
+Assignment Context is established before instructional reasoning begins.
+
+Once established, it accompanies every architectural layer.
+
+It informs:
+
+Instructional Knowledge
+
+Thinking Tasks
+
+Instructional Contracts
+
+Recovery Strategies
+
+Communication Governance
+
+AI Contextualization
+
+Communication Validation
+
+Because Assignment Context remains available throughout the instructional cycle, every instructional decision remains connected to the larger academic purpose.
+
+---
+
+## Framework Independence
+
+Although the current implementation centers on the KU-CRL Framing Routine, Assignment Context is intentionally framework-independent.
+
+Future instructional models may organize learning differently while continuing to rely upon Assignment Context as the instructional foundation surrounding student work.
+
+This architectural independence enables Kaw to support additional instructional frameworks without redesigning its core reasoning engine.
+
+---
+
+# Chapter 19
+
+## Extending the Architecture
+
+Constitutional governance was intentionally designed to outlive any single instructional implementation.
+
+The architecture therefore distinguishes between permanent governance and replaceable instructional frameworks.
+
+This distinction allows Kaw to evolve without sacrificing consistency.
+
+---
+
+## Stable Foundations
+
+Certain architectural components should remain permanent.
+
+These include:
+
+Constitutional Principles
+
+Deterministic Instructional Reasoning
+
+Instructional Intent
+
+Communication Governance
+
+AI Contextualization
+
+Communication Validation
+
+Student Ownership
+
+Instructional Contracts
+
+Two-Gate Progression
+
+Recovery Architecture
+
+These components define how the system operates regardless of instructional model.
+
+---
+
+## Replaceable Implementations
+
+Other components may evolve over time.
+
+Examples include:
+
+Instructional Frameworks
+
+Curriculum Models
+
+Instructional Contracts
+
+Thinking Tasks
+
+Assignment Types
+
+Evidence Validators
+
+Instructional Sequences
+
+Teacher Voice Profiles
+
+Because these components operate within constitutional governance, they may change without threatening architectural integrity.
+
+---
+
+## The Framing Routine as the First Implementation
+
+The Framing Routine represents the first complete implementation of the governed instructional engine.
+
+It provides:
+
+A structured instructional progression.
+
+Clearly defined instructional components.
+
+Deterministic validation opportunities.
+
+Observable student evidence.
+
+Natural instructional checkpoints.
+
+The Framing Routine therefore serves as an ideal initial implementation.
+
+However, the architecture intentionally avoids embedding assumptions unique to that framework.
+
+As future instructional models are introduced, they inherit the same constitutional protections already established throughout this guide.
+
+---
+
+# Chapter 20
+
+## Future Instructional Models
+
+Every architecture eventually reaches a point where it must decide whether it was built for today's implementation or tomorrow's possibilities.
+
+Kaw chooses tomorrow.
+
+The constitutional architecture deliberately anticipates future instructional models while refusing to compromise present instructional integrity.
+
+---
+
+## Beyond the Framing Routine
+
+Future implementations may include instructional frameworks that emphasize:
+
+Scientific reasoning
+
+Historical inquiry
+
+Mathematical problem solving
+
+Project-based learning
+
+Design thinking
+
+Computational thinking
+
+Reading comprehension
+
+Writing development
+
+Professional certification preparation
+
+Each framework may organize instruction differently.
+
+Each may define different instructional contracts.
+
+Each may require different forms of evidence.
+
+Yet every implementation remains governed by the same constitutional architecture.
+
+---
+
+## What Never Changes
+
+Regardless of instructional framework, five principles remain constant.
+
+Deterministic instructional reasoning establishes instructional intent.
+
+Instruction precedes communication.
+
+The student owns the thinking. Kaw owns the instruction.
+
+Recovery means smaller thinking—not different thinking.
+
+Every non-deterministic operation must be bounded by deterministic governance.
+
+These principles define Kaw more than any individual instructional model ever could.
+
+---
+
+## Toward a Governed Instructional Platform
+
+The evolution documented throughout this guide reveals a broader vision.
+
+Kaw is not simply an AI tutor.
+
+It is not merely a Framing Routine companion.
+
+It is a governed instructional platform whose architecture enables deterministic instructional reasoning to coexist with adaptive, human-centered communication.
+
+This distinction transforms the project from an implementation into an instructional operating system.
+
+Future instructional frameworks become implementations of the architecture rather than replacements for it.
+
+In this way, constitutional governance becomes the enduring foundation upon which future instructional innovation can safely occur.
+
+---
+
+The chapters that follow provide supporting reference material, governance summaries, architectural diagrams, and implementation guidance intended to assist future development while preserving the constitutional principles established throughout this manuscript.
+
+---
+
+**END OF PART IV**
+
+**PART V**
+
+# Appendices
+
+---
+
+# Appendix A
+
+## Constitutional Summary
+
+The Kaw Companion architecture is governed by a small number of permanent constitutional principles.
+
+Everything else within the system exists to implement, preserve, or extend these principles.
+
+If a future implementation appears to conflict with one of these principles, the implementation—not the principle—must change.
+
+---
+
+**Constitutional Principle 1**
+
+**Deterministic instructional reasoning establishes instructional intent.**
+
+Instructional intent is determined exclusively through deterministic reasoning.
+
+Artificial intelligence never establishes instructional intent.
+
+It communicates instructional intent that has already been established.
+
+---
+
+**Constitutional Principle 2**
+
+**Instruction precedes communication.**
+
+Instructional reasoning always occurs before communication.
+
+Communication is therefore dependent upon instruction, not the reverse.
+
+---
+
+**Constitutional Principle 3**
+
+**The student owns the thinking. Kaw owns the instruction.**
+
+Students remain responsible for all intellectual work.
+
+Kaw remains responsible for instructional guidance.
+
+Neither responsibility may be transferred to the other.
+
+---
+
+**Constitutional Principle 4**
+
+**Recovery means smaller thinking—not different thinking.**
+
+Recovery reduces instructional complexity while preserving instructional direction.
+
+Students continue working toward the same objective using increasingly appropriate instructional support.
+
+---
+
+**Constitutional Principle 5**
+
+**Every non-deterministic operation must be bounded by deterministic governance.**
+
+Artificial intelligence operates only within deterministic boundaries established by the instructional engine.
+
+No AI operation may override deterministic instructional reasoning.
+
+---
+
+## Constitutional Test
+
+Every future architectural proposal should satisfy the following questions.
+
+If any answer is "No," the proposal violates the constitutional architecture.
+
+**Instruction**
+
+Does deterministic reasoning establish instructional intent before communication begins?
+
+**Progression**
+
+Does the proposal preserve deterministic instructional progression?
+
+**Ownership**
+
+Does the student remain responsible for intellectual work?
+
+**Recovery**
+
+Does recovery reduce cognitive load without changing instructional direction?
+
+**Governance**
+
+Are all non-deterministic behaviors explicitly bounded?
+
+**Communication**
+
+Can communication vary while preserving identical instructional intent?
+
+If these questions can all be answered affirmatively, the proposal remains constitutionally compatible.
+
+---
+
+# Appendix B
+
+## The Complete Architectural Flow
+
+The Kaw Companion architecture consists of ten deterministic architectural layers.
+
+Each layer performs one responsibility.
+
+Each layer depends upon the successful completion of the previous layer.
+
+No architectural layer bypasses another.
+
+```
+Student Evidence
+        ↓
+Accumulated Context
+        ↓
+Instructional Framework Knowledge
+        ↓
+Instructional Situation
+        ↓
+Instructional Contract
+        ↓
+Instructional Intent
+        ↓
+Communication Governance
+        ↓
+AI Contextualization
+        ↓
+Communication Validation
+        ↓
+Student Receives Feedback
+        ↓
+New Student Evidence
+```
+
+This architecture represents the complete instructional cycle.
+
+Every student interaction begins with evidence and ends with new evidence, creating a continuously improving instructional feedback loop.
+
+---
+
+## Relationship Between Governance and Architecture
+
+Constitutional governance sits above every architectural layer.
+
+It does not replace instructional reasoning.
+
+It governs instructional reasoning.
+
+```
+Constitutional Governance
+────────────────────────────────
+
+Determines permanent rules.
+
+        ↓
+
+Instructional Architecture
+────────────────────────────────
+
+Executes deterministic instructional reasoning.
+
+        ↓
+
+Communication Architecture
+────────────────────────────────
+
+Expresses deterministic instructional intent.
+
+        ↓
+
+Student Learning
+────────────────────────────────
+
+Produces new instructional evidence.
+```
+
+This relationship distinguishes permanent constitutional principles from replaceable implementations.
+
+---
+
+# Appendix C
+
+## Deterministic vs. Non-Deterministic Responsibilities
+
+One of the defining characteristics of Kaw is the explicit separation between deterministic instructional reasoning and non-deterministic communication.
+
+The architecture intentionally assigns each responsibility to the component best suited to perform it.
+
+### Deterministic Responsibilities
+
+The instructional engine owns:
+
+• Assignment Context
+
+• Instructional Knowledge
+
+• Thinking Task
+
+• Instructional Situation
+
+• Instructional Contracts
+
+• Instructional Intent
+
+• Validation
+
+• Two-Gate Progression
+
+• Recovery Selection
+
+• Communication Governance
+
+• Communication Validation
+
+These responsibilities determine what instruction should occur.
+
+---
+
+### Non-Deterministic Responsibilities
+
+Artificial intelligence may:
+
+• Adapt wording.
+
+• Improve conversational flow.
+
+• Match teacher voice.
+
+• Personalize encouragement.
+
+• Reference assignment context naturally.
+
+• Vary sentence structure.
+
+• Improve readability.
+
+• Adjust scaffolding language.
+
+These responsibilities determine how instruction is communicated.
+
+---
+
+### Responsibilities AI Never Owns
+
+Artificial intelligence never owns:
+
+Instructional goals.
+
+Instructional progression.
+
+Teaching moves.
+
+Thinking moves.
+
+Instructional contracts.
+
+Student reasoning.
+
+Validation.
+
+Progression.
+
+Recovery decisions.
+
+Instructional intent.
+
+These responsibilities remain permanently deterministic.
+
+---
+
+# Appendix D
+
+## Design Principles
+
+Throughout development, several architectural principles consistently guided system design.
+
+Although these principles are not constitutional rules, they represent enduring engineering philosophy for future implementations.
+
+---
+
+**Single Responsibility**
+
+Each architectural layer performs one clearly defined responsibility.
+
+---
+
+**Deterministic Before Adaptive**
+
+Deterministic reasoning always precedes adaptive communication.
+
+---
+
+**Evidence Before Interpretation**
+
+Student evidence is observed before instructional meaning is assigned.
+
+---
+
+**Instruction Before Conversation**
+
+Instruction determines communication—not the reverse.
+
+---
+
+**Govern Before Flexibility**
+
+Every adaptive capability exists within explicit deterministic boundaries.
+
+---
+
+**Preserve Student Ownership**
+
+Instruction should make student thinking stronger by helping students think more effectively—not by thinking for them.
+
+---
+
+**Architectural Traceability**
+
+Every instructional response should be explainable through deterministic reasoning from student evidence to instructional intent.
+
+---
+
+**Framework Independence**
+
+Instructional models may evolve.
+
+Constitutional governance should not.
+
+---
+
+# Appendix E
+
+## Looking Forward
+
+The first versions of Kaw focused on building an AI companion capable of supporting students through the KU-CRL Framing Routine.
+
+That goal remains important.
+
+It is no longer the complete vision.
+
+During development, a broader architectural realization emerged.
+
+The most significant contribution of Kaw is not a collection of validators, prompts, or instructional conversations.
+
+It is the discovery that artificial intelligence can participate in instruction without owning instruction.
+
+That distinction fundamentally changes the relationship between AI and education.
+
+Rather than replacing instructional reasoning, AI becomes a governed communication partner operating within explicit constitutional boundaries established by deterministic instructional design.
+
+This architecture allows the system to remain simultaneously:
+
+Explainable.
+
+Testable.
+
+Governable.
+
+Extensible.
+
+Human-centered.
+
+Instructionally faithful.
+
+Future instructional models will undoubtedly differ from today's implementation.
+
+New curricula will emerge.
+
+New instructional frameworks will be developed.
+
+Artificial intelligence itself will continue to evolve.
+
+The constitutional architecture described in this guide was intentionally designed to outlast those changes.
+
+As long as deterministic instructional reasoning continues to establish instructional intent, and as long as every non-deterministic operation remains bounded by deterministic governance, the architecture can continue evolving without sacrificing instructional integrity.
+
+The implementation may change.
+
+The Constitution should not.
+
+---
+
+# Closing Reflection
+
+The history of educational technology is filled with systems that became increasingly sophisticated while gradually losing sight of the instructional principles they were intended to support.
+
+Kaw follows a different path.
+
+Its purpose is not to create more intelligent artificial intelligence.
+
+Its purpose is to create more trustworthy instructional systems.
+
+Trust is earned through consistency.
+
+Consistency is achieved through governance.
+
+Governance begins with constitutional principles.
+
+Everything else is implementation.
+
+---
+
+**END OF PART V**
+
+---
+
+# END OF OFFICIAL MANUSCRIPT
+
+## Final Note
+
+Reading this from beginning to end, I think the biggest conceptual shift from Version 1.1 is that the document no longer feels like a software architecture manual—it reads like the constitution of an instructional operating system.
+
+One recommendation I'd make before calling Version 2.0 complete is to add **one full-page architectural diagram immediately after the Preface** that visually depicts the entire hierarchy:
+
+```
+Constitutional Governance
+        ↓
+Instructional Architecture
+        ↓
+Communication Architecture
+        ↓
+System Design
+        ↓
+Current Implementation
+        ↓
+Framing Routine
+```
+
+That single diagram would orient readers before they enter the chapters, reinforce that governance sits above architecture, and visually distinguish permanent constitutional layers from replaceable implementations. I think it would become the defining illustration of the entire guide.
