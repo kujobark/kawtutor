@@ -693,6 +693,46 @@ function getInstructionalContract(
   );
 }
 
+// ======================================================
+// LAYER 5 — INSTRUCTIONAL ASSESSMENT
+// ======================================================
+//
+// Instructional Assessment interprets observable evidence.
+//
+// It never:
+//
+// • changes runtime state;
+// • validates student work;
+// • selects instructional strategy;
+// • generates communication.
+//
+// Assessment converts organized Evidence State into
+// deterministic instructional findings.
+//
+// Current status:
+//
+// Transitional shell.
+//
+// This subsystem currently exposes the assessment
+// interface while migration occurs from the legacy
+// instructional reasoning pathway.
+//
+// ======================================================
+
+function buildInstructionalAssessment(
+  evidenceState
+) {
+  return {
+    criteriaAssessment: null,
+
+    relationalAssessment: null,
+
+    interactionAssessment: null,
+
+    findings: [],
+  };
+}
+
 // ======================================================================
 // LAYER 6 — INSTRUCTIONAL COMMUNICATION
 //
@@ -14500,17 +14540,31 @@ async function updateStateFromStudent(state, message) {
   // begins interpreting or responding to the message.
   // --------------------------------------------------
 
-  const evidenceState =
-    buildEvidenceState(
-      s,
-      msg
-    );
+ const evidenceState =
+  buildEvidenceState(
+    s,
+    msg
+  );
 
-  // Evidence State is not yet consumed by downstream
-  // runtime logic. This explicit reference prevents it
-  // from being treated as an accidental unused variable
-  // while the assessment layer is being connected.
-  void evidenceState;
+// --------------------------------------------------
+// INSTRUCTIONAL ASSESSMENT
+// --------------------------------------------------
+//
+// Assessment interprets the organized instructional
+// evidence but does not yet participate in runtime
+// decision-making. This shell will gradually replace
+// the legacy instructional reasoning pathway.
+//
+// --------------------------------------------------
+
+const instructionalAssessment =
+  buildInstructionalAssessment(
+    evidenceState
+  );
+
+// Transitional placeholder while the assessment layer
+// is being integrated into runtime.
+void instructionalAssessment;
   
 // Assignment Understanding capture
 if (!s.frameMeta.assignmentContext.raw && !(s.pending && s.pending.type)) {
