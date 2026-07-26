@@ -78,6 +78,8 @@ It is the constitutional principle upon which every subsequent architectural dec
 
 The pages that follow define those principles, explain why they exist, and describe the governed instructional architecture that emerges from them.
 
+Constitutional principles are intentionally difficult to change because every architectural layer and every implementation depends upon them. Implementations evolve. Architecture matures. The Constitution changes only with exceptional justification.
+
 ---
 
                      CONSTITUTION
