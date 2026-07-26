@@ -13220,19 +13220,6 @@ async function applyIsAboutCapture(s, msg) {
         cleanText(msg),
     },
   }),
-
-  // Transitional compatibility fields.
-  //
-  // Existing contract activation and runtime tests
-  // currently read these values from the top level.
-  // They remain temporarily exposed while downstream
-  // consumers migrate to instructionalFinding.evidence.
-
-  keyTopic:
-    s.frame?.keyTopic || "",
-
-  attemptedIsAbout:
-    cleanText(msg),
 };
     
   const instructionalContract =
