@@ -13640,17 +13640,18 @@ s.pending = {
     {
       intent:
         "stuck",
-  
+
       confidence:
         1,
-  
+
       source:
         `mainIdeaValidation:${validation.diagnosis}`,
-  
+
       instructionalFinding,
-  }
-);
-  
+    }
+  );
+}
+
   // Preserve the existing Build Mode lane guardrail.
   //
   // Governed component validation determines whether the
