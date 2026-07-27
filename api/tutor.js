@@ -3367,6 +3367,27 @@ When the response is a legitimate instructional organizer such as "Know Already"
 - functionsOnlyAsDetail must be false;
 - connectedToKeyTopic and supportsIsAbout should be interpreted through its organizing role within the supplied Frame, not only as a direct content claim.
 
+DECISION PRIORITY:
+
+When a response could be interpreted either as a specific detail or as a major chronological organizer, determine its function within the complete supplied Frame.
+
+A major event, stage, development, or turning point that could organize multiple smaller facts must be treated as a Main Idea, even though it is specific in time.
+
+This chronological-organizer rule takes priority over the general rule that a specific event or action may function as an Essential Detail.
+
+Use this distinction:
+
+- "Castro comes to power in Cuba" is a major chronological organizer and therefore functions as a Main Idea.
+- "Castro nationalized United States-owned businesses" is one smaller fact explaining that organizer and therefore functions only as an Essential Detail.
+- "Bay of Pigs Invasion" is a major chronological organizer and therefore functions as a Main Idea.
+
+When a response clearly meets the applicable Main Idea criteria:
+- functionsAsOrganizingIdea must be true;
+- supportableWithMultipleDetails must be true;
+- functionsOnlyAsDetail must be false,
+
+Do not lower confidence merely because a valid Main Idea is concise, written as an event title, or expressed as a short chronological phrase.
+
 Rules:
 - Do not rewrite the student's response.
 - Do not improve the student's response.
