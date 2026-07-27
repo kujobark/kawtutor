@@ -1511,6 +1511,59 @@ function executeEDGS001(contract, state) {
   };
 }
 
+function executeMIGS001(contract, state) {
+  const instructionalFinding =
+    state?.pending?.instructionalFinding ||
+    state?.pending?.resumePending?.instructionalFinding ||
+    null;
+
+  return {
+    contractId:
+      contract.contractId,
+
+    instructionalGoal:
+      contract.instructionalGoal,
+
+    teachingMove:
+      contract.teachingMove,
+
+    thinkingMove:
+      contract.thinkingMove,
+
+    communicationPattern:
+      contract.communicationPattern ||
+      "briefReassuranceThenQuestion",
+
+    aiContextualizes:
+      contract.aiContextualizes,
+
+    instructionalFinding,
+
+    context: {
+      assignmentContext:
+        state?.frameMeta?.assignmentContext || {},
+
+      thinkingTask:
+        state?.assignmentReasoning || {},
+
+      frameComponent:
+        contract.frameComponent,
+
+      keyTopic:
+        state?.frame?.keyTopic || "",
+
+      isAbout:
+        state?.frame?.isAbout || "",
+
+      currentMainIdea:
+        "",
+
+      existingDetails:
+        [],
+    },
+  };
+}
+
 function buildAIContextualizationPayload(execution) {
   if (!execution?.aiContextualizes) return null;
 
