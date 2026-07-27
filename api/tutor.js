@@ -3678,23 +3678,20 @@ async function validateMainIdeaResponseGoverned(
   // --------------------------------------------------
 
   const mainIdeaRelationshipEstablished =
-    semanticEvidence
-      .connectedToKeyTopic === true &&
+  semanticEvidence
+    .connectedToKeyTopic === true &&
 
-    semanticEvidence
-      .supportsIsAbout === true &&
+  semanticEvidence
+    .supportsIsAbout === true &&
 
-    semanticEvidence
-      .functionsAsOrganizingIdea === true &&
+  semanticEvidence
+    .functionsAsOrganizingIdea === true &&
 
-    semanticEvidence
-      .supportableWithMultipleDetails === true &&
+  semanticEvidence
+    .supportableWithMultipleDetails === true &&
 
-    semanticEvidence
-      .functionsOnlyAsDetail === false &&
-
-    semanticEvidence
-      .confidence >= 0.9;
+  semanticEvidence
+    .functionsOnlyAsDetail === false;
 
   if (mainIdeaRelationshipEstablished) {
     return {
