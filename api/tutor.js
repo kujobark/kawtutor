@@ -15639,6 +15639,63 @@ if (struggleCheck.detected) {
     return s;
   }
 
+  const detailValidation =
+  await validateEssentialDetailResponseGoverned(
+    msg,
+    currentMainIdea,
+    s.frame.keyTopic,
+    s.frame.isAbout
+  );
+
+    if (!detailValidation.valid) {
+    const instructionalFinding = {
+      ...buildComponentInstructionalFinding({
+        frameComponent:
+          "details",
+  
+        validation:
+          detailValidation,
+  
+        evidence: {
+          currentMainIdea,
+  
+          currentDetailIndex:
+            arr.length,
+  
+          attemptedDetail:
+            cleanText(msg),
+        },
+      }),
+  
+      validationSource:
+        detailValidation.validationSource || null,
+  
+      currentMainIdea,
+  
+      currentDetailIndex:
+        arr.length,
+    };
+  
+    s.pending = {
+      type: "collectAnotherDetail",
+      index: idx,
+    };
+
+  return beginStuckSupportFromPending(
+    s,
+    msg,
+    {
+      intent: "stuck",
+      confidence: 1,
+
+      source:
+        `detailValidation:${detailValidation.diagnosis}`,
+
+      instructionalFinding,
+    }
+  );
+}
+
   s.frame.details[idx] = [...arr, msg];
 
   const updatedArr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
@@ -15936,10 +15993,10 @@ const detailValidation =
   
       evidence: {
         currentMainIdea,
-  
+      
         currentDetailIndex:
-          s.frame.details[idx].length,
-  
+          detailIndex,
+      
         attemptedDetail:
           cleanText(msg),
       },
@@ -15951,7 +16008,7 @@ const detailValidation =
     currentMainIdea,
   
     currentDetailIndex:
-      s.frame.details[idx].length,
+      detailIndex,
   };
 
     return beginStuckSupportFromPending(
@@ -16370,54 +16427,55 @@ if (
     }
   );
 
-  const instructionalFinding = {
-  ...buildComponentInstructionalFinding({
-    frameComponent:
-      "details",
-
-    validation:
-      detailValidation,
-
-    evidence: {
-      currentMainIdea,
-
-      currentDetailIndex:
-        arr.length,
-
-      attemptedDetail:
-        cleanText(msg),
-    },
-  }),
-
-  validationSource:
-    detailValidation.validationSource || null,
-
-  currentMainIdea,
-
-  currentDetailIndex:
-    arr.length,
-};
-
-          s.pending = {
-            type: "collectAnotherDetail",
-            index: i,
-          };
-
-          return beginStuckSupportFromPending(
-            s,
-            msg,
-            {
-              intent: "stuck",
-              confidence: 1,
-
-              source:
-                `detailValidation:${detailValidation.diagnosis}`,
-
-              instructionalFinding,
-            }
-          );
-        }
-
+     if (!detailValidation.valid) {
+      const instructionalFinding = {
+        ...buildComponentInstructionalFinding({
+          frameComponent:
+            "details",
+    
+          validation:
+            detailValidation,
+    
+          evidence: {
+            currentMainIdea,
+    
+            currentDetailIndex:
+              arr.length,
+    
+            attemptedDetail:
+              cleanText(msg),
+          },
+        }),
+    
+        validationSource:
+          detailValidation.validationSource || null,
+    
+        currentMainIdea,
+    
+        currentDetailIndex:
+          arr.length,
+      };
+    
+      s.pending = {
+        type: "collectAnotherDetail",
+        index: i,
+      };
+    
+      return beginStuckSupportFromPending(
+        s,
+        msg,
+        {
+          intent: "stuck",
+          confidence: 1,
+    
+          source:
+            `detailValidation:${detailValidation.diagnosis}`,
+    
+          instructionalFinding,
+    }
+  );
+}
+        
         // Only responses that pass deterministic validation
         // may reach the AI fallback struggle detector.
         const struggleCheck =
