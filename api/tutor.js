@@ -3612,11 +3612,42 @@ async function validateMainIdeaResponseGoverned(
     deterministicValidation
   );
 
-  const requiresSemanticInference =
+    const semanticInferenceDiagnoses = [
+    "insufficientObservableEvidence",
+    "relationshipIncomplete",
+    "relationshipNotEstablished",
+  ];
+
+  const limitedResponseCanBeReviewed =
     deterministicValidation
-      ?.relationshipEvidence
-      ?.requiresSemanticInference ===
-    true;
+      ?.componentEvidenceLevel ===
+      "limited" &&
+
+    semanticInferenceDiagnoses.includes(
+      deterministicValidation
+        ?.diagnosis
+    );
+
+  const substantiveResponseCanBeReviewed =
+    deterministicValidation
+      ?.componentEvidenceLevel ===
+      "substantive" &&
+
+    (
+      deterministicValidation
+        ?.relationshipEvidence
+        ?.requiresSemanticInference ===
+        true ||
+
+      semanticInferenceDiagnoses.includes(
+        deterministicValidation
+          ?.diagnosis
+      )
+    );
+
+  const requiresSemanticInference =
+    limitedResponseCanBeReviewed ||
+    substantiveResponseCanBeReviewed;
 
   // Deterministic outcomes remain authoritative.
   if (!requiresSemanticInference) {
