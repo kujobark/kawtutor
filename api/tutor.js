@@ -1915,6 +1915,23 @@ async function getInstructionalResponse(activation) {
     Array.isArray(payload?.context?.existingDetails)
       ? payload.context.existingDetails
       : [];
+
+  const mainIdeas =
+    Array.isArray(
+      payload?.context?.mainIdeas
+    )
+      ? payload.context.mainIdeas
+      : [];
+
+  const details =
+    Array.isArray(
+      payload?.context?.details
+    )
+      ? payload.context.details
+      : [];
+
+  const currentSoWhat =
+    payload?.context?.currentSoWhat || "";
   
   // Deterministic instructional conclusions established
   // before AI contextualization.
@@ -2001,6 +2018,27 @@ ${
     ? existingDetails.join(" | ")
     : "(none yet)"
 }
+
+Completed Main Ideas:
+${
+  mainIdeas.length
+    ? mainIdeas.join(" | ")
+    : "(none available)"
+}
+
+Completed Essential Details:
+${
+  details.length
+    ? JSON.stringify(
+        details,
+        null,
+        2
+      )
+    : "(none available)"
+}
+
+Current Accepted So What:
+${currentSoWhat || "(none yet)"}
 
 Express the predetermined Thinking Move as one natural, assignment-specific student-facing response.
 
@@ -9347,6 +9385,490 @@ async function runSoWhatSelfTests() {
       strategicLearnersContext,
   });
 
+    // ==================================================
+  // SO WHAT LIVE RUNTIME TESTS
+  //
+  // These tests exercise the actual So What capture,
+  // expansion, and revision pathways through
+  // updateStateFromStudent().
+  //
+  // They confirm that governed validation occurs before
+  // student work is saved or replaced.
+  // ==================================================
+
+  function createSoWhatRuntimeState() {
+    const state =
+      defaultState();
+
+    state.interactionMode =
+      "build";
+
+    state.frameMeta.assignmentContext = {
+      raw:
+        instructionalContext
+          .assignmentContext
+          .raw,
+
+      understanding:
+        instructionalContext
+          .assignmentContext
+          .understanding,
+
+      studentSummary:
+        instructionalContext
+          .assignmentContext
+          .studentSummary,
+
+      confidence:
+        "high",
+
+      needsClarification:
+        false,
+
+      inferredPurpose:
+        "",
+
+      childAnchor:
+        "",
+
+      clarificationCount:
+        0,
+    };
+
+    state.assignmentReasoning = {
+      task:
+        instructionalContext
+          .thinkingTask
+          .task,
+
+      label:
+        instructionalContext
+          .thinkingTask
+          .label,
+
+      confidence:
+        1,
+
+      evidence:
+        [],
+
+      lastUpdated:
+        null,
+    };
+
+    state.frameMeta.purpose =
+      "study";
+
+    state.frame.keyTopic =
+      instructionalContext.keyTopic;
+
+    state.frame.isAbout =
+      instructionalContext.isAbout;
+
+    state.frame.parentItems = [
+      ...instructionalContext.mainIdeas,
+    ];
+
+    state.frame.details =
+      instructionalContext.details.map(
+        (bucket) => [...bucket]
+      );
+
+    state.frame.soWhat =
+      "";
+
+    state.pending =
+      null;
+
+    return state;
+  }
+
+  // --------------------------------------------------
+  // LIVE RUNTIME: INVALID INITIAL CAPTURE
+  //
+  // Confirms an insufficient initial So What is blocked
+  // before it can be saved.
+  // --------------------------------------------------
+
+  const invalidInitialState =
+    createSoWhatRuntimeState();
+
+  const invalidInitialResponse =
+    "It really matters";
+
+  const invalidInitialActual =
+    await updateStateFromStudent(
+      invalidInitialState,
+      invalidInitialResponse
+    );
+
+  const invalidInitialPassed =
+    invalidInitialActual?.frame?.soWhat ===
+      "" &&
+
+    invalidInitialActual?.pending?.type ===
+      "stuckNudge" &&
+
+    invalidInitialActual?.pending
+      ?.instructionalFinding
+      ?.frameComponent ===
+      "soWhat" &&
+
+    invalidInitialActual?.pending
+      ?.instructionalFinding
+      ?.diagnosis ===
+      "insufficientObservableEvidence";
+
+  results.push({
+    name:
+      "SW Runtime - Invalid initial So What is blocked",
+
+    passed:
+      invalidInitialPassed,
+
+    response:
+      invalidInitialResponse,
+
+    expected: {
+      savedSoWhat:
+        "",
+
+      pendingType:
+        "stuckNudge",
+
+      frameComponent:
+        "soWhat",
+
+      diagnosis:
+        "insufficientObservableEvidence",
+    },
+
+    actual: {
+      savedSoWhat:
+        invalidInitialActual?.frame
+          ?.soWhat || "",
+
+      pendingType:
+        invalidInitialActual?.pending
+          ?.type || null,
+
+      frameComponent:
+        invalidInitialActual?.pending
+          ?.instructionalFinding
+          ?.frameComponent || null,
+
+      diagnosis:
+        invalidInitialActual?.pending
+          ?.instructionalFinding
+          ?.diagnosis || null,
+    },
+  });
+
+  // --------------------------------------------------
+  // LIVE RUNTIME: VALID INITIAL CAPTURE
+  //
+  // Confirms a supported initial So What is saved and
+  // advances to the optional expansion offer.
+  // --------------------------------------------------
+
+  const validInitialState =
+    createSoWhatRuntimeState();
+
+  const validInitialActual =
+    await updateStateFromStudent(
+      validInitialState,
+      supportedSoWhat
+    );
+
+  const validInitialPassed =
+    validInitialActual?.frame?.soWhat ===
+      supportedSoWhat &&
+
+    validInitialActual?.pending?.type ===
+      "offerMoreSoWhat";
+
+  results.push({
+    name:
+      "SW Runtime - Valid initial So What saves and advances",
+
+    passed:
+      validInitialPassed,
+
+    response:
+      supportedSoWhat,
+
+    expected: {
+      savedSoWhat:
+        supportedSoWhat,
+
+      pendingType:
+        "offerMoreSoWhat",
+    },
+
+    actual: {
+      savedSoWhat:
+        validInitialActual?.frame
+          ?.soWhat || null,
+
+      pendingType:
+        validInitialActual?.pending
+          ?.type || null,
+    },
+  });
+
+  // --------------------------------------------------
+  // LIVE RUNTIME: INVALID REVISION
+  //
+  // Confirms an invalid replacement does not overwrite
+  // the student's accepted So What.
+  // --------------------------------------------------
+
+  const invalidRevisionState =
+    createSoWhatRuntimeState();
+
+  invalidRevisionState.frame.soWhat =
+    supportedSoWhat;
+
+  invalidRevisionState.pending = {
+    type:
+      "confirmSoWhat",
+
+    awaitingRevision:
+      true,
+  };
+
+  const invalidRevisionResponse =
+    "It really matters";
+
+  const invalidRevisionActual =
+    await updateStateFromStudent(
+      invalidRevisionState,
+      invalidRevisionResponse
+    );
+
+  const invalidRevisionPassed =
+    invalidRevisionActual?.frame?.soWhat ===
+      supportedSoWhat &&
+
+    invalidRevisionActual?.pending?.type ===
+      "stuckNudge" &&
+
+    invalidRevisionActual?.pending
+      ?.instructionalFinding
+      ?.frameComponent ===
+      "soWhat" &&
+
+    invalidRevisionActual?.pending
+      ?.instructionalFinding
+      ?.diagnosis ===
+      "insufficientObservableEvidence" &&
+
+    invalidRevisionActual?.pending
+      ?.resumePending
+      ?.type ===
+      "confirmSoWhat";
+
+  results.push({
+    name:
+      "SW Runtime - Invalid revision preserves original So What",
+
+    passed:
+      invalidRevisionPassed,
+
+    response:
+      invalidRevisionResponse,
+
+    expected: {
+      preservedSoWhat:
+        supportedSoWhat,
+
+      pendingType:
+        "stuckNudge",
+
+      frameComponent:
+        "soWhat",
+
+      diagnosis:
+        "insufficientObservableEvidence",
+
+      resumePendingType:
+        "confirmSoWhat",
+    },
+
+    actual: {
+      preservedSoWhat:
+        invalidRevisionActual?.frame
+          ?.soWhat || null,
+
+      pendingType:
+        invalidRevisionActual?.pending
+          ?.type || null,
+
+      frameComponent:
+        invalidRevisionActual?.pending
+          ?.instructionalFinding
+          ?.frameComponent || null,
+
+      diagnosis:
+        invalidRevisionActual?.pending
+          ?.instructionalFinding
+          ?.diagnosis || null,
+
+      resumePendingType:
+        invalidRevisionActual?.pending
+          ?.resumePending
+          ?.type || null,
+    },
+  });
+
+  // --------------------------------------------------
+  // LIVE RUNTIME: VALID REVISION
+  //
+  // Confirms a supported replacement overwrites the old
+  // So What and returns to confirmation.
+  // --------------------------------------------------
+
+  const validRevisionState =
+    createSoWhatRuntimeState();
+
+  validRevisionState.frame.soWhat =
+    supportedSoWhat;
+
+  validRevisionState.pending = {
+    type:
+      "confirmSoWhat",
+
+    awaitingRevision:
+      true,
+  };
+
+  const validRevisionResponse =
+    "Online comparison and constant pressure can shape how teenagers feel about themselves, so careful social media use can help protect their mental health.";
+
+  const validRevisionActual =
+    await updateStateFromStudent(
+      validRevisionState,
+      validRevisionResponse
+    );
+
+  const validRevisionPassed =
+    validRevisionActual?.frame?.soWhat ===
+      validRevisionResponse &&
+
+    validRevisionActual?.pending?.type ===
+      "confirmSoWhat" &&
+
+    validRevisionActual?.pending
+      ?.awaitingRevision !==
+      true;
+
+  results.push({
+    name:
+      "SW Runtime - Valid revision replaces original So What",
+
+    passed:
+      validRevisionPassed,
+
+    response:
+      validRevisionResponse,
+
+    expected: {
+      savedSoWhat:
+        validRevisionResponse,
+
+      pendingType:
+        "confirmSoWhat",
+
+      awaitingRevision:
+        false,
+    },
+
+    actual: {
+      savedSoWhat:
+        validRevisionActual?.frame
+          ?.soWhat || null,
+
+      pendingType:
+        validRevisionActual?.pending
+          ?.type || null,
+
+      awaitingRevision:
+        validRevisionActual?.pending
+          ?.awaitingRevision === true,
+    },
+  });
+
+  // --------------------------------------------------
+  // LIVE RUNTIME: ADDITIONAL CONTENT
+  //
+  // Confirms additional So What content is validated
+  // together with the accepted So What before being
+  // appended.
+  // --------------------------------------------------
+
+  const additionalContentState =
+    createSoWhatRuntimeState();
+
+  additionalContentState.frame.soWhat =
+    supportedSoWhat;
+
+  additionalContentState.pending = {
+    type:
+      "collectMoreSoWhat",
+  };
+
+  const additionalSentence =
+    "This also shows that the way teenagers experience online pressure matters as much as how often they use social media.";
+
+  const expectedExpandedSoWhat =
+    cleanText(
+      `${supportedSoWhat} ${additionalSentence}`
+    );
+
+  const additionalContentActual =
+    await updateStateFromStudent(
+      additionalContentState,
+      additionalSentence
+    );
+
+  const additionalContentPassed =
+    additionalContentActual?.frame
+      ?.soWhat ===
+      expectedExpandedSoWhat &&
+
+    additionalContentActual?.pending
+      ?.type ===
+      "confirmSoWhat";
+
+  results.push({
+    name:
+      "SW Runtime - Governed additional content is appended",
+
+    passed:
+      additionalContentPassed,
+
+    response:
+      additionalSentence,
+
+    expected: {
+      savedSoWhat:
+        expectedExpandedSoWhat,
+
+      pendingType:
+        "confirmSoWhat",
+    },
+
+    actual: {
+      savedSoWhat:
+        additionalContentActual?.frame
+          ?.soWhat || null,
+
+      pendingType:
+        additionalContentActual?.pending
+          ?.type || null,
+    },
+  });
+  
   // --------------------------------------------------
   // MANUAL FRAME 2: PROGRESSIVE ERA
   // --------------------------------------------------
