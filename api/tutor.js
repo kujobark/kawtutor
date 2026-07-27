@@ -15735,26 +15735,34 @@ if (!detailValidation.valid) {
   // Do not infer intent, understanding, confusion, or effort.
   // The finding describes only the observable instructional
   // condition of the response.
+
   const instructionalFinding = {
-    frameComponent: "details",
+  ...buildComponentInstructionalFinding({
+    frameComponent:
+      "details",
 
-    componentEvidenceLevel:
-      detailValidation.componentEvidenceLevel,
+    validation:
+      detailValidation,
 
-    componentCriteriaStatus:
-      detailValidation.componentCriteriaStatus,
+    evidence: {
+      currentMainIdea,
 
-    relationshipStatus:
-      detailValidation.relationshipStatus,
+      currentDetailIndex:
+        s.frame.details[idx].length,
 
-    diagnosis:
-      detailValidation.diagnosis,
+      attemptedDetail:
+        cleanText(msg),
+    },
+  }),
 
-    currentMainIdea,
+  validationSource:
+    detailValidation.validationSource || null,
 
-    currentDetailIndex:
-      s.frame.details[idx].length,
-  };
+  currentMainIdea,
+
+  currentDetailIndex:
+    s.frame.details[idx].length,
+};
 
   return beginStuckSupportFromPending(
     s,
@@ -15917,32 +15925,33 @@ const detailValidation =
   );
 
   if (!detailValidation.valid) {
-    const instructionalFinding = {
+
+      const instructionalFinding = {
+    ...buildComponentInstructionalFinding({
       frameComponent:
         "details",
   
-      componentEvidenceLevel:
-        detailValidation.componentEvidenceLevel,
+      validation:
+        detailValidation,
   
-      componentCriteriaStatus:
-        detailValidation.componentCriteriaStatus,
+      evidence: {
+        currentMainIdea,
   
-      relationshipStatus:
-        detailValidation.relationshipStatus,
+        currentDetailIndex:
+          s.frame.details[idx].length,
   
-      diagnosis:
-        detailValidation.diagnosis,
+        attemptedDetail:
+          cleanText(msg),
+      },
+    }),
   
-      relationshipEvidence:
-        detailValidation.relationshipEvidence || null,
+    validationSource:
+      detailValidation.validationSource || null,
   
-      validationSource:
-        detailValidation.validationSource || null,
+    currentMainIdea,
   
-      currentMainIdea,
-  
-      currentDetailIndex:
-        detailIndex,
+    currentDetailIndex:
+      s.frame.details[idx].length,
   };
 
     return beginStuckSupportFromPending(
@@ -16361,27 +16370,33 @@ if (
     }
   );
 
-        if (!detailValidation.valid) {
-          const instructionalFinding = {
-            frameComponent: "details",
+  const instructionalFinding = {
+  ...buildComponentInstructionalFinding({
+    frameComponent:
+      "details",
 
-            componentEvidenceLevel:
-              detailValidation.componentEvidenceLevel,
+    validation:
+      detailValidation,
 
-            componentCriteriaStatus:
-              detailValidation.componentCriteriaStatus,
+    evidence: {
+      currentMainIdea,
 
-            relationshipStatus:
-              detailValidation.relationshipStatus,
+      currentDetailIndex:
+        arr.length,
 
-            diagnosis:
-              detailValidation.diagnosis,
+      attemptedDetail:
+        cleanText(msg),
+    },
+  }),
 
-            currentMainIdea,
+  validationSource:
+    detailValidation.validationSource || null,
 
-            currentDetailIndex:
-              arr.length,
-          };
+  currentMainIdea,
+
+  currentDetailIndex:
+    arr.length,
+};
 
           s.pending = {
             type: "collectAnotherDetail",
