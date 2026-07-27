@@ -14689,6 +14689,10 @@ if (s.pending?.type === "collectMoreSoWhat") {
 }
 
 if (s.pending?.type === "confirmSoWhat") {
+  if (s.pending?.awaitingRevision) {
+    return "What would you like your revised So What to say?";
+  }
+
   return `Your So What is: "${s.frame.soWhat}". Is that correct, or would you like to revise it?`;
 }
 
@@ -16220,6 +16224,11 @@ if (
       mutationIntent.intent ===
         "revision_direction"
     ) {
+      s.pending = {
+        type: "confirmSoWhat",
+        awaitingRevision: true,
+      };
+    
       return s;
     }
 
