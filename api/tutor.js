@@ -3288,6 +3288,40 @@ A valid Main Idea may function in either of these ways:
 - examples include "Know Already," "Expect to Learn," and "Want to Know";
 - does not need to make a direct content claim about the Key Topic when its instructional organizing function is clear.
 
+3. CHRONOLOGICAL OR SEQUENTIAL ORGANIZER
+- names a major event, stage, development, or turning point within a sequence;
+- may be written as an event title, short phrase, or concise action;
+- can organize multiple Essential Details explaining what happened, why it happened, who was involved, or what resulted;
+- remains a valid Main Idea even when it describes one historical event, because the event itself functions as a major section of the larger topic.
+
+Examples of valid chronological or sequential Main Ideas:
+- Castro Comes to Power in Cuba
+- Bay of Pigs Invasion
+- Nuclear Face-Off with the USSR
+- Outbreak of War
+- The First Stage of the Process
+- Final Resolution
+
+Do not classify a major event or stage as an Essential Detail merely because it is specific in time.
+
+Distinguish between:
+- a major event that organizes a section of the topic; and
+- one smaller fact, statistic, action, or outcome that explains that event.
+
+For example:
+
+Valid chronological Main Idea:
+- Castro Comes to Power in Cuba
+
+Essential Detail beneath that Main Idea:
+- Castro nationalized United States-owned businesses
+
+Valid chronological Main Idea:
+- Bay of Pigs Invasion
+
+Essential Detail beneath that Main Idea:
+- Twenty thousand Cuban troops defeated fourteen hundred invaders
+
 Carefully distinguish a Main Idea from an Essential Detail.
 
 A Main Idea is the broader organizing category.
