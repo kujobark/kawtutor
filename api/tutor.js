@@ -715,6 +715,111 @@ const INSTRUCTIONAL_PLAYBOOK = {
       },
     },
   },
+  
+      soWhat: {
+    genuineStruggle: {
+      contractId:
+        "SW-GS-001",
+
+      frameComponent:
+        "soWhat",
+
+      instructionalSituation:
+        "genuineStruggle",
+
+      instructionalGoal:
+        "strengthenSynthesis",
+
+      teachingMove:
+        "synthesize",
+
+      thinkingMove:
+        "Explain the larger understanding, conclusion, connection, implication, or takeaway that becomes clear after considering the completed Frame.",
+
+      communicationPattern:
+        "briefReassuranceThenQuestion",
+
+      aiContextualizes:
+        true,
+
+      validation: {
+        type:
+          "soWhat",
+
+        description:
+          "The student provides a meaningful culminating understanding that is anchored to and supported by the completed Frame.",
+      },
+
+      resumeBehavior: {
+        type:
+          "returnToExactInstructionalLocation",
+
+        description:
+          "Return to the So What capture or revision location where support was requested and validate the student's next response.",
+      },
+
+      progressiveSupport: {
+        principle:
+          "If the first intervention does not restart productive synthesis, provide progressively more targeted support without supplying the student's So What.",
+
+        scaffolds: [
+          {
+            level:
+              1,
+
+            move:
+              "refocus",
+
+            purpose:
+              "Reconnect the student to the completed Frame and its Key Topic.",
+          },
+
+          {
+            level:
+              2,
+
+            move:
+              "synthesize",
+
+            purpose:
+              "Invite the student to identify what becomes important or clear when the Main Ideas and Essential Details are considered together.",
+          },
+
+          {
+            level:
+              3,
+
+            move:
+              "significancePrompt",
+
+            purpose:
+              "Invite the student to explain a larger conclusion, connection, implication, application, or life truth supported by the completed Frame.",
+          },
+        ],
+      },
+
+      studentWorkProtection: {
+        preserveExistingWork:
+          true,
+
+        neverSaveStruggleLanguage:
+          true,
+
+        neverGenerateStudentWork:
+          true,
+
+        neverSupplyTakeaway:
+          true,
+
+        neverChooseConclusion:
+          true,
+
+        neverReplaceStudentSynthesis:
+          true,
+      },
+    },
+  },
+  
 };
 
 function getInstructionalContract(
@@ -1153,7 +1258,16 @@ function executeInstructionalContract(contract, state) {
       return executeEDGS001(contract, state);
 
     case "MI-GS-001":
-      return executeMIGS001(contract, state);
+      return executeMIGS001(
+        contract,
+        state
+      );
+
+    case "SW-GS-001":
+      return executeSWGS001(
+        contract,
+        state
+      );
 
     default:
       return null;
@@ -1580,6 +1694,85 @@ function executeMIGS001(contract, state) {
   };
 }
 
+function executeSWGS001(
+  contract,
+  state
+) {
+  const instructionalFinding =
+    state?.pending
+      ?.instructionalFinding ||
+    state?.pending
+      ?.resumePending
+      ?.instructionalFinding ||
+    null;
+
+  return {
+    contractId:
+      contract.contractId,
+
+    instructionalGoal:
+      contract.instructionalGoal,
+
+    teachingMove:
+      contract.teachingMove,
+
+    thinkingMove:
+      contract.thinkingMove,
+
+    communicationPattern:
+      contract.communicationPattern ||
+      "briefReassuranceThenQuestion",
+
+    aiContextualizes:
+      contract.aiContextualizes,
+
+    instructionalFinding,
+
+    context: {
+      assignmentContext:
+        state?.frameMeta
+          ?.assignmentContext || {},
+
+      thinkingTask:
+        state?.assignmentReasoning || {},
+
+      frameComponent:
+        contract.frameComponent,
+
+      keyTopic:
+        state?.frame?.keyTopic || "",
+
+      isAbout:
+        state?.frame?.isAbout || "",
+
+      mainIdeas:
+        getIdeaList(state)
+          .filter(Boolean),
+
+      details:
+        Array.isArray(
+          state?.frame?.details
+        )
+          ? state.frame.details.map(
+              (bucket) =>
+                Array.isArray(bucket)
+                  ? bucket.filter(Boolean)
+                  : []
+            )
+          : [],
+
+      currentSoWhat:
+        state?.frame?.soWhat || "",
+
+      currentMainIdea:
+        "",
+
+      existingDetails:
+        [],
+    },
+  };
+}
+
 function buildAIContextualizationPayload(execution) {
   if (!execution?.aiContextualizes) return null;
 
@@ -1627,15 +1820,32 @@ function buildAIContextualizationPayload(execution) {
       isAbout:
         execution?.context?.isAbout || "",
 
-      currentMainIdea:
-        execution?.context?.currentMainIdea || "",
-
-      existingDetails:
+      mainIdeas:
         Array.isArray(
-          execution?.context?.existingDetails
-        )
-          ? execution.context.existingDetails
-          : []
+          execution?.context?.mainIdeas
+  )
+    ? execution.context.mainIdeas
+    : [],
+
+    details:
+      Array.isArray(
+        execution?.context?.details
+      )
+        ? execution.context.details
+        : [],
+
+    currentSoWhat:
+      execution?.context?.currentSoWhat || "",
+    
+    currentMainIdea:
+      execution?.context?.currentMainIdea || "",
+    
+    existingDetails:
+      Array.isArray(
+      execution?.context?.existingDetails
+  )
+      ? execution.context.existingDetails
+      : []
     }
   };
 }
@@ -15647,8 +15857,13 @@ if (struggleCheck.detected) {
   await validateEssentialDetailResponseGoverned(
     msg,
     currentMainIdea,
-    s.frame.keyTopic,
-    s.frame.isAbout
+    {
+      keyTopic:
+        s.frame.keyTopic || "",
+
+      isAbout:
+        s.frame.isAbout || "",
+    }
   );
 
     if (!detailValidation.valid) {
@@ -15664,7 +15879,7 @@ if (struggleCheck.detected) {
           currentMainIdea,
   
           currentDetailIndex:
-            arr.length,
+            detailIndex,
   
           attemptedDetail:
             cleanText(msg),
@@ -15677,7 +15892,7 @@ if (struggleCheck.detected) {
       currentMainIdea,
   
       currentDetailIndex:
-        arr.length,
+        detailIndex,
     };
   
     s.pending = {
