@@ -1136,6 +1136,9 @@ function executeInstructionalContract(contract, state) {
     case "ED-GS-001":
       return executeEDGS001(contract, state);
 
+    case "MI-GS-001":
+      return executeMIGS001(contract, state);
+
     default:
       return null;
   }
