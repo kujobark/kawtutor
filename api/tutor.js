@@ -13589,30 +13589,91 @@ if (!validation.valid) {
       };
     }
 
-    s.pending = {
-      ...resumePending,
+  const instructionalContract =
+  getInstructionalContract(
+    "mainIdeas",
+    "genuineStruggle"
+  );
 
+const activationState = {
+  ...s,
+  pending: {
+    ...resumePending,
+    instructionalFinding,
+  },
+};
+
+const instructionalActivation =
+  instructionalContract
+    ? activateInstructionalContract(
+        instructionalContract,
+        activationState
+      )
+    : null;
+
+s.pending = {
+  ...resumePending,
+
+  instructionalFinding,
+
+  instructionalContract:
+    instructionalContract
+      ? {
+          contractId:
+            instructionalContract.contractId,
+
+          frameComponent:
+            instructionalContract.frameComponent,
+
+          instructionalSituation:
+            instructionalContract.instructionalSituation,
+
+          instructionalGoal:
+            instructionalContract.instructionalGoal,
+
+          teachingMove:
+            instructionalContract.teachingMove,
+
+          thinkingMove:
+            instructionalContract.thinkingMove,
+
+          aiContextualizes:
+            instructionalContract.aiContextualizes,
+        }
+      : null,
+
+  instructionalActivation:
+    instructionalActivation
+      ? {
+          contractId:
+            instructionalActivation.contractId,
+
+          execution:
+            instructionalActivation.execution,
+
+          aiPayload:
+            instructionalActivation.aiPayload,
+        }
+      : null,
+};
+  
+  return beginStuckSupportFromPending(
+    s,
+    text,
+    {
+      intent:
+        "stuck",
+  
+      confidence:
+        1,
+  
+      source:
+        `mainIdeaValidation:${validation.diagnosis}`,
+  
       instructionalFinding,
-    };
-
-    return beginStuckSupportFromPending(
-      s,
-      text,
-      {
-        intent:
-          "stuck",
-
-        confidence:
-          1,
-
-        source:
-          `mainIdeaValidation:${validation.diagnosis}`,
-
-        instructionalFinding,
-      }
-    );
   }
-
+);
+  
   // Preserve the existing Build Mode lane guardrail.
   //
   // Governed component validation determines whether the
