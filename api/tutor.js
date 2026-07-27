@@ -3386,7 +3386,11 @@ When a response clearly meets the applicable Main Idea criteria:
 - supportableWithMultipleDetails must be true;
 - functionsOnlyAsDetail must be false,
 
-Do not lower confidence merely because a valid Main Idea is concise, written as an event title, or expressed as a short chronological phrase.
+Confidence represents how clearly the response functions as a Main Idea within the supplied Frame—not certainty about outside factual knowledge.
+
+Do not lower confidence merely because a valid Main Idea is concise, written as an event title, expressed as a short chronological phrase, or written as a one-word category.
+
+When all five instructional judgments are clear within the supplied Frame, confidence should normally be 0.90 or higher.
 
 Rules:
 - Do not rewrite the student's response.
