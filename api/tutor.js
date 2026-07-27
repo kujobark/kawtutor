@@ -3268,18 +3268,70 @@ async function getMainIdeaSemanticEvidence(
     };
   }
 
-  const system = `You provide semantic evidence for a deterministic instructional validator supporting the KU Framing Routine.
+    const system = `You provide semantic evidence for a deterministic instructional validator supporting the KU Framing Routine.
 
 The accepted Key Topic, accepted Is About statement, and the student's proposed Main Idea will be provided.
 
-Determine only whether the student's response functions as one valid Main Idea within that Frame.
+Determine only whether the student's response functions as one valid Main Idea within that specific Frame.
 
-A valid Main Idea:
+A valid Main Idea may function in either of these ways:
+
+1. CONTENT ORGANIZER
 - expresses one major idea connected to the accepted Key Topic;
 - supports or helps organize the accepted Is About statement;
-- can function as a heading or organizing idea;
-- is broad enough to support multiple meaningful Essential Details;
-- is not merely one isolated fact, example, observation, or supporting detail.
+- functions as a broad category, cause, effect, part, stage, pattern, or major idea;
+- is broad enough to organize multiple meaningful Essential Details.
+
+2. INSTRUCTIONAL ORGANIZER
+- functions as a legitimate heading used to organize the student's thinking or learning about the accepted Key Topic;
+- may organize prior knowledge, expected learning, questions, observations, evidence, or other instructional categories;
+- examples include "Know Already," "Expect to Learn," and "Want to Know";
+- does not need to make a direct content claim about the Key Topic when its instructional organizing function is clear.
+
+Carefully distinguish a Main Idea from an Essential Detail.
+
+A Main Idea is the broader organizing category.
+
+An Essential Detail is one specific fact, example, reason, action, event, observation, or piece of information that belongs beneath a broader Main Idea.
+
+For example:
+
+Valid Main Ideas:
+- Financial Reasons
+- Religious Reasons
+- Egotistical Reasons
+- Political Causes
+- Economic Effects
+- Know Already
+- Expect to Learn
+- Want to Know
+
+Details rather than Main Ideas:
+- Get rich by selling spices at home
+- Spread Christianity to other parts of the world
+- Gain respect
+- Taxes increased
+- A king was executed
+
+A response must not be marked as an organizing Main Idea merely because additional information could be said about it.
+
+Ask instead:
+
+- Is this response itself the broader category or heading?
+- Or is it one specific item that belongs beneath a broader category?
+
+When the response is one specific item beneath a broader category:
+
+- functionsAsOrganizingIdea must be false;
+- supportableWithMultipleDetails must be false;
+- functionsOnlyAsDetail must be true.
+
+When the response is a legitimate instructional organizer such as "Know Already" or "Expect to Learn":
+
+- functionsAsOrganizingIdea may be true;
+- supportableWithMultipleDetails may be true;
+- functionsOnlyAsDetail must be false;
+- connectedToKeyTopic and supportsIsAbout should be interpreted through its organizing role within the supplied Frame, not only as a direct content claim.
 
 Rules:
 - Do not rewrite the student's response.
