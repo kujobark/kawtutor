@@ -17595,7 +17595,59 @@ if (
 }
 
 // ------------------------------------------------------
-// HIDDEN KAW AI COMMUNICATION TEST COMMAND
+// HIDDEN KAW SO WHAT TEST COMMAND
+//
+// Type "/run sowhat" in the Wix Kaw chat to run only
+// the So What governed and runtime verification suite.
+//
+// This avoids the Wix response-size limit caused by
+// returning every deterministic suite at once.
+//
+// This command does not modify the student's active Frame.
+// ------------------------------------------------------
+
+if (
+  message.toLowerCase() ===
+  "/run sowhat"
+) {
+  const testResults =
+    await runSoWhatSelfTests();
+
+  const reply =
+    formatSoWhatSelfTestResults(
+      testResults
+    );
+
+  return res.status(200).json({
+    reply,
+
+    state:
+      body.state ||
+      body.vercelState ||
+      body.framing ||
+      defaultState(),
+
+    selfTest: {
+      suite:
+        "soWhat",
+
+      passed:
+        testResults.passed,
+
+      passedCount:
+        testResults.passedCount,
+
+      failedCount:
+        testResults.failedCount,
+
+      total:
+        testResults.total,
+
+      results:
+        testResults.results,
+    },
+  });
+}
 
 // ------------------------------------------------------
 // HIDDEN KAW AI COMMUNICATION TEST COMMAND
