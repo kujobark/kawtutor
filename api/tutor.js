@@ -633,9 +633,9 @@ const INSTRUCTIONAL_PLAYBOOK = {
     },
   },
 
-  mainIdeas: {
-  genuineStruggle: {
-    contractId: "MI-GS-001",
+    mainIdeas: {
+      genuineStruggle: {
+      contractId: "MI-GS-001",
 
     frameComponent: "mainIdeas",
     instructionalSituation: "genuineStruggle",
