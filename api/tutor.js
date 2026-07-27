@@ -633,6 +633,45 @@ const INSTRUCTIONAL_PLAYBOOK = {
     },
   },
 
+  mainIdeas: {
+  genuineStruggle: {
+    contractId: "MI-GS-001",
+
+    frameComponent: "mainIdeas",
+    instructionalSituation: "genuineStruggle",
+
+    instructionalGoal: "restartThinking",
+
+    teachingMove: "clarify",
+
+    thinkingMove:
+      "Explain the larger idea that this Main Idea helps your reader understand about the topic.",
+
+    communicationPattern:
+      "briefReassuranceThenQuestion",
+
+    aiContextualizes: true,
+
+    validation: {
+      type: "mainIdea",
+      description:
+        "The student provides an organizing idea that explains the topic and can be supported by multiple details.",
+    },
+
+    resumeBehavior: {
+      type: "returnToExactInstructionalLocation",
+      description:
+        "Return to the Main Idea where support was requested and validate the student's next response.",
+    },
+
+    studentWorkProtection: {
+      preserveExistingWork: true,
+      neverSaveStruggleLanguage: true,
+      neverGenerateStudentWork: true,
+    },
+  },
+},
+  
   details: {
     genuineStruggle: {
       contractId: "ED-GS-001",
