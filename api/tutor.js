@@ -893,10 +893,11 @@ const INSTRUCTIONAL_COMMUNICATION = {
             "Briefly acknowledge authentic progress supported by the student's existing work, then express the predetermined Thinking Move as one concise question."
     },
 
-    briefReassuranceThenQuestion: {
+      briefReassuranceThenQuestion: {
         instruction:
-            "Use one brief, supportive lead-in that does not imply progress or success, then express the predetermined Thinking Move as one concise question."
-    }
+          "Use one brief, supportive lead-in that does not imply progress or success, then express the predetermined Thinking Move as one concise question.",
+      },
+    },
 };
 
 function getInstructionalCommunicationPattern(patternName) {
