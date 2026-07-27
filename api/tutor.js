@@ -715,26 +715,6 @@ const INSTRUCTIONAL_PLAYBOOK = {
       },
     },
   },
-    mainIdeas: {
-  genuineStruggle: {
-    contractId:
-      "MI-GS-001",
-
-    instructionalGoal:
-      "Help the student develop a Main Idea that organizes the Key Topic rather than simply naming the topic or repeating information.",
-
-    teachingMove:
-      "Clarify the difference between a topic and an organizing idea.",
-
-    thinkingMove:
-      "Move from identifying the subject to explaining the larger idea that connects evidence.",
-
-    communicationPattern:
-      "Prompt the student to expand the idea by explaining what happened, why it matters, or how the examples connect.",
-
-    studentWorkProtection:
-      "Preserve the student's original idea and support revision rather than replacing the student's thinking."
-  }
 },
 };
 
