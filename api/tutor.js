@@ -16273,11 +16273,18 @@ if (s.pending?.type === "reviseDetailAt") {
         const currentMainIdea =
           getIdeaList(s)[i] || "";
 
-        const detailValidation =
-          validateEssentialDetailResponse(
-            msg,
-            currentMainIdea
-          );
+      const detailValidation =
+        await validateEssentialDetailResponseGoverned(
+          msg,
+          currentMainIdea,
+          {
+            keyTopic:
+              s.frame.keyTopic || "",
+      
+            isAbout:
+              s.frame.isAbout || "",
+    }
+  );
 
         if (!detailValidation.valid) {
           const instructionalFinding = {
