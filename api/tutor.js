@@ -715,7 +715,6 @@ const INSTRUCTIONAL_PLAYBOOK = {
       },
     },
   },
-},
 };
 
 function getInstructionalContract(
