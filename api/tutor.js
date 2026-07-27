@@ -897,9 +897,6 @@ const INSTRUCTIONAL_COMMUNICATION = {
         instruction:
             "Use one brief, supportive lead-in that does not imply progress or success, then express the predetermined Thinking Move as one concise question."
     }
-
-}
-
 };
 
 function getInstructionalCommunicationPattern(patternName) {
