@@ -20324,7 +20324,7 @@ async function runInstructionalValidationLab() {
     await runIVLMainIdeaBenchmarks();
 
   const essentialDetails =
-    runIVLEssentialDetailBenchmarks();
+    await runIVLEssentialDetailBenchmarks();
 
   const componentResults = [
     isAbout,
