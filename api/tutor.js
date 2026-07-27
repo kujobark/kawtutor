@@ -15716,9 +15716,16 @@ if (!mutationIntent.accept) {
   getIdeaList(s)[idx] || "";
 
 const detailValidation =
-  validateEssentialDetailResponse(
+  await validateEssentialDetailResponseGoverned(
     msg,
-    currentMainIdea
+    currentMainIdea,
+    {
+      keyTopic:
+        s.frame.keyTopic || "",
+
+      isAbout:
+        s.frame.isAbout || "",
+    }
   );
 
 if (!detailValidation.valid) {
@@ -15890,13 +15897,81 @@ if (s.pending?.type === "reviseDetailAt") {
   return s;
 }
 
-  // Replace only the selected Essential Detail.
-  if (
-    Array.isArray(s.frame.details[idx]) &&
-    s.frame.details[idx][detailIndex] !== undefined
-  ) {
-    s.frame.details[idx][detailIndex] = msg;
-  }
+  // Validate the proposed revision before replacing the
+// previously accepted Essential Detail.
+
+const currentMainIdea =
+  getIdeaList(s)[idx] || "";
+
+const detailValidation =
+  await validateEssentialDetailResponseGoverned(
+    msg,
+    currentMainIdea,
+    {
+      keyTopic:
+        s.frame.keyTopic || "",
+
+      isAbout:
+        s.frame.isAbout || "",
+    }
+  );
+
+  if (!detailValidation.valid) {
+    const instructionalFinding = {
+      frameComponent:
+        "details",
+  
+      componentEvidenceLevel:
+        detailValidation.componentEvidenceLevel,
+  
+      componentCriteriaStatus:
+        detailValidation.componentCriteriaStatus,
+  
+      relationshipStatus:
+        detailValidation.relationshipStatus,
+  
+      diagnosis:
+        detailValidation.diagnosis,
+  
+      relationshipEvidence:
+        detailValidation.relationshipEvidence || null,
+  
+      validationSource:
+        detailValidation.validationSource || null,
+  
+      currentMainIdea,
+  
+      currentDetailIndex:
+        detailIndex,
+  };
+
+    return beginStuckSupportFromPending(
+      s,
+      msg,
+      {
+        intent:
+          "stuck",
+  
+        confidence:
+          1,
+  
+        source:
+          `detailValidation:${detailValidation.diagnosis}`,
+  
+        instructionalFinding,
+    }
+  );
+}
+
+// Replace only the selected Essential Detail after the
+// proposed revision has passed governed validation.
+if (
+  Array.isArray(s.frame.details[idx]) &&
+  s.frame.details[idx][detailIndex] !== undefined
+) {
+  s.frame.details[idx][detailIndex] =
+    msg;
+}
 
   // Return to the Detail confirmation checkpoint.
   s.pending = { type: "confirmDetails", index: idx };
