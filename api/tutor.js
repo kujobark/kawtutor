@@ -13372,152 +13372,979 @@ if (!bestMode) {
   };
 }
 
-// ---------------------
-// ASSIGNMENT UNDERSTANDING ENGINE
-// ---------------------
+// ======================================================
+// ASSIGNMENT UNDERSTANDING VALIDATOR
+// ======================================================
+//
+// Constitutional Role:
+//
+// The Assignment Understanding Validator is the
+// instructional gateway for Kaw.
+//
+// It determines whether sufficient assignment evidence
+// exists to begin instructional reasoning safely.
+//
+// Every downstream inference, validator, and instructional
+// decision depends upon this gateway.
+//
+// The validator evaluates three gates:
+//
+// 1. Assignment Context
+//    Is there enough evidence to understand what the work
+//    is about?
+//
+// 2. Assignment Demand
+//    Is there enough evidence to understand what the
+//    student is expected to think about, explain, analyze,
+//    compare, evaluate, create, or otherwise accomplish?
+//
+// 3. Shared Summary Readiness
+//    Can Kaw summarize the assignment without guessing or
+//    introducing unsupported meaning?
+//
+// AI supplies bounded semantic evidence only.
+//
+// JavaScript applies the instructional criteria and
+// retains final authority over readiness, clarification,
+// confirmation, and progression.
+//
+// ======================================================
 
-function evaluateAssignmentUnderstanding(rawAssignment) {
-  const assignment = cleanText(rawAssignment);
-  const lower = assignment.toLowerCase();
-  const words = assignment.split(/\s+/).filter(Boolean);
 
-  const hasTaskSignal =
-    lower.includes("explain") ||
-    lower.includes("describ") ||
-    lower.includes("compar") ||
-    lower.includes("contrast") ||
-    lower.includes("analy") ||
-    lower.includes("evaluat") ||
-    lower.includes("argu") ||
-    lower.includes("show") ||
-    lower.includes("identif") ||
-    lower.includes("interpret") ||
-    lower.includes("reflect") ||
-    lower.includes("summar") ||
-    lower.includes("creat") ||
-    lower.includes("writ") ||
-    lower.includes("read") ||
-    lower.startsWith("why ") ||
-    lower.startsWith("how ") ||
-    lower.startsWith("what causes ") ||
-    lower.startsWith("what caused ") ||
-    lower.startsWith("what effect ") ||
-    lower.startsWith("what are the effects ");
+// ------------------------------------------------------
+// DETERMINISTIC ASSIGNMENT UNDERSTANDING VALIDATION
+//
+// Evaluates only observable evidence that does not require
+// semantic interpretation.
+//
+// This validator does not infer the assignment's meaning.
+// It determines whether the response contains enough
+// substantive language to permit bounded semantic review.
+// ------------------------------------------------------
 
-  const hasTopicSignal = words.length >= 2;
+function validateAssignmentUnderstanding(
+  rawAssignment
+) {
+  const assignment =
+    cleanText(rawAssignment);
 
-  const needsClarification =
-    !(hasTaskSignal && hasTopicSignal);
+  const words =
+    assignment
+      .split(/\s+/)
+      .filter(Boolean);
+
+  if (!assignment) {
+    return {
+      valid:
+        false,
+
+      assignmentEvidenceLevel:
+        "none",
+
+      assignmentCriteriaStatus:
+        "notSatisfied",
+
+      assignmentContextStatus:
+        "undetermined",
+
+      assignmentDemandStatus:
+        "undetermined",
+
+      summaryReadinessStatus:
+        "notReady",
+
+      diagnosis:
+        "emptyAssignmentEvidence",
+    };
+  }
+
+  if (
+    isStartupCommand(assignment) ||
+    isStuckMessage(assignment) ||
+    isMetaResponse(assignment)
+  ) {
+    return {
+      valid:
+        false,
+
+      assignmentEvidenceLevel:
+        "none",
+
+      assignmentCriteriaStatus:
+        "notSatisfied",
+
+      assignmentContextStatus:
+        "undetermined",
+
+      assignmentDemandStatus:
+        "undetermined",
+
+      summaryReadinessStatus:
+        "notReady",
+
+      diagnosis:
+        "noAssignmentEvidence",
+    };
+  }
+
+  if (words.length < 2) {
+    return {
+      valid:
+        false,
+
+      assignmentEvidenceLevel:
+        "limited",
+
+      assignmentCriteriaStatus:
+        "notSatisfied",
+
+      assignmentContextStatus:
+        "undetermined",
+
+      assignmentDemandStatus:
+        "undetermined",
+
+      summaryReadinessStatus:
+        "notReady",
+
+      diagnosis:
+        "insufficientAssignmentEvidence",
+    };
+  }
+
+  // --------------------------------------------------
+  // SEMANTIC INFERENCE GAP
+  //
+  // The response contains substantive assignment language.
+  //
+  // Whether that language establishes Assignment Context,
+  // Assignment Demand, and Shared Summary Readiness
+  // requires bounded semantic evaluation.
+  //
+  // No task-word list controls the final decision.
+  // --------------------------------------------------
 
   return {
-    raw: assignment,
-    understanding: assignment,
-    confidence: needsClarification ? "low" : "high",
-    needsClarification,
-    inferredPurpose: "",
-    childAnchor: "",
-    clarificationCount: 0,
+    valid:
+      false,
+
+    assignmentEvidenceLevel:
+      "substantive",
+
+    assignmentCriteriaStatus:
+      "partiallySatisfied",
+
+    assignmentContextStatus:
+      "undetermined",
+
+    assignmentDemandStatus:
+      "undetermined",
+
+    summaryReadinessStatus:
+      "undetermined",
+
+    diagnosis:
+      "assignmentUnderstandingUndetermined",
+
+    assignmentEvidence: {
+      requiresSemanticInference:
+        true,
+
+      readerInferenceRequired:
+        true,
+    },
   };
 }
 
-async function evaluateAssignmentUnderstandingAI(rawAssignment) {
-  const assignment = cleanText(rawAssignment);
-  const deterministicCheck =
-  evaluateAssignmentUnderstanding(assignment);
+
+// ------------------------------------------------------
+// ASSIGNMENT UNDERSTANDING SEMANTIC EVIDENCE
+//
+// Provides bounded semantic evidence for the three AUV
+// gates.
+//
+// AI does not determine whether instruction begins.
+// AI does not select the Thinking Task.
+// AI does not select the next instructional move.
+// AI does not answer or complete the assignment.
+//
+// AI returns evidence only.
+//
+// JavaScript remains the final instructional authority.
+// ------------------------------------------------------
+
+async function getAssignmentUnderstandingSemanticEvidence(
+  rawAssignment
+) {
+  const assignment =
+    cleanText(rawAssignment);
 
   if (!assignment) {
-    return evaluateAssignmentUnderstanding(rawAssignment);
+    return {
+      assignmentContextEstablished:
+        false,
+
+      assignmentDemandEstablished:
+        false,
+
+      sharedSummaryReady:
+        false,
+
+      studentSummary:
+        "",
+
+      understanding:
+        "",
+
+      reasoningType:
+        "",
+
+      confidence:
+        0,
+
+      source:
+        "notRequested",
+    };
   }
 
-  const system = `You analyze a student's assignment description for an AI companion supporting the KU Framing Routine.
+  const system = `You provide bounded semantic evidence for a deterministic instructional validator supporting the KU Framing Routine.
 
-Rules:
-- Do not teach content.
+The student's description of an assignment will be provided.
+
+Evaluate only whether sufficient evidence exists to establish three instructional gates:
+
+1. ASSIGNMENT CONTEXT
+Can a reasonable reader understand what topic, text, concept, issue, event, process, product, or body of work the assignment concerns?
+
+2. ASSIGNMENT DEMAND
+Can a reasonable reader understand what the student is expected to think about, explain, analyze, compare, evaluate, interpret, summarize, create, organize, demonstrate, or otherwise accomplish?
+
+3. SHARED SUMMARY READINESS
+Can the assignment be summarized back to the student accurately without guessing, inventing an instructional demand, or adding unsupported meaning?
+
+Important distinctions:
+
+- An instructional activity is not automatically an instructional demand.
+- Reading about a topic does not by itself establish what the student must do with that topic.
+- Studying, learning about, researching, watching, working on, or having homework about a topic may establish context while leaving the assignment demand unknown.
+- A required product such as an essay, presentation, model, report, response, or project does not by itself establish the thinking demand.
+- Assignment demand is established only when the expected intellectual work or intended accomplishment is reasonably understandable.
+- Do not require one particular academic verb when the demand is otherwise clear.
+- Do not infer an unstated demand from the subject area.
 - Do not answer the assignment.
-- Do not create the student's Frame.
-- Only determine whether the assignment context is understandable enough to continue coaching.
-- Return ONLY compact JSON.`;
+- Do not teach the content.
+- Do not create any part of the student's work.
+- Do not select progression.
+- Return semantic evidence only.
 
- const user = `Student assignment:
+When writing studentSummary:
+- Speak directly to the student.
+- Begin with "you're..."
+- Preserve the actual topic and demand.
+- Do not add missing requirements.
+- Keep it to one natural sentence.
+- Leave it empty when a faithful summary would require guessing.
+
+When writing understanding:
+- Preserve the assignment meaning in neutral language.
+- Do not add requirements or conclusions.
+- Leave it empty when a faithful understanding cannot yet be established.
+
+reasoningType may contain a concise label such as explain, compare, analyze, evaluate, interpret, summarize, create, organize, or unknown.
+It is evidence only and does not control Thinking Task inference.
+
+Return only the required JSON object.`;
+
+  const user = `Student's accumulated assignment description:
+
 "${assignment}"
 
-When creating studentSummary:
-- Write as if Kaw is speaking directly to the student.
-- Begin with "you're..."
-- Preserve important topics: people, places, concepts, books, scientific ideas, etc.
-- Preserve the student's thinking task: compare, explain, argue, analyze, identify, evaluate, create, etc.
-- Never refer to "the student" or "the assignment."
-- Keep it to one conversational sentence.
-
-Return ONLY valid JSON in this format:
-{
-  "studentSummary": "",
-  "understanding": "",
-  "confidence": "high",
-  "needsClarification": false,
-  "inferredPurpose": "",
-  "childAnchor": "",
-  "reasoningType": ""
-}`;
+Determine whether the Assignment Context, Assignment Demand, and Shared Summary Readiness gates are established.`;
 
   try {
-    const resp = await client.chat.completions.create({
-      model: DEFAULT_MODEL,
-      temperature: 0,
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: user },
-      ],
-    });
+    const resp =
+      await client.chat.completions.create({
+        model:
+          DEFAULT_MODEL,
 
-    const parsed = JSON.parse(resp?.choices?.[0]?.message?.content || "{}");
+        reasoning_effort:
+          "none",
+
+        temperature:
+          0,
+
+        response_format: {
+          type:
+            "json_schema",
+
+          json_schema: {
+            name:
+              "assignment_understanding_semantic_evidence",
+
+            strict:
+              true,
+
+            schema: {
+              type:
+                "object",
+
+              additionalProperties:
+                false,
+
+              properties: {
+                assignmentContextEstablished: {
+                  type:
+                    "boolean",
+                },
+
+                assignmentDemandEstablished: {
+                  type:
+                    "boolean",
+                },
+
+                sharedSummaryReady: {
+                  type:
+                    "boolean",
+                },
+
+                studentSummary: {
+                  type:
+                    "string",
+                },
+
+                understanding: {
+                  type:
+                    "string",
+                },
+
+                reasoningType: {
+                  type:
+                    "string",
+                },
+
+                confidence: {
+                  type:
+                    "number",
+
+                  minimum:
+                    0,
+
+                  maximum:
+                    1,
+                },
+              },
+
+              required: [
+                "assignmentContextEstablished",
+                "assignmentDemandEstablished",
+                "sharedSummaryReady",
+                "studentSummary",
+                "understanding",
+                "reasoningType",
+                "confidence",
+              ],
+            },
+          },
+        },
+
+        messages: [
+          {
+            role:
+              "system",
+
+            content:
+              system,
+          },
+
+          {
+            role:
+              "user",
+
+            content:
+              user,
+          },
+        ],
+      });
+
+    const parsed =
+      JSON.parse(
+        resp?.choices?.[0]?.message
+          ?.content || "{}"
+      );
+
+    const confidence =
+      Number(
+        parsed.confidence || 0
+      );
 
     return {
-      raw: assignment,
-      studentSummary: cleanText(parsed.studentSummary || assignment),
-      understanding: cleanText(parsed.understanding || parsed.studentSummary || assignment),
-      confidence:
-        deterministicCheck.needsClarification === false ||
-        parsed.confidence === "high"
-          ? "high"
-          : "low",
+      assignmentContextEstablished:
+        parsed
+          .assignmentContextEstablished ===
+        true,
 
-needsClarification:
-  deterministicCheck.needsClarification === false
-    ? false
-    : parsed.needsClarification !== false,
-      inferredPurpose: cleanText(parsed.inferredPurpose || ""),
-      childAnchor: cleanText(parsed.childAnchor || ""),
-      reasoningType: cleanText(parsed.reasoningType || ""),
-      clarificationCount: 0,
+      assignmentDemandEstablished:
+        parsed
+          .assignmentDemandEstablished ===
+        true,
+
+      sharedSummaryReady:
+        parsed.sharedSummaryReady ===
+        true,
+
+      studentSummary:
+        cleanText(
+          parsed.studentSummary || ""
+        ),
+
+      understanding:
+        cleanText(
+          parsed.understanding || ""
+        ),
+
+      reasoningType:
+        cleanText(
+          parsed.reasoningType || ""
+        ),
+
+      confidence:
+        Number.isFinite(confidence)
+          ? Math.max(
+              0,
+              Math.min(
+                confidence,
+                1
+              )
+            )
+          : 0,
+
+      source:
+        "aiSemanticEvidence",
     };
-  } catch {
-    return evaluateAssignmentUnderstanding(rawAssignment);
+  } catch (error) {
+    console.error(
+      "Assignment Understanding semantic evidence error:",
+      error
+    );
+
+    return {
+      assignmentContextEstablished:
+        false,
+
+      assignmentDemandEstablished:
+        false,
+
+      sharedSummaryReady:
+        false,
+
+      studentSummary:
+        "",
+
+      understanding:
+        "",
+
+      reasoningType:
+        "",
+
+      confidence:
+        0,
+
+      source:
+        "semanticEvidenceUnavailable",
+    };
   }
 }
-function hasSufficientAssignmentUnderstanding(state) {
-  const context = state?.frameMeta?.assignmentContext || {};
+
+
+// ------------------------------------------------------
+// GOVERNED ASSIGNMENT UNDERSTANDING VALIDATION
+//
+// Runs deterministic validation first.
+//
+// Semantic evidence is requested only when deterministic
+// validation identifies substantive assignment evidence.
+//
+// JavaScript applies all three AUV gates and determines
+// whether the assignment may advance to student
+// confirmation.
+//
+// Student confirmation remains a separate runtime gate.
+// ------------------------------------------------------
+
+async function validateAssignmentUnderstandingGoverned(
+  rawAssignment
+) {
+  // --------------------------------------------------
+  // STEP 1 — DETERMINISTIC VALIDATION
+  // --------------------------------------------------
+
+  const deterministicResult =
+    validateAssignmentUnderstanding(
+      rawAssignment
+    );
+
+  console.log(
+    "ASSIGNMENT UNDERSTANDING VALIDATION:",
+    deterministicResult
+  );
+
+  // --------------------------------------------------
+  // STEP 2 — SEMANTIC EVIDENCE GATE
+  // --------------------------------------------------
+
+  const requiresSemanticEvidence =
+    deterministicResult
+      ?.assignmentEvidence
+      ?.requiresSemanticInference ===
+    true;
+
+  // --------------------------------------------------
+  // STEP 3 — DETERMINISTIC FINAL RESULT
+  // --------------------------------------------------
+
+  if (!requiresSemanticEvidence) {
+    return {
+      ...deterministicResult,
+
+      raw:
+        cleanText(rawAssignment),
+
+      studentSummary:
+        "",
+
+      understanding:
+        "",
+
+      reasoningType:
+        "",
+
+      confidence:
+        "low",
+
+      needsClarification:
+        true,
+
+      validationSource:
+        "deterministic",
+    };
+  }
+
+  // --------------------------------------------------
+  // STEP 4 — BOUNDED SEMANTIC EVIDENCE
+  // --------------------------------------------------
+
+  const semanticEvidence =
+    await getAssignmentUnderstandingSemanticEvidence(
+      rawAssignment
+    );
+
+  // --------------------------------------------------
+  // STEP 5 — JAVASCRIPT GOVERNANCE DECISION
+  //
+  // All three AUV gates must be established.
+  //
+  // AI confidence alone can never authorize progression.
+  // --------------------------------------------------
+
+  const assignmentUnderstandingEstablished =
+    semanticEvidence
+      .assignmentContextEstablished ===
+      true &&
+
+    semanticEvidence
+      .assignmentDemandEstablished ===
+      true &&
+
+    semanticEvidence
+      .sharedSummaryReady ===
+      true &&
+
+    !!semanticEvidence
+      .studentSummary &&
+
+    !!semanticEvidence
+      .understanding &&
+
+    semanticEvidence
+      .confidence >= 0.85;
+
+  // --------------------------------------------------
+  // STEP 6 — GOVERNED ACCEPTANCE
+  //
+  // A valid result authorizes only the confirmation
+  // checkpoint. Instruction has not begun yet.
+  // --------------------------------------------------
+
+  if (assignmentUnderstandingEstablished) {
+    return {
+      valid:
+        true,
+
+      raw:
+        cleanText(rawAssignment),
+
+      studentSummary:
+        semanticEvidence
+          .studentSummary,
+
+      understanding:
+        semanticEvidence
+          .understanding,
+
+      reasoningType:
+        semanticEvidence
+          .reasoningType,
+
+      confidence:
+        "high",
+
+      needsClarification:
+        false,
+
+      confirmed:
+        false,
+
+      assignmentEvidenceLevel:
+        "substantive",
+
+      assignmentCriteriaStatus:
+        "satisfied",
+
+      assignmentContextStatus:
+        "established",
+
+      assignmentDemandStatus:
+        "established",
+
+      summaryReadinessStatus:
+        "ready",
+
+      diagnosis:
+        null,
+
+      assignmentEvidence: {
+        assignmentContextEstablished:
+          true,
+
+        assignmentDemandEstablished:
+          true,
+
+        sharedSummaryReady:
+          true,
+
+        semanticConfidence:
+          semanticEvidence
+            .confidence,
+
+        semanticEvidenceSource:
+          semanticEvidence
+            .source,
+
+        readerInferenceRequired:
+          false,
+      },
+
+      validationSource:
+        "deterministicWithSemanticEvidence",
+    };
+  }
+
+  // --------------------------------------------------
+  // STEP 7 — GOVERNED CLARIFICATION
+  //
+  // JavaScript identifies the first unestablished gate.
+  //
+  // This diagnosis will later support increasingly
+  // targeted clarification contracts.
+  // --------------------------------------------------
+
+  let diagnosis =
+    "assignmentUnderstandingNotEstablished";
+
+  if (
+    semanticEvidence
+      .assignmentContextEstablished ===
+    false
+  ) {
+    diagnosis =
+      "assignmentContextNotEstablished";
+  } else if (
+    semanticEvidence
+      .assignmentDemandEstablished ===
+    false
+  ) {
+    diagnosis =
+      "assignmentDemandNotEstablished";
+  } else if (
+    semanticEvidence
+      .sharedSummaryReady ===
+    false
+  ) {
+    diagnosis =
+      "sharedSummaryNotReady";
+  }
+
+  return {
+    valid:
+      false,
+
+    raw:
+      cleanText(rawAssignment),
+
+    studentSummary:
+      "",
+
+    understanding:
+      "",
+
+    reasoningType:
+      semanticEvidence
+        .reasoningType,
+
+    confidence:
+      "low",
+
+    needsClarification:
+      true,
+
+    confirmed:
+      false,
+
+    assignmentEvidenceLevel:
+      "substantive",
+
+    assignmentCriteriaStatus:
+      "partiallySatisfied",
+
+    assignmentContextStatus:
+      semanticEvidence
+        .assignmentContextEstablished
+          ? "established"
+          : "notEstablished",
+
+    assignmentDemandStatus:
+      semanticEvidence
+        .assignmentDemandEstablished
+          ? "established"
+          : "notEstablished",
+
+    summaryReadinessStatus:
+      semanticEvidence
+        .sharedSummaryReady
+          ? "ready"
+          : "notReady",
+
+    diagnosis,
+
+    assignmentEvidence: {
+      assignmentContextEstablished:
+        semanticEvidence
+          .assignmentContextEstablished,
+
+      assignmentDemandEstablished:
+        semanticEvidence
+          .assignmentDemandEstablished,
+
+      sharedSummaryReady:
+        semanticEvidence
+          .sharedSummaryReady,
+
+      semanticConfidence:
+        semanticEvidence
+          .confidence,
+
+      semanticEvidenceSource:
+        semanticEvidence
+          .source,
+
+      readerInferenceRequired:
+        true,
+    },
+
+    validationSource:
+      "deterministicWithSemanticEvidence",
+  };
+}
+
+
+// ------------------------------------------------------
+// ASSIGNMENT UNDERSTANDING SUFFICIENCY
+//
+// Reads only the governed AUV result.
+//
+// This helper does not independently interpret assignment
+// language and does not trust a legacy needsClarification
+// field by itself.
+// ------------------------------------------------------
+
+function hasSufficientAssignmentUnderstanding(
+  state
+) {
+  const context =
+    state?.frameMeta
+      ?.assignmentContext || {};
 
   return (
-    !!context.raw &&
-    context.needsClarification === false
+    context.valid === true &&
+    context.assignmentContextStatus ===
+      "established" &&
+    context.assignmentDemandStatus ===
+      "established" &&
+    context.summaryReadinessStatus ===
+      "ready" &&
+    context.needsClarification ===
+      false
   );
 }
 
-async function updateAssignmentUnderstanding(state, rawAssignment) {
-  const understanding =
-    await evaluateAssignmentUnderstandingAI(rawAssignment);
 
-  state.frameMeta.assignmentContext = understanding;
-  state.assignmentReasoning = inferThinkingTask(state);
-  state.assignmentReasoning.lastUpdated = Date.now();
-  console.log("🧠 Assignment Reasoning");
-  console.log("----------------------");
-  console.log("Task:", state.assignmentReasoning?.task || "None");
-  console.log("Label:", state.assignmentReasoning?.label || "None");
-  console.log("Confidence:", state.assignmentReasoning?.confidence ?? 0);
-  console.log("Evidence:", state.assignmentReasoning?.evidence || []);
-    return understanding;
+// ------------------------------------------------------
+// ASSIGNMENT UNDERSTANDING UPDATE
+//
+// Accumulates clarification evidence before governed
+// validation.
+//
+// A clarification response supplements the original
+// assignment description rather than replacing it.
+//
+// Thinking Task inference occurs only after the governed
+// AUV result has been stored.
+// ------------------------------------------------------
+
+async function updateAssignmentUnderstanding(
+  state,
+  rawAssignment
+) {
+  const currentContext =
+    state?.frameMeta
+      ?.assignmentContext || {};
+
+  const newEvidence =
+    cleanText(rawAssignment);
+
+  const existingEvidence =
+    cleanText(
+      currentContext.raw || ""
+    );
+
+  const shouldAccumulateEvidence =
+    !!existingEvidence &&
+    currentContext.needsClarification ===
+      true;
+
+  const accumulatedAssignment =
+    shouldAccumulateEvidence
+      ? cleanText(
+          `${existingEvidence} ${newEvidence}`
+        )
+      : newEvidence;
+
+  const understanding =
+    await validateAssignmentUnderstandingGoverned(
+      accumulatedAssignment
+    );
+
+  const previousClarificationCount =
+    Number(
+      currentContext
+        .clarificationCount || 0
+    );
+
+  understanding.clarificationCount =
+    shouldAccumulateEvidence
+      ? previousClarificationCount + 1
+      : previousClarificationCount;
+
+  state.frameMeta.assignmentContext =
+    understanding;
+
+  // Thinking Task inference remains downstream from AUV.
+  //
+  // The inferred task may be displayed at the shared
+  // confirmation checkpoint, but no instruction begins
+  // until the student confirms the assignment summary.
+  state.assignmentReasoning =
+    inferThinkingTask(state);
+
+  state.assignmentReasoning.lastUpdated =
+    Date.now();
+
+  console.log(
+    "🧠 ASSIGNMENT UNDERSTANDING"
+  );
+
+  console.log(
+    "--------------------------"
+  );
+
+  console.log(
+    "Valid:",
+    understanding.valid
+  );
+
+  console.log(
+    "Context:",
+    understanding
+      .assignmentContextStatus
+  );
+
+  console.log(
+    "Demand:",
+    understanding
+      .assignmentDemandStatus
+  );
+
+  console.log(
+    "Summary:",
+    understanding
+      .summaryReadinessStatus
+  );
+
+  console.log(
+    "Diagnosis:",
+    understanding.diagnosis ||
+      "None"
+  );
+
+  console.log(
+    "Validation Source:",
+    understanding.validationSource
+  );
+
+  console.log("");
+  console.log(
+    "🧠 Assignment Reasoning"
+  );
+
+  console.log(
+    "----------------------"
+  );
+
+  console.log(
+    "Task:",
+    state.assignmentReasoning
+      ?.task || "None"
+  );
+
+  console.log(
+    "Label:",
+    state.assignmentReasoning
+      ?.label || "None"
+  );
+
+  console.log(
+    "Confidence:",
+    state.assignmentReasoning
+      ?.confidence ?? 0
+  );
+
+  console.log(
+    "Evidence:",
+    state.assignmentReasoning
+      ?.evidence || []
+  );
+
+  return understanding;
 }
 
 // ---------------------
@@ -15808,45 +16635,79 @@ const instructionalAssessment =
 // is being integrated into runtime.
 void instructionalAssessment;
   
-// Assignment Understanding capture
-if (!s.frameMeta.assignmentContext.raw && !(s.pending && s.pending.type)) {
+// --------------------------------------------------
+// ASSIGNMENT UNDERSTANDING RUNTIME GATE
+//
+// All assignment evidence is routed through the governed
+// Assignment Understanding Validator.
+//
+// The runtime does not independently interpret individual
+// Assignment Context fields.
+//
+// When sufficient understanding is established, Kaw moves
+// only to the shared confirmation checkpoint.
+//
+// When understanding remains insufficient, pending remains
+// clear so the student may provide additional assignment
+// evidence on the next turn.
+// --------------------------------------------------
 
+// Initial Assignment Understanding capture
+if (
+  !s.frameMeta.assignmentContext.raw &&
+  !(s.pending && s.pending.type)
+) {
   if (isStartupCommand(msg)) {
     return s;
   }
 
- await updateAssignmentUnderstanding(s, msg);
+  await updateAssignmentUnderstanding(
+    s,
+    msg
+  );
 
-    if (
-      hasSufficientAssignmentUnderstanding(s)
-    ) {
-      s.pending = {
-        type:
-          "confirmAssignmentUnderstanding",
-  };
+  if (
+    hasSufficientAssignmentUnderstanding(
+      s
+    )
+  ) {
+    s.pending = {
+      type:
+        "confirmAssignmentUnderstanding",
+    };
+  }
+
+  return s;
 }
 
-return s;
-}
- 
- // Assignment Understanding clarification
+
+// Additional Assignment Understanding evidence
 if (
   s.frameMeta.assignmentContext.raw &&
-  s.frameMeta.assignmentContext.needsClarification === true &&
+  !hasSufficientAssignmentUnderstanding(
+    s
+  ) &&
   !(s.pending && s.pending.type)
 ) {
-  await updateAssignmentUnderstanding(s, msg);
+  await updateAssignmentUnderstanding(
+    s,
+    msg
+  );
 
-if (hasSufficientAssignmentUnderstanding(s)) {
-  s.pending = {
-    type:
-      "confirmAssignmentUnderstanding"
-};
+  if (
+    hasSufficientAssignmentUnderstanding(
+      s
+    )
+  ) {
+    s.pending = {
+      type:
+        "confirmAssignmentUnderstanding",
+    };
+  }
+
+  return s;
 }
-
-return s;
-}
-
+  
 // Purpose capture
   if (!s.frameMeta.purpose && !(s.pending && s.pending.type)) {
     const p = normalizePurpose(msg);
