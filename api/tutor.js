@@ -4015,8 +4015,10 @@ async function validateMainIdeaResponseGoverned(
       .supportableWithMultipleDetails === true &&
 
     semanticEvidence
-      .functionsOnlyAsDetail === false;
+      .functionsOnlyAsDetail === false &&
 
+    semanticEvidence
+      .confidence >= 0.9;
   // --------------------------------------------------
   // STEP 6 — GOVERNED ACCEPTANCE
   // --------------------------------------------------
