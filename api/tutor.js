@@ -13981,9 +13981,6 @@ async function validateAssignmentUnderstandingGoverned(
       confidence:
         "low",
 
-      needsClarification:
-        true,
-
       validationSource:
         "deterministic",
     };
@@ -14060,10 +14057,7 @@ async function validateAssignmentUnderstandingGoverned(
 
       needsClarification:
         false,
-
-      confirmed:
-        false,
-
+      
       assignmentEvidenceLevel:
         "substantive",
 
@@ -14163,9 +14157,6 @@ async function validateAssignmentUnderstandingGoverned(
 
     confidence:
       "low",
-
-    needsClarification:
-      true,
 
     confirmed:
       false,
