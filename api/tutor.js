@@ -7342,7 +7342,7 @@ async function runIsAboutSelfTests() {
       "Explain how photosynthesis helps plants make food.",
 
     studentSummary:
-      "you're explaining how photosynthesis helps plants make food.",
+      "You're explaining how photosynthesis helps plants make food.",
 
     confidence:
       "high",
@@ -7452,7 +7452,7 @@ async function runIsAboutSelfTests() {
       "Explain how photosynthesis helps plants make food.",
 
     studentSummary:
-      "you're explaining how photosynthesis helps plants make food.",
+      "You're explaining how photosynthesis helps plants make food.",
 
     confidence:
       "high",
@@ -15811,9 +15811,13 @@ if (s?.settings?.debugParentAnchor) {
       ?.task ||
     "Organize thinking";
 
-  return (
-    "🧠 Here is what I understand about your assignment:\n\n" +
-    `${assignment}\n\n` +
+    const displayedAssignment =
+    assignment.charAt(0).toUpperCase() +
+    assignment.slice(1);
+
+    return (
+    "🧠 Here's what I understand about your assignment:\n\n" +
+    `${displayedAssignment}\n\n` +
     `Thinking Task: ${thinkingTask}\n\n` +
     "Does this accurately capture what your assignment is asking you to do?\n\n" +
     "1) Yes — That is accurate.\n" +
@@ -15821,7 +15825,6 @@ if (s?.settings?.debugParentAnchor) {
     "Reply with 1 or 2."
   );
 }
-
 
 if (s.pending?.type === "assignmentReasoningIntro") {
   const reasoning = s.assignmentReasoning || {};
