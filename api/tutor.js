@@ -3141,29 +3141,60 @@ async function validateIsAboutResponseGoverned(
   response,
   keyTopic = ""
 ) {
-  const deterministicValidation =
+  // --------------------------------------------------
+  // STEP 1 — DETERMINISTIC VALIDATION
+  //
+  // Observable instructional evidence is evaluated
+  // before semantic evidence may be requested.
+  // --------------------------------------------------
+
+  const deterministicResult =
     validateIsAboutResponse(
       response,
       keyTopic
     );
 
-  console.log("IS ABOUT VALIDATION:", deterministicValidation);
+  console.log(
+    "IS ABOUT VALIDATION:",
+    deterministicResult
+  );
 
-  const requiresSemanticInference =
-    deterministicValidation
+  // --------------------------------------------------
+  // STEP 2 — SEMANTIC EVIDENCE GATE
+  //
+  // Semantic evidence is permitted only when the
+  // deterministic analyzer explicitly identifies a
+  // semantic inference gap.
+  // --------------------------------------------------
+
+  const requiresSemanticEvidence =
+    deterministicResult
       ?.relationshipEvidence
-      ?.requiresSemanticInference === true;
+      ?.requiresSemanticInference ===
+    true;
 
-  // Deterministic results remain authoritative unless
-  // the analyzer explicitly identifies a semantic gap.
-  if (!requiresSemanticInference) {
+  // --------------------------------------------------
+  // STEP 3 — DETERMINISTIC FINAL RESULT
+  //
+  // When no semantic inference is required, the
+  // deterministic result remains authoritative.
+  // --------------------------------------------------
+
+  if (!requiresSemanticEvidence) {
     return {
-      ...deterministicValidation,
+      ...deterministicResult,
 
       validationSource:
         "deterministic",
     };
   }
+
+  // --------------------------------------------------
+  // STEP 4 — BOUNDED SEMANTIC EVIDENCE
+  //
+  // AI supplies semantic evidence only.
+  // It does not validate, save, or advance student work.
+  // --------------------------------------------------
 
   const semanticEvidence =
     await getIsAboutSemanticEvidence(
@@ -3171,15 +3202,25 @@ async function validateIsAboutResponseGoverned(
       keyTopic
     );
 
-  const semanticRelationshipEstablished =
+  // --------------------------------------------------
+  // STEP 5 — JAVASCRIPT GOVERNANCE DECISION
+  //
+  // JavaScript applies the instructional criteria to the
+  // bounded semantic evidence and retains final authority.
+  // --------------------------------------------------
+
+  const relationshipEstablished =
     semanticEvidence
       .semanticEquivalent === true &&
+
     semanticEvidence
       .confidence >= 0.9;
 
-  // JavaScript makes the final decision from the
-  // deterministic gate and bounded semantic evidence.
-  if (semanticRelationshipEstablished) {
+  // --------------------------------------------------
+  // STEP 6 — GOVERNED ACCEPTANCE
+  // --------------------------------------------------
+
+  if (relationshipEstablished) {
     return {
       valid:
         true,
@@ -3197,7 +3238,7 @@ async function validateIsAboutResponseGoverned(
         null,
 
       relationshipEvidence: {
-        ...deterministicValidation
+        ...deterministicResult
           .relationshipEvidence,
 
         semanticEquivalent:
@@ -3218,11 +3259,18 @@ async function validateIsAboutResponseGoverned(
     };
   }
 
+  // --------------------------------------------------
+  // STEP 7 — GOVERNED NON-ACCEPTANCE
+  //
+  // Preserve the deterministic instructional conclusion
+  // while attaching the bounded semantic evidence.
+  // --------------------------------------------------
+
   return {
-    ...deterministicValidation,
+    ...deterministicResult,
 
     relationshipEvidence: {
-      ...deterministicValidation
+      ...deterministicResult
         .relationshipEvidence,
 
       semanticEquivalent:
@@ -3852,7 +3900,14 @@ async function validateMainIdeaResponseGoverned(
   keyTopic = "",
   isAbout = ""
 ) {
-  const deterministicValidation =
+  // --------------------------------------------------
+  // STEP 1 — DETERMINISTIC VALIDATION
+  //
+  // Observable instructional evidence is evaluated
+  // before semantic evidence may be requested.
+  // --------------------------------------------------
+
+  const deterministicResult =
     validateMainIdeaResponse(
       response,
       keyTopic,
@@ -3861,55 +3916,76 @@ async function validateMainIdeaResponseGoverned(
 
   console.log(
     "MAIN IDEA VALIDATION:",
-    deterministicValidation
+    deterministicResult
   );
 
-    const semanticInferenceDiagnoses = [
+  // --------------------------------------------------
+  // STEP 2 — SEMANTIC EVIDENCE GATE
+  //
+  // Semantic evidence is permitted only for limited or
+  // substantive responses whose instructional function
+  // cannot be established deterministically.
+  // --------------------------------------------------
+
+  const semanticEvidenceDiagnoses = [
     "insufficientObservableEvidence",
     "relationshipIncomplete",
     "relationshipNotEstablished",
   ];
 
   const limitedResponseCanBeReviewed =
-    deterministicValidation
+    deterministicResult
       ?.componentEvidenceLevel ===
       "limited" &&
 
-    semanticInferenceDiagnoses.includes(
-      deterministicValidation
+    semanticEvidenceDiagnoses.includes(
+      deterministicResult
         ?.diagnosis
     );
 
   const substantiveResponseCanBeReviewed =
-    deterministicValidation
+    deterministicResult
       ?.componentEvidenceLevel ===
       "substantive" &&
 
     (
-      deterministicValidation
+      deterministicResult
         ?.relationshipEvidence
         ?.requiresSemanticInference ===
         true ||
 
-      semanticInferenceDiagnoses.includes(
-        deterministicValidation
+      semanticEvidenceDiagnoses.includes(
+        deterministicResult
           ?.diagnosis
       )
     );
 
-  const requiresSemanticInference =
+  const requiresSemanticEvidence =
     limitedResponseCanBeReviewed ||
     substantiveResponseCanBeReviewed;
 
-  // Deterministic outcomes remain authoritative.
-  if (!requiresSemanticInference) {
+  // --------------------------------------------------
+  // STEP 3 — DETERMINISTIC FINAL RESULT
+  //
+  // When semantic evidence is not permitted or required,
+  // the deterministic result remains authoritative.
+  // --------------------------------------------------
+
+  if (!requiresSemanticEvidence) {
     return {
-      ...deterministicValidation,
+      ...deterministicResult,
 
       validationSource:
         "deterministic",
     };
   }
+
+  // --------------------------------------------------
+  // STEP 4 — BOUNDED SEMANTIC EVIDENCE
+  //
+  // AI supplies semantic evidence only.
+  // It does not validate, save, or advance student work.
+  // --------------------------------------------------
 
   const semanticEvidence =
     await getMainIdeaSemanticEvidence(
@@ -3919,29 +3995,33 @@ async function validateMainIdeaResponseGoverned(
     );
 
   // --------------------------------------------------
-  // JAVASCRIPT FINAL DECISION
+  // STEP 5 — JAVASCRIPT GOVERNANCE DECISION
   //
-  // AI provides bounded evidence.
-  // JavaScript applies the complete instructional contract.
+  // JavaScript applies the complete Main Idea contract
+  // to the bounded semantic evidence.
   // --------------------------------------------------
 
-  const mainIdeaRelationshipEstablished =
-  semanticEvidence
-    .connectedToKeyTopic === true &&
+  const relationshipEstablished =
+    semanticEvidence
+      .connectedToKeyTopic === true &&
 
-  semanticEvidence
-    .supportsIsAbout === true &&
+    semanticEvidence
+      .supportsIsAbout === true &&
 
-  semanticEvidence
-    .functionsAsOrganizingIdea === true &&
+    semanticEvidence
+      .functionsAsOrganizingIdea === true &&
 
-  semanticEvidence
-    .supportableWithMultipleDetails === true &&
+    semanticEvidence
+      .supportableWithMultipleDetails === true &&
 
-  semanticEvidence
-    .functionsOnlyAsDetail === false;
+    semanticEvidence
+      .functionsOnlyAsDetail === false;
 
-  if (mainIdeaRelationshipEstablished) {
+  // --------------------------------------------------
+  // STEP 6 — GOVERNED ACCEPTANCE
+  // --------------------------------------------------
+
+  if (relationshipEstablished) {
     return {
       valid:
         true,
@@ -3959,7 +4039,7 @@ async function validateMainIdeaResponseGoverned(
         null,
 
       relationshipEvidence: {
-        ...deterministicValidation
+        ...deterministicResult
           .relationshipEvidence,
 
         connectedToKeyTopic:
@@ -3997,6 +4077,14 @@ async function validateMainIdeaResponseGoverned(
     };
   }
 
+  // --------------------------------------------------
+  // STEP 7 — GOVERNED NON-ACCEPTANCE
+  //
+  // JavaScript determines whether the response functions
+  // only as a Detail or fails to establish the required
+  // Main Idea relationship.
+  // --------------------------------------------------
+
   return {
     valid:
       false,
@@ -4017,7 +4105,7 @@ async function validateMainIdeaResponseGoverned(
           : "relationshipNotEstablished",
 
     relationshipEvidence: {
-      ...deterministicValidation
+      ...deterministicResult
         .relationshipEvidence,
 
       connectedToKeyTopic:
@@ -4525,13 +4613,19 @@ Determine whether the student's response functions as one essential detail benea
 // JavaScript applies the instructional contract and makes
 // the final validation and progression decision.
 // ------------------------------------------------------
-
 async function validateEssentialDetailResponseGoverned(
   response,
   currentMainIdea = "",
   instructionalContext = {}
 ) {
-  const deterministicValidation =
+  // --------------------------------------------------
+  // STEP 1 — DETERMINISTIC VALIDATION
+  //
+  // Observable instructional evidence is evaluated
+  // before semantic evidence may be requested.
+  // --------------------------------------------------
+
+  const deterministicResult =
     validateEssentialDetailResponse(
       response,
       currentMainIdea
@@ -4539,72 +4633,92 @@ async function validateEssentialDetailResponseGoverned(
 
   console.log(
     "ESSENTIAL DETAIL VALIDATION:",
-    deterministicValidation
+    deterministicResult
   );
 
-  const semanticInferenceDiagnoses = [
-  "insufficientObservableEvidence",
-  "relationshipIncomplete",
-  "relationshipNotEstablished",
-];
+  // --------------------------------------------------
+  // STEP 2 — SEMANTIC EVIDENCE GATE
+  //
+  // Semantic evidence is permitted only for limited or
+  // substantive responses whose supporting relationship
+  // cannot be established deterministically.
+  // --------------------------------------------------
 
-const limitedResponseCanBeReviewed =
-  deterministicValidation
-    ?.componentEvidenceLevel ===
-    "limited" &&
+  const semanticEvidenceDiagnoses = [
+    "insufficientObservableEvidence",
+    "relationshipIncomplete",
+    "relationshipNotEstablished",
+  ];
 
-  semanticInferenceDiagnoses.includes(
-    deterministicValidation
-      ?.diagnosis
-  );
+  const limitedResponseCanBeReviewed =
+    deterministicResult
+      ?.componentEvidenceLevel ===
+      "limited" &&
 
-const substantiveResponseCanBeReviewed =
-  deterministicValidation
-    ?.componentEvidenceLevel ===
-    "substantive" &&
-
-  (
-    deterministicValidation
-      ?.relationshipEvidence
-      ?.readerInferenceRequired ===
-      true ||
-
-    semanticInferenceDiagnoses.includes(
-      deterministicValidation
+    semanticEvidenceDiagnoses.includes(
+      deterministicResult
         ?.diagnosis
-    )
-  );
+    );
 
-const requiresSemanticInference =
-  limitedResponseCanBeReviewed ||
-  substantiveResponseCanBeReviewed;
+  const substantiveResponseCanBeReviewed =
+    deterministicResult
+      ?.componentEvidenceLevel ===
+      "substantive" &&
 
-  // Deterministic outcomes remain authoritative when
-  // semantic inference is not explicitly required.
-  if (!requiresSemanticInference) {
+    (
+      deterministicResult
+        ?.relationshipEvidence
+        ?.readerInferenceRequired ===
+        true ||
+
+      semanticEvidenceDiagnoses.includes(
+        deterministicResult
+          ?.diagnosis
+      )
+    );
+
+  const requiresSemanticEvidence =
+    limitedResponseCanBeReviewed ||
+    substantiveResponseCanBeReviewed;
+
+  // --------------------------------------------------
+  // STEP 3 — DETERMINISTIC FINAL RESULT
+  //
+  // When semantic evidence is not permitted or required,
+  // the deterministic result remains authoritative.
+  // --------------------------------------------------
+
+  if (!requiresSemanticEvidence) {
     return {
-      ...deterministicValidation,
+      ...deterministicResult,
 
       validationSource:
         "deterministic",
     };
   }
 
-  const semanticEvidence =
-  await getEssentialDetailSemanticEvidence(
-    response,
-    currentMainIdea,
-    instructionalContext
-  );
-
   // --------------------------------------------------
-  // JAVASCRIPT FINAL DECISION
+  // STEP 4 — BOUNDED SEMANTIC EVIDENCE
   //
-  // AI provides bounded evidence.
-  // JavaScript applies the complete instructional contract.
+  // AI supplies semantic evidence only.
+  // It does not validate, save, or advance student work.
   // --------------------------------------------------
 
-  const essentialDetailRelationshipEstablished =
+  const semanticEvidence =
+    await getEssentialDetailSemanticEvidence(
+      response,
+      currentMainIdea,
+      instructionalContext
+    );
+
+  // --------------------------------------------------
+  // STEP 5 — JAVASCRIPT GOVERNANCE DECISION
+  //
+  // JavaScript applies the complete Essential Detail
+  // contract to the bounded semantic evidence.
+  // --------------------------------------------------
+
+  const relationshipEstablished =
     semanticEvidence
       .supportsMainIdea === true &&
 
@@ -4620,15 +4734,17 @@ const requiresSemanticInference =
     semanticEvidence
       .confidence >= 0.9;
 
-  if (
-    essentialDetailRelationshipEstablished
-  ) {
+  // --------------------------------------------------
+  // STEP 6 — GOVERNED ACCEPTANCE
+  // --------------------------------------------------
+
+  if (relationshipEstablished) {
     return {
       valid:
         true,
 
       componentEvidenceLevel:
-        deterministicValidation
+        deterministicResult
           .componentEvidenceLevel,
 
       componentCriteriaStatus:
@@ -4641,7 +4757,7 @@ const requiresSemanticInference =
         null,
 
       relationshipEvidence: {
-        ...deterministicValidation
+        ...deterministicResult
           .relationshipEvidence,
 
         supportsMainIdea:
@@ -4675,12 +4791,20 @@ const requiresSemanticInference =
     };
   }
 
+  // --------------------------------------------------
+  // STEP 7 — GOVERNED NON-ACCEPTANCE
+  //
+  // JavaScript determines whether the response functions
+  // as a separate Main Idea or fails to establish the
+  // required Essential Detail relationship.
+  // --------------------------------------------------
+
   return {
     valid:
       false,
 
-     componentEvidenceLevel:
-      deterministicValidation
+    componentEvidenceLevel:
+      deterministicResult
         .componentEvidenceLevel,
 
     componentCriteriaStatus:
@@ -4697,7 +4821,7 @@ const requiresSemanticInference =
           : "relationshipNotEstablished",
 
     relationshipEvidence: {
-      ...deterministicValidation
+      ...deterministicResult
         .relationshipEvidence,
 
       supportsMainIdea:
@@ -5544,12 +5668,18 @@ Determine whether this response functions as a supported culminating understandi
 //
 // JavaScript remains the final instructional authority.
 // ------------------------------------------------------
-
 async function validateSoWhatResponseGoverned(
   response,
   instructionalContext = {}
 ) {
-  const deterministicValidation =
+  // --------------------------------------------------
+  // STEP 1 — DETERMINISTIC VALIDATION
+  //
+  // Observable instructional evidence is evaluated
+  // before semantic evidence may be requested.
+  // --------------------------------------------------
+
+  const deterministicResult =
     validateSoWhatResponse(
       response,
       instructionalContext
@@ -5557,25 +5687,47 @@ async function validateSoWhatResponseGoverned(
 
   console.log(
     "SO WHAT VALIDATION:",
-    deterministicValidation
+    deterministicResult
   );
 
-  const requiresSemanticInference =
-    deterministicValidation
+  // --------------------------------------------------
+  // STEP 2 — SEMANTIC EVIDENCE GATE
+  //
+  // Semantic evidence is permitted only when the
+  // deterministic validator identifies substantive
+  // synthesis that requires interpretation within the
+  // completed Frame.
+  // --------------------------------------------------
+
+  const requiresSemanticEvidence =
+    deterministicResult
       ?.relationshipEvidence
       ?.requiresSemanticInference ===
     true;
 
-  // Deterministic outcomes remain authoritative when
-  // semantic inference is not explicitly required.
-  if (!requiresSemanticInference) {
+  // --------------------------------------------------
+  // STEP 3 — DETERMINISTIC FINAL RESULT
+  //
+  // When semantic evidence is not permitted or required,
+  // the deterministic result remains authoritative.
+  // --------------------------------------------------
+
+  if (!requiresSemanticEvidence) {
     return {
-      ...deterministicValidation,
+      ...deterministicResult,
 
       validationSource:
         "deterministic",
     };
   }
+
+  // --------------------------------------------------
+  // STEP 4 — BOUNDED SEMANTIC EVIDENCE
+  //
+  // AI supplies semantic evidence only.
+  // It does not validate, save, revise, or advance
+  // student work.
+  // --------------------------------------------------
 
   const semanticEvidence =
     await getSoWhatSemanticEvidence(
@@ -5584,35 +5736,10 @@ async function validateSoWhatResponseGoverned(
     );
 
   // --------------------------------------------------
-  // JAVASCRIPT FINAL DECISION
+  // STEP 5 — JAVASCRIPT GOVERNANCE DECISION
   //
-  // AI provides bounded instructional evidence.
-  //
-  // JavaScript determines:
-  // - whether the So What is accepted;
-  // - the student's synthesis state;
-  // - the instructional diagnosis;
-  // - whether progression may continue.
-  // --------------------------------------------------
-
-    // --------------------------------------------------
-  // SUPPORTED SYNTHESIS STANDARD
-  //
-  // A So What is supported when the semantic evidence:
-  //
-  // - anchors the response to the Key Topic;
-  // - traces the response to the completed Frame;
-  // - confirms the completed Frame supports the response;
-  // - communicates meaningful understanding;
-  // - is specific enough to understand; and
-  // - does more than repeat earlier Frame content.
-  //
-  // The confidence threshold is intentionally bounded
-  // rather than set near certainty. So What statements
-  // may express conclusions, applications, metaphors,
-  // real-world connections, unit connections, or basic
-  // life truths. These forms can require legitimate
-  // inference while still being fully supported.
+  // JavaScript applies the complete So What contract
+  // and determines the student's synthesis state.
   // --------------------------------------------------
 
   const supportedSynthesis =
@@ -5637,6 +5764,13 @@ async function validateSoWhatResponseGoverned(
     semanticEvidence
       .confidence >= 0.75;
 
+  // --------------------------------------------------
+  // STEP 6 — GOVERNED ACCEPTANCE
+  //
+  // Supported synthesis satisfies the complete So What
+  // instructional contract and may progress.
+  // --------------------------------------------------
+
   if (supportedSynthesis) {
     return {
       valid:
@@ -5658,7 +5792,7 @@ async function validateSoWhatResponseGoverned(
         null,
 
       relationshipEvidence: {
-        ...deterministicValidation
+        ...deterministicResult
           .relationshipEvidence,
 
         anchoredToKeyTopic:
@@ -5701,14 +5835,11 @@ async function validateSoWhatResponseGoverned(
   }
 
   // --------------------------------------------------
-  // EMERGING SYNTHESIS
+  // STEP 7 — GOVERNED NON-ACCEPTANCE
   //
-  // The response has a legitimate foundation in the
-  // completed Frame but needs one additional thinking move.
-  //
-  // Kaw should ask the student to clarify, deepen, or make
-  // the takeaway more specific rather than declaring the
-  // response incorrect.
+  // JavaScript distinguishes emerging synthesis from
+  // unsupported synthesis and selects the corresponding
+  // deterministic diagnosis.
   // --------------------------------------------------
 
   const emergingSynthesis =
@@ -5773,7 +5904,7 @@ async function validateSoWhatResponseGoverned(
       diagnosis,
 
       relationshipEvidence: {
-        ...deterministicValidation
+        ...deterministicResult
           .relationshipEvidence,
 
         anchoredToKeyTopic:
@@ -5814,14 +5945,6 @@ async function validateSoWhatResponseGoverned(
         "deterministicWithSemanticEvidence",
     };
   }
-
-  // --------------------------------------------------
-  // UNSUPPORTED SYNTHESIS
-  //
-  // The response contains substantive content, but the
-  // necessary relationship to the completed Frame has not
-  // been established.
-  // --------------------------------------------------
 
   let diagnosis =
     "synthesisNotEstablished";
@@ -5867,7 +5990,7 @@ async function validateSoWhatResponseGoverned(
     diagnosis,
 
     relationshipEvidence: {
-      ...deterministicValidation
+      ...deterministicResult
         .relationshipEvidence,
 
       anchoredToKeyTopic:
@@ -5905,7 +6028,6 @@ async function validateSoWhatResponseGoverned(
       "deterministicWithSemanticEvidence",
   };
 }
-
 // ------------------------------------------------------
 // SO WHAT RUNTIME CONTEXT
 //
