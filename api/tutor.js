@@ -16605,13 +16605,39 @@ if (!s.frameMeta?.purpose) {
 }
 
 if (!s.frame.keyTopic) {
-  return getComponentPrompt("keyTopic", "initialPrompt");
+  const assignment =
+    s.frameMeta?.assignmentContext?.studentSummary ||
+    s.frameMeta?.assignmentContext?.understanding ||
+    s.frameMeta?.assignmentContext?.raw ||
+    "your assignment";
+
+  const displayedAssignment =
+    assignment.charAt(0).toUpperCase() +
+    assignment.slice(1);
+
+  return (
+    "Let's start with your Key Topic.\n\n" +
+    `${displayedAssignment}\n\n` +
+    "What is the main topic you'll be exploring in this Frame?"
+  );
 }
  
 if (!s.frame.isAbout) {
-  return getComponentPrompt("isAbout", "initialPrompt", {
-    keyTopic: s.frame.keyTopic
-  });
+  const assignment =
+    s.frameMeta?.assignmentContext?.studentSummary ||
+    s.frameMeta?.assignmentContext?.understanding ||
+    s.frameMeta?.assignmentContext?.raw ||
+    "your assignment";
+
+  const displayedAssignment =
+    assignment.charAt(0).toUpperCase() +
+    assignment.slice(1);
+
+  return (
+    `${displayedAssignment}\n\n` +
+    `Your Key Topic is "${s.frame.keyTopic}".\n\n` +
+    `What is "${s.frame.keyTopic}" about?`
+  );
 }
 
   const ideas = getIdeaList(s);
@@ -16623,12 +16649,28 @@ const label = "Main Idea";
 
 const promptType = c === 0 ? "initialPrompt" : "additionalPrompt";
 
+const assignment =
+  s.frameMeta?.assignmentContext?.studentSummary ||
+  s.frameMeta?.assignmentContext?.understanding ||
+  s.frameMeta?.assignmentContext?.raw ||
+  "your assignment";
+
+const displayedAssignment =
+  assignment.charAt(0).toUpperCase() +
+  assignment.slice(1);
+
 const fallback = getComponentPrompt("mainIdeas", promptType, {
   keyTopic: s.frame.keyTopic,
   isAbout: s.frame.isAbout
 });
 
-return `${label} ${c + 1}:\n\n${fallback}`;
+return (
+  `${displayedAssignment}\n\n` +
+  `Key Topic: ${s.frame.keyTopic}\n` +
+  `Is About: ${s.frame.isAbout}\n\n` +
+  `${label} ${c + 1}:\n\n` +
+  `${fallback}`
+);
   }
 
   // DETAILS LOOP (CLEANED — no duplicate fallback / brace drift)
@@ -16641,11 +16683,29 @@ return `${label} ${c + 1}:\n\n${fallback}`;
       const miLabel = "Main Idea";
       const dLabel = "Essential Detail";
 
-const promptType = detailNum === 1 ? "initialPrompt" : "additionalPrompt";
+const promptType =
+  detailNum === 1
+    ? "initialPrompt"
+    : "additionalPrompt";
 
-const fallback = getComponentPrompt("details", promptType, {
-  mainIdea: mi
-});
+const assignment =
+  s.frameMeta?.assignmentContext?.studentSummary ||
+  s.frameMeta?.assignmentContext?.understanding ||
+  s.frameMeta?.assignmentContext?.raw ||
+  "your assignment";
+
+const displayedAssignment =
+  assignment.charAt(0).toUpperCase() +
+  assignment.slice(1);
+
+const fallback = (
+  `${displayedAssignment}\n\n` +
+  `Key Topic: ${s.frame.keyTopic}\n` +
+  `Is About: ${s.frame.isAbout}\n\n` +
+  getComponentPrompt("details", promptType, {
+    mainIdea: mi
+  })
+);
 
 if (i === 0 && detailNum === 1) {
   return (
@@ -16686,9 +16746,24 @@ return (
 }
 
 if (!s.frame.soWhat) {
-  return getComponentPrompt("soWhat", "initialPrompt", {
-    keyTopic: s.frame.keyTopic
-  });
+  const assignment =
+    s.frameMeta?.assignmentContext?.studentSummary ||
+    s.frameMeta?.assignmentContext?.understanding ||
+    s.frameMeta?.assignmentContext?.raw ||
+    "your assignment";
+
+  const displayedAssignment =
+    assignment.charAt(0).toUpperCase() +
+    assignment.slice(1);
+
+  return (
+    `${displayedAssignment}\n\n` +
+    `Key Topic: ${s.frame.keyTopic}\n` +
+    `Is About: ${s.frame.isAbout}\n\n` +
+    getComponentPrompt("soWhat", "initialPrompt", {
+      keyTopic: s.frame.keyTopic
+    })
+  );
 }
 
   return "Want to refine anything (Key Topic, Is About, Main Ideas, Details, or So What)?";
