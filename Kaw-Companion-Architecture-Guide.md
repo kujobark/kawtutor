@@ -345,8 +345,38 @@ Instruction therefore becomes transparent, reproducible, and governable.
 The result is an instructional engine whose behavior is defined by constitutional principles rather than emergent language generation.
 
 ---
-
 # Chapter 4
+
+Assignment Understanding Engine   ⭐ NEW
+
+        ↓
+
+Chapter 5
+Framing Routine
+
+        ↓
+
+Chapter 6
+Evidence State
+
+        ↓
+
+Chapter 7
+Instructional Assessment
+
+        ↓
+
+Chapter 8
+Instructional Contracts
+
+        ↓
+
+Chapter 9
+Teacher Voice
+
+---
+
+# Chapter 5
 
 ## Student Ownership and Instructional Responsibility
 
@@ -392,7 +422,7 @@ Student ownership remains intact.
 
 ---
 
-# Chapter 5
+# Chapter 6
 
 ## Governing Artificial Intelligence
 
@@ -440,7 +470,7 @@ Together, these layers transform artificial intelligence from an autonomous inst
 
 ---
 
-# Chapter 6
+# Chapter 7
 
 ## The Governed Instructional Engine
 
@@ -568,7 +598,7 @@ Every instructional response can be traced backward through every architectural 
 
 ---
 
-# Chapter 7
+# Chapter 8
 
 ## Instructional Knowledge
 
@@ -690,7 +720,7 @@ Because Thinking Tasks remain explicitly represented within instructional knowle
 
 ---
 
-# Chapter 8
+# Chapter 9
 
 ## Instructional Reasoning
 
@@ -792,7 +822,7 @@ Everything afterward exists to faithfully communicate this already-established i
 
 ---
 
-# Chapter 9
+# Chapter 10
 
 ## Instructional Contracts
 
@@ -968,7 +998,7 @@ In this way, progression remains one of the strongest constitutional protections
 
 ---
 
-# Chapter 11
+# Chapter 12
 
 ## Communication Governance
 
@@ -1100,7 +1130,7 @@ This distinction allows Kaw to sound natural without sacrificing instructional c
 
 ---
 
-# Chapter 12
+# Chapter 13
 
 ## AI Contextualization
 
@@ -1224,7 +1254,7 @@ This separation significantly improves instructional authenticity while preservi
 
 ---
 
-# Chapter 13
+# Chapter 14
 
 ## Communication Validation
 
@@ -1358,7 +1388,7 @@ Every instructional conversation is therefore both natural and constitutionally 
 
 ---
 
-# Chapter 14
+# Chapter 15
 
 ## Recovery Architecture
 
@@ -1448,7 +1478,7 @@ The result is slower progress when necessary, but stronger learning over time.
 
 ---
 
-# Chapter 15
+# Chapter 16
 
 ## Teacher Voice
 
@@ -1534,7 +1564,7 @@ Together, these principles complete the communication architecture and prepare t
 
 ---
 
-# Chapter 16
+# Chapter 17
 
 ## Instructional State
 
@@ -1632,7 +1662,7 @@ This accumulation enables instructional reasoning to recognize emerging understa
 
 ---
 
-# Chapter 17
+# Chapter 18
 
 ## Evidence Processing
 
@@ -1748,7 +1778,7 @@ Only after interpretation has completed does the architecture proceed toward ins
 
 ---
 
-# Chapter 18
+# Chapter 19
 
 ## Assignment Context
 
@@ -1818,7 +1848,7 @@ This architectural independence enables Kaw to support additional instructional 
 
 ---
 
-# Chapter 19
+# Chapter 20
 
 ## Extending the Architecture
 
@@ -1910,7 +1940,7 @@ As future instructional models are introduced, they inherit the same constitutio
 
 ---
 
-# Chapter 20
+# Chapter 21
 
 ## Future Instructional Models
 
