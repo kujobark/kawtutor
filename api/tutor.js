@@ -15818,7 +15818,7 @@ if (s?.settings?.debugParentAnchor) {
     return (
     "🧠 Here's what I understand about your assignment:\n\n" +
     `${displayedAssignment}\n\n` +
-    `Thinking Task: ${thinkingTask}\n\n` +
+    `🎯 Thinking Task: ${thinkingTask}\n\n` +
     "Does this accurately capture what your assignment is asking you to do?\n\n" +
     "1) Yes — That is accurate.\n" +
     "2) Not quite — I need to clarify something.\n\n" +
