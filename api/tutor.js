@@ -3659,6 +3659,9 @@ category. It is one specific condition demonstrating the broader
 Main Idea "Lack of planning."
 
 When the response is one specific item beneath a broader category:
+- functionsAsOrganizingIdea must be false;
+- supportableWithMultipleDetails must be false;
+- functionsOnlyAsDetail must be true.
 
 DECISION PRIORITY:
 
