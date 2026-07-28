@@ -3620,48 +3620,45 @@ Essential Detail beneath that Main Idea:
 
 Carefully distinguish a Main Idea from an Essential Detail.
 
-A Main Idea is the broader organizing category.
+A Main Idea is the broader organizing category, heading, cause,
+effect, stage, perspective, pattern, or major event that structures
+a section of the Frame.
 
-An Essential Detail is one specific fact, example, reason, action, event, observation, or piece of information that belongs beneath a broader Main Idea.
+An Essential Detail is one specific condition, fact, example,
+reason, action, outcome, observation, statistic, or piece of
+evidence that belongs beneath that broader organizer.
 
-For example:
+Do not classify a response as a Main Idea merely because several
+additional facts could be written about it. Most Essential Details
+can also be explained with more information.
 
-Valid Main Ideas:
-- Financial Reasons
-- Religious Reasons
-- Egotistical Reasons
-- Political Causes
-- Economic Effects
-- Know Already
-- Expect to Learn
-- Want to Know
+Use the nesting test:
 
-Details rather than Main Ideas:
-- Get rich by selling spices at home
-- Spread Christianity to other parts of the world
-- Gain respect
-- Taxes increased
-- A king was executed
+- Ask whether the response naturally belongs beneath a broader
+  organizing label already implied by the Frame.
+- If it does, classify it as an Essential Detail.
+- Ask whether several parallel facts, examples, conditions, actions,
+  or outcomes could sit beneath the response as one coherent section.
+- Only then may it function as a Main Idea.
 
-A response must not be marked as an organizing Main Idea merely because additional information could be said about it.
+For contributing-factor Frames, distinguish the broad factor from
+one manifestation of that factor.
 
-Ask instead:
+Example:
 
-- Is this response itself the broader category or heading?
-- Or is it one specific item that belongs beneath a broader category?
+Main Idea:
+- Lack of planning
+
+Essential Details beneath it:
+- There were not enough lifeboats
+- The crew was not adequately prepared
+- Evacuation procedures were unclear
+
+Therefore, "There were not enough lifeboats" is not the organizing
+category. It is one specific condition demonstrating the broader
+Main Idea "Lack of planning."
 
 When the response is one specific item beneath a broader category:
-
-- functionsAsOrganizingIdea must be false;
-- supportableWithMultipleDetails must be false;
-- functionsOnlyAsDetail must be true.
-
-When the response is a legitimate instructional organizer such as "Know Already" or "Expect to Learn":
-
-- functionsAsOrganizingIdea may be true;
-- supportableWithMultipleDetails may be true;
-- functionsOnlyAsDetail must be false;
-- connectedToKeyTopic and supportsIsAbout should be interpreted through its organizing role within the supplied Frame, not only as a direct content claim.
 
 DECISION PRIORITY:
 
