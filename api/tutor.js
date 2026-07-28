@@ -11747,6 +11747,7 @@ function detectInstructionalState(state, msg) {
 
  const protectedPendingTypes = new Set([
   "confirmLanguageSwitch",
+  "confirmAssignmentUnderstanding",
   "assignmentReasoningIntro",
   "chooseWorkflow",
   "choosePurpose",
@@ -14852,40 +14853,6 @@ if (s?.settings?.debugParentAnchor) {
   );
 }
 
-  if (
-  s.pending?.type ===
-  "confirmAssignmentUnderstanding"
-) {
-  const assignmentContext =
-    s.frameMeta
-      ?.assignmentContext || {};
-
-  const assignment =
-    assignmentContext
-      ?.studentSummary ||
-    assignmentContext
-      ?.understanding ||
-    assignmentContext
-      ?.raw ||
-    "your assignment";
-
-  const thinkingTask =
-    s.assignmentReasoning
-      ?.label ||
-    s.assignmentReasoning
-      ?.task ||
-    "Organize thinking";
-
-  return (
-    "🧠 Here is what I understand about your assignment:\n\n" +
-    `${assignment}\n\n` +
-    `Thinking Task: ${thinkingTask}\n\n` +
-    "Does this accurately capture what your assignment is asking you to do?\n\n" +
-    "1) Yes — That is accurate.\n" +
-    "2) Not quite — I need to clarify something.\n\n" +
-    "Reply with 1 or 2."
-  );
-}
 
 if (s.pending?.type === "assignmentReasoningIntro") {
   const reasoning = s.assignmentReasoning || {};
@@ -15850,8 +15817,13 @@ if (!s.frameMeta.assignmentContext.raw && !(s.pending && s.pending.type)) {
 
  await updateAssignmentUnderstanding(s, msg);
 
-if (hasSufficientAssignmentUnderstanding(s)) {
-  s.pending = { type: "assignmentReasoningIntro" };
+    if (
+      hasSufficientAssignmentUnderstanding(s)
+    ) {
+      s.pending = {
+        type:
+          "confirmAssignmentUnderstanding",
+  };
 }
 
 return s;
@@ -18572,6 +18544,7 @@ if (
       const pendingType = state.pending?.type || null;
       const inProtectedPending =
       pendingType === "confirmLanguageSwitch" ||
+      pendingType === "confirmAssignmentUnderstanding" ||
       pendingType === "assignmentReasoningIntro" ||
       pendingType === "chooseWorkflow" ||
       pendingType === "choosePurpose" ||
