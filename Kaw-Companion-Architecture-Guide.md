@@ -2468,3 +2468,198 @@ Framing Routine
 ```
 
 That single diagram would orient readers before they enter the chapters, reinforce that governance sits above architecture, and visually distinguish permanent constitutional layers from replaceable implementations. I think it would become the defining illustration of the entire guide.
+
+
+I absolutely agree. I would actually make this a **new chapter**, not just a subsection.
+
+The reason is simple:
+
+The AUV is no longer a feature.
+
+It is the **constitutional entry point** into the instructional architecture.
+
+---
+
+# Chapter X — Assignment Understanding Validator (AUV)
+
+## Purpose
+
+The Assignment Understanding Validator (AUV) serves as the instructional gateway for the Kaw Companion. Before any instructional reasoning, framing, or feedback occurs, the validator determines whether sufficient evidence exists to understand the student's assignment.
+
+Every subsequent inference, validator, and instructional decision depends upon this initial understanding. Instruction does not begin until Kaw and the student have established a shared understanding of the assignment.
+
+---
+
+## Constitutional Principle
+
+> **Instruction proceeds only after the instructional engine has sufficient evidence to justify its next instructional decision.**
+
+The Assignment Understanding Validator embodies this principle by ensuring that Kaw never begins instruction based on assumptions or incomplete understanding.
+
+Rather than recognizing keywords or matching predefined patterns, the validator evaluates whether sufficient instructional evidence has been collected to accurately understand the student's assignment.
+
+---
+
+## Architectural Role
+
+The Assignment Understanding Validator is the constitutional gateway into the instructional architecture.
+
+```text
+Student Assignment
+        ↓
+
+Assignment Understanding Validator
+──────────────────────────────────
+Establishes Shared Assignment Understanding
+Protects All Downstream Instruction
+
+        ↓
+
+Assignment Reasoning
+        ↓
+
+Thinking Task Inference
+        ↓
+
+Parent Anchor Inference
+        ↓
+
+Child Anchor Inference
+        ↓
+
+Instructional Validators
+──────────────────────────
+• Is About Validator
+• Main Idea Validator
+• Essential Detail Validator
+• So What Validator
+
+        ↓
+
+Instructional Decision
+        ↓
+
+Teacher Communication
+```
+
+---
+
+# Evidence State
+
+The Assignment Understanding Validator continuously evaluates the current state of assignment understanding.
+
+### Assignment Context
+
+Has Kaw identified what the assignment is about?
+
+---
+
+### Assignment Demand
+
+Has Kaw identified what the student has been asked to think about, explain, analyze, compare, evaluate, or otherwise accomplish?
+
+---
+
+### Summary Readiness
+
+Can Kaw accurately summarize the assignment back to the student without introducing instructional assumptions?
+
+---
+
+# Instructional Assessment
+
+Rather than asking whether particular keywords are present, the validator evaluates instructional readiness.
+
+Questions include:
+
+* Is the assignment context sufficiently understood?
+* Is the instructional demand sufficiently understood?
+* Can Kaw accurately communicate its understanding back to the student?
+* Would instruction require Kaw to make unsupported assumptions?
+
+---
+
+# Decision Logic
+
+When sufficient evidence exists:
+
+```text
+Assignment Understanding
+        ↓
+Generate Shared Summary
+        ↓
+Student Confirmation
+        ↓
+Instruction Begins
+```
+
+When sufficient evidence does not exist:
+
+```text
+Incomplete Assignment Understanding
+        ↓
+Clarification Question
+        ↓
+Additional Student Evidence
+        ↓
+Reassessment
+```
+
+Clarification continues until sufficient instructional evidence has been collected.
+
+---
+
+# Shared Assignment Understanding
+
+Instruction does not begin when Kaw believes it understands the assignment.
+
+Instruction begins only after Kaw and the student establish a shared understanding of the assignment.
+
+This distinction is fundamental.
+
+The confirmation step is not intended to verify Kaw's confidence. It exists to verify instructional alignment between the student and the instructional engine.
+
+---
+
+# Relationship to the Instructional Architecture
+
+The Assignment Understanding Validator is unique among Kaw's validators.
+
+While every validator protects the integrity of a specific instructional decision, the Assignment Understanding Validator protects the integrity of the entire instructional pipeline.
+
+An incorrect understanding of the assignment can propagate through every subsequent instructional process, including:
+
+* Thinking Task inference
+* Parent Anchor inference
+* Child Anchor inference
+* Is About validation
+* Main Idea validation
+* Essential Detail validation
+* So What validation
+
+For this reason, the Assignment Understanding Validator serves as the constitutional gateway into the Framing Routine.
+
+---
+
+# Design Principle
+
+The Assignment Understanding Validator is evidence-driven rather than rule-driven.
+
+Its purpose is not to recognize predefined phrases or enumerate every possible assignment description.
+
+Instead, it determines whether sufficient instructional evidence exists to begin teaching.
+
+Like every governed validator within Kaw, the Assignment Understanding Validator answers a single constitutional question:
+
+> **Has sufficient instructional evidence been collected to justify the next instructional decision?**
+
+---
+
+## 🚀 One suggestion
+
+I would end the chapter with a single sentence that I think could become one of the defining quotes of the entire Architecture Manual:
+
+> **The Assignment Understanding Validator is not responsible for understanding every assignment. It is responsible for recognizing when Kaw does not yet understand enough to teach.**
+
+To me, that perfectly captures the philosophy you've been building throughout Kaw. Every validator is fundamentally about **knowing the limits of its evidence** before making an instructional decision. That consistency is what makes the architecture feel governed rather than heuristic.
+
