@@ -10556,13 +10556,19 @@ async function runStudentSimulationSelfTests() {
     "Explain how social media can affect teen mental health."
   );
 
-  const assignmentPassed =
-    state?.frameMeta?.assignmentContext?.raw ===
-      "Explain how social media can affect teen mental health." &&
-    state?.frameMeta?.assignmentContext
-      ?.needsClarification === false &&
-    state?.pending?.type ===
-      "assignmentReasoningIntro";
+ const assignmentPassed =
+  state?.frameMeta?.assignmentContext?.raw ===
+    "Explain how social media can affect teen mental health." &&
+
+  hasSufficientAssignmentUnderstanding(
+    state
+  ) &&
+
+  state?.frameMeta?.assignmentContext
+    ?.confirmed === false &&
+
+  state?.pending?.type ===
+    "confirmAssignmentUnderstanding";
 
   results.push({
     name:
@@ -10572,26 +10578,80 @@ async function runStudentSimulationSelfTests() {
       assignmentPassed,
 
     expected: {
-      needsClarification: false,
-      pendingType:
-        "assignmentReasoningIntro",
-    },
+  sufficientUnderstanding:
+    true,
 
-    actual: {
-      needsClarification:
-        state?.frameMeta?.assignmentContext
-          ?.needsClarification,
+  confirmed:
+    false,
 
-      pendingType:
-        state?.pending?.type || null,
+  pendingType:
+    "confirmAssignmentUnderstanding",
+},
 
-      thinkingTask:
-        state?.assignmentReasoning?.task || null,
-    },
+actual: {
+  sufficientUnderstanding:
+    hasSufficientAssignmentUnderstanding(
+      state
+    ),
+
+  confirmed:
+    state?.frameMeta
+      ?.assignmentContext
+      ?.confirmed === true,
+
+  pendingType:
+    state?.pending?.type || null,
+
+  thinkingTask:
+    state?.assignmentReasoning?.task || null,
+},
   });
 
   // --------------------------------------------------
-  // STEP 2: Choose Build Mode
+// STEP 2: Confirm shared assignment understanding
+// --------------------------------------------------
+
+state = await updateStateFromStudent(
+  state,
+  "1"
+);
+
+const assignmentConfirmationPassed =
+  state?.frameMeta
+    ?.assignmentContext
+    ?.confirmed === true &&
+
+  state?.pending?.type ===
+    "assignmentReasoningIntro";
+
+results.push({
+  name:
+    "Student Simulation - Assignment understanding confirmed",
+
+  passed:
+    assignmentConfirmationPassed,
+
+  expected: {
+    confirmed:
+      true,
+
+    pendingType:
+      "assignmentReasoningIntro",
+  },
+
+  actual: {
+    confirmed:
+      state?.frameMeta
+        ?.assignmentContext
+        ?.confirmed === true,
+
+    pendingType:
+      state?.pending?.type || null,
+  },
+});
+
+  // --------------------------------------------------
+  // STEP 3: Choose Build Mode
   // --------------------------------------------------
 
   state = await updateStateFromStudent(
@@ -10626,7 +10686,7 @@ async function runStudentSimulationSelfTests() {
   });
 
   // --------------------------------------------------
-  // STEP 3: Choose Study purpose
+  // STEP 4: Choose Study purpose
   // --------------------------------------------------
 
   state = await updateStateFromStudent(
@@ -10660,7 +10720,7 @@ async function runStudentSimulationSelfTests() {
   });
 
   // --------------------------------------------------
-  // STEP 4: Key Topic capture
+  // STEP 5: Key Topic capture
   // --------------------------------------------------
 
   state = await updateStateFromStudent(
@@ -10691,7 +10751,7 @@ async function runStudentSimulationSelfTests() {
   });
 
   // --------------------------------------------------
-  // STEP 5: Is About capture
+  // STEP 6: Is About capture
   // --------------------------------------------------
 
   state = await updateStateFromStudent(
@@ -10725,7 +10785,7 @@ async function runStudentSimulationSelfTests() {
   });
 
   // --------------------------------------------------
-  // STEP 6: Confirm Is About
+  // STEP 7: Confirm Is About
   // --------------------------------------------------
 
   state = await updateStateFromStudent(
@@ -10754,7 +10814,7 @@ async function runStudentSimulationSelfTests() {
   });
 
   // --------------------------------------------------
-  // STEP 7: Main Idea 1
+  // STEP 8: Main Idea 1
   // --------------------------------------------------
 
   state = await updateStateFromStudent(
@@ -10787,7 +10847,7 @@ async function runStudentSimulationSelfTests() {
   });
 
   // --------------------------------------------------
-  // STEP 8: Main Idea 2
+  // STEP 9: Main Idea 2
   // --------------------------------------------------
 
   state = await updateStateFromStudent(
@@ -10816,7 +10876,7 @@ async function runStudentSimulationSelfTests() {
   });
 
   // --------------------------------------------------
-// STEP 9: Decline an optional third Main Idea
+// STEP 10: Decline an optional third Main Idea
 // --------------------------------------------------
 
 state = await updateStateFromStudent(
@@ -10847,7 +10907,7 @@ results.push({
 });
 
 // --------------------------------------------------
-// STEP 10: Confirm Main Ideas
+// STEP 11: Confirm Main Ideas
 // --------------------------------------------------
 
 state = await updateStateFromStudent(
@@ -10876,7 +10936,7 @@ results.push({
 });
 
   // --------------------------------------------------
-  // STEP 11: Incomplete Essential Detail is blocked
+  // STEP 12: Incomplete Essential Detail is blocked
   // --------------------------------------------------
 
   state = await updateStateFromStudent(
@@ -10919,7 +10979,7 @@ results.push({
   });
 
   // --------------------------------------------------
-  // STEP 12: Revised Essential Detail is accepted
+  // STEP 13: Revised Essential Detail is accepted
   // --------------------------------------------------
 
   state = await updateStateFromStudent(
@@ -14173,8 +14233,7 @@ async function validateAssignmentUnderstandingGoverned(
 // Reads only the governed AUV result.
 //
 // This helper does not independently interpret assignment
-// language and does not trust a legacy needsClarification
-// field by itself.
+// language. It reads only the governed AUV result.
 // ------------------------------------------------------
 
 function hasSufficientAssignmentUnderstanding(
@@ -14191,12 +14250,9 @@ function hasSufficientAssignmentUnderstanding(
     context.assignmentDemandStatus ===
       "established" &&
     context.summaryReadinessStatus ===
-      "ready" &&
-    context.needsClarification ===
-      false
+      "ready"
   );
 }
-
 
 // ------------------------------------------------------
 // ASSIGNMENT UNDERSTANDING UPDATE
@@ -14227,10 +14283,11 @@ async function updateAssignmentUnderstanding(
       currentContext.raw || ""
     );
 
-  const shouldAccumulateEvidence =
+   const shouldAccumulateEvidence =
     !!existingEvidence &&
-    currentContext.needsClarification ===
-      true;
+    !hasSufficientAssignmentUnderstanding(
+      state
+  );
 
   const accumulatedAssignment =
     shouldAccumulateEvidence
@@ -14906,18 +14963,113 @@ if (Array.isArray(frame.details)) {
     : {};
 
 base.frameMeta.assignmentContext = {
-  raw: cleanText(assignmentContext.raw || ""),
-  understanding: cleanText(assignmentContext.understanding || ""),
-  confidence: cleanText(assignmentContext.confidence || "low") || "low",
-  needsClarification:
-    typeof assignmentContext.needsClarification === "boolean"
-      ? assignmentContext.needsClarification
-      : true,
-  inferredPurpose: cleanText(assignmentContext.inferredPurpose || ""),
-  childAnchor: cleanText(assignmentContext.childAnchor || ""),
-  clarificationCount: Number.isFinite(Number(assignmentContext.clarificationCount))
-    ? Number(assignmentContext.clarificationCount)
-    : 0,
+  valid:
+    assignmentContext.valid === true,
+
+  raw:
+    cleanText(
+      assignmentContext.raw || ""
+    ),
+
+  understanding:
+    cleanText(
+      assignmentContext.understanding || ""
+    ),
+
+  studentSummary:
+    cleanText(
+      assignmentContext.studentSummary || ""
+    ),
+
+  reasoningType:
+    cleanText(
+      assignmentContext.reasoningType || ""
+    ),
+
+  confidence:
+    cleanText(
+      assignmentContext.confidence || "low"
+    ) || "low",
+
+  confirmed:
+    assignmentContext.confirmed === true,
+
+  assignmentEvidenceLevel:
+    cleanText(
+      assignmentContext
+        .assignmentEvidenceLevel || "none"
+    ) || "none",
+
+  assignmentCriteriaStatus:
+    cleanText(
+      assignmentContext
+        .assignmentCriteriaStatus ||
+      "notSatisfied"
+    ) || "notSatisfied",
+
+  assignmentContextStatus:
+    cleanText(
+      assignmentContext
+        .assignmentContextStatus ||
+      "undetermined"
+    ) || "undetermined",
+
+  assignmentDemandStatus:
+    cleanText(
+      assignmentContext
+        .assignmentDemandStatus ||
+      "undetermined"
+    ) || "undetermined",
+
+  summaryReadinessStatus:
+    cleanText(
+      assignmentContext
+        .summaryReadinessStatus ||
+      "notReady"
+    ) || "notReady",
+
+  diagnosis:
+    cleanText(
+      assignmentContext.diagnosis ||
+      "emptyAssignmentEvidence"
+    ),
+
+  assignmentEvidence:
+    assignmentContext
+        .assignmentEvidence &&
+      typeof assignmentContext
+        .assignmentEvidence === "object"
+      ? structuredClone(
+          assignmentContext.assignmentEvidence
+        )
+      : null,
+
+  validationSource:
+    cleanText(
+      assignmentContext.validationSource ||
+      "deterministic"
+    ) || "deterministic",
+
+  inferredPurpose:
+    cleanText(
+      assignmentContext.inferredPurpose || ""
+    ),
+
+  childAnchor:
+    cleanText(
+      assignmentContext.childAnchor || ""
+    ),
+
+  clarificationCount:
+    Number.isFinite(
+      Number(
+        assignmentContext.clarificationCount
+      )
+    )
+      ? Number(
+          assignmentContext.clarificationCount
+        )
+      : 0,
 };
 
   base.pending = s.pending && typeof s.pending === "object" ? s.pending : null;
@@ -16753,15 +16905,29 @@ if (
     choice.includes("clarify") ||
     choice.includes("wrong")
   ) {
-    s.frameMeta.assignmentContext.confirmed =
-      false;
+   s.frameMeta.assignmentContext.confirmed =
+  false;
 
-    s.frameMeta.assignmentContext
-      .needsClarification = true;
+// The student rejected Kaw's shared summary.
+//
+// The existing assignment evidence remains preserved,
+// but Shared Summary Readiness is no longer established.
+// The next student response will be accumulated as
+// additional assignment evidence and re-evaluated through
+// the governed AUV.
+s.frameMeta.assignmentContext.valid =
+  false;
 
-    s.pending = null;
+s.frameMeta.assignmentContext
+  .summaryReadinessStatus =
+  "notReady";
 
-    return s;
+s.frameMeta.assignmentContext.diagnosis =
+  "studentRejectedSharedSummary";
+
+s.pending = null;
+
+return s;
   }
 
   return s;
