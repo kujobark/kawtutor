@@ -19523,12 +19523,16 @@ if (
         return res.status(200).json({ reply, state });
       }
 
-      state = await updateStateFromStudent(state, message);
+          state = await updateStateFromStudent(
+        state,
+        message
+      );
     }
+  }
 
-      const instructionalActivation =
-        state?.pending?.instructionalActivation || null;
-
+  const instructionalActivation =
+    state?.pending?.instructionalActivation || null;
+    
       const instructionalResponse =
         instructionalActivation
           ? await getInstructionalResponse(
