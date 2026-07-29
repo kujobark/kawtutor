@@ -16483,10 +16483,29 @@ const displayedAssignment =
   assignment.charAt(0).toUpperCase() +
   assignment.slice(1);
 
-const fallback = getComponentPrompt("mainIdeas", promptType, {
-  keyTopic: s.frame.keyTopic,
-  isAbout: s.frame.isAbout
-});
+const isAboutDisplay =
+  cleanText(
+    s.frame.isAbout
+  )
+    .replace(/[.!?]+$/g, "")
+    .replace(
+      /^[A-Z]/,
+      (character) =>
+        character.toLowerCase()
+    );
+
+const fallback =
+  getComponentPrompt(
+    "mainIdeas",
+    promptType,
+    {
+      keyTopic:
+        s.frame.keyTopic,
+
+      isAbout:
+        isAboutDisplay,
+    }
+  );
 
 return (
   `${displayedAssignment}\n\n` +
