@@ -19652,34 +19652,71 @@ if (
 // These commands do not modify the student's active Frame.
 // ------------------------------------------------------
 
-const componentTestCommandMap = {
-  "/run ia":
-    "isAbout",
+const requestedComponentSuiteId =
+  componentTestCommandMap[
+    message.toLowerCase()
+  ];
 
-  "/run mi":
-    "mainIdeas",
+const soWhatBatchMap = {
+  soWhatValidation:
+    "validation",
 
-  "/run ed":
-    "essentialDetail",
+  soWhatRuntime:
+    "runtime",
 
-  "/run sw":
-    "soWhat",
-
-  "/run sowhat":
-    "soWhat",
-
-  "/run sw1":
-    "soWhatValidation",
-
-  "/run sw2":
-    "soWhatRuntime",
-
-  "/run sw3":
-    "soWhatManual",
-
-  "/run core":
-    "evidenceState",
+  soWhatManual:
+    "manual",
 };
+
+const requestedSoWhatBatch =
+  soWhatBatchMap[
+    requestedComponentSuiteId
+  ];
+
+if (requestedSoWhatBatch) {
+  const testResults =
+    await runSoWhatSelfTests(
+      requestedSoWhatBatch
+    );
+
+  const reply =
+    formatSoWhatSelfTestResults(
+      testResults
+    );
+
+  return res.status(200).json({
+    reply,
+
+    state:
+      body.state ||
+      body.vercelState ||
+      body.framing ||
+      defaultState(),
+
+    selfTest: {
+      suite:
+        requestedComponentSuiteId,
+
+      batch:
+        requestedSoWhatBatch,
+
+      passed:
+        testResults.passed,
+
+      passedCount:
+        testResults.passedCount,
+
+      failedCount:
+        testResults.failedCount,
+
+      total:
+        testResults.total,
+
+      results:
+        testResults.results,
+    },
+  });
+}
 
 if (requestedComponentSuiteId) {
   const suiteExecution =
@@ -19702,7 +19739,8 @@ if (requestedComponentSuiteId) {
         suite:
           requestedComponentSuiteId,
 
-        found: false,
+        found:
+          false,
       },
     });
   }
