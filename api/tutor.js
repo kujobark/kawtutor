@@ -12973,7 +12973,7 @@ function formatNudgeText(nudges) {
 // ---------------------
 // Controlled internal categories Kaw can choose from.
 // Student-facing questions should be generated from the
-// gap + section + assignment context + purpose + student response.
+// gap + section + assignment context + student response.
 
 const FEEDBACK_GAP_BANK = {
 
@@ -13026,7 +13026,7 @@ const FEEDBACK_GAP_BANK = {
 // ---------------------
 
 // ---------------------
-// WRITE-MODE GUARDRAILS
+// CAUSE/EFFECT EVIDENCE GUARDRAILS
 // ---------------------
 // Evidence detection lives in Formative Assessment.
 // Evidence-request interpretation lives in Diagnosis.
@@ -14535,6 +14535,7 @@ const PARENT_ANCHOR_BRIDGE = {
   // but do NOT create a new structural stage.
     interruptStageByPending: {
     needEvidenceDetail: "detailsLoop",
+  },
   },
 
   // Overlay pending states are helper flows, not structural stages.
@@ -16945,7 +16946,7 @@ if (s.pending?.type === "reviseBuildLane") {
 }
 
   // Cause/Effect evidence guardrail follow-up
-    if (s.pending?.type === "needEvidenceDetail") {
+  if (s.pending?.type === "needEvidenceDetail") {
     const idx = Number(s.pending.index);
     if (!Array.isArray(s.frame.details[idx])) s.frame.details[idx] = [];
 
@@ -17420,6 +17421,16 @@ if (struggleCheck.detected) {
   return s;
 }
 
+    if (shouldRequestEvidenceDetail(s, msg)) {
+    s.pending = {
+      type: "needEvidenceDetail",
+      index: idx,
+      mechanism: msg,
+    };
+
+    return s;
+  }
+  
   const detailValidation =
   await validateEssentialDetailResponseGoverned(
     msg,
@@ -17542,11 +17553,12 @@ if (!mutationIntent.accept) {
     s.pending = {
       type: "needEvidenceDetail",
       index: idx,
-      mechanism: msg
-};
+      mechanism: msg,
+    };
+
     return s;
   }
-
+    
   const laneCheck =
     analyzeBuildLane(s, "details", msg);
 
@@ -18137,7 +18149,7 @@ if (
 }
   
     if (!s.frame.isAbout) {
-      // If write+c/e, enforce leads-to when capturing isAbout
+      // Route extracted Is About content through governed capture.
       await applyIsAboutCapture(s, parsed.isAbout);
       clearMatchingSkip(s, "isAbout");
     } else {
