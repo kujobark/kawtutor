@@ -506,21 +506,18 @@ function buildEvidenceState(
         structuredClone(thinkingTask),
 
       frame: {
-        purpose:
-          cleanText(frameMeta?.purpose || ""),
-
-        keyTopic:
-          cleanText(frame?.keyTopic || ""),
-
-        isAbout:
-          cleanText(frame?.isAbout || ""),
-
-        mainIdeas,
-
-        details,
-
-        soWhat:
-          cleanText(frame?.soWhat || ""),
+          keyTopic:
+            cleanText(frame?.keyTopic || ""),
+  
+          isAbout:
+            cleanText(frame?.isAbout || ""),
+  
+          mainIdeas,
+  
+          details,
+  
+          soWhat:
+            cleanText(frame?.soWhat || ""),
       },
     },
 
@@ -6639,12 +6636,9 @@ async function runEssentialDetailSelfTests() {
       "you're explaining how social media can affect teen mental health.",
     confidence: "high",
     needsClarification: false,
-    inferredPurpose: "",
     childAnchor: "",
     clarificationCount: 0,
   };
-
-  runtimeState.frameMeta.purpose = "study";
 
   runtimeState.frame.keyTopic =
     "Social Media and Teen Mental Health";
@@ -6733,12 +6727,9 @@ async function runEssentialDetailSelfTests() {
       "you're explaining how social media can affect teen mental health.",
     confidence: "high",
     needsClarification: false,
-    inferredPurpose: "",
     childAnchor: "",
     clarificationCount: 0,
   };
-
-  stuckRuntimeState.frameMeta.purpose = "study";
 
   stuckRuntimeState.frame.keyTopic =
     "Social Media and Teen Mental Health";
@@ -6827,12 +6818,9 @@ async function runEssentialDetailSelfTests() {
       "you're explaining how social media can affect teen mental health.",
     confidence: "high",
     needsClarification: false,
-    inferredPurpose: "",
     childAnchor: "",
     clarificationCount: 0,
   };
-
-  validRuntimeState.frameMeta.purpose = "study";
 
   validRuntimeState.frame.keyTopic =
     "Social Media and Teen Mental Health";
@@ -6934,13 +6922,9 @@ async function runEssentialDetailSelfTests() {
         "you're explaining how social media can affect teen mental health.",
       confidence: "high",
       needsClarification: false,
-      inferredPurpose: "",
       childAnchor: "",
       clarificationCount: 0,
     };
-
-  secondDetailInvalidState.frameMeta.purpose =
-    "study";
 
   secondDetailInvalidState.frame.keyTopic =
     "Social Media and Teen Mental Health";
@@ -7350,18 +7334,12 @@ async function runIsAboutSelfTests() {
     needsClarification:
       false,
 
-    inferredPurpose:
-      "",
-
     childAnchor:
       "",
 
     clarificationCount:
       0,
   };
-
-  repeatedTopicState.frameMeta.purpose =
-    "study";
 
   repeatedTopicState.frame.keyTopic =
     "Photosynthesis";
@@ -7460,18 +7438,12 @@ async function runIsAboutSelfTests() {
     needsClarification:
       false,
 
-    inferredPurpose:
-      "",
-
     childAnchor:
       "",
 
     clarificationCount:
       0,
   };
-
-  validIsAboutState.frameMeta.purpose =
-    "study";
 
   validIsAboutState.frame.keyTopic =
     "Photosynthesis";
@@ -7670,18 +7642,12 @@ async function runMainIdeaSelfTests() {
       needsClarification:
         false,
 
-      inferredPurpose:
-        "",
-
       childAnchor:
         "",
 
       clarificationCount:
         0,
     };
-
-    state.frameMeta.purpose =
-      "study";
 
     state.frame.keyTopic =
       keyTopic;
@@ -9549,9 +9515,6 @@ async function runSoWhatSelfTests() {
       needsClarification:
         false,
 
-      inferredPurpose:
-        "",
-
       childAnchor:
         "",
 
@@ -9579,9 +9542,6 @@ async function runSoWhatSelfTests() {
       lastUpdated:
         null,
     };
-
-    state.frameMeta.purpose =
-      "study";
 
     state.frame.keyTopic =
       instructionalContext.keyTopic;
@@ -10279,7 +10239,6 @@ async function runAICommunicationSelfTests() {
 
       confidence: "high",
       needsClarification: false,
-      inferredPurpose: "",
       childAnchor: "",
       clarificationCount: 0,
     };
@@ -10291,8 +10250,6 @@ async function runAICommunicationSelfTests() {
       evidence: ["leading:explain"],
       lastUpdated: null,
     };
-
-    state.frameMeta.purpose = "study";
 
     state.frame.keyTopic =
       "Social Media and Teen Mental Health";
@@ -10661,8 +10618,8 @@ results.push({
 
   const workflowPassed =
     state?.interactionMode === "build" &&
-    state?.pending?.type ===
-      "choosePurpose";
+    state?.pending === null &&
+    getStage(state) === "keyTopic";
 
   results.push({
     name:
@@ -10673,7 +10630,8 @@ results.push({
 
     expected: {
       interactionMode: "build",
-      pendingType: "choosePurpose",
+      pendingType: null,
+      stage: "keyTopic",
     },
 
     actual: {
@@ -10682,45 +10640,14 @@ results.push({
 
       pendingType:
         state?.pending?.type || null,
+
+      stage:
+        getStage(state),
     },
   });
 
   // --------------------------------------------------
-  // STEP 4: Choose Study purpose
-  // --------------------------------------------------
-
-  state = await updateStateFromStudent(
-    state,
-    "1"
-  );
-
-  const purposePassed =
-    state?.frameMeta?.purpose === "study" &&
-    state?.pending === null;
-
-  results.push({
-    name:
-      "Student Simulation - Study purpose selected",
-
-    passed:
-      purposePassed,
-
-    expected: {
-      purpose: "study",
-      pendingType: null,
-    },
-
-    actual: {
-      purpose:
-        state?.frameMeta?.purpose || null,
-
-      pendingType:
-        state?.pending?.type || null,
-    },
-  });
-
-  // --------------------------------------------------
-  // STEP 5: Key Topic capture
+  // STEP 4: Key Topic capture
   // --------------------------------------------------
 
   state = await updateStateFromStudent(
@@ -10751,7 +10678,7 @@ results.push({
   });
 
   // --------------------------------------------------
-  // STEP 6: Is About capture
+  // STEP 5: Is About capture
   // --------------------------------------------------
 
   state = await updateStateFromStudent(
@@ -10785,7 +10712,7 @@ results.push({
   });
 
   // --------------------------------------------------
-  // STEP 7: Confirm Is About
+  // STEP 6: Confirm Is About
   // --------------------------------------------------
 
   state = await updateStateFromStudent(
@@ -10814,7 +10741,7 @@ results.push({
   });
 
   // --------------------------------------------------
-  // STEP 8: Main Idea 1
+  // STEP 7: Main Idea 1
   // --------------------------------------------------
 
   state = await updateStateFromStudent(
@@ -10847,7 +10774,7 @@ results.push({
   });
 
   // --------------------------------------------------
-  // STEP 9: Main Idea 2
+  // STEP 8: Main Idea 2
   // --------------------------------------------------
 
   state = await updateStateFromStudent(
@@ -10876,7 +10803,7 @@ results.push({
   });
 
   // --------------------------------------------------
-// STEP 10: Decline an optional third Main Idea
+// STEP 9: Decline an optional third Main Idea
 // --------------------------------------------------
 
 state = await updateStateFromStudent(
@@ -10907,7 +10834,7 @@ results.push({
 });
 
 // --------------------------------------------------
-// STEP 11: Confirm Main Ideas
+// STEP 10: Confirm Main Ideas
 // --------------------------------------------------
 
 state = await updateStateFromStudent(
@@ -10936,7 +10863,7 @@ results.push({
 });
 
   // --------------------------------------------------
-  // STEP 12: Incomplete Essential Detail is blocked
+  // STEP 11: Incomplete Essential Detail is blocked
   // --------------------------------------------------
 
   state = await updateStateFromStudent(
@@ -10979,7 +10906,7 @@ results.push({
   });
 
   // --------------------------------------------------
-  // STEP 13: Revised Essential Detail is accepted
+  // STEP 12: Revised Essential Detail is accepted
   // --------------------------------------------------
 
   state = await updateStateFromStudent(
@@ -11159,7 +11086,6 @@ const componentKnowledge =
     interactionMode: state?.interactionMode || "build",
     assignmentContext: state?.frameMeta?.assignmentContext || {},
     assignmentReasoning: state?.assignmentReasoning || {},
-    useMode: state?.frameMeta?.purpose || "",
     frameStage: currentFrameStage,
     componentKnowledge,
     parentAnchorStage: typeof getParentAnchorContext === "function"
@@ -11526,10 +11452,7 @@ const looksLikeEventSummary =
   
   return null;
 }
-
 function shouldRequestEvidenceDetail(state, detailText) {
-  // Only apply guardrail for: write mode + causeEffect + details stage
-  if (state.frameMeta?.purpose !== "write") return false;
   if (state.frameMeta?.frameType !== "causeEffect") return false;
 
   const t = cleanText(detailText);
@@ -11538,10 +11461,9 @@ function shouldRequestEvidenceDetail(state, detailText) {
   // If it already looks like evidence, don't interrupt.
   if (looksLikeEvidence(t)) return false;
 
-  // If it looks like mechanism (how/why) but not evidence, ask for evidence.
+  // If it looks like mechanism but not evidence, ask for evidence.
   return looksLikeMechanism(t);
 }
-
 // ------------------------------------------------------
 // INSTRUCTIONAL DECISION
 // Chooses the best instructional move.
@@ -11664,16 +11586,6 @@ function buildMiniQuestion(state) {
   const keyTopic = state.frame?.keyTopic || "your topic";
   const effect = state.frame?.effect || state.frame?.isAbout || "the effect";
   const isCE = state.frameMeta?.frameType === "causeEffect";
-
-  if (stage === "purpose") {
-    return (
-      "How will you use this Frame?\n" +
-      "1) Study — think through and organize your ideas\n" +
-      "2) Write — build a claim and support it\n" +
-      "3) Read — pull key ideas from a text or source\n\n" +
-      "Reply with 1, 2, or 3."
-    );
-  }
 
   if (stage === "keyTopic") {
     return `Your frame begins with the Key Topic.\n\nIn just a few words, what is the name of the topic you are exploring?`;
@@ -11810,7 +11722,6 @@ function detectInstructionalState(state, msg) {
   "confirmAssignmentUnderstanding",
   "assignmentReasoningIntro",
   "chooseWorkflow",
-  "choosePurpose",
 
   // Is About confirmation and revision
   "confirmIsAbout",
@@ -13058,20 +12969,6 @@ function formatNudgeText(nudges) {
   }
 
   return items.join("\n\n");
-}
-
-function normalizePurpose(msg) {
-  const t = cleanText(msg).toLowerCase();
-  if (!t) return null;
-  if (t.includes("study") || t.includes("review") || t === "s") return "study";
-  if (t.includes("write") || t.includes("essay") || t.includes("paragraph") || t.includes("create") || t === "w")
-    return "write";
-  if (t.includes("read") || t.includes("note") || t.includes("annot") || t === "r") return "read";
-  // allow 1/2/3 mapping (for buttons)
-  if (t === "1") return "study";
-  if (t === "2") return "write";
-  if (t === "3") return "read";
-  return null;
 }
 
 // ---------------------
@@ -14409,13 +14306,12 @@ async function updateAssignmentUnderstanding(
 //
 // Stage progression:
 // 1. assignmentContext
-// 2. purpose
-// 3. keyTopic
-// 4. isAbout
-// 5. mainIdeas
-// 6. details (per Main Idea)
-// 7. soWhat
-// 8. refine
+// 2. keyTopic
+// 3. isAbout
+// 4. mainIdeas
+// 5. details (per Main Idea)
+// 6. soWhat
+// 7. refine
 //
 // NOTE:
 // Parent Anchor stages map onto these later via the
@@ -14424,7 +14320,6 @@ async function updateAssignmentUnderstanding(
 
 const FRAME_STAGE_SEQUENCE = [
   "assignmentContext",
-  "purpose",
   "keyTopic",
   "isAbout",
   "mainIdeas",
@@ -14439,7 +14334,6 @@ function getStage(state) {
   const ideas = getIdeaList(state);
 
   if (!m.assignmentContext?.raw) return "assignmentContext";
-  if (!m.purpose) return "purpose";  
   if (!f.keyTopic) return "keyTopic";
   if (!f.isAbout) return "isAbout";
   if (ideas.length < 2) return "mainIdeas";
@@ -14600,7 +14494,6 @@ function getIdeaList(state) {
 
 const PARENT_ANCHOR_BRIDGE = {
   structuralStages: [
-    "purpose",
     "keyTopic",
     "isAbout",
     "isAboutConfirm",
@@ -14670,7 +14563,6 @@ const PARENT_ANCHOR_BRIDGE = {
   // continues to expose completion/refine behavior around export.
  structuralStageByRawStage(rawStage) {
     if (rawStage === "assignmentContext") return "assignmentContext";
-    if (rawStage === "purpose") return "purpose";
     if (rawStage === "keyTopic") return "keyTopic";
     if (rawStage === "isAbout") return "isAbout";
     if (rawStage === "mainIdeas") return "parentItems";
@@ -14735,7 +14627,6 @@ function getParentAnchorDisplayLabel(state) {
 
 function getParentAnchorObservation(state) {
   const context = getParentAnchorContext(state);
-  const purpose = state?.frameMeta?.purpose || "";
   const ownerLabel = context.ownerStructuralStage;
   const stageLabel = context.structuralStage;
 
@@ -14759,13 +14650,10 @@ return {
   interactionMode: "build",
 
   frameMeta: {
-    purpose: "",
-
     assignmentContext: {
         raw: "",
         understanding: "",
         confidence: "low",
-        inferredPurpose: "",
         childAnchor: "",
         clarificationCount: 0,
     },
@@ -14945,7 +14833,6 @@ if (Array.isArray(frame.details)) {
   base.frame.soWhat = cleanText(frame.soWhat || s.soWhat || "");
 
   const frameMeta = s.frameMeta && typeof s.frameMeta === "object" ? s.frameMeta : {};
-  base.frameMeta.purpose = cleanText(frameMeta.purpose || "") || "";
 
   const assignmentContext =
   frameMeta.assignmentContext && typeof frameMeta.assignmentContext === "object"
@@ -15039,11 +14926,6 @@ base.frameMeta.assignmentContext = {
       assignmentContext.validationSource ||
       "deterministic"
     ) || "deterministic",
-
-  inferredPurpose:
-    cleanText(
-      assignmentContext.inferredPurpose || ""
-    ),
 
   childAnchor:
     cleanText(
@@ -15389,39 +15271,6 @@ async function applyIsAboutCapture(s, msg) {
 
     return s;
 }
-
-  // Write + causeEffect must include "leads to" and we parse/store cause/effect
-  if (s.frameMeta?.purpose === "write" && s.frameMeta?.frameType === "causeEffect") {
-    const parsed = parseCauseEffectFromLeadsTo(msg);
-    if (!parsed) {
-      s.pending = { type: "needWriteCauseEffectStem" };
-      return s;
-    }
-    if (parsed.cause) s.frame.causes = [parsed.cause];
-    if (parsed.effect) s.frame.effect = parsed.effect;
-  }
-
-  // Study/Read + causeEffect: accept either an effect-only answer
-  // or a full "X leads to Y" relationship, but store them cleanly.
-  if (
-    s.frameMeta?.frameType === "causeEffect" &&
-    (s.frameMeta?.purpose === "study" || s.frameMeta?.purpose === "read")
-  ) {
-    const parsed = parseCauseEffectFromLeadsTo(msg);
-
-    if (parsed?.effect) {
-      s.frame.effect = parsed.effect;
-      s.frame.isAbout = cleanFrameText(`how ${parsed.cause} leads to ${parsed.effect}`);
-      s.pending = { type: "confirmIsAbout" };
-      return s;
-    }
-
-    const effectOnly = cleanText(msg).replace(/[.?!]+$/g, "");
-    s.frame.effect = effectOnly;
-    s.frame.isAbout = cleanFrameText(`how ${s.frame.keyTopic} leads to ${effectOnly}`);
-    s.pending = { type: "confirmIsAbout" };
-    return s;
-  }
 
 s.frame.isAbout =
   cleanFrameText(normalizedIsAbout);
@@ -15854,17 +15703,6 @@ if (s.pending?.type === "assignmentReasoningIntro") {
 );
 }
 
-  if (s.pending?.type === "choosePurpose") {
-  return (
-    "Great! Let's build a new Frame together.\n\n" +
-    "How will you use this Frame to support your work?\n" +
-    "1) Study — organize and strengthen your thinking\n" +
-    "2) Write — develop a response, essay, or project\n" +
-    "3) Read — organize ideas from a text or source\n" +
-    "Reply with 1, 2, or 3."
-  );
-}
-  
   if (s.pending?.type === "feedbackSelectSection") {
   return (
     "Which part of your Frame would you like feedback on?\n\n" +
@@ -16332,7 +16170,7 @@ if (skipped.stage === "soWhat") label = "the So What statement";
 if (skipped.stage?.startsWith("details")) {
   const idx = Number(skipped.stage.split(":")[1]);
   const labelBase = s.frameMeta?.frameType === "causeEffect" ? "Cause" : "Main Idea";
-  const detailLabel = s.frameMeta?.purpose === "read" ? "Text Evidence" : "Essential Detail";
+  const detailLabel = "Essential Detail";
   label = `${detailLabel} for ${labelBase} ${idx + 1}`;
 }
 
@@ -16399,8 +16237,7 @@ if (s.pending?.type === "reviseMainIdeaAt") {
 if (s.pending?.type === "chooseDetailToRevise") {
   const idx = Number(s.pending.index);
   const arr = Array.isArray(s.frame.details?.[idx]) ? s.frame.details[idx] : [];
-  const lineLabel = s.frameMeta?.purpose === "read" ? "Text Evidence" : "Essential Detail";
-
+  const lineLabel = "Essential Detail";
   const lines = arr.map((d, k) => `${k + 1}) ${lineLabel} ${k + 1}: ${d}`).join("\n");
 
   return `Which ${lineLabel} would you like to revise?\n\n${lines}\n\nReply with the number.`;
@@ -16410,7 +16247,7 @@ if (s.pending?.type === "reviseDetailAt") {
   const idx = Number(s.pending.index);
   const detailIndex = Number(s.pending.detailIndex);
   const current = s.frame.details?.[idx]?.[detailIndex] || "";
-  const lineLabel = s.frameMeta?.purpose === "read" ? "Text Evidence" : "Essential Detail";
+  const lineLabel = "Essential Detail";
 
   return `Revise ${lineLabel} ${detailIndex + 1}:\n\n"${current}"\n\nWhat should it say instead?`;
 }
@@ -16448,10 +16285,7 @@ if (s.pending?.type === "offerAnotherDetail") {
 
   const isCE = s.frameMeta?.frameType === "causeEffect";
   const miLabel = isCE ? "Cause" : "Main Idea";
-  const dLabel =
-    isCE && s.frameMeta?.purpose === "read"
-      ? "Text Evidence"
-      : "Essential Detail";
+  const dLabel = "Essential Detail";
 
   const count =
     Array.isArray(s.frame.details?.[i])
@@ -16479,10 +16313,7 @@ if (s.pending?.type === "collectAnotherDetail") {
 
   const isCE = s.frameMeta?.frameType === "causeEffect";
   const miLabel = isCE ? "Cause" : "Main Idea";
-  const dLabel =
-    isCE && s.frameMeta?.purpose === "read"
-      ? "Text Evidence"
-      : "Essential Detail";
+  const dLabel = "Essential Detail";
 
   const currentCount =
     Array.isArray(s.frame.details?.[i])
@@ -16523,7 +16354,7 @@ if (s.pending?.type === "collectAnotherDetail") {
 
   const isCE = s.frameMeta?.frameType === "causeEffect";
   const miLabel = isCE ? "Cause" : "Main Idea";
-  const dLabel = isCE && s.frameMeta?.purpose === "read" ? "Text Evidence" : "Essential Detail";
+  const dLabel = "Essential Detail";
 
   const lines = arr.map((d, k) => `${dLabel} ${k + 1}: ${d}`).join("\n");
 
@@ -16586,24 +16417,6 @@ if (!hasSufficientAssignmentUnderstanding(s)) {
   return "Tell me a little more about what your teacher is asking you to think about, explain, or show?";
 }
   
-if (!s.frameMeta?.purpose) {
-  const assignment =
-    s.frameMeta?.assignmentContext?.studentSummary ||
-    s.frameMeta?.assignmentContext?.raw;
-    s.pending = {
-     type: "assignmentReasoningIntro"
- };
-
-  return (
-  "Thanks—that gives me a better picture of what you're working on.\n\n" +
-  `It sounds like ${assignment}.\n\n` +
-  "How can I support your work today?\n" +
-  "1) Build a new Frame\n" +
-  "2) Get feedback on an existing Frame\n" +
-  "Reply with 1 or 2."
-);
-}
-
 if (!s.frame.keyTopic) {
   const assignment =
     s.frameMeta?.assignmentContext?.studentSummary ||
@@ -16789,13 +16602,10 @@ async function updateStateFromStudent(state, message) {
 
   if (!s.frameMeta) {
     s.frameMeta = {
-      purpose: "",
-
       assignmentContext: {
         raw: "",
         understanding: "",
         confidence: "low",
-        inferredPurpose: "",
         childAnchor: "",
         clarificationCount: 0,
       },
@@ -16807,7 +16617,6 @@ async function updateStateFromStudent(state, message) {
       raw: "",
       understanding: "",
       confidence: "low",
-      inferredPurpose: "",
       childAnchor: "",
       clarificationCount: 0,
     };
@@ -16926,15 +16735,6 @@ if (
   return s;
 }
   
-// Purpose capture
-  if (!s.frameMeta.purpose && !(s.pending && s.pending.type)) {
-    const p = normalizePurpose(msg);
-    if (p) {
-      s.frameMeta.purpose = p;
-      return s;
-    }
-  }
-
   // ----------------
   // Pending handlers
   // ----------------
@@ -17010,7 +16810,7 @@ if (s.pending?.type === "assignmentReasoningIntro") {
 if (choice === "1" || choice.includes("build")) {
   s.interactionMode = "build";
   s.feedback.active = false;
-  s.pending = { type: "choosePurpose" };
+  s.pending = null;
   return s;
 }
 
@@ -17026,18 +16826,6 @@ if (choice === "1" || choice.includes("build")) {
   return s;
 }
 
-  if (s.pending?.type === "choosePurpose") {
-  const p = normalizePurpose(msg);
-
-   if (p) {
-    s.frameMeta.purpose = p;
-    s.pending = null;
-    return s;
-  }
-
-  return s;
-}
-  
   if (s.pending?.type === "feedbackSelectSection") {
   const choice = msg.toLowerCase().trim();
 
@@ -17422,13 +17210,6 @@ if (s.pending?.type === "stuckNudge") {
 
   // Legacy Stuck flows without an exact saved pending state
   // continue through the existing stage-based handling below.
-  if (stage === "purpose") {
-  const p = normalizePurpose(msg);
-  if (p) s.frameMeta.purpose = p;
-  s.pending = null;
-  return s;
-}
-
  if (stage === "keyTopic") {
   const cleaned = cleanText(msg);
   const wc = cleaned.split(/\s+/).filter(Boolean).length;
@@ -19640,7 +19421,6 @@ if (
       pendingType === "confirmAssignmentUnderstanding" ||
       pendingType === "assignmentReasoningIntro" ||
       pendingType === "chooseWorkflow" ||
-      pendingType === "choosePurpose" ||
     
       // Is About confirmation and revision
       pendingType === "confirmIsAbout" ||
