@@ -11225,25 +11225,6 @@ function getParentAnchorContext(state) {
   };
 }
 
-/**
- * Read-only structural helper.
- * Returns true if the Parent Anchor owner stage matches
- * the requested structural stage.
- */
-
-function isParentAnchorInStage(state, structuralStage) {
-  return getParentAnchorOwnerStage(state) === structuralStage;
-}
-
-/**
- * Read-only structural helper.
- * Returns true if the Parent Anchor loop type matches
- * the requested loop classification.
- */
-function isParentAnchorLoopType(state, loopType) {
-  return getParentAnchorLoopType(state) === loopType;
-}
-
 function getComponentKnowledge(frameStage) {
   const baseStage =
     typeof getBaseStage === "function"
@@ -11658,13 +11639,6 @@ function buildStuckNudges(state, stage) {
   const keyTopic = state?.frame?.keyTopic || "your topic";
   const isAbout = state?.frame?.isAbout || "";
   const ideas = getIdeaList(state).filter(Boolean);
-
-  const frameSummary =
-    isAbout && keyTopic
-      ? `"${keyTopic}" → ${isAbout}`
-      : keyTopic
-        ? `"${keyTopic}"`
-        : "your Frame";
 
   const contract = state.pending?.instructionalContract || null;
 
@@ -14315,16 +14289,6 @@ async function updateAssignmentUnderstanding(
 // Parent Anchor Bridge, but this engine remains the
 // single source of truth for frame progression.
 
-const FRAME_STAGE_SEQUENCE = [
-  "assignmentContext",
-  "keyTopic",
-  "isAbout",
-  "mainIdeas",
-  "details",
-  "soWhat",
-  "refine",
-];
-
 function getStage(state) {
   const f = state.frame;
   const m = state.frameMeta || {};
@@ -14536,7 +14500,6 @@ const PARENT_ANCHOR_BRIDGE = {
     interruptStageByPending: {
     needEvidenceDetail: "detailsLoop",
   },
-  },
 
   // Overlay pending states are helper flows, not structural stages.
   // They should be interpreted around the current structural stage.
@@ -14623,17 +14586,24 @@ function getParentAnchorDisplayLabel(state) {
 }
 
 function getParentAnchorObservation(state) {
-  const context = getParentAnchorContext(state);
-  const ownerLabel = context.ownerStructuralStage;
-  const stageLabel = context.structuralStage;
+  const context =
+    getParentAnchorContext(state);
+
+  const ownerLabel =
+    context.ownerStructuralStage;
+
+  const stageLabel =
+    context.structuralStage;
 
   return {
     ...context,
-    purpose,
+
     ownerLabel,
+
     stageLabel,
 
-    summary: `${context.ownerStructuralStage} | ${context.loopType} | ${ownerLabel}`,
+    summary:
+      `${context.ownerStructuralStage} | ${context.loopType} | ${ownerLabel}`,
   };
 }
 
@@ -15582,7 +15552,6 @@ function computeNextQuestion(state) {
   ensureBuckets(s); //
 
   const paContext = getParentAnchorContext(s);
-  const paStage = paContext.ownerStructuralStage;
   
   // ---------------------
   // PARENT ANCHOR OBSERVATION HOOK (SANDBOX ONLY)
@@ -15661,11 +15630,6 @@ if (s.pending?.type === "assignmentReasoningIntro") {
   const intro =
   presentation.intro ||
   "Let's build a Frame that helps organize your thinking.";
-
-  const assignment =
-    s.frameMeta?.assignmentContext?.studentSummary ||
-    s.frameMeta?.assignmentContext?.raw ||
-    "your assignment";
 
  return (
   "🧠 Great! I understand your assignment.\n\n" +
@@ -16178,8 +16142,6 @@ if (s.pending?.type === "confirmMainIdeas") {
   const lines = getIdeaList(s).map((mi, i) =>
     `${isCE ? "Cause" : "Main Idea"} ${i + 1}: ${mi}`
   ).join("\n");
-
-  const label = isCE ? "Causes" : "Main Ideas";
 
   return getComponentPrompt("mainIdeas", "confirmationPrompt", {
   mainIdeasList: lines
@@ -17361,9 +17323,24 @@ if (s.pending?.type === "confirmMainIdeas") {
   }
   
 if (s.pending?.type === "offerAnotherDetail") {
-  const normalized = msg.toLowerCase().trim();
-  const idx = Number(s.pending.index);
-  const arr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
+  const normalized =
+    msg.toLowerCase().trim();
+
+  const idx =
+    Number(s.pending.index);
+
+  const arr =
+    Array.isArray(
+      s.frame.details[idx]
+    )
+      ? s.frame.details[idx]
+      : [];
+
+  const currentMainIdea =
+    getIdeaList(s)[idx] || "";
+
+  const detailIndex =
+    arr.length;
 
  if (isAffirmative(normalized) || normalized === "1") {
   if (arr.length >= 5) {
