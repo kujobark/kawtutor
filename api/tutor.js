@@ -15606,34 +15606,62 @@ function computeNextQuestion(state) {
   const s = state;
   ensureBuckets(s); //
 
-  const paContext = getParentAnchorContext(s);
+  const paContext =
+    getParentAnchorContext(s);
+
+  // Parent Anchor stage is part of normal runtime
+  // progression and must remain available throughout
+  // computeNextQuestion().
+  //
+  // The observation hook below may inspect this value,
+  // but it does not own or create it.
+  const paStage =
+    paContext.ownerStructuralStage;
   
   // ---------------------
   // PARENT ANCHOR OBSERVATION HOOK (SANDBOX ONLY)
   // ---------------------
-  // Leave this disabled until you are intentionally validating sandbox flows.
-  // This hook exists so Parent Anchor can explain the engine in motion
-  // without becoming part of the engine.
+  // Leave this disabled until you are intentionally
+  // validating sandbox flows.
+  //
+  // This hook exists so Parent Anchor can explain the
+  // engine in motion without becoming part of the engine.
   //
   // Gated sandbox-only observation:
-if (s?.settings?.debugParentAnchor) {
-  const paObs = getParentAnchorObservation(s);
-  const isInDetails = paContext.ownerStructuralStage === "detailsLoop";
+  if (
+    s?.settings?.debugParentAnchor
+  ) {
+    const paObs =
+      getParentAnchorObservation(s);
 
-  const stage = s.pending?.stage || getStage(s);
-  const paStage = paContext.ownerStructuralStage;
-  const baseStage = getBaseStage(stage);
-  const engineIsDetails = baseStage === "details";
+    const isInDetails =
+      paStage === "detailsLoop";
 
-  const isAligned = isInDetails === engineIsDetails;
+    const stage =
+      s.pending?.stage ||
+      getStage(s);
 
-  console.log("[PA OBS]", paObs.summary, {
-    isInDetails,
-    engineIsDetails,
-    isAligned,
-    ...paObs
-  });
-}
+    const baseStage =
+      getBaseStage(stage);
+
+    const engineIsDetails =
+      baseStage === "details";
+
+    const isAligned =
+      isInDetails ===
+      engineIsDetails;
+
+    console.log(
+      "[PA OBS]",
+      paObs.summary,
+      {
+        isInDetails,
+        engineIsDetails,
+        isAligned,
+        ...paObs,
+      }
+    );
+  }
 
   if (
   s.pending?.type ===
