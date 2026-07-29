@@ -3925,11 +3925,12 @@ async function validateMainIdeaResponseGoverned(
   // --------------------------------------------------
 
   const semanticEvidenceDiagnoses = [
-    "insufficientObservableEvidence",
-    "relationshipIncomplete",
-    "relationshipNotEstablished",
-  ];
-
+  "insufficientObservableEvidence",
+  "relationshipIncomplete",
+  "relationshipNotEstablished",
+  "relationshipUndetermined",
+];
+  
   const limitedResponseCanBeReviewed =
     deterministicResult
       ?.componentEvidenceLevel ===
