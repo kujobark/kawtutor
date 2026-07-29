@@ -19681,72 +19681,6 @@ const componentTestCommandMap = {
     "evidenceState",
 };
 
-const requestedComponentSuiteId =
-  componentTestCommandMap[
-    message.toLowerCase()
-  ];
-
-const soWhatBatchMap = {
-  soWhatValidation:
-    "validation",
-
-  soWhatRuntime:
-    "runtime",
-
-  soWhatManual:
-    "manual",
-};
-
-const requestedSoWhatBatch =
-  soWhatBatchMap[
-    requestedComponentSuiteId
-  ];
-
-if (requestedSoWhatBatch) {
-  const testResults =
-    await runSoWhatSelfTests(
-      requestedSoWhatBatch
-    );
-
-  const reply =
-    formatSoWhatSelfTestResults(
-      testResults
-    );
-
-  return res.status(200).json({
-    reply,
-
-    state:
-      body.state ||
-      body.vercelState ||
-      body.framing ||
-      defaultState(),
-
-    selfTest: {
-      suite:
-        requestedComponentSuiteId,
-
-      batch:
-        requestedSoWhatBatch,
-
-      passed:
-        testResults.passed,
-
-      passedCount:
-        testResults.passedCount,
-
-      failedCount:
-        testResults.failedCount,
-
-      total:
-        testResults.total,
-
-      results:
-        testResults.results,
-    },
-  });
-}
-    
 if (requestedComponentSuiteId) {
   const suiteExecution =
     await runDeterministicSelfTestSuiteById(
@@ -19768,8 +19702,7 @@ if (requestedComponentSuiteId) {
         suite:
           requestedComponentSuiteId,
 
-        found:
-          false,
+        found: false,
       },
     });
   }
