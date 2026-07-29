@@ -3587,6 +3587,32 @@ A valid Main Idea may function in either of these ways:
 - can organize multiple Essential Details explaining what happened, why it happened, who was involved, or what resulted;
 - remains a valid Main Idea even when it describes one historical event, because the event itself functions as a major section of the larger topic.
 
+4. REQUIRED INPUT, CONDITION, OR COMPONENT ORGANIZER
+- identifies a meaningful group of inputs, requirements, conditions, materials, or components needed for a process, system, event, or outcome;
+- may name multiple related requirements within one organizing statement;
+- can organize several Essential Details explaining each input, condition, component, its role, or why it is necessary;
+- remains a valid Main Idea when the grouped requirements form one major section of the larger topic.
+
+Examples:
+
+Valid required-input Main Idea:
+- Photosynthesis requires water and carbon dioxide.
+
+Possible Essential Details beneath it:
+- Plants absorb water through their roots.
+- Carbon dioxide enters leaves through stomata.
+- Water supplies hydrogen used in producing glucose.
+- Carbon dioxide supplies carbon used in producing glucose.
+
+Valid component Main Idea:
+- A computer system depends on hardware and software.
+
+Possible Essential Details beneath it:
+- Hardware includes physical devices such as the processor and memory.
+- Software provides instructions that tell the hardware what to do.
+
+Do not classify a grouped requirement, input set, or component relationship as an Essential Detail merely because it names specific items. Determine whether the complete response can organize several parallel explanations beneath it.
+
 Examples of valid chronological or sequential Main Ideas:
 - Castro Comes to Power in Cuba
 - Bay of Pigs Invasion
@@ -7608,6 +7634,9 @@ async function runMainIdeaSelfTests() {
   const detailOnlyResponse =
     "A survey found that many teens check social media before bed.";
 
+  const requiredInputsMainIdea =
+    "Photosynthesis requires water and carbon dioxide.";
+
   const results = [];
 
   // --------------------------------------------------
@@ -7951,6 +7980,63 @@ async function runMainIdeaSelfTests() {
     actual:
       governedValidActual,
   });
+
+  const requiredInputsActual =
+  await validateMainIdeaResponseGoverned(
+    requiredInputsMainIdea,
+    "Photosynthesis",
+    "How plants make food."
+  );
+
+const requiredInputsPassed =
+  requiredInputsActual.valid === true &&
+
+  requiredInputsActual
+    .componentCriteriaStatus ===
+    "satisfied" &&
+
+  requiredInputsActual
+    .relationshipStatus ===
+    "established" &&
+
+  requiredInputsActual
+    .diagnosis ===
+    null &&
+
+  requiredInputsActual
+    .validationSource ===
+    "deterministicWithSemanticEvidence";
+
+results.push({
+  name:
+    "MI Governed - Required inputs function as an organizer",
+
+  passed:
+    requiredInputsPassed,
+
+  response:
+    requiredInputsMainIdea,
+
+  expected: {
+    valid:
+      true,
+
+    componentCriteriaStatus:
+      "satisfied",
+
+    relationshipStatus:
+      "established",
+
+    diagnosis:
+      null,
+
+    validationSource:
+      "deterministicWithSemanticEvidence",
+  },
+
+  actual:
+    requiredInputsActual,
+});
 
   // --------------------------------------------------
   // GOVERNED DETAIL-ONLY TEST
