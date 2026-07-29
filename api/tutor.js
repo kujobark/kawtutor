@@ -9411,7 +9411,20 @@ function formatMainIdeaSelfTestResults(
 // validation is connected to So What capture and revision.
 // ------------------------------------------------------
 
-async function runSoWhatSelfTests() {
+async function runSoWhatSelfTests(
+  batch = "all"
+) {
+  const runValidationBatch =
+    batch === "all" ||
+    batch === "validation";
+
+  const runRuntimeBatch =
+    batch === "all" ||
+    batch === "runtime";
+
+  const runManualBatch =
+    batch === "all" ||
+    batch === "manual";
   const instructionalContext = {
     assignmentContext: {
       raw:
@@ -9700,6 +9713,8 @@ async function runSoWhatSelfTests() {
     },
   ];
 
+  if (runValidationBatch) {
+  
   deterministicTests.forEach(
     (test) => {
       const actual =
@@ -9755,10 +9770,13 @@ async function runSoWhatSelfTests() {
           test.expected,
 
         actual,
-      });
+         });
     }
-  );
-
+    );
+    
+    }
+    if (runValidationBatch) {
+      
   // --------------------------------------------------
   // GOVERNED SUPPORTED SYNTHESIS
   //
@@ -10121,7 +10139,9 @@ async function runSoWhatSelfTests() {
       governedInferenceActual,
   });
 
-    // ==================================================
+  }
+
+  // ==================================================
   // KU FRAMING ROUTINE MANUAL SO WHAT PRESSURE TESTS
   //
   // These governed benchmarks use completed Frames and
@@ -10247,20 +10267,24 @@ async function runSoWhatSelfTests() {
     ],
   };
 
-  await runManualSupportedSoWhatTest({
-    name:
-      "SW Manual - Strategic Learners completed So What is accepted",
+  if (runValidationBatch) {
+    await runManualSupportedSoWhatTest({
+      name:
+        "SW Manual - Strategic Learners completed So What is accepted",
 
-    response:
-      "Strategic learners actively and purposefully use smart strategies before, during, and after learning.",
+      response:
+        "Strategic learners actively and purposefully use smart strategies before, during, and after learning.",
 
-    context:
-      strategicLearnersContext,
-  });
+      context:
+        strategicLearnersContext,
+    });
+  }
 
-    // ==================================================
+  if (runRuntimeBatch) {
+
+  // ==================================================
   // SO WHAT LIVE RUNTIME TESTS
-  //
+  // ==================================================
   // These tests exercise the actual So What capture,
   // expansion, and revision pathways through
   // updateStateFromStudent().
@@ -10772,6 +10796,10 @@ async function runSoWhatSelfTests() {
     },
   });
   
+  }
+
+  if (runManualBatch) {
+  
   // --------------------------------------------------
   // MANUAL FRAME 2: PROGRESSIVE ERA
   // --------------------------------------------------
@@ -10904,6 +10932,7 @@ async function runSoWhatSelfTests() {
     context:
       progressiveEraContext,
   });
+  }
 
   const passedCount =
     results.filter(
