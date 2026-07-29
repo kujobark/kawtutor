@@ -6871,17 +6871,81 @@ async function runEssentialDetailSelfTests() {
 
   const runtimeState = defaultState();
 
+    runtimeState.interactionMode =
+    "build";
+
   runtimeState.frameMeta.assignmentContext = {
+    valid:
+      true,
+
     raw:
       "Explain how social media can affect teen mental health.",
+
     understanding:
       "Explain how social media can affect teen mental health.",
+
     studentSummary:
       "you're explaining how social media can affect teen mental health.",
-    confidence: "high",
-    needsClarification: false,
-    childAnchor: "",
-    clarificationCount: 0,
+
+    reasoningType:
+      "explain",
+
+    confidence:
+      "high",
+
+    confirmed:
+      true,
+
+    assignmentEvidenceLevel:
+      "substantive",
+
+    assignmentCriteriaStatus:
+      "satisfied",
+
+    assignmentContextStatus:
+      "established",
+
+    assignmentDemandStatus:
+      "established",
+
+    summaryReadinessStatus:
+      "ready",
+
+    diagnosis:
+      null,
+
+    assignmentEvidence:
+      null,
+
+    validationSource:
+      "deterministic",
+
+    needsClarification:
+      false,
+
+    childAnchor:
+      "",
+
+    clarificationCount:
+      0,
+  };
+
+  runtimeState.assignmentReasoning = {
+    task:
+      "explain",
+
+    label:
+      "Explain",
+
+    confidence:
+      1,
+
+    evidence: [
+      "assignmentTestState",
+    ],
+
+    lastUpdated:
+      null,
   };
 
   runtimeState.frame.keyTopic =
@@ -6962,17 +7026,81 @@ async function runEssentialDetailSelfTests() {
 
   const stuckRuntimeState = defaultState();
 
+    stuckRuntimeState.interactionMode =
+    "build";
+
   stuckRuntimeState.frameMeta.assignmentContext = {
+    valid:
+      true,
+
     raw:
       "Explain how social media can affect teen mental health.",
+
     understanding:
       "Explain how social media can affect teen mental health.",
+
     studentSummary:
       "you're explaining how social media can affect teen mental health.",
-    confidence: "high",
-    needsClarification: false,
-    childAnchor: "",
-    clarificationCount: 0,
+
+    reasoningType:
+      "explain",
+
+    confidence:
+      "high",
+
+    confirmed:
+      true,
+
+    assignmentEvidenceLevel:
+      "substantive",
+
+    assignmentCriteriaStatus:
+      "satisfied",
+
+    assignmentContextStatus:
+      "established",
+
+    assignmentDemandStatus:
+      "established",
+
+    summaryReadinessStatus:
+      "ready",
+
+    diagnosis:
+      null,
+
+    assignmentEvidence:
+      null,
+
+    validationSource:
+      "deterministic",
+
+    needsClarification:
+      false,
+
+    childAnchor:
+      "",
+
+    clarificationCount:
+      0,
+  };
+
+  stuckRuntimeState.assignmentReasoning = {
+    task:
+      "explain",
+
+    label:
+      "Explain",
+
+    confidence:
+      1,
+
+    evidence: [
+      "assignmentTestState",
+    ],
+
+    lastUpdated:
+      null,
   };
 
   stuckRuntimeState.frame.keyTopic =
@@ -7053,17 +7181,81 @@ async function runEssentialDetailSelfTests() {
 
   const validRuntimeState = defaultState();
 
+    validRuntimeState.interactionMode =
+    "build";
+
   validRuntimeState.frameMeta.assignmentContext = {
+    valid:
+      true,
+
     raw:
       "Explain how social media can affect teen mental health.",
+
     understanding:
       "Explain how social media can affect teen mental health.",
+
     studentSummary:
       "you're explaining how social media can affect teen mental health.",
-    confidence: "high",
-    needsClarification: false,
-    childAnchor: "",
-    clarificationCount: 0,
+
+    reasoningType:
+      "explain",
+
+    confidence:
+      "high",
+
+    confirmed:
+      true,
+
+    assignmentEvidenceLevel:
+      "substantive",
+
+    assignmentCriteriaStatus:
+      "satisfied",
+
+    assignmentContextStatus:
+      "established",
+
+    assignmentDemandStatus:
+      "established",
+
+    summaryReadinessStatus:
+      "ready",
+
+    diagnosis:
+      null,
+
+    assignmentEvidence:
+      null,
+
+    validationSource:
+      "deterministic",
+
+    needsClarification:
+      false,
+
+    childAnchor:
+      "",
+
+    clarificationCount:
+      0,
+  };
+
+  validRuntimeState.assignmentReasoning = {
+    task:
+      "explain",
+
+    label:
+      "Explain",
+
+    confidence:
+      1,
+
+    evidence: [
+      "assignmentTestState",
+    ],
+
+    lastUpdated:
+      null,
   };
 
   validRuntimeState.frame.keyTopic =
