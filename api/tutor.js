@@ -15497,29 +15497,53 @@ s.pending = {
     return s;
   }
 
+    // --------------------------------------------------
+  // CANONICAL MAIN IDEA STATE MUTATION
+  //
+  // frame.parentItems is the authoritative runtime
+  // collection for every Main Idea.
+  //
+  // Cause-and-Effect sessions temporarily mirror the
+  // canonical collection into frame.causes so remaining
+  // compatibility pathways continue to function during
+  // migration.
+  //
+  // New instructional authority must not be added to
+  // frame.causes.
+  // --------------------------------------------------
+
+  if (
+    !Array.isArray(
+      s.frame.parentItems
+    )
+  ) {
+    s.frame.parentItems = [];
+  }
+
+  if (
+    !Array.isArray(
+      s.frame.details
+    )
+  ) {
+    s.frame.details = [];
+  }
+
   if (isRevision) {
+    if (
+      s.frame.parentItems[
+        revisionIndex
+      ] !== undefined
+    ) {
+      s.frame.parentItems[
+        revisionIndex
+      ] = text;
+    }
+
+    // Temporary Cause-and-Effect compatibility mirror.
     if (isCE) {
-      if (
-        Array.isArray(s.frame.causes) &&
-        s.frame.causes[revisionIndex] !==
-          undefined
-      ) {
-        s.frame.causes[revisionIndex] =
-          text;
-      }
-    } else {
-      if (
-        Array.isArray(
-          s.frame.parentItems
-        ) &&
-        s.frame.parentItems[
-          revisionIndex
-        ] !== undefined
-      ) {
-        s.frame.parentItems[
-          revisionIndex
-        ] = text;
-      }
+      s.frame.causes = [
+        ...s.frame.parentItems,
+      ];
     }
 
     s.pending = {
@@ -15530,58 +15554,24 @@ s.pending = {
     return s;
   }
 
+  s.frame.parentItems.push(text);
+
+  const newIndex =
+    s.frame.parentItems.length - 1;
+
+  if (
+    !Array.isArray(
+      s.frame.details[newIndex]
+    )
+  ) {
+    s.frame.details[newIndex] = [];
+  }
+
+  // Temporary Cause-and-Effect compatibility mirror.
   if (isCE) {
-    if (
-      !Array.isArray(s.frame.causes)
-    ) {
-      s.frame.causes = [];
-    }
-
-    if (
-      !Array.isArray(s.frame.details)
-    ) {
-      s.frame.details = [];
-    }
-
-    s.frame.causes.push(text);
-
-    const newIndex =
-      s.frame.causes.length - 1;
-
-    if (
-      !Array.isArray(
-        s.frame.details[newIndex]
-      )
-    ) {
-      s.frame.details[newIndex] = [];
-    }
-  } else {
-    if (
-      !Array.isArray(
-        s.frame.parentItems
-      )
-    ) {
-      s.frame.parentItems = [];
-    }
-
-    if (
-      !Array.isArray(s.frame.details)
-    ) {
-      s.frame.details = [];
-    }
-
-    s.frame.parentItems.push(text);
-
-    const newIndex =
-      s.frame.parentItems.length - 1;
-
-    if (
-      !Array.isArray(
-        s.frame.details[newIndex]
-      )
-    ) {
-      s.frame.details[newIndex] = [];
-    }
+    s.frame.causes = [
+      ...s.frame.parentItems,
+    ];
   }
 
   clearMatchingSkip(
