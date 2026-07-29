@@ -20586,7 +20586,7 @@ if (
 if (
   !inProtectedPending &&
   !assignmentUnderstandingIncomplete &&
-  isStuckMessage(message) &&
+  studentResponseGovernance?.signals?.stuck === true &&
   getBaseStage(getStage(state)) !== "details"
 ) {
      const stage = getStage(state);
