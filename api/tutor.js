@@ -18320,34 +18320,35 @@ if (
     }
   );
 
-     if (!detailValidation.valid) {
-      const instructionalFinding = {
-        ...buildComponentInstructionalFinding({
-          frameComponent:
-            "details",
-    
-          validation:
-            detailValidation,
-    
-          evidence: {
-            currentMainIdea,
-    
-            currentDetailIndex:
-              arr.length,
-    
-            attemptedDetail:
-              cleanText(msg),
-          },
-        }),
-    
-        validationSource:
-          detailValidation.validationSource || null,
-    
+   if (!detailValidation.valid) {
+  const instructionalFinding = {
+    ...buildComponentInstructionalFinding({
+      frameComponent:
+        "details",
+
+      validation:
+        detailValidation,
+
+      evidence: {
         currentMainIdea,
-    
+
         currentDetailIndex:
           arr.length,
-      };
+
+        attemptedDetail:
+          cleanText(msg),
+      },
+    }),
+
+    validationSource:
+      detailValidation.validationSource ||
+      null,
+
+    currentMainIdea,
+
+    currentDetailIndex:
+      arr.length,
+  };
     
       s.pending = {
         type: "collectAnotherDetail",
