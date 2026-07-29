@@ -1638,11 +1638,228 @@ function executeEDGS001(contract, state) {
   };
 }
 
+// ------------------------------------------------------
+// MI-GS-001 INSTRUCTIONAL DECISION
+//
+// Selects the predetermined Main Idea Teaching Move,
+// Thinking Move, and communication pattern from the
+// established instructional finding.
+//
+// Validation has already determined the observable
+// instructional condition.
+//
+// This function does not:
+//
+// • validate the student's response;
+// • reinterpret semantic evidence;
+// • generate student-facing language;
+// • change runtime progression;
+// • save or replace student work.
+//
+// ------------------------------------------------------
+
+function selectMIGS001InstructionalDecision(
+  instructionalFinding,
+  contract
+) {
+  const diagnosis =
+    instructionalFinding?.diagnosis || "";
+
+  const fallbackDecision = {
+    teachingMove:
+      contract?.teachingMove || "clarify",
+
+    thinkingMove:
+      contract?.thinkingMove ||
+      "Explain the larger idea that this Main Idea helps your reader understand about the topic.",
+
+    communicationPattern:
+      contract?.communicationPattern ||
+      "briefReassuranceThenQuestion",
+  };
+
+  // --------------------------------------------------
+  // NO COMPONENT EVIDENCE
+  //
+  // The student has not provided observable Main Idea
+  // content that can be evaluated.
+  // --------------------------------------------------
+
+  if (
+    diagnosis === "emptyResponse" ||
+    diagnosis === "noComponentEvidence"
+  ) {
+    return {
+      teachingMove:
+        "reduceCognitiveLoad",
+
+      thinkingMove:
+        "Reconnect the student to the accepted Key Topic and Is About statement, then invite them to identify one larger idea, category, cause, effect, part, stage, pattern, or major event that helps organize the topic. Do not suggest or generate the Main Idea.",
+
+      communicationPattern:
+        "briefReassuranceThenQuestion",
+    };
+  }
+
+  // --------------------------------------------------
+  // INSUFFICIENT OBSERVABLE EVIDENCE
+  //
+  // The response may contain the beginning of an idea,
+  // but there is not enough observable information to
+  // establish its organizing function.
+  // --------------------------------------------------
+
+  if (
+    diagnosis ===
+    "insufficientObservableEvidence"
+  ) {
+    return {
+      teachingMove:
+        "increaseSpecificity",
+
+      thinkingMove:
+        "Invite the student to expand the response enough to show the larger idea they want this section of the Frame to explain. Do not infer or supply the missing meaning.",
+
+      communicationPattern:
+        "briefReassuranceThenQuestion",
+    };
+  }
+
+  // --------------------------------------------------
+  // REPEATS KEY TOPIC
+  //
+  // The student has named the accepted Key Topic again
+  // rather than identifying one organizing idea within it.
+  // --------------------------------------------------
+
+  if (diagnosis === "repeatsKeyTopic") {
+    return {
+      teachingMove:
+        "differentiate",
+
+      thinkingMove:
+        "Acknowledge that the student has returned to the Key Topic, then invite them to identify one larger idea, category, cause, effect, part, stage, pattern, or major event within that topic that could organize several Essential Details. Do not provide the Main Idea.",
+
+      communicationPattern:
+        "acknowledgeThenQuestion",
+    };
+  }
+
+  // --------------------------------------------------
+  // REPEATS IS ABOUT
+  //
+  // The student has repeated the whole-topic explanation
+  // rather than identifying one major organizing section.
+  // --------------------------------------------------
+
+  if (diagnosis === "repeatsIsAbout") {
+    return {
+      teachingMove:
+        "differentiate",
+
+      thinkingMove:
+        "Acknowledge that the response returns to what the whole Key Topic is about, then invite the student to identify one major part or section of that larger explanation that could organize several Essential Details. Do not provide the Main Idea.",
+
+      communicationPattern:
+        "acknowledgeThenQuestion",
+    };
+  }
+
+  // --------------------------------------------------
+  // DETAIL INSTEAD OF MAIN IDEA
+  //
+  // The response functions as one specific fact, example,
+  // action, condition, observation, or outcome beneath a
+  // broader organizer.
+  //
+  // Recovery means moving one level upward in the same
+  // thinking—not replacing the student's thinking.
+  // --------------------------------------------------
+
+  if (
+    diagnosis ===
+    "detailInsteadOfMainIdea"
+  ) {
+    return {
+      teachingMove:
+        "moveToBroaderOrganizer",
+
+      thinkingMove:
+        "Reference the student's observable response and invite them to identify the larger idea, category, cause, effect, part, stage, pattern, or major event that this specific information helps explain. Do not name or generate the broader Main Idea.",
+
+      communicationPattern:
+        "briefReassuranceThenQuestion",
+    };
+  }
+
+  // --------------------------------------------------
+  // RELATIONSHIP NOT ESTABLISHED
+  //
+  // The response contains substantive content, but its
+  // function as a major organizing idea within the
+  // accepted Frame has not been established.
+  // --------------------------------------------------
+
+  if (
+    diagnosis ===
+    "relationshipNotEstablished"
+  ) {
+    return {
+      teachingMove:
+        "refocus",
+
+      thinkingMove:
+        "Reconnect the student to the accepted Key Topic and Is About statement, then invite them to identify a larger idea that directly helps organize or explain that topic and could be supported by several Essential Details. Do not generate a replacement Main Idea.",
+
+      communicationPattern:
+        "briefReassuranceThenQuestion",
+    };
+  }
+
+  // --------------------------------------------------
+  // RELATIONSHIP UNDETERMINED
+  //
+  // Preserve uncertainty when the available evidence does
+  // not establish whether the response functions as an
+  // organizing Main Idea.
+  // --------------------------------------------------
+
+  if (
+    diagnosis ===
+    "relationshipUndetermined"
+  ) {
+    return {
+      teachingMove:
+        "clarifyOrganizingFunction",
+
+      thinkingMove:
+        "Invite the student to make clearer what larger part of the accepted topic this response would organize and what kind of Essential Details could belong beneath it. Preserve the undetermined relationship and do not claim that it is or is not a Main Idea.",
+
+      communicationPattern:
+        "briefReassuranceThenQuestion",
+    };
+  }
+
+  return fallbackDecision;
+}
+
+
+// ------------------------------------------------------
+// MI-GS-001 CONTRACT EXECUTION
+// ------------------------------------------------------
+
 function executeMIGS001(contract, state) {
   const instructionalFinding =
     state?.pending?.instructionalFinding ||
-    state?.pending?.resumePending?.instructionalFinding ||
+    state?.pending?.resumePending
+      ?.instructionalFinding ||
     null;
+
+  const instructionalDecision =
+    selectMIGS001InstructionalDecision(
+      instructionalFinding,
+      contract
+    );
 
   return {
     contractId:
@@ -1652,14 +1869,13 @@ function executeMIGS001(contract, state) {
       contract.instructionalGoal,
 
     teachingMove:
-      contract.teachingMove,
+      instructionalDecision.teachingMove,
 
     thinkingMove:
-      contract.thinkingMove,
+      instructionalDecision.thinkingMove,
 
     communicationPattern:
-      contract.communicationPattern ||
-      "briefReassuranceThenQuestion",
+      instructionalDecision.communicationPattern,
 
     aiContextualizes:
       contract.aiContextualizes,
@@ -1681,6 +1897,10 @@ function executeMIGS001(contract, state) {
 
       isAbout:
         state?.frame?.isAbout || "",
+
+      mainIdeas:
+        getIdeaList(state)
+          .filter(Boolean),
 
       currentMainIdea:
         "",
