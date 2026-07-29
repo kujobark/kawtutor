@@ -11031,6 +11031,48 @@ const DETERMINISTIC_SELF_TEST_SUITES = [
 ];
 
 // ------------------------------------------------------
+// COMPONENT SELF-TEST RUNNER
+//
+// Runs one registered deterministic or governed suite by
+// component ID.
+//
+// This exists so cleanup work can be verified without
+// executing the full monolithic /run tests command.
+//
+// It does not modify student state.
+// ------------------------------------------------------
+
+async function runDeterministicSelfTestSuiteById(
+  suiteId
+) {
+  const suite =
+    DETERMINISTIC_SELF_TEST_SUITES.find(
+      (candidate) =>
+        candidate.id === suiteId
+    );
+
+  if (!suite) {
+    return null;
+  }
+
+  const result =
+    await suite.run();
+
+  return {
+    id:
+      suite.id,
+
+    label:
+      suite.label,
+
+    result,
+
+    formatted:
+      suite.format(result),
+  };
+}
+
+// ------------------------------------------------------
 // STUDENT SIMULATION TEST SUITE
 //
 // Runs a scripted student interaction through the actual
@@ -19287,31 +19329,80 @@ if (
 }
 
 // ------------------------------------------------------
-// HIDDEN KAW SO WHAT TEST COMMAND
+// HIDDEN KAW COMPONENT TEST COMMANDS
 //
-// Type "/run sowhat" in the Wix Kaw chat to run only
-// the So What governed and runtime verification suite.
+// Runs one existing registered suite without executing the
+// full /run tests command.
 //
-// This avoids the Wix response-size limit caused by
-// returning every deterministic suite at once.
+// Supported commands:
 //
-// This command does not modify the student's active Frame.
+// /run ia
+// /run mi
+// /run ed
+// /run sw
+// /run core
+//
+// These commands do not modify the student's active Frame.
 // ------------------------------------------------------
 
-if (
-  message.toLowerCase() ===
-  "/run sowhat"
-) {
-  const testResults =
-    await runSoWhatSelfTests();
+const componentTestCommandMap = {
+  "/run ia":
+    "isAbout",
 
-  const reply =
-    formatSoWhatSelfTestResults(
-      testResults
+  "/run mi":
+    "mainIdeas",
+
+  "/run ed":
+    "essentialDetail",
+
+  "/run sw":
+    "soWhat",
+
+  "/run sowhat":
+    "soWhat",
+
+  "/run core":
+    "evidenceState",
+};
+
+const requestedComponentSuiteId =
+  componentTestCommandMap[
+    message.toLowerCase()
+  ];
+
+if (requestedComponentSuiteId) {
+  const suiteExecution =
+    await runDeterministicSelfTestSuiteById(
+      requestedComponentSuiteId
     );
 
+  if (!suiteExecution) {
+    return res.status(404).json({
+      reply:
+        "The requested Kaw self-test suite could not be found.",
+
+      state:
+        body.state ||
+        body.vercelState ||
+        body.framing ||
+        defaultState(),
+
+      selfTest: {
+        suite:
+          requestedComponentSuiteId,
+
+        found:
+          false,
+      },
+    });
+  }
+
+  const testResults =
+    suiteExecution.result;
+
   return res.status(200).json({
-    reply,
+    reply:
+      suiteExecution.formatted,
 
     state:
       body.state ||
@@ -19321,7 +19412,10 @@ if (
 
     selfTest: {
       suite:
-        "soWhat",
+        suiteExecution.id,
+
+      label:
+        suiteExecution.label,
 
       passed:
         testResults.passed,
@@ -19340,7 +19434,7 @@ if (
     },
   });
 }
-
+    
 // ------------------------------------------------------
 // HIDDEN KAW AI COMMUNICATION TEST COMMAND
 //
