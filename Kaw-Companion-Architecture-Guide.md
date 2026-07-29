@@ -114,42 +114,6 @@ Architecture matures.
 
 The Constitution changes only with exceptional justification.
 
----
-
-## One recommendation before we move on...
-
-I would make **one small change** to the hierarchy diagram immediately following the Preface.
-
-Right now it says:
-
-```text
-Constitution
-        ↓
-Instructional Architecture
-        ↓
-Communication Architecture
-        ↓
-System Design
-```
-
-I actually **would not** insert Assignment Understanding as another layer there.
-
-After thinking about it, I believe that's incorrect architecturally.
-
-The **Assignment Understanding Validator belongs inside the Instructional Architecture**, not alongside it.
-
-So instead, I would leave the hierarchy exactly as it is and add a new diagram in the Instructional Architecture section showing:
-
-```text
-Student Assignment
-        ↓
-Assignment Understanding
-        ↓
-Instructional Reasoning
-        ↓
-Instructional Intent
-        ↓
-Communication Architecture
 ```
 
                      CONSTITUTION
@@ -233,7 +197,7 @@ Chapter 17 — Teacher Voice
 
 **PART IV — System Design**
 
-Chapter 18 — Instructional State
+Chapter 18 — Evidence State
 
 Chapter 19 — Evidence Processing
 
@@ -422,37 +386,6 @@ The result is an instructional engine whose behavior is defined by constitutiona
 ---
 # Chapter 4
 
-Assignment Understanding Engine   ⭐ NEW
-
-        ↓
-
-Chapter 5
-Framing Routine
-
-        ↓
-
-Chapter 6
-Evidence State
-
-        ↓
-
-Chapter 7
-Instructional Assessment
-
-        ↓
-
-Chapter 8
-Instructional Contracts
-
-        ↓
-
-Chapter 9
-Teacher Voice
-
----
-
-# Chapter 5
-
 ## Student Ownership and Instructional Responsibility
 
 The defining characteristic of Kaw is not artificial intelligence.
@@ -617,7 +550,7 @@ Student Evidence
         ↓
 Accumulated Evidence
         ↓
-Instructional Framework Knowledge
+Instructional Knowledge
         ↓
 Instructional Situation
         ↓
@@ -655,7 +588,7 @@ Each layer answers one instructional question before passing responsibility to t
 | Assignment Understanding          | Do we understand the assignment well enough to begin instruction?                        |
 | Student Evidence                  | What evidence has the student provided?                                                  |
 | Accumulated Evidence              | What instructional understanding already exists?                                         |
-| Instructional Framework Knowledge | How is this instructional framework organized?                                           |
+| Instructional Knowledge | How is this instructional framework organized?                                           |
 | Instructional Situation           | What instructional situation currently exists?                                           |
 | Instructional Contract            | What instructional response is required?                                                 |
 | Instructional Intent              | What should happen next instructionally?                                                 |
@@ -1502,7 +1435,7 @@ Instructional Contracts provide the constitutional bridge between these two arch
 
 ---
 
-# Chapter 10
+# Chapter 11
 
 ## The Two-Gate Progression Model
 
@@ -2177,13 +2110,13 @@ It is the visible expression of constitutional governance, deterministic instruc
 ---
 # Chapter 18
 
-## Instructional State
+## Evidence State
 
-Instructional State represents the complete instructional understanding maintained throughout an interaction.
+Evidence State represents the complete instructional understanding maintained throughout an interaction.
 
-Unlike individual student responses, Instructional State accumulates instructional understanding over time. It preserves continuity, supports deterministic reasoning, and enables instruction to build upon previous evidence rather than treating each interaction independently.
+Unlike individual student responses, Evidence State accumulates instructional understanding over time. It preserves continuity, supports deterministic reasoning, and enables instruction to build upon previous evidence rather than treating each interaction independently.
 
-Instructional State includes:
+Evidence State includes:
 
 - Assignment Understanding
 - Current Student Evidence
@@ -2194,7 +2127,7 @@ Instructional State includes:
 - Current Instructional Intent
 - Communication Context
 
-Instructional State is continuously updated as new evidence is observed and serves as the single instructional reference for deterministic reasoning.
+Evidence State is continuously updated as new evidence is observed and serves as the single instructional reference for deterministic reasoning.
 
 ---
 
