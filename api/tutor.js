@@ -8111,6 +8111,9 @@ async function runMainIdeaSelfTests() {
       "build";
 
     state.frameMeta.assignmentContext = {
+      valid:
+        true,
+
       raw:
         "Explain how social media can affect teen mental health.",
 
@@ -8120,8 +8123,38 @@ async function runMainIdeaSelfTests() {
       studentSummary:
         "you're explaining how social media can affect teen mental health.",
 
+      reasoningType:
+        "explain",
+
       confidence:
         "high",
+
+      confirmed:
+        true,
+
+      assignmentEvidenceLevel:
+        "substantive",
+
+      assignmentCriteriaStatus:
+        "satisfied",
+
+      assignmentContextStatus:
+        "established",
+
+      assignmentDemandStatus:
+        "established",
+
+      summaryReadinessStatus:
+        "ready",
+
+      diagnosis:
+        null,
+
+      assignmentEvidence:
+        null,
+
+      validationSource:
+        "deterministic",
 
       needsClarification:
         false,
@@ -8131,6 +8164,24 @@ async function runMainIdeaSelfTests() {
 
       clarificationCount:
         0,
+    };
+
+    state.assignmentReasoning = {
+      task:
+        "explain",
+
+      label:
+        "Explain",
+
+      confidence:
+        1,
+
+      evidence: [
+        "assignmentTestState",
+      ],
+
+      lastUpdated:
+        null,
     };
 
     state.frame.keyTopic =
@@ -8150,7 +8201,6 @@ async function runMainIdeaSelfTests() {
 
     return state;
   }
-
   // --------------------------------------------------
   // DETERMINISTIC VALIDATOR TESTS
   // --------------------------------------------------
