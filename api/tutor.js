@@ -16759,6 +16759,9 @@ if (choice === "1" || choice.includes("build")) {
   return s;
 }
 
+  return s;
+}
+
   if (s.pending?.type === "feedbackSelectSection") {
   const choice = msg.toLowerCase().trim();
 
