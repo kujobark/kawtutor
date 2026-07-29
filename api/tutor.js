@@ -12575,13 +12575,7 @@ function buildStuckNudges(state, stage) {
   ];
 }
 
-function detectInstructionalState(state, msg) {
-  const text = cleanText(msg);
-  const lower = text.toLowerCase();
-  const stage = state?.pending?.stage || getStage(state);
-  const evidence = [];
-
- const protectedPendingTypes = new Set([
+const PROTECTED_PENDING_TYPES = new Set([
   "confirmLanguageSwitch",
   "confirmAssignmentUnderstanding",
   "assignmentReasoningIntro",
@@ -12631,9 +12625,30 @@ function detectInstructionalState(state, msg) {
   "stuckSkip",
 ]);
 
+function isProtectedPendingType(
+  pendingType
+) {
+  const normalizedPendingType =
+    cleanText(pendingType);
+
+  return (
+    Boolean(normalizedPendingType) &&
+    PROTECTED_PENDING_TYPES.has(
+      normalizedPendingType
+    )
+  );
+}
+
+function detectInstructionalState(state, msg) {
+  const text = cleanText(msg);
+  const lower = text.toLowerCase();
+  const stage = state?.pending?.stage || getStage(state);
+  const evidence = [];
+
   const pendingType = state?.pending?.type || null;
 
-  if (pendingType && protectedPendingTypes.has(pendingType)) {
+  if (isProtectedPendingType(pendingType)) {
+
     return {
       state: "protected",
       level: "none",
@@ -20518,56 +20533,15 @@ if (
 
       state = proceedState;
     } else if (message) {
-      // STUCK detector (global interrupt) — do not interrupt protected pending flows
-      const pendingType = state.pending?.type || null;
-      const inProtectedPending =
-      pendingType === "confirmLanguageSwitch" ||
-      pendingType === "confirmAssignmentUnderstanding" ||
-      pendingType === "assignmentReasoningIntro" ||
-      pendingType === "chooseWorkflow" ||
-    
-      // Is About confirmation and revision
-      pendingType === "confirmIsAbout" ||
-      pendingType === "reviseIsAbout" ||
-    
-      // Main Idea optional capture, confirmation, and revision
-      pendingType === "offerAnotherMainIdea" ||
-      pendingType === "collectAnotherMainIdea" ||
-      pendingType === "confirmMainIdeas" ||
-      pendingType === "chooseMainIdeaToRevise" ||
-      pendingType === "reviseMainIdeaAt" ||
-    
-      // Essential Detail optional capture, confirmation, and revision
-      pendingType === "offerAnotherDetail" ||
-      pendingType === "collectAnotherDetail" ||
-      pendingType === "confirmDetails" ||
-      pendingType === "chooseDetailToRevise" ||
-      pendingType === "reviseDetailAt" ||
-    
-      // So What expansion and confirmation
-      pendingType === "offerMoreSoWhat" ||
-      pendingType === "collectMoreSoWhat" ||
-      pendingType === "confirmSoWhat" ||
-    
-      // Export choice
-      pendingType === "offerExport" ||
-      pendingType === "chooseExportType" ||
-    
-      // Feedback Mode
-      pendingType === "feedbackSelectSection" ||
-      pendingType === "feedbackCollectResponse" ||
-      pendingType === "feedbackCoach" ||
-      pendingType === "feedbackThinkingSummary" ||
-      pendingType === "feedbackRevise" ||
-      pendingType === "feedbackComplete" ||
+      
+// STUCK detector (global interrupt) — do not interrupt protected pending flows
+        const pendingType =
+        state.pending?.type || null;
 
-  // Stuck-support engine
-  pendingType === "stuckConfirm" ||
-  pendingType === "stuckMenu" ||
-  pendingType === "stuckReask" ||
-  pendingType === "stuckNudge" ||
-  pendingType === "stuckMini" ||
-  pendingType === "stuckSkip";
+      const inProtectedPending =
+        isProtectedPendingType(
+          pendingType
+        );
 
     if (
   !inProtectedPending &&
