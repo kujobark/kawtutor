@@ -6106,9 +6106,6 @@ async function runEvidenceStateSelfTests() {
       "build",
 
     frameMeta: {
-      purpose:
-        "study",
-
       assignmentContext: {
         raw:
           "Explain how muckrakers influenced Progressive Era reforms.",
@@ -14536,9 +14533,8 @@ const PARENT_ANCHOR_BRIDGE = {
 
   // Pending states that temporarily interrupt input capture
   // but do NOT create a new structural stage.
-  interruptStageByPending: {
-    needWriteCauseEffectStem: "isAbout",
-    writeNeedEvidenceDetail: "detailsLoop",
+    interruptStageByPending: {
+    needEvidenceDetail: "detailsLoop",
   },
 
   // Overlay pending states are helper flows, not structural stages.
@@ -15092,29 +15088,6 @@ function buildExportHtml(s) {
 </html>`;
 }
 
-// ---------------------
-// CAUSE/EFFECT (WRITE) helper
-// ---------------------
-function parseCauseEffectFromLeadsTo(msg) {
-  const raw = cleanText(msg);
-  const lower = raw.toLowerCase();
-  const key = "leads to";
-  const idx = lower.indexOf(key);
-  if (idx === -1) return null;
-
-  const leftRaw = raw.slice(0, idx);
-  const rightRaw = raw.slice(idx + key.length);
-
-  const cause = leftRaw
-    .replace(/^(this|the)\s+(key\s+)?topic\s+is\s+about\s+how\s+/i, "")
-    .replace(/^\s*how\s+/i, "")
-    .trim()
-    .replace(/[.?!]+$/g, "");
-
-  const effect = rightRaw.trim().replace(/[.?!]+$/g, "");
-
-  return { cause, effect };
-}
 
 async function applyIsAboutCapture(s, msg) {
   const cleanedIsAbout =
@@ -16131,11 +16104,7 @@ if (s.pending?.type === "stuckReask") {
   if (s.pending?.type === "stuckSkip")
     return "Got it — we’ll come back to this. Want to try the next step now? (yes/no)";
 
-  if (s.pending?.type === "needWriteCauseEffectStem") {
-    return 'That’s a strong start. Can you restate it as a clear cause-and-effect relationship? Try: "This topic is about how ___ leads to ___."';
-  }
-
-  if (s.pending?.type === "writeNeedEvidenceDetail") {
+  if (s.pending?.type === "needEvidenceDetail") {
     const i = Number(s.pending.index);
     const mi = getIdeaList(s)[i] || "this Cause";
     const eff = s.frame.effect || "the effect";
@@ -16975,15 +16944,8 @@ if (s.pending?.type === "reviseBuildLane") {
   return await updateStateFromStudent(s, msg);
 }
 
-// Write-mode cause/effect stem follow-up
-if (s.pending?.type === "needWriteCauseEffectStem") {
-  s.pending = null;
-  applyIsAboutCapture(s, msg);
-  return s;
-}
-
-  // Write-mode evidence guardrail follow-up
-  if (s.pending?.type === "writeNeedEvidenceDetail") {
+  // Cause/Effect evidence guardrail follow-up
+    if (s.pending?.type === "needEvidenceDetail") {
     const idx = Number(s.pending.index);
     if (!Array.isArray(s.frame.details[idx])) s.frame.details[idx] = [];
 
@@ -17458,11 +17420,6 @@ if (struggleCheck.detected) {
   return s;
 }
 
-  if (shouldRequestEvidenceDetail(s, msg)) {
-    s.pending = { type: "writeNeedEvidenceDetail", index: idx, mechanism: msg };
-    return s;
-  }
-
   const detailValidation =
   await validateEssentialDetailResponseGoverned(
     msg,
@@ -17583,10 +17540,10 @@ if (!mutationIntent.accept) {
 
   if (shouldRequestEvidenceDetail(s, msg)) {
     s.pending = {
-      type: "writeNeedEvidenceDetail",
+      type: "needEvidenceDetail",
       index: idx,
-      mechanism: msg,
-    };
+      mechanism: msg
+};
     return s;
   }
 
@@ -18433,7 +18390,7 @@ if (
           )
         ) {
           s.pending = {
-            type: "writeNeedEvidenceDetail",
+            type: "needEvidenceDetail",
             index: i,
             mechanism: msg,
           };
