@@ -15618,27 +15618,19 @@ if (s?.settings?.debugParentAnchor) {
   );
 }
 
-if (s.pending?.type === "assignmentReasoningIntro") {
-  const reasoning = s.assignmentReasoning || {};
-
-  const presentation =
-    THINKING_TASK_PRESENTATION[reasoning.task] || {
-      thinkingTask: "Organize thinking",
-      nextStep: "Decide how you want to use your Frame."
-    };
-
-  const intro =
-  presentation.intro ||
-  "Let's build a Frame that helps organize your thinking.";
-
- return (
-  "🧠 Great! I understand your assignment.\n\n" +
-  `🎯 ${intro}\n\n` +
-  "🪜 How can I support your work today?\n\n" +
-  "1) Build a new Frame\n" +
-  "2) Get feedback on an existing Frame\n\n" +
-  "Reply with 1 or 2."
-);
+  if (
+  s.pending?.type ===
+  "assignmentReasoningIntro"
+) {
+  return (
+    "✨ Great—we have a shared understanding of your assignment!\n\n" +
+    "🪜 How can I support your thinking today?\n\n" +
+    "1️⃣ Build a new Frame\n" +
+    "We'll construct your Framing Routine together, one thinking step at a time.\n\n" +
+    "2️⃣ Strengthen an existing Frame\n" +
+    "I'll review what you've already written and coach you through revisions.\n\n" +
+    "Reply with 1 or 2."
+  );
 }
 
   if (s.pending?.type === "feedbackSelectSection") {
@@ -16338,15 +16330,19 @@ if (s.pending?.type === "chooseExportType") {
 
   // Base progression
   if (!s.frameMeta?.assignmentContext?.raw) {
-  return (
-  "Hi! 👋 Let's build a great Frame together.\n\n" +
-  "First, I'd like to understand what you're working on.\n\n" +
-  "What is your assignment asking you to think about, explain, or show?"
-);
+    return (
+      "🌟 Welcome to Kaw Companion!\n\n" +
+      "I'm excited to work with you today!\n\n" +
+      "📚 Before we begin, tell me about the assignment you're working on.\n\n" +
+      "❓ What are you being asked to do?"
+  );
 }
 
-if (!hasSufficientAssignmentUnderstanding(s)) {
-  return "Tell me a little more about what your teacher is asking you to think about, explain, or show?";
+  if (!hasSufficientAssignmentUnderstanding(s)) {
+    return (
+      "🔎 I need a little more information before we begin.\n\n" +
+      "What does your assignment ask you to think about or accomplish?"
+  );
 }
   
 if (!s.frame.keyTopic) {
@@ -16746,15 +16742,20 @@ if (choice === "1" || choice.includes("build")) {
   return s;
 }
 
-  if (choice === "2" || choice.includes("feedback")) {
-    s.interactionMode = "feedback";
-    s.feedback.active = true;
-    s.feedback.origin = "standalone";
-    s.feedback.pendingStep = "selectSection";
-    s.pending = { type: "feedbackSelectSection" };
-    return s;
-  }
-
+  if (
+  choice === "2" ||
+  choice.includes("feedback") ||
+  choice.includes("strengthen") ||
+  choice.includes("existing")
+) {
+  s.interactionMode = "feedback";
+  s.feedback.active = true;
+  s.feedback.origin = "standalone";
+  s.feedback.pendingStep = "selectSection";
+  s.pending = {
+    type:
+      "feedbackSelectSection",
+  };
   return s;
 }
 
