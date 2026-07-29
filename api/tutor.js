@@ -19747,10 +19747,11 @@ if (requestedSoWhatBatch) {
   });
 }
     
-const requestedComponentSuiteId =
-  componentTestCommandMap[
-    message.toLowerCase()
-  ];
+if (requestedComponentSuiteId) {
+  const suiteExecution =
+    await runDeterministicSelfTestSuiteById(
+      requestedComponentSuiteId
+    );
 
   if (!suiteExecution) {
     return res.status(404).json({
