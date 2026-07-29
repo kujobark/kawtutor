@@ -20423,6 +20423,13 @@ if (
  state.studentResponseGovernance =
    studentResponseGovernance;
 
+// Runtime authority is beginning to transition
+// from instructionalBehavior to
+// studentResponseGovernance.
+// During migration both remain available,
+// but runtime routing should progressively
+// consume the governance object.
+
 // Optional debug only; does not affect current behavior.
     if (state?.settings?.debugInstructionalPlan) {
       console.log("[KAW PLAN]", instructionalPlan);
@@ -20545,7 +20552,7 @@ if (
 
     if (
   !inProtectedPending &&
-  instructionalBehavior?.behavior === "refocus"
+  studentResponseGovernance?.instructionalBehavior === "refocus"
 ) {
   const currentQuestion = enforceSingleQuestion(
     computeNextQuestion(state)
