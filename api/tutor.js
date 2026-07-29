@@ -19659,13 +19659,10 @@ const componentTestCommandMap = {
     "mainIdeas",
 
   "/run ed":
-    "essentialDetails",
+    "essentialDetail",
 
   "/run sw":
     "soWhat",
-
-  "/run core":
-    "coreRuntime",
 
   "/run sw1":
     "soWhatValidation",
@@ -19807,7 +19804,6 @@ if (requestedComponentSuiteId) {
     },
   });
 }
-    
 // ------------------------------------------------------
 // HIDDEN KAW AI COMMUNICATION TEST COMMAND
 //
