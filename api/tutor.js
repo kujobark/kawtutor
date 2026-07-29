@@ -10269,7 +10269,7 @@ async function runSoWhatSelfTests() {
   // student work is saved or replaced.
   // ==================================================
 
-  function createSoWhatRuntimeState() {
+    function createSoWhatRuntimeState() {
     const state =
       defaultState();
 
@@ -10277,6 +10277,9 @@ async function runSoWhatSelfTests() {
       "build";
 
     state.frameMeta.assignmentContext = {
+      valid:
+        true,
+
       raw:
         instructionalContext
           .assignmentContext
@@ -10292,8 +10295,40 @@ async function runSoWhatSelfTests() {
           .assignmentContext
           .studentSummary,
 
+      reasoningType:
+        instructionalContext
+          .thinkingTask
+          .task,
+
       confidence:
         "high",
+
+      confirmed:
+        true,
+
+      assignmentEvidenceLevel:
+        "substantive",
+
+      assignmentCriteriaStatus:
+        "satisfied",
+
+      assignmentContextStatus:
+        "established",
+
+      assignmentDemandStatus:
+        "established",
+
+      summaryReadinessStatus:
+        "ready",
+
+      diagnosis:
+        null,
+
+      assignmentEvidence:
+        null,
+
+      validationSource:
+        "deterministic",
 
       needsClarification:
         false,
@@ -10319,8 +10354,9 @@ async function runSoWhatSelfTests() {
       confidence:
         1,
 
-      evidence:
-        [],
+      evidence: [
+        "assignmentTestState",
+      ],
 
       lastUpdated:
         null,
