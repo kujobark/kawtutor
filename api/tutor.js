@@ -16743,18 +16743,32 @@ if (choice === "1" || choice.includes("build")) {
 }
 
   if (
-  choice === "2" ||
-  choice.includes("feedback") ||
-  choice.includes("strengthen") ||
-  choice.includes("existing")
+    choice === "2" ||
+    choice.includes("feedback") ||
+    choice.includes("strengthen") ||
+    choice.includes("existing")
+  ) {
+    s.interactionMode = "feedback";
+    s.feedback.active = true;
+    s.feedback.origin = "standalone";
+    s.feedback.pendingStep =
+      "selectSection";
+
+    s.pending = {
+      type:
+        "feedbackSelectSection",
+    };
+
+    return s;
+  }
+
+  return s;
+}
+
+if (
+  s.pending?.type ===
+  "feedbackSelectSection"
 ) {
-  s.interactionMode = "feedback";
-  s.feedback.active = true;
-  s.feedback.origin = "standalone";
-  s.feedback.pendingStep = "selectSection";
-  s.pending = {
-    type:
-      "feedbackSelectSection",
   };
   return s;
 }
@@ -19312,6 +19326,40 @@ if (
         return res.status(200).json({ reply: out, state });
       }
     }
+
+        // ==================================================
+    // ACTIVE PENDING CONTRACT EXCLUSIVITY
+    // ==================================================
+    //
+    // When an active pending state exists, that pending
+    // contract owns the student's next response.
+    //
+    // No language detection, global stuck detection,
+    // refocus behavior, stage routing, or other runtime
+    // interrupt may process the response first.
+    //
+    // confirmLanguageSwitch remains handled by its
+    // dedicated language-confirmation pathway below.
+    // ==================================================
+
+    const activePendingType =
+      state?.pending?.type || null;
+
+    const pendingContractOwnsTurn =
+      !!activePendingType &&
+      activePendingType !==
+        "confirmLanguageSwitch";
+
+    if (
+      message &&
+      pendingContractOwnsTurn
+    ) {
+      state =
+        await updateStateFromStudent(
+          state,
+          message
+        );
+    } else {
 
     // Language detect (only if not locked and not already pending)
     if (message && !state.settings.languageLocked && state.pending?.type !== "confirmLanguageSwitch") {
