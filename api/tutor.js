@@ -16769,15 +16769,8 @@ if (
   s.pending?.type ===
   "feedbackSelectSection"
 ) {
-  };
-  return s;
-}
-
-  return s;
-}
-
-  if (s.pending?.type === "feedbackSelectSection") {
-  const choice = msg.toLowerCase().trim();
+  const choice = 
+    msg.toLowerCase().trim();
 
   const sectionMap = {
     "1": "keyTopic",
