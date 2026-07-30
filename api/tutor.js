@@ -873,14 +873,133 @@ function getInstructionalContract(
 function buildInstructionalAssessment(
   evidenceState
 ) {
+  const safeEvidenceState =
+    evidenceState &&
+    typeof evidenceState === "object"
+      ? evidenceState
+      : {};
+
+  const instructionalLocation =
+    safeEvidenceState
+      ?.instructionalLocation &&
+    typeof safeEvidenceState
+      .instructionalLocation === "object"
+      ? safeEvidenceState
+          .instructionalLocation
+      : {};
+
+  const interactionContext =
+    safeEvidenceState
+      ?.interactionContext &&
+    typeof safeEvidenceState
+      .interactionContext === "object"
+      ? safeEvidenceState
+          .interactionContext
+      : {};
+
+  const studentResponseGovernance =
+    interactionContext
+      ?.studentResponseGovernance &&
+    typeof interactionContext
+      .studentResponseGovernance === "object"
+      ? interactionContext
+          .studentResponseGovernance
+      : null;
+
+  const existingInstructionalFinding =
+    instructionalLocation
+      ?.pending
+      ?.instructionalFinding &&
+    typeof instructionalLocation
+      .pending
+      .instructionalFinding === "object"
+      ? structuredClone(
+          instructionalLocation
+            .pending
+            .instructionalFinding
+        )
+      : null;
+
+  const criteriaAssessment =
+    existingInstructionalFinding
+      ? {
+          frameComponent:
+            existingInstructionalFinding
+              .frameComponent || null,
+
+          componentEvidenceLevel:
+            existingInstructionalFinding
+              .componentEvidenceLevel || null,
+
+          componentCriteriaStatus:
+            existingInstructionalFinding
+              .componentCriteriaStatus || null,
+
+          diagnosis:
+            existingInstructionalFinding
+              .diagnosis || null,
+        }
+      : null;
+
+  const relationalAssessment =
+    existingInstructionalFinding
+      ? {
+          frameComponent:
+            existingInstructionalFinding
+              .frameComponent || null,
+
+          relationshipStatus:
+            existingInstructionalFinding
+              .relationshipStatus || null,
+
+          relationshipEvidence:
+            existingInstructionalFinding
+              .relationshipEvidence
+              ? structuredClone(
+                  existingInstructionalFinding
+                    .relationshipEvidence
+                )
+              : null,
+        }
+      : null;
+
+  const interactionAssessment =
+    studentResponseGovernance
+      ? {
+          instructionalState:
+            studentResponseGovernance
+              ?.instructionalState || null,
+
+          instructionalBehavior:
+            studentResponseGovernance
+              ?.instructionalBehavior || null,
+
+          signals:
+            studentResponseGovernance
+              ?.signals &&
+            typeof studentResponseGovernance
+              .signals === "object"
+              ? structuredClone(
+                  studentResponseGovernance
+                    .signals
+                )
+              : {},
+        }
+      : null;
+
   return {
-    criteriaAssessment: null,
+    criteriaAssessment,
 
-    relationalAssessment: null,
+    relationalAssessment,
 
-    interactionAssessment: null,
+    interactionAssessment,
 
-    findings: [],
+    findings:
+      existingInstructionalFinding
+        ? [
+            existingInstructionalFinding,
+          ]
+        : [],
   };
 }
 
