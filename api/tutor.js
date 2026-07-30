@@ -18211,9 +18211,6 @@ if (s.pending?.type === "reviseBuildLane") {
     return s;
   }
 
-  return s;
-}
-
   if (s.pending?.type === "reviseIsAbout") {
     const mutationIntent =
       await classifyStudentWorkMutationIntent(s, msg);
