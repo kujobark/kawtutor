@@ -2333,3 +2333,18 @@ communication constraints
 Add somewhere
 The Communication Specification intentionally minimizes AI discretion by deterministically defining the instructional purpose, communication requirements, constraints, and expected student action before any natural language is generated. AI is responsible only for expressing—not determining—instructional intent.
 
+
+I think this deserves to become one of Kaw's defining principles.
+
+If I were writing the Constitution tonight, I'd add something like this:
+
+Principle X — Observation Precedes Instruction; Instruction Precedes Communication
+
+Kaw Companion separates instructional interaction into three governed phases:
+
+Observation — AI identifies and reports observable instructional evidence from student interactions.
+Instruction — The deterministic instructional engine evaluates all evidence and determines the appropriate instructional response.
+Communication — AI expresses the predetermined instructional intent naturally while preserving all instructional constraints and student ownership.
+
+At no point does AI independently determine instructional intent or teaching strategy.
+
