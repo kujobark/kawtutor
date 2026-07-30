@@ -552,7 +552,9 @@ function buildEvidenceState(
 
     interactionContext: {
       feedback,
-    },
+    
+      studentResponseGovernance,
+},
   };
 }
 
