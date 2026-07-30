@@ -13950,6 +13950,41 @@ function beginStuckSupportFromPending(
         )
       : null;
 
+  const strategyVerification =
+  buildInstructionalStrategy(
+    null,
+    {
+      frameComponent,
+      instructionalSituation,
+    }
+  );
+
+if (
+  strategyVerification
+    ?.selectedContract
+    ?.contractId !==
+  instructionalContract
+    ?.contractId
+) {
+  console.warn(
+    "[Strategy Migration] Contract mismatch",
+    {
+      strategyContractId:
+        strategyVerification
+          ?.selectedContract
+          ?.contractId || null,
+
+      legacyContractId:
+        instructionalContract
+          ?.contractId || null,
+
+      frameComponent,
+
+      instructionalSituation,
+    }
+  );
+}
+
   // Build a temporary activation state that includes the
   // deterministic instructional finding before the new
   // pending support state is committed.
