@@ -1112,14 +1112,6 @@ function buildInstructionalStrategy(
     instructionalSituation = "",
   } = {}
 ) {
-  const selectedContract =
-    frameComponent &&
-    instructionalSituation
-      ? getInstructionalContract(
-          frameComponent,
-          instructionalSituation
-        )
-      : null;
 
   return {
     instructionalAssessment,
@@ -13974,31 +13966,9 @@ function beginStuckSupportFromPending(
     }
   );
 
-if (
-  strategyVerification
-    ?.selectedContract
-    ?.contractId !==
-  instructionalContract
-    ?.contractId
-) {
-  console.warn(
-    "[Strategy Migration] Contract mismatch",
-    {
-      strategyContractId:
-        strategyVerification
-          ?.selectedContract
-          ?.contractId || null,
-
-      legacyContractId:
-        instructionalContract
-          ?.contractId || null,
-
-      frameComponent,
-
-      instructionalSituation,
-    }
-  );
-}
+const instructionalContract =
+  strategyVerification?.selectedContract ||
+  null;
 
   // Build a temporary activation state that includes the
   // deterministic instructional finding before the new
