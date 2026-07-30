@@ -20557,46 +20557,6 @@ if (
     state
   );
 
-if (
-  !inProtectedPending &&
-  !assignmentUnderstandingIncomplete &&
-  studentResponseGovernance?.signals?.stuck === true &&
-  getBaseStage(getStage(state)) !== "details"
-) {
-     const stage = getStage(state);
-     const resumeQuestion = enforceSingleQuestion(computeNextQuestion(state));
-
- state.pending = {
-   type: "stuckNudge",
-   stage,
-   tone: detectStuckTone(message),
-   resumeQuestion,
-   miniQuestion: buildMiniQuestion(state),
-   nudgeText: formatNudgeText(buildStuckNudges(state, stage)),
-};
-
-        let reply = enforceSingleQuestion(computeNextQuestion(state));
-
-        if (state.settings.languageLocked && state.settings.language !== "en") {
-          reply = await translateQuestionViaLLM(reply, state.settings.languageName || "the target language");
-        }
-
-        appendTurn(state, "Student", message);
-        appendTurn(state, "Kaw", reply);
-
-        // exports only when complete and not pending
-        if (isFrameComplete(state) && !state.pending) {
-          const frameText = buildFrameText(state);
-          const transcriptText = buildTranscriptText(state);
-          const html = buildExportHtml(state);
-          state.exports = { frameText, transcriptText, html };
-        } else {
-          state.exports = null;
-        }
-
-        return res.status(200).json({ reply, state });
-      }
-
           state = await updateStateFromStudent(
         state,
         message
