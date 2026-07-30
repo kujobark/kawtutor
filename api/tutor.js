@@ -13944,20 +13944,7 @@ function beginStuckSupportFromPending(
   instructionalSituation
 );
 
-  const instructionalContract =
-    instructionalSituation
-      ? getInstructionalContract(
-          frameComponent,
-          instructionalSituation
-        )
-      : null;
-
-  console.log(
-  "[KAW][STUCK] Legacy Contract:",
-  instructionalContract?.contractId
-);
-  
-  const strategyVerification =
+  const strategy =
   buildInstructionalStrategy(
     null,
     {
@@ -13967,9 +13954,13 @@ function beginStuckSupportFromPending(
   );
 
 const instructionalContract =
-  strategyVerification?.selectedContract ||
-  null;
+  strategy?.selectedContract || null;
 
+  console.log(
+  "[KAW][STUCK] Selected Contract:",
+  instructionalContract?.contractId
+);
+ 
   // Build a temporary activation state that includes the
   // deterministic instructional finding before the new
   // pending support state is committed.
