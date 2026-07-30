@@ -52,11 +52,11 @@ Without an enduring constitutional framework, however, each improvement introduc
 
 The Kaw Companion project reached precisely this point during the development of Version 1.1.
 
-What began as an instructional companion for the KU-CRL Framing Routine gradually revealed a deeper architectural discovery. The project was not merely building an intelligent tutoring system. It was uncovering the constitutional principles required for a governed instructional engine capable of combining deterministic instructional reasoning with adaptive artificial intelligence.
+What began as an instructional companion for the KU-CRL Framing Routine gradually revealed a deeper architectural discovery. The project was not merely building an intelligent tutoring system. It was uncovering the constitutional s required for a governed instructional engine capable of combining deterministic instructional reasoning with adaptive artificial intelligence.
 
 Version 2.0 established the constitutional foundation for that discovery.
 
-It defined the permanent separation between instructional reasoning and instructional communication, introduced deterministic instructional intent as the governing center of the architecture, and established the constitutional principles that every future implementation must preserve.
+It defined the permanent separation between instructional reasoning and instructional communication, introduced deterministic instructional intent as the governing center of the architecture, and established the constitutional s that every future implementation must preserve.
 
 Continued development of the runtime, however, revealed that another architectural distinction was equally important.
 
@@ -88,7 +88,7 @@ Instruction begins only after Kaw and the student establish a shared understandi
 
 This guide represents the continuing evolution of the Kaw Companion architecture.
 
-Rather than documenting a specific implementation, this manuscript defines the governing principles and architectural layers that every implementation must obey. The Framing Routine remains the current instructional framework through which these principles are expressed, but it is no longer the architectural boundary of the system itself.
+Rather than documenting a specific implementation, this manuscript defines the governing s and architectural layers that every implementation must obey. The Framing Routine remains the current instructional framework through which these s are expressed, but it is no longer the architectural boundary of the system itself.
 
 Throughout this guide, one distinction remains paramount.
 
@@ -102,11 +102,11 @@ Artificial intelligence participates only within those governed communication bo
 
 This separation is not simply a software design preference.
 
-It is the constitutional principle upon which every subsequent architectural decision depends.
+It is the constitutional  upon which every subsequent architectural decision depends.
 
-The pages that follow define those principles, describe the instructional architecture that carries them out, and explain how governed communication transforms deterministic instructional reasoning into authentic teaching while preserving student ownership and instructional integrity.
+The pages that follow define those s, describe the instructional architecture that carries them out, and explain how governed communication transforms deterministic instructional reasoning into authentic teaching while preserving student ownership and instructional integrity.
 
-Constitutional principles are intentionally difficult to change because every architectural layer and every implementation depends upon them.
+Constitutional s are intentionally difficult to change because every architectural layer and every implementation depends upon them.
 
 Implementations evolve.
 
@@ -153,7 +153,7 @@ The Constitution changes only with exceptional justification.
 
 Chapter 1 — Why Governance Comes First
 
-Chapter 2 — Constitutional Principles
+Chapter 2 — Constitutional s
 
 Chapter 3 — Deterministic Instructional Intent
 
@@ -219,7 +219,7 @@ Appendix C — Deterministic and Non-Deterministic Responsibilities
 
 Appendix D — Immutable Layer Contracts
 
-Appendix E — Design Principles
+Appendix E — Design s
 
 Appendix F — Looking Forward
 
@@ -351,6 +351,16 @@ Every architectural decision presented in later chapters exists to preserve one 
 
 ---
 
+Principle Six — Artificial intelligence may recognize observable instructional evidence but may not infer unobservable student states.
+
+Artificial intelligence may recognize instructional evidence explicitly demonstrated by the student, including uncertainty, requests for clarification, frustration expressed through language, refusal, or other observable instructional behaviors.
+
+Artificial intelligence may not infer psychological, emotional, cognitive, motivational, or medical states that are not directly supported by observable evidence.
+
+Instructional reasoning must remain grounded in evidence rather than speculation.
+
+---
+
 # Chapter 3
 
 ## Deterministic Instructional Intent
@@ -363,9 +373,9 @@ Every instructional decision should be explainable without reference to probabil
 
 Instead, each decision should be traceable through explicit instructional evidence.
 
-Student evidence leads to instructional interpretation.
+Evidence State leads to instructional interpretation.
 
-Instructional interpretation identifies the current instructional situation.
+Instructional interpretation evaluates both Artifact Evidence and Observable Student Evidence to identify the current instructional situation.
 
 The instructional situation determines the appropriate instructional contract.
 
@@ -680,6 +690,22 @@ Student ownership remains protected.
 Artificial intelligence remains constitutionally governed.
 
 Together, these architectural responsibilities define the governed instructional engine upon which every present and future implementation of Kaw Companion is built.
+
+Observable Evidence
+
+Artificial intelligence may observe and classify instructional evidence expressed by the student when that evidence is directly observable within the instructional interaction.
+
+Examples include:
+
+expressed uncertainty
+requests for clarification
+explicit frustration
+refusal to answer
+answer-seeking behavior
+
+These observations become instructional evidence available to deterministic reasoning.
+
+Artificial intelligence may never infer internal student characteristics, emotional conditions, cognitive diagnoses, or motivational states that have not been directly demonstrated.
 
 ---
 # Chapter 7
@@ -2068,6 +2094,8 @@ Moderate Support provides concise reminders and instructional cues.
 
 Low Support provides brief prompts that encourage independent thinking.
 
+Support Level may modify explanation, examples, scaffolding, and communication style. It may never modify instructional goals, instructional contracts, validation criteria, or progression decisions.
+
 Support Level changes the communication.
 
 It never changes the instructional objective.
@@ -2128,6 +2156,7 @@ Evidence State includes:
 - Communication Context
 
 Evidence State is continuously updated as new evidence is observed and serves as the single instructional reference for deterministic reasoning.
+
 
 ---
 
@@ -2238,6 +2267,17 @@ The Kaw Companion Constitution establishes five permanent principles.
 5. Every adaptive operation remains bounded by deterministic governance.
 
 These principles define the permanent constitutional foundation upon which every implementation depends.
+
+---
+
+Design Principle
+
+Communication adapts. Instruction does not.
+
+Communication may vary its wording, examples, scaffolding, and conversational style in response to assignment context, support level, and observable student evidence.
+
+Instructional goals, instructional contracts, validation requirements, and progression remain deterministic.
+
 ---
 
 **END OF PART V**
