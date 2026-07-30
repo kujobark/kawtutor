@@ -18361,38 +18361,6 @@ if (s.pending?.type === "offerAnotherDetail") {
     return s;
   }
 
-  const struggleCheck =
-  await detectsUnrecognizedStruggle(s, msg);
-
-if (struggleCheck.detected) {
-  const stage = `details:${idx}`;
-
-  s.pending = {
-    type: "stuckNudge",
-    stage,
-    tone:
-      struggleCheck.intent === "frustrated"
-        ? "frustration"
-        : detectStuckTone(msg),
-    resumeQuestion: buildMiniQuestion(s),
-    miniQuestion: buildMiniQuestion(s),
-    nudgeText: formatNudgeText(
-      buildStuckNudges(s, stage)
-    ),
-    detectedBy: struggleCheck.source,
-    aiIntent:
-      struggleCheck.source === "aiIntentFallback"
-        ? struggleCheck.intent
-        : undefined,
-    aiConfidence:
-      struggleCheck.source === "aiIntentFallback"
-        ? struggleCheck.confidence
-        : undefined,
-  };
-
-  return s;
-}
-
     if (shouldRequestEvidenceDetail(s, msg)) {
     s.pending = {
       type: "needEvidenceDetail",
