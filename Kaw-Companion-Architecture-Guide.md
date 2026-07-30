@@ -2286,4 +2286,50 @@ Instructional goals, instructional contracts, validation requirements, and progr
 
 # END OF OFFICIAL MANUSCRIPT
 
+AI Constitutional Responsibilities
+
+Artificial intelligence performs two governed responsibilities within Kaw Companion.
+
+AI Observation
+
+AI analyzes student interactions and reports observable instructional evidence.
+
+AI does not:
+
+determine instructional situations
+select instructional contracts
+choose teaching moves
+infer instructional intent
+
+Instead, AI reports observable evidence for deterministic evaluation.
+
+Examples include:
+
+explicit uncertainty
+clarification requests
+frustration language
+answer-seeking
+off-task behavior
+repeated unsuccessful attempts
+Deterministic Instruction
+
+The deterministic instructional engine evaluates all available evidence to determine:
+
+instructional situation
+instructional contract
+teaching move
+communication requirements
+AI Expression
+
+AI communicates predetermined instructional intent naturally while preserving:
+
+instructional goal
+teacher voice
+support level
+student ownership
+communication constraints
+
+
+Add somewhere
+The Communication Specification intentionally minimizes AI discretion by deterministically defining the instructional purpose, communication requirements, constraints, and expected student action before any natural language is generated. AI is responsible only for expressing—not determining—instructional intent.
 
