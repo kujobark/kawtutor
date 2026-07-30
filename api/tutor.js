@@ -964,28 +964,32 @@ function buildInstructionalAssessment(
       : null;
 
   const interactionAssessment =
-    studentResponseGovernance
-      ? {
-          instructionalState:
-            studentResponseGovernance
-              ?.instructionalState || null,
+  studentResponseGovernance
+    ? {
+        instructionalState:
+          studentResponseGovernance
+            ?.instructionalState || null,
 
-          instructionalBehavior:
-            studentResponseGovernance
-              ?.instructionalBehavior || null,
+        instructionalBehavior:
+          studentResponseGovernance
+            ?.instructionalBehavior || null,
 
-          signals:
-            studentResponseGovernance
-              ?.signals &&
-            typeof studentResponseGovernance
-              .signals === "object"
-              ? structuredClone(
-                  studentResponseGovernance
-                    .signals
-                )
-              : {},
-        }
-      : null;
+        supportLevel:
+          studentResponseGovernance
+            ?.supportLevel || "none",
+
+        signals:
+          studentResponseGovernance
+            ?.signals &&
+          typeof studentResponseGovernance
+            .signals === "object"
+            ? structuredClone(
+                studentResponseGovernance
+                  .signals
+              )
+            : {},
+      }
+    : null;
 
   return {
     criteriaAssessment,
@@ -1102,32 +1106,69 @@ function buildComponentInstructionalFinding({
 // ======================================================
 
 function buildInstructionalStrategy(
-  instructionalAssessment
+  instructionalAssessment,
+  {
+    frameComponent = "",
+    instructionalSituation = "",
+  } = {}
 ) {
+  const selectedContract =
+    frameComponent &&
+    instructionalSituation
+      ? getInstructionalContract(
+          frameComponent,
+          instructionalSituation
+        )
+      : null;
+
   return {
     instructionalAssessment,
-    selectedContract: null,
-    instructionalGoal: null,
-    teachingMove: null,
-    thinkingMove: null,
+
+    selectedContract,
+
+    instructionalGoal:
+      selectedContract
+        ?.instructionalGoal || null,
+
+    teachingMove:
+      selectedContract
+        ?.teachingMove || null,
+
+    thinkingMove:
+      selectedContract
+        ?.thinkingMove || null,
+
     supportLevel:
       determineSupportLevel(
         instructionalAssessment
       ),
+
+    studentWorkProtection:
+      selectedContract
+        ?.studentWorkProtection
+        ? structuredClone(
+            selectedContract
+              .studentWorkProtection
+          )
+        : null,
   };
 }
 
 function determineSupportLevel(
   instructionalAssessment
 ) {
-  void instructionalAssessment;
+  const supportLevel =
+    instructionalAssessment
+      ?.interactionAssessment
+      ?.supportLevel;
 
-  // Transitional implementation.
-  //
-  // During migration, Support Level remains fixed until
-  // deterministic support selection moves into Strategy.
-  return "high";
-}
+  return (
+    supportLevel === "high" ||
+    supportLevel === "moderate" ||
+    supportLevel === "low"
+      ? supportLevel
+      : "none"
+  );
 }
 
 // ======================================================================
