@@ -492,6 +492,14 @@ function buildEvidenceState(
       ? structuredClone(safeState.feedback)
       : null;
 
+  const studentResponseGovernance =
+    safeState?.studentResponseGovernance &&
+    typeof safeState.studentResponseGovernance === "object"
+      ? structuredClone(
+        safeState.studentResponseGovernance
+      )
+    : null;
+
   return {
     currentEvidence: {
       response:
