@@ -1072,32 +1072,6 @@ function buildComponentInstructionalFinding({
   };
 }
 
-const instructionalAssessment =
-  buildInstructionalAssessment(
-    evidenceState
-  );
-
-// --------------------------------------------------
-// INSTRUCTIONAL STRATEGY
-// --------------------------------------------------
-//
-// Strategy receives the established assessment but does
-// not yet participate in authoritative runtime decisions.
-//
-// Existing contract-selection and execution pathways
-// remain unchanged during this migration step.
-//
-// --------------------------------------------------
-
-const instructionalStrategy =
-  buildInstructionalStrategy(
-    instructionalAssessment
-  );
-
-// Transitional placeholders while Assessment and
-// Strategy are being integrated into runtime.
-void instructionalAssessment;
-void instructionalStrategy;
 
 // ======================================================================
 // LAYER 6 — INSTRUCTIONAL COMMUNICATION
