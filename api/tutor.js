@@ -13953,6 +13953,11 @@ function beginStuckSupportFromPending(
     }
   );
 
+console.log(
+  "[KAW][STUCK] Strategy:",
+  strategy
+);
+
 const instructionalContract =
   strategy?.selectedContract || null;
 
