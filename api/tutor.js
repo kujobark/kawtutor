@@ -13892,6 +13892,11 @@ function beginStuckSupportFromPending(
   message,
   intentResult = {}
 ) {
+  console.log(
+  "[KAW][STUCK] Student Response:",
+  message
+);
+  
   const resumePending =
     cloneResumePending(state.pending);
 
@@ -13942,6 +13947,11 @@ function beginStuckSupportFromPending(
       ? "genuineStruggle"
       : null;
 
+  console.log(
+  "[KAW][STUCK] Instructional Situation:",
+  instructionalSituation
+);
+
   const instructionalContract =
     instructionalSituation
       ? getInstructionalContract(
@@ -13950,6 +13960,11 @@ function beginStuckSupportFromPending(
         )
       : null;
 
+  console.log(
+  "[KAW][STUCK] Legacy Contract:",
+  instructionalContract?.contractId
+);
+  
   const strategyVerification =
   buildInstructionalStrategy(
     null,
