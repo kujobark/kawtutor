@@ -1072,6 +1072,63 @@ function buildComponentInstructionalFinding({
   };
 }
 
+// ======================================================
+// LAYER 5B — INSTRUCTIONAL STRATEGY
+// ======================================================
+//
+// Instructional Strategy converts completed
+// Instructional Assessment into a deterministic,
+// teacher-authored instructional strategy.
+//
+// Strategy:
+//
+// • selects instructional contracts;
+// • determines instructional objectives;
+// • selects Teaching Moves;
+// • selects Thinking Moves;
+// • determines support level;
+// • preserves student-work protections.
+//
+// Strategy does not:
+//
+// • validate student work;
+// • change runtime progression;
+// • generate communication.
+//
+// Current status:
+//
+// Transitional shell.
+//
+// ======================================================
+
+function buildInstructionalStrategy(
+  instructionalAssessment
+) {
+  return {
+    instructionalAssessment,
+    selectedContract: null,
+    instructionalGoal: null,
+    teachingMove: null,
+    thinkingMove: null,
+    supportLevel:
+      determineSupportLevel(
+        instructionalAssessment
+      ),
+  };
+}
+
+function determineSupportLevel(
+  instructionalAssessment
+) {
+  void instructionalAssessment;
+
+  // Transitional implementation.
+  //
+  // During migration, Support Level remains fixed until
+  // deterministic support selection moves into Strategy.
+  return "high";
+}
+}
 
 // ======================================================================
 // LAYER 6 — INSTRUCTIONAL COMMUNICATION
@@ -17725,6 +17782,13 @@ const instructionalAssessment =
   buildInstructionalAssessment(
     evidenceState
   );
+
+const instructionalStrategy =
+  buildInstructionalStrategy(
+    instructionalAssessment
+  );
+
+void instructionalStrategy;
 
 // Transitional placeholder while the assessment layer
 // is being integrated into runtime.
