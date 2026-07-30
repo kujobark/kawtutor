@@ -1113,6 +1113,15 @@ function buildInstructionalStrategy(
   } = {}
 ) {
 
+  const selectedContract =
+    frameComponent &&
+    instructionalSituation
+      ? getInstructionalContract(
+          frameComponent,
+          instructionalSituation
+        )
+      : null;
+
   return {
     instructionalAssessment,
 
