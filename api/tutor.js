@@ -11036,10 +11036,10 @@ async function runIsAboutSelfTests() {
   const limitedEvidenceState =
     createIsAboutRuntimeTestState();
 
-  const limitedEvidenceActual =
+    const limitedEvidenceActual =
     await updateStateFromStudent(
       limitedEvidenceState,
-      "Plants make food"
+      "Food for plants"
     );
 
   const limitedEvidencePassed =
@@ -11087,7 +11087,7 @@ async function runIsAboutSelfTests() {
       limitedEvidencePassed,
 
     response:
-      "Plants make food",
+      "Food for plants",
 
     expected: {
       savedIsAbout:
