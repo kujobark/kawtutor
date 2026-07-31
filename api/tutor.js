@@ -979,15 +979,207 @@ function buildEvidenceState(
 
 const INSTRUCTIONAL_PLAYBOOK = {
   isAbout: {
+    noComponentEvidence: {
+      contractId:
+        "IA-NCE-001",
+
+      frameComponent:
+        "isAbout",
+
+      instructionalSituation:
+        "noComponentEvidence",
+
+      instructionalGoal:
+        "elicitComponentEvidence",
+
+      teachingMove:
+        "reduceCognitiveLoad",
+
+      thinkingMove:
+        "Reconnect the student to the accepted Key Topic and invite them to explain what the whole topic is about in their own understandable words without suggesting or supplying the Is About statement.",
+
+      communicationPattern:
+        "briefReassuranceThenQuestion",
+
+      aiContextualizes:
+        true,
+
+      validation: {
+        type:
+          "isAbout",
+
+        description:
+          "The student's next response must provide observable Is About content that can be evaluated as a whole-topic paraphrase.",
+      },
+
+      resumeBehavior: {
+        type:
+          "returnToExactInstructionalLocation",
+
+        description:
+          "Return to the active Is About capture or revision location and validate the student's next response.",
+      },
+
+      studentWorkProtection: {
+        preserveExistingWork:
+          true,
+
+        neverSaveStruggleLanguage:
+          true,
+
+        neverGenerateStudentWork:
+          true,
+
+        neverSupplyParaphrase:
+          true,
+
+        neverReplaceKeyTopic:
+          true,
+
+        neverInferMeaning:
+          true,
+      },
+    },
+
+    componentNeedsRevision: {
+      contractId:
+        "IA-CNR-001",
+
+      frameComponent:
+        "isAbout",
+
+      instructionalSituation:
+        "componentNeedsRevision",
+
+      instructionalGoal:
+        "strengthenWholeTopicParaphrase",
+
+      teachingMove:
+        "increaseSpecificity",
+
+      thinkingMove:
+        "Invite the student to expand the response so that someone unfamiliar with the accepted Key Topic could understand what the whole topic is about without supplying the missing meaning.",
+
+      communicationPattern:
+        "briefReassuranceThenQuestion",
+
+      aiContextualizes:
+        true,
+
+      validation: {
+        type:
+          "isAbout",
+
+        description:
+          "The revised response must provide enough observable meaning to function as an understandable whole-topic paraphrase.",
+      },
+
+      resumeBehavior: {
+        type:
+          "returnToExactInstructionalLocation",
+
+        description:
+          "Return to the active Is About capture or revision location and validate the student's revised response.",
+      },
+
+      studentWorkProtection: {
+        preserveExistingWork:
+          true,
+
+        neverSaveUnvalidatedRevision:
+          true,
+
+        neverGenerateStudentWork:
+          true,
+
+        neverSupplyParaphrase:
+          true,
+
+        neverReplaceKeyTopic:
+          true,
+
+        neverInferMeaning:
+          true,
+      },
+    },
+
+    relationshipNeedsRepair: {
+      contractId:
+        "IA-RNR-001",
+
+      frameComponent:
+        "isAbout",
+
+      instructionalSituation:
+        "relationshipNeedsRepair",
+
+      instructionalGoal:
+        "establishWholeTopicRelationship",
+
+      teachingMove:
+        "differentiate",
+
+      thinkingMove:
+        "Reconnect the student to the accepted Key Topic and invite them to explain what the whole topic is about rather than repeating only the Key Topic or another disconnected idea.",
+
+      communicationPattern:
+        "acknowledgeThenQuestion",
+
+      aiContextualizes:
+        true,
+
+      validation: {
+        type:
+          "isAbout",
+
+        description:
+          "The revised response must establish an observable whole-topic paraphrase relationship to the accepted Key Topic.",
+      },
+
+      resumeBehavior: {
+        type:
+          "returnToExactInstructionalLocation",
+
+        description:
+          "Return to the active Is About capture or revision location and validate whether the required relationship is established.",
+      },
+
+      studentWorkProtection: {
+        preserveExistingWork:
+          true,
+
+        neverSaveUnvalidatedRevision:
+          true,
+
+        neverGenerateStudentWork:
+          true,
+
+        neverSupplyParaphrase:
+          true,
+
+        neverReplaceKeyTopic:
+          true,
+
+        neverInferRelationship:
+          true,
+      },
+    },
+
     genuineStruggle: {
-      contractId: "IA-GS-001",
+      contractId:
+        "IA-GS-001",
 
-      frameComponent: "isAbout",
-      instructionalSituation: "genuineStruggle",
+      frameComponent:
+        "isAbout",
 
-      instructionalGoal: "restartThinking",
+      instructionalSituation:
+        "genuineStruggle",
 
-      teachingMove: "clarify",
+      instructionalGoal:
+        "restartThinking",
+
+      teachingMove:
+        "clarify",
 
       thinkingMove:
         "Explain what the whole Key Topic is about using your own understandable words.",
@@ -995,16 +1187,21 @@ const INSTRUCTIONAL_PLAYBOOK = {
       communicationPattern:
         "briefReassuranceThenQuestion",
 
-      aiContextualizes: true,
+      aiContextualizes:
+        true,
 
       validation: {
-        type: "isAbout",
+        type:
+          "isAbout",
+
         description:
           "The student provides an Is About statement that observably paraphrases and summarizes the whole Key Topic.",
       },
 
       resumeBehavior: {
-        type: "returnToExactInstructionalLocation",
+        type:
+          "returnToExactInstructionalLocation",
+
         description:
           "Return to the Is About statement where support was requested and validate the student's next response.",
       },
@@ -1015,20 +1212,34 @@ const INSTRUCTIONAL_PLAYBOOK = {
 
         scaffolds: [
           {
-            level: 1,
-            move: "refocus",
+            level:
+              1,
+
+            move:
+              "refocus",
+
             purpose:
               "Reconnect the student to the accepted Key Topic.",
           },
+
           {
-            level: 2,
-            move: "remind",
+            level:
+              2,
+
+            move:
+              "remind",
+
             purpose:
               "Remind the student that Is About explains the whole Key Topic in their own words.",
           },
+
           {
-            level: 3,
-            move: "thinkingPrompt",
+            level:
+              3,
+
+            move:
+              "thinkingPrompt",
+
             purpose:
               "Ask what someone unfamiliar with the topic should understand about it.",
           },
@@ -1036,16 +1247,86 @@ const INSTRUCTIONAL_PLAYBOOK = {
       },
 
       studentWorkProtection: {
-        preserveExistingWork: true,
-        neverSaveStruggleLanguage: true,
-        neverGenerateStudentWork: true,
-        neverSupplyParaphrase: true,
-        neverReplaceKeyTopic: true,
-        neverInferMeaning: true,
+        preserveExistingWork:
+          true,
+
+        neverSaveStruggleLanguage:
+          true,
+
+        neverGenerateStudentWork:
+          true,
+
+        neverSupplyParaphrase:
+          true,
+
+        neverReplaceKeyTopic:
+          true,
+
+        neverInferMeaning:
+          true,
+      },
+    },
+
+    readyToProgress: {
+      contractId:
+        "IA-RTP-001",
+
+      frameComponent:
+        "isAbout",
+
+      instructionalSituation:
+        "readyToProgress",
+
+      instructionalGoal:
+        "preserveAcceptedThinkingAndAdvance",
+
+      teachingMove:
+        "confirm",
+
+      thinkingMove:
+        null,
+
+      communicationPattern:
+        null,
+
+      aiContextualizes:
+        false,
+
+      validation: {
+        type:
+          "isAbout",
+
+        description:
+          "The accepted Is About statement satisfies component criteria and establishes the required relationship to the Key Topic.",
+      },
+
+      progressionBehavior: {
+        type:
+          "continueExistingRuntimeProgression",
+
+        description:
+          "Preserve the accepted Is About statement and continue through the existing confirmation and Parent Anchor progression pathway.",
+      },
+
+      studentWorkProtection: {
+        preserveExistingWork:
+          true,
+
+        preserveAcceptedIsAbout:
+          true,
+
+        neverRewriteStudentWork:
+          true,
+
+        neverGenerateStudentWork:
+          true,
+
+        neverAdvanceWithoutEstablishedRelationship:
+          true,
       },
     },
   },
-
+  
     mainIdeas: {
       genuineStruggle: {
       contractId: "MI-GS-001",
