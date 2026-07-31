@@ -401,6 +401,400 @@ soWhat: {
 };
 
 // ======================================================
+// AI OBSERVATION LAYER
+// ======================================================
+//
+// The AI Observation Layer examines the student's current
+// interaction and produces one governed Observation Report.
+//
+// Observation reports directly observable evidence only.
+//
+// Observation may identify:
+// • uncertainty language;
+// • clarification requests;
+// • answer-seeking;
+// • frustration language;
+// • refusal;
+// • off-task shifts;
+// • assignment references;
+// • Framing Routine references;
+// • acknowledgement of prior coaching;
+// • repeated attempts.
+//
+// Observation may not determine:
+// • instructional situation;
+// • genuine struggle;
+// • mastery;
+// • misconception;
+// • readiness;
+// • progression;
+// • teaching strategy;
+// • instructional intent.
+//
+// The Observation Report is evidence.
+// It is not an instructional decision.
+//
+// Current migration status:
+//
+// Shadow mode.
+//
+// The Observation Report is included in Evidence State but
+// does not yet control Instructional Assessment, Strategy,
+// progression, pending state, or communication.
+//
+// ======================================================
+
+const OBSERVATION_CATEGORIES = new Set([
+  "uncertaintyExpression",
+  "clarificationRequest",
+  "answerSeeking",
+  "frustrationExpression",
+  "refusal",
+  "offTaskShift",
+  "assignmentReference",
+  "framingRoutineReference",
+  "acknowledgesPriorCoaching",
+  "repeatedAttempt",
+]);
+
+function buildEmptyObservationReport(
+  studentInteraction = "",
+  source = "notObserved"
+) {
+  return {
+    version: "1.0",
+
+    source,
+
+    studentInteraction:
+      cleanText(studentInteraction),
+
+    observations: [],
+
+    ambiguityPresent: false,
+  };
+}
+
+function getRecentStudentResponses(
+  state,
+  limit = 3
+) {
+  const transcript =
+    Array.isArray(state?.transcript)
+      ? state.transcript
+      : [];
+
+  return transcript
+    .filter(
+      (turn) =>
+        turn?.role === "Student" &&
+        cleanText(turn?.text)
+    )
+    .slice(-limit)
+    .map(
+      (turn) =>
+        cleanText(turn.text)
+    );
+}
+
+function sanitizeObservationReport(
+  rawReport,
+  studentInteraction
+) {
+  const text =
+    cleanText(studentInteraction);
+
+  const normalizedText =
+    text.toLowerCase();
+
+  const rawObservations =
+    Array.isArray(rawReport?.observations)
+      ? rawReport.observations
+      : [];
+
+  const observations =
+    rawObservations
+      .filter((observation) => {
+        const category =
+          cleanText(
+            observation?.category
+          );
+
+        const evidenceText =
+          cleanText(
+            observation?.evidenceText
+          );
+
+        if (
+          !OBSERVATION_CATEGORIES.has(
+            category
+          )
+        ) {
+          return false;
+        }
+
+        if (!evidenceText) {
+          return false;
+        }
+
+        // Every observation must point to language that
+        // actually appears in the student's interaction.
+        return normalizedText.includes(
+          evidenceText.toLowerCase()
+        );
+      })
+      .map((observation) => {
+        const confidence =
+          Number(
+            observation?.confidence || 0
+          );
+
+        return {
+          category:
+            cleanText(
+              observation.category
+            ),
+
+          evidenceText:
+            cleanText(
+              observation.evidenceText
+            ),
+
+          confidence:
+            Number.isFinite(confidence)
+              ? Math.max(
+                  0,
+                  Math.min(
+                    confidence,
+                    1
+                  )
+                )
+              : 0,
+        };
+      });
+
+  return {
+    version: "1.0",
+
+    source:
+      "aiObservation",
+
+    studentInteraction:
+      text,
+
+    observations,
+
+    ambiguityPresent:
+      rawReport?.ambiguityPresent ===
+      true,
+  };
+}
+
+async function buildObservationReport(
+  state,
+  studentInteraction = ""
+) {
+  const text =
+    cleanText(studentInteraction);
+
+  if (!text) {
+    return buildEmptyObservationReport(
+      text,
+      "emptyInteraction"
+    );
+  }
+
+  const recentStudentResponses =
+    getRecentStudentResponses(
+      state,
+      3
+    );
+
+  const system = `You are the governed AI Observation Layer for Kaw Companion.
+
+Your only responsibility is to report directly observable evidence from the student's current interaction.
+
+You may identify only these observation categories:
+- uncertaintyExpression
+- clarificationRequest
+- answerSeeking
+- frustrationExpression
+- refusal
+- offTaskShift
+- assignmentReference
+- framingRoutineReference
+- acknowledgesPriorCoaching
+- repeatedAttempt
+
+Rules:
+- Report observations only.
+- Do not determine instructional meaning.
+- Do not classify genuine struggle.
+- Do not determine mastery, readiness, success, failure, misconception, progression, support level, teaching strategy, or instructional intent.
+- Do not infer hidden emotion, motivation, effort, ability, knowledge, or understanding.
+- Every observation must include an exact excerpt copied from the student's current interaction.
+- Do not paraphrase the evidence excerpt.
+- Include only observations directly supported by the student's words.
+- An empty observations array is valid.
+- Return only the required JSON object.`;
+
+  const user = `Current student interaction:
+"${text}"
+
+Recent student responses:
+${JSON.stringify(
+  recentStudentResponses,
+  null,
+  2
+)}
+
+Report only directly observable evidence from the current student interaction.`;
+
+  try {
+    const response =
+      await client.chat.completions.create({
+        model:
+          DEFAULT_MODEL,
+
+        reasoning_effort:
+          "none",
+
+        temperature:
+          0,
+
+        response_format: {
+          type:
+            "json_schema",
+
+          json_schema: {
+            name:
+              "kaw_observation_report",
+
+            strict:
+              true,
+
+            schema: {
+              type:
+                "object",
+
+              additionalProperties:
+                false,
+
+              properties: {
+                observations: {
+                  type:
+                    "array",
+
+                  items: {
+                    type:
+                      "object",
+
+                    additionalProperties:
+                      false,
+
+                    properties: {
+                      category: {
+                        type:
+                          "string",
+
+                        enum: [
+                          "uncertaintyExpression",
+                          "clarificationRequest",
+                          "answerSeeking",
+                          "frustrationExpression",
+                          "refusal",
+                          "offTaskShift",
+                          "assignmentReference",
+                          "framingRoutineReference",
+                          "acknowledgesPriorCoaching",
+                          "repeatedAttempt",
+                        ],
+                      },
+
+                      evidenceText: {
+                        type:
+                          "string",
+                      },
+
+                      confidence: {
+                        type:
+                          "number",
+
+                        minimum:
+                          0,
+
+                        maximum:
+                          1,
+                      },
+                    },
+
+                    required: [
+                      "category",
+                      "evidenceText",
+                      "confidence",
+                    ],
+                  },
+                },
+
+                ambiguityPresent: {
+                  type:
+                    "boolean",
+                },
+              },
+
+              required: [
+                "observations",
+                "ambiguityPresent",
+              ],
+            },
+          },
+        },
+
+        messages: [
+          {
+            role:
+              "system",
+
+            content:
+              system,
+          },
+
+          {
+            role:
+              "user",
+
+            content:
+              user,
+          },
+        ],
+      });
+
+    const parsed =
+      JSON.parse(
+        response?.choices?.[0]
+          ?.message?.content || "{}"
+      );
+
+    return sanitizeObservationReport(
+      parsed,
+      text
+    );
+  } catch (error) {
+    console.error(
+      "Observation Report error:",
+      error
+    );
+
+    // Observation failure must never prevent Kaw from
+    // continuing through the existing runtime.
+    return buildEmptyObservationReport(
+      text,
+      "observationUnavailable"
+    );
+  }
+}
+
+// ======================================================
 // EVIDENCE STATE
 // ======================================================
 //
@@ -431,7 +825,8 @@ soWhat: {
 
 function buildEvidenceState(
   state,
-  currentResponse = ""
+  currentResponse = "",
+  observationReport = null
 ) {
   const safeState =
     state && typeof state === "object"
@@ -501,12 +896,23 @@ function buildEvidenceState(
     : null;
 
   return {
-    currentEvidence: {
-      response:
-        cleanText(currentResponse),
-    },
+  currentEvidence: {
+    response:
+      cleanText(currentResponse),
+  },
 
-    accumulatedEvidence: {
+  observationReport:
+    observationReport &&
+    typeof observationReport === "object"
+      ? structuredClone(
+          observationReport
+        )
+      : buildEmptyObservationReport(
+          currentResponse,
+          "notProvided"
+        ),
+
+  accumulatedEvidence: {
       assignmentContext:
         structuredClone(assignmentContext),
 
@@ -17827,12 +18233,26 @@ async function updateStateFromStudent(state, message) {
   // begins interpreting or responding to the message.
   // --------------------------------------------------
 
- const evidenceState =
-  buildEvidenceState(
+  const observationReport =
+  await buildObservationReport(
     s,
     msg
   );
 
+// Store the current governed observation artifact so it
+// remains inspectable during migration and testing.
+s.observationReport =
+  structuredClone(
+    observationReport
+  );
+
+const evidenceState =
+  buildEvidenceState(
+    s,
+    msg,
+    observationReport
+  );
+  
 // --------------------------------------------------
 // INSTRUCTIONAL ASSESSMENT
 // --------------------------------------------------
