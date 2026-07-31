@@ -22678,8 +22678,6 @@ s.pending = {
     "offerMoreSoWhat",
 };
 
-return s;
-
   return s;
 }
 
