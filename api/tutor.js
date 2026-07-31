@@ -22678,9 +22678,11 @@ s.pending = {
     "offerMoreSoWhat",
 };
 
-  return s;
+return s;
 }
 
+return s;
+}
 // ---------------------
 // HANDLER
 // ---------------------
