@@ -1910,16 +1910,191 @@ function buildInteractionInstructionalFinding(
 //
 // ------------------------------------------------------
 
-function buildInteractionPathwayComparison(
-  instructionalAssessment
+// ======================================================
+// INSTRUCTIONAL SITUATION ENGINE
+// ======================================================
+//
+// The Instructional Situation Engine is the deterministic
+// bridge between instructional findings and instructional
+// strategy.
+//
+// It answers exactly one question:
+//
+// What instructional situation exists right now?
+//
+// Inputs:
+//
+// • Evidence State
+// • Interaction Instructional Finding
+// • Component Instructional Finding
+// • Relationship Finding
+// • prior governed instructional history
+//
+// Output:
+//
+// • one mutually exclusive Instructional Situation
+//
+// The engine does not:
+//
+// • observe student language;
+// • validate component evidence;
+// • select an Instructional Contract;
+// • determine a Teaching Move;
+// • determine a Thinking Move;
+// • determine support level;
+// • generate communication;
+// • change progression or pending state.
+//
+// Current migration status:
+//
+// Shadow mode.
+//
+// The engine produces and stores one governed situation,
+// but it does not yet control the authoritative runtime.
+//
+// ======================================================
+
+const INSTRUCTIONAL_SITUATIONS =
+  Object.freeze({
+    ASSIGNMENT_UNDERSTANDING_REQUIRED:
+      "assignmentUnderstandingRequired",
+
+    NO_COMPONENT_EVIDENCE:
+      "noComponentEvidence",
+
+    COMPONENT_EVIDENCE_REQUIRES_VALIDATION:
+      "componentEvidenceRequiresValidation",
+
+    COMPONENT_NEEDS_REVISION:
+      "componentNeedsRevision",
+
+    RELATIONSHIP_NEEDS_REPAIR:
+      "relationshipNeedsRepair",
+
+    CLARIFICATION_NEEDED:
+      "clarificationNeeded",
+
+    INTERACTION_REDIRECTION_NEEDED:
+      "interactionRedirectionNeeded",
+
+    GENUINE_STRUGGLE:
+      "genuineStruggle",
+
+    READY_TO_PROGRESS:
+      "readyToProgress",
+  });
+
+function hasEstablishedAssignmentUnderstandingFromEvidence(
+  evidenceState
 ) {
+  const assignmentContext =
+    evidenceState
+      ?.accumulatedEvidence
+      ?.assignmentContext;
+
+  if (
+    !assignmentContext ||
+    typeof assignmentContext !== "object"
+  ) {
+    return false;
+  }
+
+  return (
+    assignmentContext.valid === true &&
+
+    assignmentContext
+      .assignmentContextStatus ===
+      "established" &&
+
+    assignmentContext
+      .assignmentDemandStatus ===
+      "established" &&
+
+    assignmentContext
+      .summaryReadinessStatus ===
+      "ready"
+  );
+}
+
+function getInstructionalSituationEvidenceHistory(
+  evidenceState
+) {
+  const pending =
+    evidenceState
+      ?.instructionalLocation
+      ?.pending;
+
+  const pendingType =
+    cleanText(
+      evidenceState
+        ?.instructionalLocation
+        ?.pendingType || ""
+    );
+
+  const priorFinding =
+    pending?.instructionalFinding &&
+    typeof pending
+      .instructionalFinding === "object"
+      ? pending.instructionalFinding
+      : null;
+
+  const priorSupportActive =
+    pendingType === "stuckNudge" ||
+    pendingType === "stuckMini";
+
+  const priorDiagnosis =
+    cleanText(
+      priorFinding?.diagnosis || ""
+    );
+
+  const priorNoEvidence =
+    priorDiagnosis ===
+      "emptyResponse" ||
+    priorDiagnosis ===
+      "noComponentEvidence";
+
+  return {
+    priorSupportActive,
+
+    priorDiagnosis:
+      priorDiagnosis || null,
+
+    priorNoEvidence,
+
+    priorFrameComponent:
+      cleanText(
+        priorFinding?.frameComponent || ""
+      ) || null,
+
+    priorFinding:
+      priorFinding
+        ? structuredClone(
+            priorFinding
+          )
+        : null,
+  };
+}
+
+function buildInstructionalSituation({
+  evidenceState = null,
+  instructionalAssessment = null,
+  componentFinding = null,
+  relationshipFinding = null,
+} = {}) {
+  const safeEvidenceState =
+    evidenceState &&
+    typeof evidenceState === "object"
+      ? evidenceState
+      : {};
+
   const safeAssessment =
     instructionalAssessment &&
-    typeof instructionalAssessment === "object"
+    typeof instructionalAssessment ===
+      "object"
       ? instructionalAssessment
       : {};
 
-  const governedFinding =
+  const interactionFinding =
     safeAssessment
       ?.interactionInstructionalFinding &&
     typeof safeAssessment
@@ -1929,425 +2104,452 @@ function buildInteractionPathwayComparison(
           .interactionInstructionalFinding
       : null;
 
-  const legacyComparison =
-    safeAssessment
-      ?.legacyInteractionComparison &&
-    typeof safeAssessment
-      .legacyInteractionComparison ===
-        "object"
-      ? safeAssessment
-          .legacyInteractionComparison
+  const safeComponentFinding =
+    componentFinding &&
+    typeof componentFinding === "object"
+      ? componentFinding
       : null;
 
-  if (
-    !governedFinding &&
-    !legacyComparison
-  ) {
-    return {
-      comparisonStatus:
-        "notComparable",
+  const safeRelationshipFinding =
+    relationshipFinding &&
+    typeof relationshipFinding === "object"
+      ? relationshipFinding
+      : safeComponentFinding;
 
-      comparisonReason:
-        "No governed or legacy interaction artifact was available.",
-
-      governedPathwayAvailable:
-        false,
-
-      legacyPathwayAvailable:
-        false,
-
-      broadAlignment:
-        null,
-
-      shadowMode:
-        true,
-    };
-  }
-
-  if (!governedFinding) {
-    return {
-      comparisonStatus:
-        "notComparable",
-
-      comparisonReason:
-        "The governed interaction finding was unavailable.",
-
-      governedPathwayAvailable:
-        false,
-
-      legacyPathwayAvailable:
-        true,
-
-      broadAlignment:
-        null,
-
-      legacy:
-        structuredClone(
-          legacyComparison
-        ),
-
-      shadowMode:
-        true,
-    };
-  }
-
-  if (!legacyComparison) {
-    return {
-      comparisonStatus:
-        "governedOnly",
-
-      comparisonReason:
-        "The governed interaction finding was available, but no legacy comparison artifact was present.",
-
-      governedPathwayAvailable:
-        true,
-
-      legacyPathwayAvailable:
-        false,
-
-      broadAlignment:
-        null,
-
-      governed: {
-        interactionSituation:
-          governedFinding
-            ?.interactionSituation ||
-          null,
-
-        componentEvidenceFinding:
-          governedFinding
-            ?.componentEvidenceFinding ||
-          null,
-
-        responseFunctionsOnlyAsInteraction:
-          governedFinding
-            ?.responseFunctionsOnlyAsInteraction ===
-          true,
-      },
-
-      shadowMode:
-        true,
-    };
-  }
-
-  const governedSituation =
+  const currentResponse =
     cleanText(
-      governedFinding
-        ?.interactionSituation || ""
+      safeEvidenceState
+        ?.currentEvidence
+        ?.response || ""
     );
 
-  const governedNoComponentEvidence =
-    governedFinding
+  const rawStage =
+    cleanText(
+      safeEvidenceState
+        ?.instructionalLocation
+        ?.rawStage || ""
+    );
+
+  const frameComponent =
+    cleanText(
+      interactionFinding
+        ?.frameComponent ||
+      safeComponentFinding
+        ?.frameComponent ||
+      getBaseStage(rawStage) ||
+      ""
+    );
+
+  const assignmentUnderstandingEstablished =
+    hasEstablishedAssignmentUnderstandingFromEvidence(
+      safeEvidenceState
+    );
+
+  const interactionSituation =
+    cleanText(
+      interactionFinding
+        ?.interactionSituation ||
+      "noSpecialInteractionCondition"
+    );
+
+  const noCurrentComponentEvidence =
+    interactionFinding
       ?.componentEvidenceFinding ===
       "noComponentEvidenceObserved";
 
-  const legacyState =
-    cleanText(
-      legacyComparison
-        ?.instructionalState || ""
-    ).toLowerCase();
-
-  const legacyBehavior =
-    cleanText(
-      legacyComparison
-        ?.instructionalBehavior || ""
-    ).toLowerCase();
-
-  const legacySupportLevel =
-    cleanText(
-      legacyComparison
-        ?.supportLevel || "none"
-    ).toLowerCase();
-
-  const legacySignals =
-    legacyComparison?.signals &&
-    typeof legacyComparison.signals ===
-      "object"
-      ? legacyComparison.signals
-      : {};
-
-  const legacyText =
-    [
-      legacyState,
-      legacyBehavior,
-      legacySupportLevel,
-
-      ...Object.entries(
-        legacySignals
-      ).flatMap(
-        ([key, value]) => [
-          cleanText(key).toLowerCase(),
-          cleanText(
-            typeof value === "string"
-              ? value
-              : value === true
-                ? key
-                : ""
-          ).toLowerCase(),
-        ]
-      ),
-    ]
-      .filter(Boolean)
-      .join(" ");
-
-  const legacyIndicatesUncertaintyOrStruggle =
-    [
-      "stuck",
-      "struggl",
-      "uncertain",
-      "confus",
-      "help",
-      "support",
-      "frustrat",
-      "resistan",
-      "answerseek",
-      "answer seek",
-      "clarif",
-    ].some(
-      (marker) =>
-        legacyText.includes(marker)
-    );
-
-  const legacyIndicatesFrustration =
-    legacyText.includes(
-      "frustrat"
-    );
-
-  const legacyIndicatesAnswerSeeking =
-    legacyText.includes(
-      "answerseek"
-    ) ||
-    legacyText.includes(
-      "answer seek"
-    ) ||
-    legacyText.includes(
-      "just tell"
-    ) ||
-    legacyText.includes(
-      "resistan"
-    );
-
-  const legacyIndicatesClarification =
-    legacyText.includes(
-      "clarif"
-    );
-
-  const legacyIndicatesOffTask =
-    legacyText.includes(
-      "offtask"
-    ) ||
-    legacyText.includes(
-      "off task"
-    );
-
-  const legacyIndicatesNoSpecialCondition =
-    !legacyIndicatesUncertaintyOrStruggle &&
-    !legacyIndicatesOffTask &&
-    legacySupportLevel === "none";
-
-  let broadAlignment =
-    false;
-
-  let comparisonStatus =
-    "meaningfulDifference";
-
-  let comparisonReason =
-    "The governed and legacy pathways identified different broad interaction conditions.";
-
-  if (
-    governedSituation ===
-      "frustrationExpressed" &&
-    legacyIndicatesFrustration
-  ) {
-    broadAlignment =
+  const responseFunctionsOnlyAsInteraction =
+    interactionFinding
+      ?.responseFunctionsOnlyAsInteraction ===
       true;
 
-    comparisonStatus =
-      "broadlyAligned";
+  const evidenceHistory =
+    getInstructionalSituationEvidenceHistory(
+      safeEvidenceState
+    );
 
-    comparisonReason =
-      "Both pathways detected observable frustration-related evidence.";
-  } else if (
-    governedSituation ===
-      "answerSeekingObserved" &&
-    (
-      legacyIndicatesAnswerSeeking ||
-      legacyIndicatesUncertaintyOrStruggle
-    )
+  const componentEvidenceLevel =
+    cleanText(
+      safeComponentFinding
+        ?.componentEvidenceLevel || ""
+    );
+
+  const componentCriteriaStatus =
+    cleanText(
+      safeComponentFinding
+        ?.componentCriteriaStatus || ""
+    );
+
+  const relationshipStatus =
+    cleanText(
+      safeRelationshipFinding
+        ?.relationshipStatus ||
+      safeComponentFinding
+        ?.relationshipStatus ||
+      ""
+    );
+
+  const diagnosis =
+    cleanText(
+      safeComponentFinding
+        ?.diagnosis || ""
+    );
+
+  const validationCompleted =
+    Boolean(
+      safeComponentFinding &&
+      (
+        componentEvidenceLevel ||
+        componentCriteriaStatus ||
+        relationshipStatus ||
+        diagnosis
+      )
+    );
+
+  const componentCriteriaSatisfied =
+    componentCriteriaStatus ===
+    "satisfied";
+
+  const relationshipEstablished =
+    relationshipStatus ===
+    "established";
+
+  const relationshipRequiresRepair =
+    relationshipStatus ===
+      "notEstablished" ||
+    relationshipStatus ===
+      "incomplete";
+
+  const componentRequiresRevision =
+    validationCompleted &&
+    !componentCriteriaSatisfied &&
+    !relationshipRequiresRepair;
+
+  const persistentNoEvidenceAfterSupport =
+    noCurrentComponentEvidence &&
+    evidenceHistory
+      .priorSupportActive === true &&
+    evidenceHistory
+      .priorNoEvidence === true;
+
+  let instructionalSituation =
+    INSTRUCTIONAL_SITUATIONS
+      .COMPONENT_EVIDENCE_REQUIRES_VALIDATION;
+
+  let situationReason =
+    "The current response contains possible component evidence that requires governed component validation.";
+
+  let evidenceBasis = [
+    "currentResponseAvailable",
+  ];
+
+  // --------------------------------------------------
+  // PRIORITY 1 — ASSIGNMENT UNDERSTANDING
+  //
+  // Frame instruction may not proceed until sufficient
+  // Assignment Understanding has been established.
+  // --------------------------------------------------
+
+  if (!assignmentUnderstandingEstablished) {
+    instructionalSituation =
+      INSTRUCTIONAL_SITUATIONS
+        .ASSIGNMENT_UNDERSTANDING_REQUIRED;
+
+    situationReason =
+      "Sufficient shared Assignment Understanding has not yet been established.";
+
+    evidenceBasis = [
+      "assignmentUnderstandingNotEstablished",
+    ];
+  }
+
+  // --------------------------------------------------
+  // PRIORITY 2 — GENUINE STRUGGLE
+  //
+  // Genuine struggle requires persistence.
+  //
+  // One uncertainty response, clarification request, or
+  // answer-seeking interaction is not sufficient.
+  //
+  // The student must remain unable to provide component
+  // evidence after governed support has already occurred.
+  // --------------------------------------------------
+
+  else if (
+    persistentNoEvidenceAfterSupport
   ) {
-    broadAlignment =
-      true;
+    instructionalSituation =
+      INSTRUCTIONAL_SITUATIONS
+        .GENUINE_STRUGGLE;
 
-    comparisonStatus =
-      "broadlyAlignedWithDifferentInferenceDepth";
+    situationReason =
+      "The student again provided no component evidence after a prior governed support intervention at the same instructional location.";
 
-    comparisonReason =
-      "The governed pathway recorded answer-seeking evidence while the legacy pathway used a broader struggle or support classification.";
-  } else if (
-    governedSituation ===
+    evidenceBasis = [
+      "noCurrentComponentEvidence",
+      "priorSupportActive",
+      "priorNoComponentEvidence",
+    ];
+  }
+
+  // --------------------------------------------------
+  // PRIORITY 3 — CLARIFICATION REQUEST
+  //
+  // Clarification is a legitimate instructional need.
+  // It is not automatically struggle.
+  // --------------------------------------------------
+
+  else if (
+    interactionSituation ===
       "clarificationRequested" &&
+    responseFunctionsOnlyAsInteraction
+  ) {
+    instructionalSituation =
+      INSTRUCTIONAL_SITUATIONS
+        .CLARIFICATION_NEEDED;
+
+    situationReason =
+      "The student's current interaction functions as a clarification request rather than component evidence.";
+
+    evidenceBasis = [
+      "clarificationRequested",
+      "responseFunctionsOnlyAsInteraction",
+    ];
+  }
+
+  // --------------------------------------------------
+  // PRIORITY 4 — INTERACTION REDIRECTION
+  //
+  // Answer-seeking, refusal, or off-task interaction
+  // requires Kaw to preserve the instructional objective
+  // and return the student to the current thinking step.
+  // --------------------------------------------------
+
+  else if (
+    responseFunctionsOnlyAsInteraction &&
     (
-      legacyIndicatesClarification ||
-      legacyIndicatesUncertaintyOrStruggle
+      interactionSituation ===
+        "answerSeekingObserved" ||
+
+      interactionSituation ===
+        "refusalObserved" ||
+
+      interactionSituation ===
+        "offTaskShiftObserved"
     )
   ) {
-    broadAlignment =
-      true;
+    instructionalSituation =
+      INSTRUCTIONAL_SITUATIONS
+        .INTERACTION_REDIRECTION_NEEDED;
 
-    comparisonStatus =
-      "broadlyAlignedWithDifferentInferenceDepth";
+    situationReason =
+      "The current response functions as an interaction move rather than component evidence and requires return to the active thinking step.";
 
-    comparisonReason =
-      "The governed pathway recorded a clarification request while the legacy pathway used a broader struggle or support classification.";
-  } else if (
-    governedSituation ===
-      "uncertaintyExpressed" &&
-    legacyIndicatesUncertaintyOrStruggle
+    evidenceBasis = [
+      interactionSituation,
+      "responseFunctionsOnlyAsInteraction",
+    ];
+  }
+
+  // --------------------------------------------------
+  // PRIORITY 5 — NO COMPONENT EVIDENCE
+  //
+  // A first no-evidence response does not establish
+  // genuine struggle.
+  // --------------------------------------------------
+
+  else if (noCurrentComponentEvidence) {
+    instructionalSituation =
+      INSTRUCTIONAL_SITUATIONS
+        .NO_COMPONENT_EVIDENCE;
+
+    situationReason =
+      "The current interaction contains no observable contribution to the active Frame component.";
+
+    evidenceBasis = [
+      "noCurrentComponentEvidence",
+    ];
+  }
+
+  // --------------------------------------------------
+  // PRIORITY 6 — READY TO PROGRESS
+  //
+  // Progression requires completed component validation
+  // and an established instructional relationship.
+  // --------------------------------------------------
+
+  else if (
+    validationCompleted &&
+    componentCriteriaSatisfied &&
+    relationshipEstablished
   ) {
-    broadAlignment =
-      true;
+    instructionalSituation =
+      INSTRUCTIONAL_SITUATIONS
+        .READY_TO_PROGRESS;
 
-    comparisonStatus =
-      "broadlyAlignedWithDifferentInferenceDepth";
+    situationReason =
+      "The current component evidence satisfies its criteria and its required instructional relationship is established.";
 
-    comparisonReason =
-      "The governed pathway recorded uncertainty while the legacy pathway used a broader struggle or support classification.";
-  } else if (
-    governedSituation ===
-      "offTaskShiftObserved" &&
-    legacyIndicatesOffTask
+    evidenceBasis = [
+      "componentCriteriaSatisfied",
+      "relationshipEstablished",
+    ];
+  }
+
+  // --------------------------------------------------
+  // PRIORITY 7 — RELATIONSHIP REPAIR
+  //
+  // Component content may exist while its required
+  // relationship to the active Frame remains incomplete
+  // or unestablished.
+  // --------------------------------------------------
+
+  else if (
+    validationCompleted &&
+    relationshipRequiresRepair
   ) {
-    broadAlignment =
-      true;
+    instructionalSituation =
+      INSTRUCTIONAL_SITUATIONS
+        .RELATIONSHIP_NEEDS_REPAIR;
 
-    comparisonStatus =
-      "broadlyAligned";
+    situationReason =
+      "The student supplied component evidence, but the required relationship to accepted Frame evidence is incomplete or not established.";
 
-    comparisonReason =
-      "Both pathways detected an off-task interaction condition.";
-  } else if (
-    governedSituation ===
-      "noSpecialInteractionCondition" &&
-    legacyIndicatesNoSpecialCondition
-  ) {
-    broadAlignment =
-      true;
+    evidenceBasis = [
+      `relationshipStatus:${relationshipStatus}`,
+      diagnosis
+        ? `diagnosis:${diagnosis}`
+        : "relationshipRepairRequired",
+    ];
+  }
 
-    comparisonStatus =
-      "broadlyAligned";
+  // --------------------------------------------------
+  // PRIORITY 8 — COMPONENT REVISION
+  //
+  // Evidence exists, but component criteria have not yet
+  // been fully satisfied.
+  // --------------------------------------------------
 
-    comparisonReason =
-      "Neither pathway detected a special interaction condition.";
-  } else if (
-    governedSituation ===
-      "noSpecialInteractionCondition" &&
-    legacyIndicatesUncertaintyOrStruggle
-  ) {
-    comparisonStatus =
-      "legacyMoreInferential";
+  else if (componentRequiresRevision) {
+    instructionalSituation =
+      INSTRUCTIONAL_SITUATIONS
+        .COMPONENT_NEEDS_REVISION;
 
-    comparisonReason =
-      "The legacy pathway inferred struggle or support need that was not directly established by the governed Observation Report.";
-  } else if (
-    governedSituation !==
-      "noSpecialInteractionCondition" &&
-    legacyIndicatesNoSpecialCondition
-  ) {
-    comparisonStatus =
-      "governedEvidenceNotReflectedInLegacy";
+    situationReason =
+      "The current evidence has been validated but does not yet satisfy the active component criteria.";
 
-    comparisonReason =
-      "The governed pathway identified observable interaction evidence that was not reflected in the legacy classification.";
+    evidenceBasis = [
+      `componentCriteriaStatus:${componentCriteriaStatus}`,
+      diagnosis
+        ? `diagnosis:${diagnosis}`
+        : "componentRevisionRequired",
+    ];
+  }
+
+  // --------------------------------------------------
+  // PRIORITY 9 — VALIDATION REQUIRED
+  //
+  // The response contains possible student thinking, but
+  // no current Component Finding has yet been supplied to
+  // the engine.
+  // --------------------------------------------------
+
+  else {
+    instructionalSituation =
+      INSTRUCTIONAL_SITUATIONS
+        .COMPONENT_EVIDENCE_REQUIRES_VALIDATION;
+
+    situationReason =
+      "The current response may contain component evidence, but governed component validation has not yet produced a current finding.";
+
+    evidenceBasis = [
+      currentResponse
+        ? "currentResponseAvailable"
+        : "currentResponseEmpty",
+
+      validationCompleted
+        ? "validationIncomplete"
+        : "validationNotYetProvided",
+    ];
   }
 
   return {
-    comparisonStatus,
+    artifactType:
+      "instructionalSituation",
 
-    comparisonReason,
+    version:
+      "1.0",
 
-    broadAlignment,
+    source:
+      "deterministicInstructionalSituationEngine",
 
-    governedPathwayAvailable:
-      true,
+    instructionalSituation,
 
-    legacyPathwayAvailable:
-      true,
+    situationReason,
 
-    governed: {
-      interactionSituation:
-        governedSituation || null,
+    evidenceBasis,
 
-      componentEvidenceFinding:
-        governedFinding
-          ?.componentEvidenceFinding ||
-        null,
+    frameComponent:
+      frameComponent || null,
 
-      responseFunctionsOnlyAsInteraction:
-        governedFinding
-          ?.responseFunctionsOnlyAsInteraction ===
-        true,
+    instructionalLocation: {
+      rawStage:
+        rawStage || null,
 
-      observedCategories:
-        Array.isArray(
-          governedFinding
-            ?.observedCategories
-        )
-          ? [
-              ...governedFinding
-                .observedCategories,
-            ]
-          : [],
+      pendingType:
+        cleanText(
+          safeEvidenceState
+            ?.instructionalLocation
+            ?.pendingType || ""
+        ) || null,
     },
 
-    legacy: {
-      instructionalState:
-        legacyComparison
-          ?.instructionalState || null,
+    assignmentUnderstandingEstablished,
 
-      instructionalBehavior:
-        legacyComparison
-          ?.instructionalBehavior || null,
+    inputs: {
+      interactionFinding:
+        interactionFinding
+          ? structuredClone(
+              interactionFinding
+            )
+          : null,
 
-      supportLevel:
-        legacyComparison
-          ?.supportLevel || "none",
+      componentFinding:
+        safeComponentFinding
+          ? structuredClone(
+              safeComponentFinding
+            )
+          : null,
 
-      signals:
+      relationshipFinding:
+        safeRelationshipFinding
+          ? structuredClone(
+              safeRelationshipFinding
+            )
+          : null,
+
+      evidenceHistory:
         structuredClone(
-          legacySignals
+          evidenceHistory
         ),
     },
 
-    comparisonEvidence: {
-      governedNoComponentEvidence,
-
-      legacyIndicatesUncertaintyOrStruggle,
-
-      legacyIndicatesFrustration,
-
-      legacyIndicatesAnswerSeeking,
-
-      legacyIndicatesClarification,
-
-      legacyIndicatesOffTask,
-
-      legacyIndicatesNoSpecialCondition,
-    },
-
     governance: {
-      governedPathwayAuthoritative:
+      mutuallyExclusiveSituation:
+        true,
+
+      genuineStruggleRequiresPersistence:
+        true,
+
+      selectsInstructionalContract:
         false,
 
-      legacyPathwayAuthoritative:
+      controlsProgression:
         false,
 
-      comparisonControlsBehavior:
+      controlsPendingState:
         false,
 
-      comparisonControlsProgression:
-        false,
-
-      comparisonSelectsContract:
+      controlsCommunication:
         false,
 
       shadowMode:
@@ -19243,6 +19445,34 @@ instructionalAssessment
       interactionInstructionalFinding
     );
 
+const instructionalSituation =
+  buildInstructionalSituation({
+    evidenceState,
+
+    instructionalAssessment,
+
+    // Current component validation occurs later in the
+    // authoritative runtime pathway. Until that current
+    // Component Finding is supplied, substantive responses
+    // remain componentEvidenceRequiresValidation.
+    componentFinding:
+      null,
+
+    relationshipFinding:
+      null,
+  });
+
+// Attach the canonical deterministic situation to the
+// assessment artifact.
+//
+// This remains shadow mode and does not yet select a
+// contract or control progression.
+instructionalAssessment
+  .instructionalSituation =
+    structuredClone(
+      instructionalSituation
+    );
+
 const interactionPathwayComparison =
   buildInteractionPathwayComparison(
     instructionalAssessment
@@ -19261,9 +19491,17 @@ instructionalAssessment
 
 // Store the complete deterministic assessment artifact so
 // it remains inspectable during shadow-mode migration.
-s.instructionalAssessment =
+
+  s.instructionalAssessment =
   structuredClone(
     instructionalAssessment
+  );
+
+// Store the current canonical Instructional Situation
+// separately for easier inspection during migration.
+s.instructionalSituation =
+  structuredClone(
+    instructionalSituation
   );
 
 // Store the comparison separately for easier debugging
