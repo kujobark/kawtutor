@@ -1570,6 +1570,306 @@ function buildInstructionalAssessment(
 }
 
 // ------------------------------------------------------
+// INTERACTION INSTRUCTIONAL FINDING
+// ------------------------------------------------------
+//
+// Deterministically interprets the governed Interaction
+// Assessment within the student's current instructional
+// location.
+//
+// Observation reports what the student said.
+//
+// Interaction Assessment organizes those observations.
+//
+// This function determines the limited instructional
+// meaning that can be established from that evidence.
+//
+// It does not:
+//
+// • classify genuine struggle;
+// • select an instructional contract;
+// • determine support level;
+// • choose a Teaching Move or Thinking Move;
+// • change progression;
+// • change pending state;
+// • generate communication.
+//
+// Current status:
+//
+// Shadow mode only.
+//
+// ------------------------------------------------------
+
+function buildInteractionInstructionalFinding(
+  evidenceState,
+  instructionalAssessment
+) {
+  const safeEvidenceState =
+    evidenceState &&
+    typeof evidenceState === "object"
+      ? evidenceState
+      : {};
+
+  const safeAssessment =
+    instructionalAssessment &&
+    typeof instructionalAssessment === "object"
+      ? instructionalAssessment
+      : {};
+
+  const interactionAssessment =
+    safeAssessment
+      ?.interactionAssessment &&
+    typeof safeAssessment
+      .interactionAssessment === "object"
+      ? safeAssessment
+          .interactionAssessment
+      : {};
+
+  const observableConditions =
+    interactionAssessment
+      ?.observableConditions &&
+    typeof interactionAssessment
+      .observableConditions === "object"
+      ? interactionAssessment
+          .observableConditions
+      : {};
+
+  const currentResponse =
+    cleanText(
+      safeEvidenceState
+        ?.currentEvidence
+        ?.response || ""
+    );
+
+  const rawStage =
+    cleanText(
+      safeEvidenceState
+        ?.instructionalLocation
+        ?.rawStage || ""
+    );
+
+  const frameComponent =
+    getBaseStage(rawStage);
+
+  const observations =
+    Array.isArray(
+      interactionAssessment?.observations
+    )
+      ? interactionAssessment.observations
+      : [];
+
+  const normalizedResponse =
+    currentResponse
+      .toLowerCase()
+      .replace(/[’‘]/g, "'")
+      .replace(/[.!?]+$/g, "")
+      .trim();
+
+  // An observation occupies the complete response only
+  // when its exact evidence excerpt matches the student's
+  // entire normalized interaction.
+  //
+  // This permits Kaw to distinguish:
+  //
+  // "idk"
+  //
+  // from:
+  //
+  // "I don't know, but I think the topic is photosynthesis."
+  //
+  // The first contains no component contribution.
+  // The second may still contain student thinking that
+  // requires component validation.
+  const observationsCoverEntireResponse =
+    Boolean(normalizedResponse) &&
+    observations.some(
+      (observation) => {
+        const normalizedEvidence =
+          cleanText(
+            observation?.evidenceText
+          )
+            .toLowerCase()
+            .replace(/[’‘]/g, "'")
+            .replace(/[.!?]+$/g, "")
+            .trim();
+
+        return (
+          normalizedEvidence &&
+          normalizedEvidence ===
+            normalizedResponse
+        );
+      }
+    );
+
+  const activeFrameComponents =
+    new Set([
+      "keyTopic",
+      "isAbout",
+      "mainIdeas",
+      "details",
+      "soWhat",
+    ]);
+
+  const componentCaptureActive =
+    activeFrameComponents.has(
+      frameComponent
+    );
+
+  let interactionSituation =
+    "noSpecialInteractionCondition";
+
+  if (
+    observableConditions
+      .frustrationExpressed === true
+  ) {
+    interactionSituation =
+      "frustrationExpressed";
+  } else if (
+    observableConditions
+      .refusalObserved === true
+  ) {
+    interactionSituation =
+      "refusalObserved";
+  } else if (
+    observableConditions
+      .offTaskShiftObserved === true
+  ) {
+    interactionSituation =
+      "offTaskShiftObserved";
+  } else if (
+    observableConditions
+      .answerSeekingObserved === true
+  ) {
+    interactionSituation =
+      "answerSeekingObserved";
+  } else if (
+    observableConditions
+      .clarificationRequested === true
+  ) {
+    interactionSituation =
+      "clarificationRequested";
+  } else if (
+    observableConditions
+      .uncertaintyExpressed === true
+  ) {
+    interactionSituation =
+      "uncertaintyExpressed";
+  } else if (
+    observableConditions
+      .repeatedAttemptObserved === true
+  ) {
+    interactionSituation =
+      "repeatedAttemptObserved";
+  }
+
+  const interactionOnlyCategories =
+    new Set([
+      "uncertaintyExpression",
+      "clarificationRequest",
+      "answerSeeking",
+      "frustrationExpression",
+      "refusal",
+      "offTaskShift",
+    ]);
+
+  const responseFunctionsOnlyAsInteraction =
+    componentCaptureActive &&
+    observationsCoverEntireResponse &&
+    observations.some(
+      (observation) =>
+        interactionOnlyCategories.has(
+          cleanText(
+            observation?.category
+          )
+        )
+    );
+
+  const componentEvidenceFinding =
+    responseFunctionsOnlyAsInteraction
+      ? "noComponentEvidenceObserved"
+      : "componentEvidenceNotDetermined";
+
+  return {
+    findingType:
+      "interactionInstructionalFinding",
+
+    source:
+      "deterministicInterpretation",
+
+    frameComponent:
+      componentCaptureActive
+        ? frameComponent
+        : null,
+
+    instructionalLocation: {
+      rawStage:
+        rawStage || null,
+
+      pendingType:
+        cleanText(
+          safeEvidenceState
+            ?.instructionalLocation
+            ?.pendingType || ""
+        ) || null,
+    },
+
+    interactionSituation,
+
+    componentEvidenceFinding,
+
+    responseFunctionsOnlyAsInteraction,
+
+    observationSource:
+      cleanText(
+        interactionAssessment
+          ?.observationSource ||
+        "notObserved"
+      ),
+
+    observedCategories:
+      Array.isArray(
+        interactionAssessment
+          ?.observedCategories
+      )
+        ? [
+            ...interactionAssessment
+              .observedCategories,
+          ]
+        : [],
+
+    evidence: {
+      currentResponse,
+
+      observations:
+        structuredClone(
+          observations
+        ),
+
+      ambiguityPresent:
+        interactionAssessment
+          ?.ambiguityPresent === true,
+    },
+
+    governance: {
+      genuineStruggleEstablished:
+        false,
+
+      instructionalContractSelected:
+        false,
+
+      supportLevelDetermined:
+        false,
+
+      progressionAuthority:
+        false,
+
+      shadowMode:
+        true,
+    },
+  };
+}
+
+// ------------------------------------------------------
 // COMPONENT INSTRUCTIONAL FINDING
 // ------------------------------------------------------
 //
@@ -18437,11 +18737,26 @@ const instructionalAssessment =
     evidenceState
   );
 
-// Store the current deterministic assessment artifact so
-// it remains inspectable during shadow-mode migration.
+const interactionInstructionalFinding =
+  buildInteractionInstructionalFinding(
+    evidenceState,
+    instructionalAssessment
+  );
+
+// Attach the new deterministic finding to the current
+// assessment artifact.
 //
-// This does not grant the assessment authority over
-// progression, contracts, pending state, or communication.
+// This remains shadow-mode evidence. It does not yet
+// control contracts, progression, pending state, support
+// level, or communication.
+instructionalAssessment
+  .interactionInstructionalFinding =
+    structuredClone(
+      interactionInstructionalFinding
+    );
+
+// Store the complete deterministic assessment artifact so
+// it remains inspectable during shadow-mode migration.
 s.instructionalAssessment =
   structuredClone(
     instructionalAssessment
