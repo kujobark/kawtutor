@@ -21393,28 +21393,29 @@ if (s.pending?.type === "offerAnotherDetail") {
       instructionalFinding,
   });
 
-  if (!detailValidation.valid) {
-    };
-  
+    if (!detailValidation.valid) {
     s.pending = {
       type: "collectAnotherDetail",
       index: idx,
     };
 
-  return beginStuckSupportFromPending(
-    s,
-    msg,
-    {
-      intent: "stuck",
-      confidence: 1,
+    return beginStuckSupportFromPending(
+      s,
+      msg,
+      {
+        intent:
+          "stuck",
 
-      source:
-        `detailValidation:${detailValidation.diagnosis}`,
+        confidence:
+          1,
 
-      instructionalFinding,
-    }
-  );
-}
+        source:
+          `detailValidation:${detailValidation.diagnosis}`,
+
+        instructionalFinding,
+      }
+    );
+  }
 
   s.frame.details[idx] = [...arr, msg];
 
@@ -21796,22 +21797,23 @@ refreshShadowInstructionalSituationWithComponentFinding({
 });
 
 if (!detailValidation.valid) {
-      
-        attemptedDetail:
-          cleanText(msg),
-      },
-    }),
-  
-    validationSource:
-      detailValidation.validationSource || null,
-  
-    currentMainIdea,
-  
-    currentDetailIndex:
-      detailIndex,
-  };
+  return beginStuckSupportFromPending(
+    s,
+    msg,
+    {
+      intent:
+        "stuck",
 
-    return beginStuckSupportFromPending(
+      confidence:
+        1,
+
+      source:
+        `detailValidation:${detailValidation.diagnosis}`,
+
+      instructionalFinding,
+    }
+  );
+}
       s,
       msg,
       {
