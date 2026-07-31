@@ -1303,14 +1303,58 @@ function buildInstructionalAssessment(
           .interactionContext
       : {};
 
-  const studentResponseGovernance =
-    interactionContext
-      ?.studentResponseGovernance &&
-    typeof interactionContext
-      .studentResponseGovernance === "object"
-      ? interactionContext
-          .studentResponseGovernance
-      : null;
+  const observationReport =
+    safeEvidenceState
+      ?.observationReport &&
+    typeof safeEvidenceState
+      .observationReport === "object"
+      ? safeEvidenceState
+          .observationReport
+      : buildEmptyObservationReport(
+          safeEvidenceState
+            ?.currentEvidence
+            ?.response || "",
+          "notProvided"
+        );
+
+  const observations =
+    Array.isArray(
+      observationReport?.observations
+    )
+      ? observationReport.observations
+          .filter(
+            (observation) =>
+              observation &&
+              typeof observation ===
+                "object"
+          )
+          .map(
+            (observation) =>
+              structuredClone(
+                observation
+              )
+          )
+      : [];
+
+  const observedCategories =
+    [
+      ...new Set(
+        observations
+          .map(
+            (observation) =>
+              cleanText(
+                observation?.category
+              )
+          )
+          .filter(Boolean)
+      ),
+    ];
+
+  const hasObservedCategory =
+    (category) =>
+      observedCategories.includes(
+        category
+      );
 
   const existingInstructionalFinding =
     instructionalLocation
@@ -1369,33 +1413,143 @@ function buildInstructionalAssessment(
         }
       : null;
 
-  const interactionAssessment =
-  studentResponseGovernance
-    ? {
-        instructionalState:
-          studentResponseGovernance
-            ?.instructionalState || null,
+  // --------------------------------------------------
+  // OBSERVATION-BASED INTERACTION ASSESSMENT
+  //
+  // This assessment records only what the governed
+  // Observation Report directly established.
+  //
+  // It does not determine:
+  // • genuine struggle;
+  // • instructional situation;
+  // • support level;
+  // • teaching strategy;
+  // • progression;
+  // • instructional intent.
+  //
+  // Those conclusions belong to later deterministic
+  // reasoning layers.
+  // --------------------------------------------------
 
-        instructionalBehavior:
-          studentResponseGovernance
-            ?.instructionalBehavior || null,
+  const interactionAssessment = {
+    observationSource:
+      cleanText(
+        observationReport?.source ||
+        "notObserved"
+      ),
 
-        supportLevel:
-          studentResponseGovernance
-            ?.supportLevel || "none",
+    ambiguityPresent:
+      observationReport
+        ?.ambiguityPresent === true,
 
-        signals:
-          studentResponseGovernance
-            ?.signals &&
-          typeof studentResponseGovernance
-            .signals === "object"
-            ? structuredClone(
-                studentResponseGovernance
-                  .signals
-              )
-            : {},
-      }
-    : null;
+    observationCount:
+      observations.length,
+
+    observedCategories,
+
+    observations,
+
+    observableConditions: {
+      uncertaintyExpressed:
+        hasObservedCategory(
+          "uncertaintyExpression"
+        ),
+
+      clarificationRequested:
+        hasObservedCategory(
+          "clarificationRequest"
+        ),
+
+      answerSeekingObserved:
+        hasObservedCategory(
+          "answerSeeking"
+        ),
+
+      frustrationExpressed:
+        hasObservedCategory(
+          "frustrationExpression"
+        ),
+
+      refusalObserved:
+        hasObservedCategory(
+          "refusal"
+        ),
+
+      offTaskShiftObserved:
+        hasObservedCategory(
+          "offTaskShift"
+        ),
+
+      assignmentReferenced:
+        hasObservedCategory(
+          "assignmentReference"
+        ),
+
+      framingRoutineReferenced:
+        hasObservedCategory(
+          "framingRoutineReference"
+        ),
+
+      priorCoachingAcknowledged:
+        hasObservedCategory(
+          "acknowledgesPriorCoaching"
+        ),
+
+      repeatedAttemptObserved:
+        hasObservedCategory(
+          "repeatedAttempt"
+        ),
+    },
+  };
+
+  // --------------------------------------------------
+  // LEGACY COMPARISON — SHADOW MODE ONLY
+  //
+  // The previous Student Response Governance result is
+  // preserved temporarily so the new Observation-based
+  // assessment can be compared with legacy behavior.
+  //
+  // It remains non-authoritative here and must not be
+  // merged into the governed interaction assessment.
+  // --------------------------------------------------
+
+  const studentResponseGovernance =
+    interactionContext
+      ?.studentResponseGovernance &&
+    typeof interactionContext
+      .studentResponseGovernance ===
+        "object"
+      ? interactionContext
+          .studentResponseGovernance
+      : null;
+
+  const legacyInteractionComparison =
+    studentResponseGovernance
+      ? {
+          instructionalState:
+            studentResponseGovernance
+              ?.instructionalState || null,
+
+          instructionalBehavior:
+            studentResponseGovernance
+              ?.instructionalBehavior || null,
+
+          supportLevel:
+            studentResponseGovernance
+              ?.supportLevel || "none",
+
+          signals:
+            studentResponseGovernance
+              ?.signals &&
+            typeof studentResponseGovernance
+              .signals === "object"
+              ? structuredClone(
+                  studentResponseGovernance
+                    .signals
+                )
+              : {},
+        }
+      : null;
 
   return {
     criteriaAssessment,
@@ -1403,6 +1557,8 @@ function buildInstructionalAssessment(
     relationalAssessment,
 
     interactionAssessment,
+
+    legacyInteractionComparison,
 
     findings:
       existingInstructionalFinding
@@ -18281,16 +18437,23 @@ const instructionalAssessment =
     evidenceState
   );
 
+// Store the current deterministic assessment artifact so
+// it remains inspectable during shadow-mode migration.
+//
+// This does not grant the assessment authority over
+// progression, contracts, pending state, or communication.
+s.instructionalAssessment =
+  structuredClone(
+    instructionalAssessment
+  );
+
 const instructionalStrategy =
   buildInstructionalStrategy(
     instructionalAssessment
   );
 
+// Strategy remains non-authoritative during this step.
 void instructionalStrategy;
-
-// Transitional placeholder while the assessment layer
-// is being integrated into runtime.
-void instructionalAssessment;
   
 // --------------------------------------------------
 // ASSIGNMENT UNDERSTANDING RUNTIME GATE
