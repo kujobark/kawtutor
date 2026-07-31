@@ -1,20 +1,14 @@
-**BEGINNING OF OFFICIAL MANUSCRIPT**
-
-*Source basis: This draft preserves and builds from the uploaded Version 1.1 architecture guide while incorporating the constitutional governance decisions we finalized, including the updated governance principles, Communication Governance, and the new Communication Validation layer. *
-
----
-
 # Kaw Companion Governance & Architecture Guide
 
-### Constitutional Principles, Instructional Architecture, and System Design
+## Constitutional Principles, Observation Architecture, Instructional Architecture, Communication Architecture, and System Design
 
-**Version 2.0 — Draft 1**
+**Version 2.5 — Working Draft**
 
 ---
 
-**Kaw Companion**
+## Kaw Companion
 
-A Governed Instructional Engine
+### A Governed Instructional Engine
 
 ---
 
@@ -30,15 +24,16 @@ Working Constitutional Draft
 
 # Revision History
 
-| Version           | Date        | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| ----------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1.0               | Spring 2026 | Initial instructional architecture documenting the Framing Routine implementation.                                                                                                                                                                                                                                                                                                                                                                                           |
-| 1.1               | July 2026   | Introduced the Two-Gate Progression Model, expanded student ownership protections, formalized Communication Governance, and clarified instructional sufficiency.                                                                                                                                                                                                                                                                                                             |
-| **2.0 (Draft 1)** | July 2026   | Reorganized the project as a constitutional governance guide. Established deterministic instructional governance as the foundation of the system, elevated Communication Governance into an architectural layer, introduced Communication Validation following AI contextualization, replaced "instructional truth" with "instructional intent," and generalized the architecture so the Framing Routine becomes the current implementation rather than the defining system. |
+| Version                 | Date        | Description                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| ----------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1.0**                 | Spring 2026 | Initial instructional architecture documenting the Framing Routine implementation.                                                                                                                                                                                                                                                                                                                                                                |
+| **1.1**                 | July 2026   | Introduced the Two-Gate Progression Model, expanded student ownership protections, formalized Communication Governance, and clarified instructional sufficiency.                                                                                                                                                                                                                                                                                  |
+| **2.0**                 | July 2026   | Reorganized the project as a constitutional governance guide. Established deterministic instructional governance as the foundation of the system, elevated Communication Governance into an architectural layer, introduced Communication Validation, replaced *instructional truth* with *instructional intent*, and generalized the architecture beyond the Framing Routine.                                                                    |
+| **2.5 (Working Draft)** | July 2026   | Formalized the Observation Architecture, established AI Observation and AI Expression as AI's two constitutional responsibilities, introduced the Observation Report as governed evidence entering the deterministic instructional engine, expanded the Communication Architecture with Communication Analysis and the Communication Specification, and clarified the constitutional separation of **Observation → Instruction → Communication**. |
 
 ---
 
-# Preface
+Preface
 
 Every mature engineering discipline eventually reaches a point where implementation alone is no longer sufficient.
 
@@ -46,114 +41,154 @@ Software evolves.
 
 Algorithms evolve.
 
+Artificial intelligence evolves.
+
 Individual features evolve.
 
-Without an enduring constitutional framework, however, each improvement introduces the possibility of architectural drift. Systems slowly become collections of individually reasonable decisions that no longer operate according to a coherent design philosophy.
+Without an enduring constitutional framework, however, every improvement introduces the possibility of architectural drift. Systems gradually become collections of individually reasonable decisions that no longer operate according to a coherent design philosophy.
 
-The Kaw Companion project reached precisely this point during the development of Version 1.1.
+The Kaw Companion project reached precisely this point during the evolution from Version 1.0 to Version 2.0.
 
-What began as an instructional companion for the KU-CRL Framing Routine gradually revealed a deeper architectural discovery. The project was not merely building an intelligent tutoring system. It was uncovering the constitutional s required for a governed instructional engine capable of combining deterministic instructional reasoning with adaptive artificial intelligence.
+What began as an instructional companion for the KU–CRL Framing Routine gradually revealed a much broader architectural discovery. The project was not merely building an intelligent tutoring system. It was uncovering the constitutional principles required for a governed instructional engine capable of combining deterministic instructional reasoning with the adaptive strengths of artificial intelligence while preserving teacher intent, instructional integrity, and student ownership.
 
 Version 2.0 established the constitutional foundation for that discovery.
 
-It defined the permanent separation between instructional reasoning and instructional communication, introduced deterministic instructional intent as the governing center of the architecture, and established the constitutional s that every future implementation must preserve.
+It formally separated instructional reasoning from instructional communication, established deterministic instructional intent as the governing center of the architecture, and defined the constitutional principles that every future implementation must preserve regardless of programming language, instructional framework, or advances in artificial intelligence.
 
-Continued development of the runtime, however, revealed that another architectural distinction was equally important.
+Continued architectural refinement revealed that this separation, while essential, was still incomplete.
 
-Determining instruction and communicating instruction are not the same activity.
+Before instruction can be determined, the instructional engine must first understand the student's interaction.
 
-Likewise, communicating instruction and teaching are not the same activity.
+Likewise, before communication can occur, instructional intent must already have been established.
 
-Instruction determines **what** should occur.
+These realizations led to a complete architectural model consisting of three governed phases.
 
-Communication determines **how** that predetermined instruction is expressed.
+Observation.
 
-Teaching emerges from the successful integration of both.
+Instruction.
 
-This realization significantly expanded the role of the Communication Architecture.
+Communication.
 
-Rather than functioning solely as a governed interface between deterministic reasoning and artificial intelligence, the Communication Architecture became the architectural description of how predetermined instructional decisions are transformed into authentic instructional experiences while preserving constitutional governance.
+Observation gathers evidence.
 
-At the same time, implementation revealed another foundational requirement.
+Instruction determines meaning.
 
-Before instructional reasoning can determine instructional intent, the instructional engine must first establish sufficient understanding of the student's assignment.
+Communication expresses predetermined instructional intent.
 
-Every subsequent instructional inference—including Thinking Task identification, instructional interpretation, instructional contracts, validation, progression, and communication—depends upon this initial understanding.
+Each phase serves a fundamentally different purpose.
 
-For this reason, Assignment Understanding now occupies a permanent architectural role as the instructional gateway into the governed instructional engine.
+Each phase has a single constitutional responsibility.
 
-Instruction does not begin when Kaw believes it understands the assignment.
+Together they form the complete instructional reasoning cycle that governs every interaction within Kaw Companion.
 
-Instruction begins only after Kaw and the student establish a shared understanding of the assignment supported by sufficient instructional evidence.
+This architecture also fundamentally redefined the role of artificial intelligence.
 
-This guide represents the continuing evolution of the Kaw Companion architecture.
+Artificial intelligence is not the instructional decision-maker.
 
-Rather than documenting a specific implementation, this manuscript defines the governing s and architectural layers that every implementation must obey. The Framing Routine remains the current instructional framework through which these s are expressed, but it is no longer the architectural boundary of the system itself.
+Artificial intelligence serves two carefully governed constitutional responsibilities.
 
-Throughout this guide, one distinction remains paramount.
+First, AI functions as an instructional observer by identifying observable evidence contained within student interactions.
 
-Instruction and communication are fundamentally different operations.
+Second, AI functions as an instructional expression engine by communicating predetermined instructional intent naturally while faithfully preserving the decisions made by the deterministic instructional architecture.
 
-Instruction establishes instructional intent through deterministic reasoning.
+Instruction itself remains entirely deterministic.
 
-Communication expresses that predetermined intent through governed instructional interactions.
+This distinction is foundational.
 
-Artificial intelligence participates only within those governed communication boundaries.
+Artificial intelligence contributes observation and communication.
 
-This separation is not simply a software design preference.
+The deterministic instructional engine owns instructional reasoning.
 
-It is the constitutional  upon which every subsequent architectural decision depends.
+This separation ensures that instructional decisions remain transparent, consistent, reviewable, and governed while allowing communication to remain flexible, natural, and responsive to individual students.
 
-The pages that follow define those s, describe the instructional architecture that carries them out, and explain how governed communication transforms deterministic instructional reasoning into authentic teaching while preserving student ownership and instructional integrity.
+Throughout this guide, one constitutional principle remains paramount.
 
-Constitutional s are intentionally difficult to change because every architectural layer and every implementation depends upon them.
+The student owns the thinking. Kaw owns the instruction.
+
+Every architectural layer, every implementation decision, and every use of artificial intelligence exists to preserve that principle.
+
+This manuscript therefore describes far more than a software system.
+
+It defines the constitutional governance, architectural layers, instructional reasoning, communication architecture, and implementation boundaries that together form the Kaw Companion instructional engine.
+
+The Framing Routine remains the current instructional framework through which these principles are expressed.
+
+It is not, however, the architectural boundary of the system.
+
+The architecture presented throughout this guide is intentionally framework-independent.
+
+Future instructional models, additional thinking routines, and entirely new instructional domains should be capable of operating within the same constitutional governance while preserving the instructional philosophy upon which Kaw Companion is built.
+
+Constitutional principles are intentionally difficult to change because every architectural layer and every implementation depends upon them.
 
 Implementations evolve.
 
 Architecture matures.
 
+Artificial intelligence will continue to advance.
+
 The Constitution changes only with exceptional justification.
 
-```
+---
 
-                     CONSTITUTION
+```text
+                    CONSTITUTION
+           (Permanent Governance)
 
-          Constitutional Governance
-                 (Permanent)
+                      │
+                      ▼
 
-                      ↓
+           Observation Architecture
+      (How Student Interactions Become
+          Observable Instructional Evidence)
 
-         Instructional Architecture
-                 (Permanent)
+                      │
+                      ▼
 
-                      ↓
+             Evidence Architecture
+     (What Kaw Knows and Maintains)
+
+                      │
+                      ▼
+
+      Instructional Decision Architecture
+   (How Kaw Determines What to Teach)
+
+                      │
+                      ▼
 
          Communication Architecture
-                 (Permanent)
+ (How Deterministic Instruction Becomes
+      Natural Teacher Communication)
 
-                      ↓
+                      │
+                      ▼
 
-               System Design
-          (Reference Implementation)
+          Reference Implementation
+         (Current System Design)
 
-                      ↓
+                      │
+                      ▼
 
-         Instructional Framework
+        Instructional Framework
       (Framing Routine – Current)
 
-                      ↓
+                      │
+                      ▼
 
-            Runtime Implementation
-         (tutor.js and Supporting Code)
+       Runtime Implementation
+      (tutor.js and Supporting Code)
+```
 
 ---
+
 # Table of Contents
 
-**PART I — Constitutional Governance**
+## PART I — Constitutional Governance
 
 Chapter 1 — Why Governance Comes First
 
-Chapter 2 — Constitutional s
+Chapter 2 — Constitutional Principles
 
 Chapter 3 — Deterministic Instructional Intent
 
@@ -163,53 +198,55 @@ Chapter 5 — Governing Artificial Intelligence
 
 ---
 
-**PART II — Instructional Architecture**
+## PART II — Observation & Instructional Architecture
 
 Chapter 6 — The Governed Instructional Engine
 
-Chapter 7 — Assignment Understanding
+**Chapter 7 — Observation Architecture**
 
-Chapter 8 — Instructional Knowledge
+Chapter 8 — Assignment Understanding
 
-Chapter 9 — Instructional Reasoning
+Chapter 9 — Instructional Knowledge
 
-Chapter 10 — Instructional Contracts
+Chapter 10 — Instructional Reasoning
 
-Chapter 11 — The Two-Gate Progression Model
+Chapter 11 — Instructional Contracts
 
----
-
-**PART III — Communication Architecture**
-
-Chapter 12 — Communication Governance
-
-Chapter 13 — Communication Goals and Communication Taxonomy
-
-Chapter 14 — AI Contextualization
-
-Chapter 15 — Communication Validation
-
-Chapter 16 — Recovery Architecture
-
-Chapter 17 — Teacher Voice
+Chapter 12 — The Two-Gate Progression Model
 
 ---
 
-**PART IV — System Design**
+## PART III — Communication Architecture
 
-Chapter 18 — Evidence State
+Chapter 13 — Communication Governance
 
-Chapter 19 — Evidence Processing
+**Chapter 14 — Communication Analysis**
 
-Chapter 20 — Assignment Context
+Chapter 15 — Communication Specification
 
-Chapter 21 — Extending the Architecture
+Chapter 16 — AI Contextualization
 
-Chapter 22 — Future Instructional Models
+Chapter 17 — Communication Validation
+
+Chapter 18 — Teacher Voice
 
 ---
 
-**PART V — Appendices**
+## PART IV — System Design
+
+Chapter 19 — Evidence State
+
+Chapter 20 — Evidence Processing
+
+Chapter 21 — Assignment Context
+
+Chapter 22 — Extending the Architecture
+
+Chapter 23 — Future Instructional Models
+
+---
+
+## PART V — Appendices
 
 Appendix A — Constitutional Summary
 
@@ -219,7 +256,7 @@ Appendix C — Deterministic and Non-Deterministic Responsibilities
 
 Appendix D — Immutable Layer Contracts
 
-Appendix E — Design s
+Appendix E — Design Principles
 
 Appendix F — Looking Forward
 
