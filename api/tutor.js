@@ -14125,22 +14125,34 @@ const GENERIC_KEY_TOPICS = new Set(
 );
 
 function isBadKeyTopic(keyTopic) {
-  const kt = cleanText(keyTopic).toLowerCase();
+  const kt =
+    cleanText(keyTopic).toLowerCase();
 
   if (!kt) {
     return true;
   }
 
-  // Reject only explicitly generic nonexamples.
+  // A struggle, uncertainty, or meta response is not
+  // student evidence for the Key Topic component.
+  if (
+    isStuckMessage(kt) ||
+    isWeakFrameResponse(kt) ||
+    isMetaResponse(kt)
+  ) {
+    return true;
+  }
+
+  // Reject explicitly generic nonexamples.
   // Natural topic phrases such as "My grandfather,"
   // "My first job," and "My greatest accomplishment"
-  // are valid Key Topics.
+  // remain valid Key Topics.
   if (GENERIC_KEY_TOPICS.has(kt)) {
     return true;
   }
 
   return false;
 }
+
 function getKeyTopicFeedback(input) {
   const text = cleanText(input);
   const support = getComponentConversation("keyTopic");
@@ -19529,11 +19541,27 @@ if (
       return s;
     }
   
-    s.pending = {
-      type: "reviseKeyTopic",
-      feedback: getKeyTopicFeedback(cleaned),
-    };
-    return s;
+    if (
+  isStuckMessage(cleaned) ||
+  isWeakFrameResponse(cleaned) ||
+  isMetaResponse(cleaned)
+) {
+  s.pending = {
+    type: "reviseKeyTopic",
+    feedback:
+      "That’s okay—let’s keep it simple. Your Key Topic is the main subject of your assignment. What main topic are you explaining?",
+  };
+
+  return s;
+}
+
+s.pending = {
+  type: "reviseKeyTopic",
+  feedback:
+    getKeyTopicFeedback(cleaned),
+};
+
+return s;
 }
 
   // 3) Is About capture + checkpoint
