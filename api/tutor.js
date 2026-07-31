@@ -22141,19 +22141,35 @@ refreshShadowInstructionalSituationWithComponentFinding({
     instructionalFinding,
 });
 
-if (!soWhatValidation.valid) {
+  if (!soWhatValidation.valid) {
+  return beginStuckSupportFromPending(
+    s,
+    msg,
+    {
+      intent:
+        "stuck",
+
+      confidence:
+        1,
+
+      source:
+        `soWhatValidation:${soWhatValidation.diagnosis}`,
+
+      instructionalFinding,
+    }
+  );
+}
+
+// Replace only after governed validation.
+s.frame.soWhat =
+  msg;
+
+s.pending = {
+  type: "confirmSoWhat",
+};
+
+return s;
     
-    // Replace only after governed validation.
-    s.frame.soWhat =
-      msg;
-
-    s.pending = {
-      type: "confirmSoWhat",
-    };
-
-    return s;
-  }
-
   if (s.pending?.type === "offerExport") {
     const normalized = msg.toLowerCase().trim();
 
@@ -22629,23 +22645,39 @@ refreshShadowInstructionalSituationWithComponentFinding({
 });
 
 if (!soWhatValidation.valid) {
+  return beginStuckSupportFromPending(
+    s,
+    msg,
+    {
+      intent:
+        "stuck",
 
-    // Save only after governed validation.
-    s.frame.soWhat =
-      msg;
+      confidence:
+        1,
 
-    clearMatchingSkip(
-      s,
-      "soWhat"
-    );
+      source:
+        `soWhatValidation:${soWhatValidation.diagnosis}`,
 
-    s.pending = {
-      type:
-        "offerMoreSoWhat",
-    };
+      instructionalFinding,
+    }
+  );
+}
 
-    return s;
-  }
+// Save only after governed validation.
+s.frame.soWhat =
+  msg;
+
+clearMatchingSkip(
+  s,
+  "soWhat"
+);
+
+s.pending = {
+  type:
+    "offerMoreSoWhat",
+};
+
+return s;
 
   return s;
 }
