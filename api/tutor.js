@@ -22161,14 +22161,15 @@ refreshShadowInstructionalSituationWithComponentFinding({
 }
 
 // Replace only after governed validation.
-s.frame.soWhat =
-  msg;
-
-s.pending = {
-  type: "confirmSoWhat",
-};
-
-return s;
+    s.frame.soWhat =
+      msg;
+    
+    s.pending = {
+      type: "confirmSoWhat",
+    };
+    
+    return s;
+    }
     
   if (s.pending?.type === "offerExport") {
     const normalized = msg.toLowerCase().trim();
