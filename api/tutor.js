@@ -21902,41 +21902,80 @@ if (
         `${s.frame.soWhat} ${msg}`
       );
 
-    const soWhatValidation =
-      await validateSoWhatResponseGoverned(
-        proposedSoWhat,
-        buildSoWhatValidationContext(s)
-      );
+   const soWhatValidation =
+  await validateSoWhatResponseGoverned(
+    proposedSoWhat,
+    buildSoWhatValidationContext(s)
+  );
 
-    if (!soWhatValidation.valid) {
-      const instructionalFinding = {
-        frameComponent:
-          "soWhat",
+const instructionalFinding = {
+  ...buildComponentInstructionalFinding({
+    frameComponent:
+      "soWhat",
 
-        componentEvidenceLevel:
-          soWhatValidation
-            .componentEvidenceLevel,
+    validation:
+      soWhatValidation,
 
-        componentCriteriaStatus:
-          soWhatValidation
-            .componentCriteriaStatus,
+    evidence: {
+      keyTopic:
+        s.frame?.keyTopic || "",
 
-        relationshipStatus:
-          soWhatValidation
-            .relationshipStatus,
+      isAbout:
+        s.frame?.isAbout || "",
 
-        synthesisState:
-          soWhatValidation
-            .synthesisState,
+      mainIdeas:
+        getIdeaList(s)
+          .filter(Boolean),
 
-        diagnosis:
-          soWhatValidation
-            .diagnosis,
+      details:
+        Array.isArray(
+          s.frame?.details
+        )
+          ? s.frame.details.map(
+              (bucket) =>
+                Array.isArray(bucket)
+                  ? bucket.filter(Boolean)
+                  : []
+            )
+          : [],
 
-        relationshipEvidence:
-          soWhatValidation
-            .relationshipEvidence || {},
-      };
+      previousSoWhat:
+        s.frame?.soWhat || "",
+
+      additionalContent:
+        cleanText(msg),
+
+      proposedSoWhat,
+
+      captureMode:
+        "additionalContent",
+    },
+  }),
+
+  synthesisState:
+    soWhatValidation
+      .synthesisState || null,
+
+  validationSource:
+    soWhatValidation
+      .validationSource || null,
+
+  captureMode:
+    "additionalContent",
+};
+
+refreshShadowInstructionalSituationWithComponentFinding({
+  state:
+    s,
+
+  currentResponse:
+    proposedSoWhat,
+
+  componentFinding:
+    instructionalFinding,
+});
+
+if (!soWhatValidation.valid) {
 
       return beginStuckSupportFromPending(
         s,
@@ -22029,60 +22068,81 @@ if (
       return s;
     }
 
-    const soWhatValidation =
-      await validateSoWhatResponseGoverned(
-        msg,
-        buildSoWhatValidationContext(s)
-      );
+    const previousSoWhat =
+  s.frame?.soWhat || "";
 
-    if (!soWhatValidation.valid) {
-      const instructionalFinding = {
-        frameComponent:
-          "soWhat",
+const soWhatValidation =
+  await validateSoWhatResponseGoverned(
+    msg,
+    buildSoWhatValidationContext(s)
+  );
 
-        componentEvidenceLevel:
-          soWhatValidation
-            .componentEvidenceLevel,
+const instructionalFinding = {
+  ...buildComponentInstructionalFinding({
+    frameComponent:
+      "soWhat",
 
-        componentCriteriaStatus:
-          soWhatValidation
-            .componentCriteriaStatus,
+    validation:
+      soWhatValidation,
 
-        relationshipStatus:
-          soWhatValidation
-            .relationshipStatus,
+    evidence: {
+      keyTopic:
+        s.frame?.keyTopic || "",
 
-        synthesisState:
-          soWhatValidation
-            .synthesisState,
+      isAbout:
+        s.frame?.isAbout || "",
 
-        diagnosis:
-          soWhatValidation
-            .diagnosis,
+      mainIdeas:
+        getIdeaList(s)
+          .filter(Boolean),
 
-        relationshipEvidence:
-          soWhatValidation
-            .relationshipEvidence || {},
-      };
+      details:
+        Array.isArray(
+          s.frame?.details
+        )
+          ? s.frame.details.map(
+              (bucket) =>
+                Array.isArray(bucket)
+                  ? bucket.filter(Boolean)
+                  : []
+            )
+          : [],
 
-      return beginStuckSupportFromPending(
-        s,
-        msg,
-        {
-          intent:
-            "stuck",
+      previousSoWhat,
 
-          confidence:
-            1,
+      attemptedSoWhat:
+        cleanText(msg),
 
-          source:
-            `soWhatValidation:${soWhatValidation.diagnosis}`,
+      captureMode:
+        "revision",
+    },
+  }),
 
-          instructionalFinding,
-        }
-      );
-    }
+  synthesisState:
+    soWhatValidation
+      .synthesisState || null,
 
+  validationSource:
+    soWhatValidation
+      .validationSource || null,
+
+  captureMode:
+    "revision",
+};
+
+refreshShadowInstructionalSituationWithComponentFinding({
+  state:
+    s,
+
+  currentResponse:
+    msg,
+
+  componentFinding:
+    instructionalFinding,
+});
+
+if (!soWhatValidation.valid) {
+    
     // Replace only after governed validation.
     s.frame.soWhat =
       msg;
@@ -22500,59 +22560,75 @@ return s;
       return s;
     }
 
-    const soWhatValidation =
-      await validateSoWhatResponseGoverned(
-        msg,
-        buildSoWhatValidationContext(s)
-      );
+   const soWhatValidation =
+  await validateSoWhatResponseGoverned(
+    msg,
+    buildSoWhatValidationContext(s)
+  );
 
-    if (!soWhatValidation.valid) {
-      const instructionalFinding = {
-        frameComponent:
-          "soWhat",
+const instructionalFinding = {
+  ...buildComponentInstructionalFinding({
+    frameComponent:
+      "soWhat",
 
-        componentEvidenceLevel:
-          soWhatValidation
-            .componentEvidenceLevel,
+    validation:
+      soWhatValidation,
 
-        componentCriteriaStatus:
-          soWhatValidation
-            .componentCriteriaStatus,
+    evidence: {
+      keyTopic:
+        s.frame?.keyTopic || "",
 
-        relationshipStatus:
-          soWhatValidation
-            .relationshipStatus,
+      isAbout:
+        s.frame?.isAbout || "",
 
-        synthesisState:
-          soWhatValidation
-            .synthesisState,
+      mainIdeas:
+        getIdeaList(s)
+          .filter(Boolean),
 
-        diagnosis:
-          soWhatValidation
-            .diagnosis,
+      details:
+        Array.isArray(
+          s.frame?.details
+        )
+          ? s.frame.details.map(
+              (bucket) =>
+                Array.isArray(bucket)
+                  ? bucket.filter(Boolean)
+                  : []
+            )
+          : [],
 
-        relationshipEvidence:
-          soWhatValidation
-            .relationshipEvidence || {},
-      };
+      attemptedSoWhat:
+        cleanText(msg),
 
-      return beginStuckSupportFromPending(
-        s,
-        msg,
-        {
-          intent:
-            "stuck",
+      captureMode:
+        "initial",
+    },
+  }),
 
-          confidence:
-            1,
+  synthesisState:
+    soWhatValidation
+      .synthesisState || null,
 
-          source:
-            `soWhatValidation:${soWhatValidation.diagnosis}`,
+  validationSource:
+    soWhatValidation
+      .validationSource || null,
 
-          instructionalFinding,
-        }
-      );
-    }
+  captureMode:
+    "initial",
+};
+
+refreshShadowInstructionalSituationWithComponentFinding({
+  state:
+    s,
+
+  currentResponse:
+    msg,
+
+  componentFinding:
+    instructionalFinding,
+});
+
+if (!soWhatValidation.valid) {
 
     // Save only after governed validation.
     s.frame.soWhat =
