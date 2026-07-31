@@ -268,51 +268,99 @@ Appendix F — Looking Forward
 
 ---
 
-# Chapter 1
+Chapter 1 — Why Governance Comes First
 
-## Why Governance Comes First
+Every mature engineering discipline eventually reaches a point where implementation alone is no longer sufficient.
 
-Every instructional system answers two fundamental questions.
+Software evolves.
 
-**What should happen next?**
+Algorithms evolve.
 
-**How should that decision be communicated?**
+Artificial intelligence evolves.
 
-Traditional tutoring systems often treat these questions as one. The same mechanism that determines instructional direction also generates the instructional response.
+Individual features evolve.
 
-Kaw intentionally rejects this approach.
+Without an enduring constitutional framework, however, each improvement introduces the possibility of architectural drift. Systems gradually become collections of individually reasonable decisions that no longer operate according to a coherent design philosophy.
 
-The architecture begins with a constitutional separation between instructional reasoning and instructional communication.
+The Kaw Companion project reached precisely this point during its evolution from Version 1.0 to Version 2.5.
 
-Instructional reasoning determines the appropriate instructional action.
+What began as an instructional companion for the KU–CRL Framing Routine gradually revealed a broader architectural discovery. The project was not simply building an intelligent tutoring system. It was uncovering the constitutional principles required for a governed instructional engine capable of combining deterministic instructional reasoning with the adaptive strengths of artificial intelligence while preserving teacher intent, instructional integrity, and student ownership.
 
-Communication expresses that predetermined action.
+The most significant realization was that instruction is only one part of a complete instructional interaction.
 
-Although closely related, these are fundamentally different responsibilities requiring different forms of governance.
+Before instruction can occur, the instructional engine must first understand the student's interaction.
 
-Instructional reasoning must remain completely deterministic.
+After instruction has been determined, the instructional engine must then communicate that predetermined instructional intent naturally to the student.
 
-Every student response should produce an instructional decision that is explainable, reproducible, and consistent with established instructional principles.
+These are fundamentally different responsibilities.
 
-Communication, by contrast, benefits from flexibility.
+Confusing them places instructional authority at risk.
 
-Natural language varies.
+For this reason, Kaw Companion separates every instructional interaction into three governed architectural phases.
 
-Teacher voice varies.
+Observation
 
-Assignments vary.
+↓
 
-Students vary.
+Instruction
 
-Artificial intelligence can adapt to these differences, provided that every adaptation remains bounded by deterministic governance.
+↓
 
-This distinction transforms AI from an instructional decision-maker into a governed communication partner.
+Communication
 
-Rather than deciding what instruction should occur, AI communicates instruction that has already been determined.
+Each phase answers a fundamentally different question.
 
-This constitutional separation protects instructional consistency while preserving the conversational qualities that make individualized instruction effective.
+Observation
 
-Everything that follows in this guide builds upon this foundational distinction.
+What can be objectively observed from the student's interaction?
+
+Instruction
+
+Based on all available evidence, what should occur instructionally?
+
+Communication
+
+How should that predetermined instructional decision be expressed naturally to the student?
+
+These questions must be answered in this order.
+
+Observation precedes Instruction.
+
+Instruction precedes Communication.
+
+Each phase builds upon the work of the previous phase while remaining constitutionally independent.
+
+This separation defines the role of artificial intelligence within Kaw Companion.
+
+Artificial intelligence is not the instructional decision-maker.
+
+Artificial intelligence serves two carefully governed constitutional responsibilities.
+
+First, AI functions as an instructional observer by identifying observable evidence contained within student interactions.
+
+Second, AI functions as a communication engine by expressing predetermined instructional intent naturally while preserving every instructional constraint established by the deterministic instructional architecture.
+
+Instruction itself remains entirely deterministic.
+
+The deterministic instructional engine alone evaluates evidence, determines instructional situations, selects instructional contracts, governs instructional progression, and establishes instructional intent.
+
+This distinction preserves consistency, transparency, and instructional integrity while allowing communication to remain flexible, conversational, and responsive to individual students.
+
+Throughout this guide, one constitutional principle remains paramount.
+
+The student owns the thinking. Kaw owns the instruction.
+
+Every architectural layer described throughout this manuscript exists to preserve that principle.
+
+Observation gathers evidence.
+
+Instruction determines meaning.
+
+Communication expresses predetermined instructional intent.
+
+Together these governed phases establish a complete instructional reasoning cycle capable of supporting authentic teaching while preserving deterministic instructional governance.
+
+The chapters that follow define each architectural layer individually before demonstrating how they operate together as a single governed instructional engine.
 
 ---
 
@@ -320,81 +368,108 @@ Everything that follows in this guide builds upon this foundational distinction.
 
 ## Constitutional Principles
 
-Every architectural component described throughout this guide derives from five constitutional principles.
+Every architectural component described throughout this guide derives from six constitutional principles.
 
 These principles are not implementation details.
 
 They are permanent governance rules that every future implementation must obey.
 
-**Principle One — Deterministic instructional reasoning establishes instructional intent.**
+---
+
+### Principle One — Observation precedes Instruction. Instruction precedes Communication.
+
+Every instructional interaction consists of three constitutionally governed phases.
+
+```text
+Observation
+
+↓
+
+Instruction
+
+↓
+
+Communication
+```
+
+Observation identifies and reports observable instructional evidence from student interactions.
+
+Instruction evaluates all available evidence and determines instructional intent through deterministic reasoning.
+
+Communication expresses that predetermined instructional intent naturally while preserving every instructional constraint.
+
+These responsibilities remain permanently separated.
+
+Artificial intelligence may observe.
+
+Artificial intelligence may communicate.
+
+Artificial intelligence may not independently determine instructional intent.
+
+---
+
+### Principle Two — Deterministic instructional reasoning establishes instructional intent.
 
 Instructional decisions originate exclusively through deterministic reasoning.
 
-The instructional engine determines instructional location, instructional objective, progression, teaching move, thinking move, validation requirements, and recovery strategy before any communication occurs.
+The instructional engine determines instructional goals, instructional progression, teaching moves, thinking moves, instructional contracts, validation requirements, and communication requirements before any communication occurs.
 
-Artificial intelligence never establishes instructional intent.
-
-It communicates instructional intent.
+Instructional intent is established prior to communication and remains independent of how that intent is later expressed.
 
 ---
 
-**Principle Two — Instruction precedes communication.**
+### Principle Three — The student owns the thinking. Kaw owns the instruction.
 
-Communication may never determine instruction.
-
-Before any instructional response is generated, the instructional engine has already established the precise instructional action to be communicated.
-
-Instruction is therefore an architectural prerequisite for communication.
-
----
-
-**Principle Three — The student owns the thinking. Kaw owns the instruction.**
-
-The student remains responsible for every intellectual contribution.
+Students remain responsible for every intellectual contribution.
 
 Kaw remains responsible for instructional guidance, progression, validation, clarification, and coaching.
 
-This principle governs every interaction within the system.
-
 Student ownership is never exchanged for instructional efficiency.
+
+Artificial intelligence may support student thinking.
+
+It may never replace student thinking.
+
+This principle governs every instructional interaction within the system.
 
 ---
 
-**Principle Four — Recovery means smaller thinking—not different thinking.**
+### Principle Four — Recovery means smaller thinking—not different thinking.
 
-When students struggle, the instructional objective does not change.
+When students experience instructional difficulty, the instructional objective does not change.
 
-Instead, instructional support becomes smaller, more explicit, or more scaffolded until the student can successfully perform the intended thinking.
+Instead, instruction becomes more explicit, more scaffolded, or more narrowly focused until the student successfully performs the intended thinking.
 
-Recovery therefore preserves instructional intent while reducing cognitive demand.
+Recovery preserves instructional intent while reducing cognitive demand.
 
 Instructional direction remains unchanged.
 
 ---
 
-**Principle Five — Every non-deterministic operation must be bounded by deterministic governance.**
+### Principle Five — Every non-deterministic operation remains bounded by deterministic governance.
 
-Artificial intelligence introduces flexibility into communication.
+Artificial intelligence introduces flexibility into observation and communication.
 
-Flexibility without governance creates inconsistency.
+Flexibility without governance introduces inconsistency.
 
-Therefore every non-deterministic operation must operate inside deterministic boundaries established before AI is ever invoked.
+Therefore every non-deterministic operation must operate within deterministic boundaries established before artificial intelligence is invoked.
 
-These boundaries define what AI may communicate, what it may modify, and what it may never change.
+These boundaries define:
 
-Together, these five principles constitute the constitutional foundation of the Kaw Companion architecture.
-
-Every architectural decision presented in later chapters exists to preserve one or more of these governing principles.
+* what AI may observe,
+* what AI may communicate,
+* what instructional information AI receives,
+* and what AI may never determine.
 
 ---
 
-Principle Six — Artificial intelligence may recognize observable instructional evidence but may not infer unobservable student states.
+### Principle Six — Instructional authority remains deterministic.
 
-Artificial intelligence may recognize instructional evidence explicitly demonstrated by the student, including uncertainty, requests for clarification, frustration expressed through language, refusal, or other observable instructional behaviors.
+Artificial intelligence contributes observational evidence and natural language expression.
 
-Artificial intelligence may not infer psychological, emotional, cognitive, motivational, or medical states that are not directly supported by observable evidence.
+The deterministic instructional engine alone evaluates evidence, determines instructional situations, selects instructional contracts, establishes instructional intent, governs instructional progression, and determines instructional responses.
 
-Instructional reasoning must remain grounded in evidence rather than speculation.
+Instructional authority therefore remains transparent, explainable, reviewable, and constitutionally governed regardless of future advances in artificial intelligence.
 
 ---
 
@@ -745,307 +820,134 @@ These observations become instructional evidence available to deterministic reas
 Artificial intelligence may never infer internal student characteristics, emotional conditions, cognitive diagnoses, or motivational states that have not been directly demonstrated.
 
 ---
-I actually think this chapter should mirror the Communication Architecture chapter. That way the two AI responsibilities feel like complementary halves of the same system.
 
-I'd draft it like this.
+# Chapter 5 — Governing Artificial Intelligence
 
----
+Artificial intelligence is an essential component of the Kaw Companion architecture.
 
-# Chapter 5: Observation Architecture
+It is not, however, the instructional authority.
 
-## Purpose
+The constitutional architecture intentionally separates the capabilities of artificial intelligence from the responsibilities of instructional reasoning.
 
-The Observation Architecture serves as the constitutional boundary between student interactions and deterministic instructional reasoning.
+This separation preserves instructional consistency, transparency, explainability, and student ownership while allowing Kaw Companion to benefit from artificial intelligence's strengths in natural language understanding and communication.
 
-Its responsibility is to transform unstructured student communication into governed observational evidence before any instructional decisions are made.
+Within the Kaw Companion architecture, artificial intelligence serves two—and only two—constitutional responsibilities.
 
-The Observation Architecture does not determine instruction.
+## AI Observation
 
-The Observation Architecture gathers evidence.
+Artificial intelligence first serves as an instructional observer.
 
----
-
-# Constitutional Principle
-
-> **AI observes. Kaw instructs.**
-
-Observation and instruction are intentionally separated.
-
-Artificial intelligence is responsible for recognizing observable characteristics of student communication.
-
-The deterministic instructional engine is responsible for interpreting those observations instructionally.
-
-This separation preserves deterministic instructional ownership while leveraging artificial intelligence's strength in understanding natural language.
-
----
-
-# Architectural Position
-
-```text
-                    Student
-                       │
-                       ▼
-              Student Interaction
-                       │
-                       ▼
-             AI Observation Layer
-──────────────────────────────────────────────
-Observable Evidence
-        ↓
-Observation Report
-──────────────────────────────────────────────
-                       │
-                       ▼
-                Evidence State
-                       │
-                       ▼
-      Deterministic Instructional Engine
-```
-
----
-
-# Purpose of Observation
-
-Observation answers a single question:
-
-> **What can be objectively observed from the student's interaction?**
-
-Observation intentionally avoids instructional interpretation.
-
-It describes what is present.
-
-It does not determine what should happen next.
-
----
-
-# Constitutional Responsibilities of AI Observation
-
-The AI Observation Layer has one responsibility:
-
-Produce an Observation Report describing observable instructional evidence contained within the student's interaction.
-
-Observation may identify patterns.
-
-Observation may identify language.
-
-Observation may identify behaviors.
-
-Observation may not determine instructional meaning.
-
----
-
-# Observable Evidence
-
-Observable evidence consists only of information that can be directly supported by the student's interaction.
+Its responsibility is to examine student interactions and identify observable instructional evidence.
 
 Examples include:
 
 * expressions of uncertainty
 * requests for clarification
 * answer-seeking behavior
-* off-task responses
 * frustration language
-* repeated unsuccessful attempts
-* apparent confidence
-* acknowledgment of previous coaching
+* off-task responses
+* repeated attempts
 * references to assignment context
+* use of Framing Routine vocabulary
 
-Observable evidence describes what the student communicated.
+Artificial intelligence reports these observations through a governed Observation Report.
 
-It does not explain why.
+The Observation Report contains observable evidence only.
+
+Artificial intelligence does not determine instructional meaning, instructional readiness, instructional progression, misconceptions, or instructional responses.
+
+Those responsibilities belong exclusively to the deterministic instructional engine.
 
 ---
 
-# Non-Observable Evidence
+## AI Expression
 
-The Observation Layer intentionally avoids conclusions requiring instructional reasoning.
+After deterministic instructional reasoning has completed, artificial intelligence serves as a communication engine.
 
-Examples include:
+Its responsibility is to express predetermined instructional intent naturally while preserving every instructional requirement established by the Communication Specification.
 
-* instructional readiness
-* mastery
-* misconception classification
+Artificial intelligence may vary:
+
+* wording
+* sentence structure
+* pacing
+* conversational flow
+* natural language
+
+Artificial intelligence may not alter:
+
+* instructional intent
+* instructional goals
+* instructional contracts
 * instructional progression
-* thinking quality
-* component completion
+* communication constraints
+* student ownership
+
+Instruction remains deterministic.
+
+Communication remains adaptive.
+
+---
+
+## Constitutional Boundaries
+
+Artificial intelligence never independently determines:
+
+* instructional intent
+* teaching strategy
+* instructional contracts
+* instructional progression
+* validation requirements
 * instructional success
 * instructional failure
 
-These determinations belong exclusively to the deterministic instructional engine.
+Instead, artificial intelligence operates within deterministic boundaries established before it is invoked.
+
+Those boundaries ensure that instructional authority always remains within the governed instructional engine.
 
 ---
 
-# Observation Report
+## Constitutional Summary
 
-The Observation Report is the governed interface between the AI Observation Layer and the Evidence State.
+Artificial intelligence contributes observation.
 
-Its purpose is to summarize observable evidence in a deterministic, reviewable structure.
+Artificial intelligence contributes communication.
 
-The Observation Report is not an instructional recommendation.
+The deterministic instructional engine contributes instruction.
 
-It is an evidence report.
-
----
-
-# Principle of Objective Observation
-
-Observation Reports should describe observations rather than conclusions.
-
-For example:
-
-Appropriate observations:
-
-* Student explicitly requests the answer.
-* Student states they are confused.
-* Student references previous feedback.
-* Student changes the topic.
-* Student repeats the same response.
-
-Inappropriate observations:
-
-* Student is experiencing genuine struggle.
-* Student has mastered the concept.
-* Student is ready to advance.
-* Student requires revision.
-* Student should receive clarification.
-
-Those are instructional conclusions.
-
----
-
-# Observation Categories
-
-Observation Reports may organize evidence into several categories.
-
-## Student Intent
-
-Examples:
-
-* clarification request
-* answer seeking
-* off-task behavior
-* topic change
-* procedural question
-
----
-
-## Student Affect
-
-Examples:
-
-* frustration
-* uncertainty
-* confidence
-* hesitation
-* engagement
-
----
-
-## Interaction Patterns
-
-Examples:
-
-* repeated attempt
-* repeated misconception
-* response revision
-* acknowledgement of coaching
-* conversation continuity
-
----
-
-## Assignment References
-
-Examples:
-
-* assignment context
-* teacher directions
-* framing routine vocabulary
-* component references
-
----
-
-# Observation Confidence
-
-Observations should include confidence indicating the certainty of the observation itself.
-
-Confidence reflects confidence in the observation—not confidence in instructional interpretation.
-
-For example:
-
-"I don't understand."
-
-High confidence:
-
-Student expresses confusion.
-
-Low confidence:
-
-Student is experiencing genuine struggle.
-
-The latter requires instructional interpretation and therefore belongs outside the Observation Layer.
-
----
-
-# Relationship to Evidence State
-
-Observation Reports become one source of evidence within the Evidence State.
-
-The Evidence State integrates:
+These responsibilities remain permanently separated.
 
 ```text
-Current Student Artifact
-
-+
-
-Observation Report
-
-+
-
-Accumulated Evidence
-
-↓
-
-Evidence State
+Student Interaction
+        │
+        ▼
+AI Observation
+        │
+        ▼
+Deterministic Instruction
+        │
+        ▼
+AI Expression
+        │
+        ▼
+Student
 ```
 
-The deterministic instructional engine evaluates all available evidence before making instructional decisions.
+This separation preserves the constitutional principle upon which the Kaw Companion architecture is founded:
+
+> **The student owns the thinking. Kaw owns the instruction.**
 
 ---
 
-# Ownership
+# Chapter 6 — The Governed Instructional Engine
 
-The Observation Architecture has clearly defined ownership.
+The Kaw Companion instructional engine is a constitutionally governed system for transforming student interactions into authentic instructional experiences.
 
-| Responsibility                 | Owner                              |
-| ------------------------------ | ---------------------------------- |
-| Natural language understanding | AI Observation Layer               |
-| Observation Report             | AI Observation Layer               |
-| Evidence integration           | Evidence State                     |
-| Instructional interpretation   | Deterministic Instructional Engine |
+Rather than allowing instructional decisions to emerge from artificial intelligence, the instructional engine establishes instructional intent through deterministic reasoning before any instructional communication occurs.
 
-Artificial intelligence never determines instructional intent.
+The instructional engine therefore serves as the constitutional center of the Kaw Companion architecture.
 
-Artificial intelligence contributes observational evidence.
-
----
-
-# Constitutional Summary
-
-The Observation Architecture intentionally separates observation from instruction.
-
-Artificial intelligence excels at understanding human language and recognizing observable interaction patterns.
-
-The deterministic instructional engine excels at making consistent instructional decisions.
-
-By restricting artificial intelligence to objective observation, Kaw Companion preserves deterministic instructional ownership while benefiting from AI's ability to interpret natural language.
-
-Observation gathers evidence.
-
-Instruction determines meaning.
-
-Communication expresses predetermined instructional intent.
-
-Together, these three governed phases establish a complete instructional reasoning cycle:
+Every instructional interaction follows the same governed progression.
 
 ```text
 Student Interaction
@@ -1063,23 +965,35 @@ Instruction
 Communication
         │
         ▼
-Student Interaction
+Student
 ```
 
----
+Each architectural phase performs a single responsibility.
 
-## One suggestion before we call this "done"
+Observation gathers observable evidence from student interactions.
 
-There's one thing I'd like us to discuss before locking this chapter.
+Evidence organizes and maintains the instructional information available to the system.
 
-Yesterday we said **"Observation Report"**, but after sleeping on it I'm wondering if **"Observation Layer"** actually has **two outputs**:
+Instruction evaluates that evidence, determines instructional meaning, selects the appropriate instructional contract, and establishes instructional intent.
 
-1. **Structured Observation Report** (for deterministic processing)
-2. **Observation Metadata** (confidence, citations, ambiguity, etc.)
+Communication expresses that predetermined instructional intent naturally while preserving every constitutional and instructional constraint.
 
-That may prove useful later as the system grows, but I wouldn't add it unless we decide it solves a real architectural problem rather than just making the design more sophisticated. My instinct is to keep this chapter as simple as possible unless we identify a concrete need.
+Because these responsibilities remain separated, instructional authority never depends upon artificial intelligence.
 
+Instead, artificial intelligence supports the instructional engine by providing natural language understanding during Observation and natural language expression during Communication.
 
+The instructional engine remains responsible for every instructional decision.
+
+This architecture provides four fundamental benefits.
+
+* **Consistency** — Similar instructional situations receive similar instructional decisions.
+* **Transparency** — Every instructional decision can be traced to observable evidence and deterministic reasoning.
+* **Governance** — Instructional authority remains constitutionally bounded regardless of advances in artificial intelligence.
+* **Student Ownership** — Students remain responsible for the intellectual work while Kaw remains responsible for instructional guidance.
+
+The instructional engine therefore functions as more than a software implementation.
+
+It serves as the permanent constitutional framework through which instructional reasoning, communication, and artificial intelligence operate together while preserving the instructional philosophy of Kaw Companion.
 
 ---
 # Chapter 7
