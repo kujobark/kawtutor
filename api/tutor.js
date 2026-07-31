@@ -1870,6 +1870,493 @@ function buildInteractionInstructionalFinding(
 }
 
 // ------------------------------------------------------
+// INTERACTION PATHWAY COMPARISON
+// ------------------------------------------------------
+//
+// Compares the new governed Interaction Instructional
+// Finding with the temporary legacy interaction pathway.
+//
+// This comparison exists only to support migration.
+//
+// It does not:
+//
+// • determine instructional truth;
+// • classify genuine struggle;
+// • select a contract;
+// • determine support level;
+// • alter progression;
+// • alter pending state;
+// • generate communication;
+// • give legacy reasoning authority over the governed
+//   pathway.
+//
+// A difference is not automatically an error.
+//
+// The new pathway is intentionally more restrained than
+// the legacy pathway. For example:
+//
+// Governed:
+// uncertaintyExpressed
+//
+// Legacy:
+// stuck / struggling / highSupport
+//
+// These may describe related evidence while operating at
+// different levels of inference.
+//
+// Current status:
+//
+// Shadow mode only.
+//
+// ------------------------------------------------------
+
+function buildInteractionPathwayComparison(
+  instructionalAssessment
+) {
+  const safeAssessment =
+    instructionalAssessment &&
+    typeof instructionalAssessment === "object"
+      ? instructionalAssessment
+      : {};
+
+  const governedFinding =
+    safeAssessment
+      ?.interactionInstructionalFinding &&
+    typeof safeAssessment
+      .interactionInstructionalFinding ===
+        "object"
+      ? safeAssessment
+          .interactionInstructionalFinding
+      : null;
+
+  const legacyComparison =
+    safeAssessment
+      ?.legacyInteractionComparison &&
+    typeof safeAssessment
+      .legacyInteractionComparison ===
+        "object"
+      ? safeAssessment
+          .legacyInteractionComparison
+      : null;
+
+  if (
+    !governedFinding &&
+    !legacyComparison
+  ) {
+    return {
+      comparisonStatus:
+        "notComparable",
+
+      comparisonReason:
+        "No governed or legacy interaction artifact was available.",
+
+      governedPathwayAvailable:
+        false,
+
+      legacyPathwayAvailable:
+        false,
+
+      broadAlignment:
+        null,
+
+      shadowMode:
+        true,
+    };
+  }
+
+  if (!governedFinding) {
+    return {
+      comparisonStatus:
+        "notComparable",
+
+      comparisonReason:
+        "The governed interaction finding was unavailable.",
+
+      governedPathwayAvailable:
+        false,
+
+      legacyPathwayAvailable:
+        true,
+
+      broadAlignment:
+        null,
+
+      legacy:
+        structuredClone(
+          legacyComparison
+        ),
+
+      shadowMode:
+        true,
+    };
+  }
+
+  if (!legacyComparison) {
+    return {
+      comparisonStatus:
+        "governedOnly",
+
+      comparisonReason:
+        "The governed interaction finding was available, but no legacy comparison artifact was present.",
+
+      governedPathwayAvailable:
+        true,
+
+      legacyPathwayAvailable:
+        false,
+
+      broadAlignment:
+        null,
+
+      governed: {
+        interactionSituation:
+          governedFinding
+            ?.interactionSituation ||
+          null,
+
+        componentEvidenceFinding:
+          governedFinding
+            ?.componentEvidenceFinding ||
+          null,
+
+        responseFunctionsOnlyAsInteraction:
+          governedFinding
+            ?.responseFunctionsOnlyAsInteraction ===
+          true,
+      },
+
+      shadowMode:
+        true,
+    };
+  }
+
+  const governedSituation =
+    cleanText(
+      governedFinding
+        ?.interactionSituation || ""
+    );
+
+  const governedNoComponentEvidence =
+    governedFinding
+      ?.componentEvidenceFinding ===
+      "noComponentEvidenceObserved";
+
+  const legacyState =
+    cleanText(
+      legacyComparison
+        ?.instructionalState || ""
+    ).toLowerCase();
+
+  const legacyBehavior =
+    cleanText(
+      legacyComparison
+        ?.instructionalBehavior || ""
+    ).toLowerCase();
+
+  const legacySupportLevel =
+    cleanText(
+      legacyComparison
+        ?.supportLevel || "none"
+    ).toLowerCase();
+
+  const legacySignals =
+    legacyComparison?.signals &&
+    typeof legacyComparison.signals ===
+      "object"
+      ? legacyComparison.signals
+      : {};
+
+  const legacyText =
+    [
+      legacyState,
+      legacyBehavior,
+      legacySupportLevel,
+
+      ...Object.entries(
+        legacySignals
+      ).flatMap(
+        ([key, value]) => [
+          cleanText(key).toLowerCase(),
+          cleanText(
+            typeof value === "string"
+              ? value
+              : value === true
+                ? key
+                : ""
+          ).toLowerCase(),
+        ]
+      ),
+    ]
+      .filter(Boolean)
+      .join(" ");
+
+  const legacyIndicatesUncertaintyOrStruggle =
+    [
+      "stuck",
+      "struggl",
+      "uncertain",
+      "confus",
+      "help",
+      "support",
+      "frustrat",
+      "resistan",
+      "answerseek",
+      "answer seek",
+      "clarif",
+    ].some(
+      (marker) =>
+        legacyText.includes(marker)
+    );
+
+  const legacyIndicatesFrustration =
+    legacyText.includes(
+      "frustrat"
+    );
+
+  const legacyIndicatesAnswerSeeking =
+    legacyText.includes(
+      "answerseek"
+    ) ||
+    legacyText.includes(
+      "answer seek"
+    ) ||
+    legacyText.includes(
+      "just tell"
+    ) ||
+    legacyText.includes(
+      "resistan"
+    );
+
+  const legacyIndicatesClarification =
+    legacyText.includes(
+      "clarif"
+    );
+
+  const legacyIndicatesOffTask =
+    legacyText.includes(
+      "offtask"
+    ) ||
+    legacyText.includes(
+      "off task"
+    );
+
+  const legacyIndicatesNoSpecialCondition =
+    !legacyIndicatesUncertaintyOrStruggle &&
+    !legacyIndicatesOffTask &&
+    legacySupportLevel === "none";
+
+  let broadAlignment =
+    false;
+
+  let comparisonStatus =
+    "meaningfulDifference";
+
+  let comparisonReason =
+    "The governed and legacy pathways identified different broad interaction conditions.";
+
+  if (
+    governedSituation ===
+      "frustrationExpressed" &&
+    legacyIndicatesFrustration
+  ) {
+    broadAlignment =
+      true;
+
+    comparisonStatus =
+      "broadlyAligned";
+
+    comparisonReason =
+      "Both pathways detected observable frustration-related evidence.";
+  } else if (
+    governedSituation ===
+      "answerSeekingObserved" &&
+    (
+      legacyIndicatesAnswerSeeking ||
+      legacyIndicatesUncertaintyOrStruggle
+    )
+  ) {
+    broadAlignment =
+      true;
+
+    comparisonStatus =
+      "broadlyAlignedWithDifferentInferenceDepth";
+
+    comparisonReason =
+      "The governed pathway recorded answer-seeking evidence while the legacy pathway used a broader struggle or support classification.";
+  } else if (
+    governedSituation ===
+      "clarificationRequested" &&
+    (
+      legacyIndicatesClarification ||
+      legacyIndicatesUncertaintyOrStruggle
+    )
+  ) {
+    broadAlignment =
+      true;
+
+    comparisonStatus =
+      "broadlyAlignedWithDifferentInferenceDepth";
+
+    comparisonReason =
+      "The governed pathway recorded a clarification request while the legacy pathway used a broader struggle or support classification.";
+  } else if (
+    governedSituation ===
+      "uncertaintyExpressed" &&
+    legacyIndicatesUncertaintyOrStruggle
+  ) {
+    broadAlignment =
+      true;
+
+    comparisonStatus =
+      "broadlyAlignedWithDifferentInferenceDepth";
+
+    comparisonReason =
+      "The governed pathway recorded uncertainty while the legacy pathway used a broader struggle or support classification.";
+  } else if (
+    governedSituation ===
+      "offTaskShiftObserved" &&
+    legacyIndicatesOffTask
+  ) {
+    broadAlignment =
+      true;
+
+    comparisonStatus =
+      "broadlyAligned";
+
+    comparisonReason =
+      "Both pathways detected an off-task interaction condition.";
+  } else if (
+    governedSituation ===
+      "noSpecialInteractionCondition" &&
+    legacyIndicatesNoSpecialCondition
+  ) {
+    broadAlignment =
+      true;
+
+    comparisonStatus =
+      "broadlyAligned";
+
+    comparisonReason =
+      "Neither pathway detected a special interaction condition.";
+  } else if (
+    governedSituation ===
+      "noSpecialInteractionCondition" &&
+    legacyIndicatesUncertaintyOrStruggle
+  ) {
+    comparisonStatus =
+      "legacyMoreInferential";
+
+    comparisonReason =
+      "The legacy pathway inferred struggle or support need that was not directly established by the governed Observation Report.";
+  } else if (
+    governedSituation !==
+      "noSpecialInteractionCondition" &&
+    legacyIndicatesNoSpecialCondition
+  ) {
+    comparisonStatus =
+      "governedEvidenceNotReflectedInLegacy";
+
+    comparisonReason =
+      "The governed pathway identified observable interaction evidence that was not reflected in the legacy classification.";
+  }
+
+  return {
+    comparisonStatus,
+
+    comparisonReason,
+
+    broadAlignment,
+
+    governedPathwayAvailable:
+      true,
+
+    legacyPathwayAvailable:
+      true,
+
+    governed: {
+      interactionSituation:
+        governedSituation || null,
+
+      componentEvidenceFinding:
+        governedFinding
+          ?.componentEvidenceFinding ||
+        null,
+
+      responseFunctionsOnlyAsInteraction:
+        governedFinding
+          ?.responseFunctionsOnlyAsInteraction ===
+        true,
+
+      observedCategories:
+        Array.isArray(
+          governedFinding
+            ?.observedCategories
+        )
+          ? [
+              ...governedFinding
+                .observedCategories,
+            ]
+          : [],
+    },
+
+    legacy: {
+      instructionalState:
+        legacyComparison
+          ?.instructionalState || null,
+
+      instructionalBehavior:
+        legacyComparison
+          ?.instructionalBehavior || null,
+
+      supportLevel:
+        legacyComparison
+          ?.supportLevel || "none",
+
+      signals:
+        structuredClone(
+          legacySignals
+        ),
+    },
+
+    comparisonEvidence: {
+      governedNoComponentEvidence,
+
+      legacyIndicatesUncertaintyOrStruggle,
+
+      legacyIndicatesFrustration,
+
+      legacyIndicatesAnswerSeeking,
+
+      legacyIndicatesClarification,
+
+      legacyIndicatesOffTask,
+
+      legacyIndicatesNoSpecialCondition,
+    },
+
+    governance: {
+      governedPathwayAuthoritative:
+        false,
+
+      legacyPathwayAuthoritative:
+        false,
+
+      comparisonControlsBehavior:
+        false,
+
+      comparisonControlsProgression:
+        false,
+
+      comparisonSelectsContract:
+        false,
+
+      shadowMode:
+        true,
+    },
+  };
+}
+
+// ------------------------------------------------------
 // COMPONENT INSTRUCTIONAL FINDING
 // ------------------------------------------------------
 //
@@ -18749,10 +19236,27 @@ const interactionInstructionalFinding =
 // This remains shadow-mode evidence. It does not yet
 // control contracts, progression, pending state, support
 // level, or communication.
+
 instructionalAssessment
   .interactionInstructionalFinding =
     structuredClone(
       interactionInstructionalFinding
+    );
+
+const interactionPathwayComparison =
+  buildInteractionPathwayComparison(
+    instructionalAssessment
+  );
+
+// Attach the temporary migration comparison.
+//
+// This artifact exists only to measure whether the new
+// governed pathway covers the useful responsibilities of
+// the legacy pathway before that legacy pathway is removed.
+instructionalAssessment
+  .interactionPathwayComparison =
+    structuredClone(
+      interactionPathwayComparison
     );
 
 // Store the complete deterministic assessment artifact so
@@ -18760,6 +19264,14 @@ instructionalAssessment
 s.instructionalAssessment =
   structuredClone(
     instructionalAssessment
+  );
+
+// Store the comparison separately for easier debugging
+// during migration. This field will be removed when the
+// legacy pathway is deleted.
+s.interactionPathwayComparison =
+  structuredClone(
+    interactionPathwayComparison
   );
 
 const instructionalStrategy =
