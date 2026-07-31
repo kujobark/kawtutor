@@ -4220,6 +4220,35 @@ function executeInstructionalContract(
   }
 }
 
+function selectIsAboutGenuineStruggleThinkingMove(
+  supportLevel
+) {
+  if (supportLevel >= 3) {
+    return (
+      "Reconnect the student to the accepted Key Topic. " +
+      "Ask what one person who knows nothing about the topic " +
+      "should understand about it. Do not suggest, begin, or " +
+      "supply the student's Is About statement."
+    );
+  }
+
+  if (supportLevel === 2) {
+    return (
+      "Remind the student that Is About explains the whole " +
+      "Key Topic in their own understandable words. Ask them " +
+      "to describe the big picture rather than give one small " +
+      "detail. Do not suggest or supply the student's answer."
+    );
+  }
+
+  return (
+    "Reconnect the student to the accepted Key Topic and ask " +
+    "them to explain what the whole topic is about in their " +
+    "own understandable words. Do not suggest or supply the " +
+    "student's Is About statement."
+  );
+}
+
 function executeIsAboutInstructionalContract(
   contract,
   state
@@ -4237,6 +4266,32 @@ function executeIsAboutInstructionalContract(
 
     null;
 
+  const requestedSupportLevel =
+    Number(
+      state?.pending?.supportLevel || 1
+    );
+
+  const supportLevel =
+    Number.isFinite(
+      requestedSupportLevel
+    )
+      ? Math.max(
+          1,
+          Math.min(
+            requestedSupportLevel,
+            3
+          )
+        )
+      : 1;
+
+  const thinkingMove =
+    contract.contractId ===
+      "IA-GS-001"
+      ? selectIsAboutGenuineStruggleThinkingMove(
+          supportLevel
+        )
+      : contract.thinkingMove;
+
   return {
     contractId:
       contract.contractId,
@@ -4247,8 +4302,7 @@ function executeIsAboutInstructionalContract(
     teachingMove:
       contract.teachingMove,
 
-    thinkingMove:
-      contract.thinkingMove,
+    thinkingMove,
 
     communicationPattern:
       contract.communicationPattern ||
@@ -4258,6 +4312,12 @@ function executeIsAboutInstructionalContract(
       contract.aiContextualizes,
 
     instructionalFinding,
+
+    supportLevel:
+      contract.contractId ===
+        "IA-GS-001"
+        ? supportLevel
+        : null,
 
     context: {
       assignmentContext:
