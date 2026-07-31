@@ -11402,6 +11402,214 @@ async function runIsAboutSelfTests() {
     },
   });
 
+    // --------------------------------------------------
+  // SHADOW INSTRUCTIONAL CONTRACT SELECTION TEST
+  //
+  // Confirms that each established governed Is About
+  // Instructional Situation selects its matching
+  // predetermined contract while remaining non-
+  // authoritative.
+  //
+  // This test does not:
+  //
+  // • execute a contract;
+  // • generate communication;
+  // • change progression;
+  // • change pending state;
+  // • transfer authority.
+  // --------------------------------------------------
+
+  const shadowContractSelectionPassed =
+    repeatedTopicActual
+      ?.instructionalContractSelection
+      ?.selectedContractId ===
+      "IA-RNR-001" &&
+
+    limitedEvidenceActual
+      ?.instructionalContractSelection
+      ?.selectedContractId ===
+      "IA-CNR-001" &&
+
+    noEvidenceActual
+      ?.instructionalContractSelection
+      ?.selectedContractId ===
+      "IA-NCE-001" &&
+
+    validIsAboutActual
+      ?.instructionalContractSelection
+      ?.selectedContractId ===
+      "IA-RTP-001" &&
+
+    persistentStruggleState
+      ?.instructionalContractSelection
+      ?.selectedContractId ===
+      "IA-GS-001" &&
+
+    repeatedTopicActual
+      ?.instructionalContractSelection
+      ?.selectionStatus ===
+      "contractSelected" &&
+
+    limitedEvidenceActual
+      ?.instructionalContractSelection
+      ?.selectionStatus ===
+      "contractSelected" &&
+
+    noEvidenceActual
+      ?.instructionalContractSelection
+      ?.selectionStatus ===
+      "contractSelected" &&
+
+    validIsAboutActual
+      ?.instructionalContractSelection
+      ?.selectionStatus ===
+      "contractSelected" &&
+
+    persistentStruggleState
+      ?.instructionalContractSelection
+      ?.selectionStatus ===
+      "contractSelected" &&
+
+    repeatedTopicActual
+      ?.instructionalContractSelection
+      ?.governance
+      ?.contractExecuted ===
+      false &&
+
+    repeatedTopicActual
+      ?.instructionalContractSelection
+      ?.governance
+      ?.authoritative ===
+      false &&
+
+    repeatedTopicActual
+      ?.instructionalContractSelection
+      ?.governance
+      ?.shadowMode ===
+      true;
+
+  results.push({
+    name:
+      "IA Governed - Instructional situations select matching shadow contracts",
+
+    passed:
+      shadowContractSelectionPassed,
+
+    expected: {
+      relationshipNeedsRepairContract:
+        "IA-RNR-001",
+
+      componentNeedsRevisionContract:
+        "IA-CNR-001",
+
+      noComponentEvidenceContract:
+        "IA-NCE-001",
+
+      readyToProgressContract:
+        "IA-RTP-001",
+
+      genuineStruggleContract:
+        "IA-GS-001",
+
+      selectionStatus:
+        "contractSelected",
+
+      contractExecuted:
+        false,
+
+      authoritative:
+        false,
+
+      shadowMode:
+        true,
+    },
+
+    actual: {
+      relationshipNeedsRepairContract:
+        repeatedTopicActual
+          ?.instructionalContractSelection
+          ?.selectedContractId ||
+        null,
+
+      componentNeedsRevisionContract:
+        limitedEvidenceActual
+          ?.instructionalContractSelection
+          ?.selectedContractId ||
+        null,
+
+      noComponentEvidenceContract:
+        noEvidenceActual
+          ?.instructionalContractSelection
+          ?.selectedContractId ||
+        null,
+
+      readyToProgressContract:
+        validIsAboutActual
+          ?.instructionalContractSelection
+          ?.selectedContractId ||
+        null,
+
+      genuineStruggleContract:
+        persistentStruggleState
+          ?.instructionalContractSelection
+          ?.selectedContractId ||
+        null,
+
+      selectionStatuses: {
+        relationshipNeedsRepair:
+          repeatedTopicActual
+            ?.instructionalContractSelection
+            ?.selectionStatus ||
+          null,
+
+        componentNeedsRevision:
+          limitedEvidenceActual
+            ?.instructionalContractSelection
+            ?.selectionStatus ||
+          null,
+
+        noComponentEvidence:
+          noEvidenceActual
+            ?.instructionalContractSelection
+            ?.selectionStatus ||
+          null,
+
+        readyToProgress:
+          validIsAboutActual
+            ?.instructionalContractSelection
+            ?.selectionStatus ||
+          null,
+
+        genuineStruggle:
+          persistentStruggleState
+            ?.instructionalContractSelection
+            ?.selectionStatus ||
+          null,
+      },
+
+      contractExecuted:
+        repeatedTopicActual
+          ?.instructionalContractSelection
+          ?.governance
+          ?.contractExecuted ===
+        true,
+
+      authoritative:
+        repeatedTopicActual
+          ?.instructionalContractSelection
+          ?.governance
+          ?.authoritative ===
+        true,
+
+      shadowMode:
+        repeatedTopicActual
+          ?.instructionalContractSelection
+          ?.governance
+          ?.shadowMode ===
+        true,
+    },
+  });
+
   const passedCount =
     results.filter(
       (result) =>
