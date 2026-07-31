@@ -1516,6 +1516,21 @@ const INSTRUCTIONAL_PLAYBOOK = {
   
 };
 
+function getInstructionalContract(
+  frameComponent,
+  instructionalSituation
+) {
+  const componentContracts =
+    INSTRUCTIONAL_PLAYBOOK?.[frameComponent];
+
+  if (!componentContracts) return null;
+
+  return (
+    componentContracts?.[instructionalSituation] ||
+    null
+  );
+}
+
 // ------------------------------------------------------
 // SHADOW INSTRUCTIONAL CONTRACT SELECTION
 // ------------------------------------------------------
