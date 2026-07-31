@@ -19999,10 +19999,13 @@ async function applyIsAboutCapture(s, msg) {
 
     if (!validation.valid) {
     const instructionalContract =
+      s?.instructionalContractSelection
+        ?.selectedContract ||
+    
       getInstructionalContract(
         "isAbout",
         "genuineStruggle"
-      );
+  );
 
     const instructionalContractPathwayComparison =
       buildShadowInstructionalContractPathwayComparison({
