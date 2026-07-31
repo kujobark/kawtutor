@@ -708,6 +708,343 @@ These observations become instructional evidence available to deterministic reas
 Artificial intelligence may never infer internal student characteristics, emotional conditions, cognitive diagnoses, or motivational states that have not been directly demonstrated.
 
 ---
+I actually think this chapter should mirror the Communication Architecture chapter. That way the two AI responsibilities feel like complementary halves of the same system.
+
+I'd draft it like this.
+
+---
+
+# Chapter 5: Observation Architecture
+
+## Purpose
+
+The Observation Architecture serves as the constitutional boundary between student interactions and deterministic instructional reasoning.
+
+Its responsibility is to transform unstructured student communication into governed observational evidence before any instructional decisions are made.
+
+The Observation Architecture does not determine instruction.
+
+The Observation Architecture gathers evidence.
+
+---
+
+# Constitutional Principle
+
+> **AI observes. Kaw instructs.**
+
+Observation and instruction are intentionally separated.
+
+Artificial intelligence is responsible for recognizing observable characteristics of student communication.
+
+The deterministic instructional engine is responsible for interpreting those observations instructionally.
+
+This separation preserves deterministic instructional ownership while leveraging artificial intelligence's strength in understanding natural language.
+
+---
+
+# Architectural Position
+
+```text
+                    Student
+                       │
+                       ▼
+              Student Interaction
+                       │
+                       ▼
+             AI Observation Layer
+──────────────────────────────────────────────
+Observable Evidence
+        ↓
+Observation Report
+──────────────────────────────────────────────
+                       │
+                       ▼
+                Evidence State
+                       │
+                       ▼
+      Deterministic Instructional Engine
+```
+
+---
+
+# Purpose of Observation
+
+Observation answers a single question:
+
+> **What can be objectively observed from the student's interaction?**
+
+Observation intentionally avoids instructional interpretation.
+
+It describes what is present.
+
+It does not determine what should happen next.
+
+---
+
+# Constitutional Responsibilities of AI Observation
+
+The AI Observation Layer has one responsibility:
+
+Produce an Observation Report describing observable instructional evidence contained within the student's interaction.
+
+Observation may identify patterns.
+
+Observation may identify language.
+
+Observation may identify behaviors.
+
+Observation may not determine instructional meaning.
+
+---
+
+# Observable Evidence
+
+Observable evidence consists only of information that can be directly supported by the student's interaction.
+
+Examples include:
+
+* expressions of uncertainty
+* requests for clarification
+* answer-seeking behavior
+* off-task responses
+* frustration language
+* repeated unsuccessful attempts
+* apparent confidence
+* acknowledgment of previous coaching
+* references to assignment context
+
+Observable evidence describes what the student communicated.
+
+It does not explain why.
+
+---
+
+# Non-Observable Evidence
+
+The Observation Layer intentionally avoids conclusions requiring instructional reasoning.
+
+Examples include:
+
+* instructional readiness
+* mastery
+* misconception classification
+* instructional progression
+* thinking quality
+* component completion
+* instructional success
+* instructional failure
+
+These determinations belong exclusively to the deterministic instructional engine.
+
+---
+
+# Observation Report
+
+The Observation Report is the governed interface between the AI Observation Layer and the Evidence State.
+
+Its purpose is to summarize observable evidence in a deterministic, reviewable structure.
+
+The Observation Report is not an instructional recommendation.
+
+It is an evidence report.
+
+---
+
+# Principle of Objective Observation
+
+Observation Reports should describe observations rather than conclusions.
+
+For example:
+
+Appropriate observations:
+
+* Student explicitly requests the answer.
+* Student states they are confused.
+* Student references previous feedback.
+* Student changes the topic.
+* Student repeats the same response.
+
+Inappropriate observations:
+
+* Student is experiencing genuine struggle.
+* Student has mastered the concept.
+* Student is ready to advance.
+* Student requires revision.
+* Student should receive clarification.
+
+Those are instructional conclusions.
+
+---
+
+# Observation Categories
+
+Observation Reports may organize evidence into several categories.
+
+## Student Intent
+
+Examples:
+
+* clarification request
+* answer seeking
+* off-task behavior
+* topic change
+* procedural question
+
+---
+
+## Student Affect
+
+Examples:
+
+* frustration
+* uncertainty
+* confidence
+* hesitation
+* engagement
+
+---
+
+## Interaction Patterns
+
+Examples:
+
+* repeated attempt
+* repeated misconception
+* response revision
+* acknowledgement of coaching
+* conversation continuity
+
+---
+
+## Assignment References
+
+Examples:
+
+* assignment context
+* teacher directions
+* framing routine vocabulary
+* component references
+
+---
+
+# Observation Confidence
+
+Observations should include confidence indicating the certainty of the observation itself.
+
+Confidence reflects confidence in the observation—not confidence in instructional interpretation.
+
+For example:
+
+"I don't understand."
+
+High confidence:
+
+Student expresses confusion.
+
+Low confidence:
+
+Student is experiencing genuine struggle.
+
+The latter requires instructional interpretation and therefore belongs outside the Observation Layer.
+
+---
+
+# Relationship to Evidence State
+
+Observation Reports become one source of evidence within the Evidence State.
+
+The Evidence State integrates:
+
+```text
+Current Student Artifact
+
++
+
+Observation Report
+
++
+
+Accumulated Evidence
+
+↓
+
+Evidence State
+```
+
+The deterministic instructional engine evaluates all available evidence before making instructional decisions.
+
+---
+
+# Ownership
+
+The Observation Architecture has clearly defined ownership.
+
+| Responsibility                 | Owner                              |
+| ------------------------------ | ---------------------------------- |
+| Natural language understanding | AI Observation Layer               |
+| Observation Report             | AI Observation Layer               |
+| Evidence integration           | Evidence State                     |
+| Instructional interpretation   | Deterministic Instructional Engine |
+
+Artificial intelligence never determines instructional intent.
+
+Artificial intelligence contributes observational evidence.
+
+---
+
+# Constitutional Summary
+
+The Observation Architecture intentionally separates observation from instruction.
+
+Artificial intelligence excels at understanding human language and recognizing observable interaction patterns.
+
+The deterministic instructional engine excels at making consistent instructional decisions.
+
+By restricting artificial intelligence to objective observation, Kaw Companion preserves deterministic instructional ownership while benefiting from AI's ability to interpret natural language.
+
+Observation gathers evidence.
+
+Instruction determines meaning.
+
+Communication expresses predetermined instructional intent.
+
+Together, these three governed phases establish a complete instructional reasoning cycle:
+
+```text
+Student Interaction
+        │
+        ▼
+Observation
+        │
+        ▼
+Evidence
+        │
+        ▼
+Instruction
+        │
+        ▼
+Communication
+        │
+        ▼
+Student Interaction
+```
+
+---
+
+## One suggestion before we call this "done"
+
+There's one thing I'd like us to discuss before locking this chapter.
+
+Yesterday we said **"Observation Report"**, but after sleeping on it I'm wondering if **"Observation Layer"** actually has **two outputs**:
+
+1. **Structured Observation Report** (for deterministic processing)
+2. **Observation Metadata** (confidence, citations, ambiguity, etc.)
+
+That may prove useful later as the system grows, but I wouldn't add it unless we decide it solves a real architectural problem rather than just making the design more sophisticated. My instinct is to keep this chapter as simple as possible unless we identify a concrete need.
+
+
+
+---
 # Chapter 7
 
 ## Assignment Understanding
