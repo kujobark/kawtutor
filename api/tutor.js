@@ -1516,19 +1516,128 @@ const INSTRUCTIONAL_PLAYBOOK = {
   
 };
 
-function getInstructionalContract(
-  frameComponent,
-  instructionalSituation
+// ------------------------------------------------------
+// SHADOW INSTRUCTIONAL CONTRACT SELECTION
+// ------------------------------------------------------
+//
+// Selects the predetermined Instructional Contract that
+// corresponds to an established governed Instructional
+// Situation.
+//
+// This selector answers exactly one question:
+//
+// Which predetermined contract corresponds to the
+// established Frame component and Instructional Situation?
+//
+// Current migration scope:
+//
+// • Is About only.
+//
+// Current authority:
+//
+// • Shadow mode only.
+//
+// This selector does not:
+//
+// • execute the selected contract;
+// • generate communication;
+// • determine support level;
+// • change pending state;
+// • save or reject student work;
+// • control progression;
+// • replace any authoritative runtime decision.
+//
+// ------------------------------------------------------
+
+function buildShadowInstructionalContractSelection(
+  instructionalSituationArtifact
 ) {
-  const componentContracts =
-    INSTRUCTIONAL_PLAYBOOK?.[frameComponent];
+  const safeSituation =
+    instructionalSituationArtifact &&
+    typeof instructionalSituationArtifact ===
+      "object"
+      ? instructionalSituationArtifact
+      : null;
 
-  if (!componentContracts) return null;
+  const frameComponent =
+    cleanText(
+      safeSituation?.frameComponent || ""
+    );
 
-  return (
-    componentContracts?.[instructionalSituation] ||
-    null
-  );
+  const instructionalSituation =
+    cleanText(
+      safeSituation
+        ?.instructionalSituation || ""
+    );
+
+  const isWithinCurrentMigrationScope =
+    frameComponent === "isAbout";
+
+  const selectedContract =
+    isWithinCurrentMigrationScope &&
+    instructionalSituation
+      ? getInstructionalContract(
+          frameComponent,
+          instructionalSituation
+        )
+      : null;
+
+  return {
+    artifactType:
+      "instructionalContractSelection",
+
+    version:
+      "1.0",
+
+    source:
+      "deterministicInstructionalContractSelector",
+
+    frameComponent:
+      frameComponent || null,
+
+    instructionalSituation:
+      instructionalSituation || null,
+
+    selectionStatus:
+      !isWithinCurrentMigrationScope
+        ? "outsideCurrentMigrationScope"
+        : selectedContract
+          ? "contractSelected"
+          : "contractUnavailable",
+
+    selectedContractId:
+      selectedContract?.contractId || null,
+
+    selectedContract:
+      selectedContract
+        ? structuredClone(
+            selectedContract
+          )
+        : null,
+
+    governance: {
+      currentMigrationScope:
+        "isAbout",
+
+      contractExecuted:
+        false,
+
+      controlsProgression:
+        false,
+
+      controlsPendingState:
+        false,
+
+      controlsCommunication:
+        false,
+
+      authoritative:
+        false,
+
+      shadowMode:
+        true,
+    },
+  };
 }
 
 // ======================================================
@@ -3462,9 +3571,30 @@ function refreshShadowInstructionalSituationWithComponentFinding({
       componentFinding
     );
 
-  state.instructionalSituation =
+    state.instructionalSituation =
     structuredClone(
       instructionalSituation
+    );
+
+  const instructionalContractSelection =
+    buildShadowInstructionalContractSelection(
+      instructionalSituation
+    );
+
+  instructionalAssessment
+    .instructionalContractSelection =
+      structuredClone(
+        instructionalContractSelection
+      );
+
+  state.instructionalAssessment =
+    structuredClone(
+      instructionalAssessment
+    );
+
+  state.instructionalContractSelection =
+    structuredClone(
+      instructionalContractSelection
     );
 
   return instructionalSituation;
