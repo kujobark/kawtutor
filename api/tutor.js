@@ -10990,24 +10990,15 @@ async function runIsAboutSelfTests() {
     },
   });
 
-    // --------------------------------------------------
-  // SHADOW INSTRUCTIONAL CONTRACT SELECTION TEST
+  // --------------------------------------------------
+  // AUTHORITATIVE INSTRUCTIONAL CONTRACT SELECTION TEST
   //
   // Confirms that each established governed Is About
   // Instructional Situation selects its matching
-  // predetermined contract while remaining non-
-  // authoritative.
-  //
-  // This test does not:
-  //
-  // • execute a contract;
-  // • generate communication;
-  // • change progression;
-  // • change pending state;
-  // • transfer authority.
+  // predetermined authoritative contract.
   // --------------------------------------------------
 
-  const shadowContractSelectionPassed =
+  const contractSelectionPassed =
     repeatedTopicActual
       ?.instructionalContractSelection
       ?.selectedContractId ===
@@ -11062,26 +11053,32 @@ async function runIsAboutSelfTests() {
       ?.instructionalContractSelection
       ?.governance
       ?.contractExecuted ===
-      false &&
+      true &&
+
+    repeatedTopicActual
+      ?.instructionalContractSelection
+      ?.governance
+      ?.controlsCommunication ===
+      true &&
 
     repeatedTopicActual
       ?.instructionalContractSelection
       ?.governance
       ?.authoritative ===
-      false &&
+      true &&
 
     repeatedTopicActual
       ?.instructionalContractSelection
       ?.governance
       ?.shadowMode ===
-      true;
+      false;
 
   results.push({
     name:
-      "IA Governed - Instructional situations select matching shadow contracts",
+      "IA Governed - Instructional situations select matching authoritative contracts",
 
     passed:
-      shadowContractSelectionPassed,
+      contractSelectionPassed,
 
     expected: {
       relationshipNeedsRepairContract:
@@ -11103,13 +11100,16 @@ async function runIsAboutSelfTests() {
         "contractSelected",
 
       contractExecuted:
-        false,
+        true,
+
+      controlsCommunication:
+        true,
 
       authoritative:
-        false,
+        true,
 
       shadowMode:
-        true,
+        false,
     },
 
     actual: {
@@ -11180,6 +11180,13 @@ async function runIsAboutSelfTests() {
           ?.instructionalContractSelection
           ?.governance
           ?.contractExecuted ===
+        true,
+
+      controlsCommunication:
+        repeatedTopicActual
+          ?.instructionalContractSelection
+          ?.governance
+          ?.controlsCommunication ===
         true,
 
       authoritative:
