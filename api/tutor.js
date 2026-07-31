@@ -21323,46 +21323,77 @@ if (s.pending?.type === "offerAnotherDetail") {
     return s;
   }
   
-  const detailValidation =
-  await validateEssentialDetailResponseGoverned(
-    msg,
-    currentMainIdea,
-    {
-      keyTopic:
-        s.frame.keyTopic || "",
-
-      isAbout:
-        s.frame.isAbout || "",
-    }
-  );
-
-    if (!detailValidation.valid) {
-    const instructionalFinding = {
-      ...buildComponentInstructionalFinding({
-        frameComponent:
-          "details",
-  
-        validation:
-          detailValidation,
-  
-        evidence: {
-          currentMainIdea,
-  
-          currentDetailIndex:
-            detailIndex,
-  
-          attemptedDetail:
-            cleanText(msg),
-        },
-      }),
-  
-      validationSource:
-        detailValidation.validationSource || null,
-  
+    const detailValidation =
+    await validateEssentialDetailResponseGoverned(
+      msg,
       currentMainIdea,
-  
-      currentDetailIndex:
-        detailIndex,
+      {
+        keyTopic:
+          s.frame.keyTopic || "",
+
+        isAbout:
+          s.frame.isAbout || "",
+      }
+    );
+
+  const instructionalFinding = {
+    ...buildComponentInstructionalFinding({
+      frameComponent:
+        "details",
+
+      validation:
+        detailValidation,
+
+      evidence: {
+        keyTopic:
+          s.frame.keyTopic || "",
+
+        isAbout:
+          s.frame.isAbout || "",
+
+        currentMainIdea,
+
+        currentMainIdeaIndex:
+          idx,
+
+        currentDetailIndex:
+          detailIndex,
+
+        captureMode:
+          "optionalDirectEntry",
+
+        attemptedDetail:
+          cleanText(msg),
+      },
+    }),
+
+    validationSource:
+      detailValidation.validationSource || null,
+
+    currentMainIdea,
+
+    currentMainIdeaIndex:
+      idx,
+
+    currentDetailIndex:
+      detailIndex,
+
+    captureMode:
+      "optionalDirectEntry",
+  };
+
+  refreshShadowInstructionalSituationWithComponentFinding({
+    state:
+      s,
+
+    currentResponse:
+      msg,
+
+    componentFinding:
+      instructionalFinding,
+  });
+
+  if (!detailValidation.valid) {
     };
   
     s.pending = {
@@ -21462,7 +21493,7 @@ if (!mutationIntent.accept) {
   const currentMainIdea =
   getIdeaList(s)[idx] || "";
 
-const detailValidation =
+  const detailValidation =
   await validateEssentialDetailResponseGoverned(
     msg,
     currentMainIdea,
@@ -21475,15 +21506,15 @@ const detailValidation =
     }
   );
 
-if (!detailValidation.valid) {
-  // Preserve exactly what the deterministic validator
-  // established about this response.
-  //
-  // Do not infer intent, understanding, confusion, or effort.
-  // The finding describes only the observable instructional
-  // condition of the response.
+const currentDetailIndex =
+  s.frame.details[idx].length;
 
-  const instructionalFinding = {
+const captureMode =
+  currentDetailIndex < 2
+    ? "required"
+    : "optional";
+
+const instructionalFinding = {
   ...buildComponentInstructionalFinding({
     frameComponent:
       "details",
@@ -21492,10 +21523,20 @@ if (!detailValidation.valid) {
       detailValidation,
 
     evidence: {
+      keyTopic:
+        s.frame.keyTopic || "",
+
+      isAbout:
+        s.frame.isAbout || "",
+
       currentMainIdea,
 
-      currentDetailIndex:
-        s.frame.details[idx].length,
+      currentMainIdeaIndex:
+        idx,
+
+      currentDetailIndex,
+
+      captureMode,
 
       attemptedDetail:
         cleanText(msg),
@@ -21507,9 +21548,32 @@ if (!detailValidation.valid) {
 
   currentMainIdea,
 
-  currentDetailIndex:
-    s.frame.details[idx].length,
+  currentMainIdeaIndex:
+    idx,
+
+  currentDetailIndex,
+
+  captureMode,
 };
+
+refreshShadowInstructionalSituationWithComponentFinding({
+  state:
+    s,
+
+  currentResponse:
+    msg,
+
+  componentFinding:
+    instructionalFinding,
+});
+
+if (!detailValidation.valid) {
+  // Preserve exactly what the deterministic validator
+  // established about this response.
+  //
+  // Do not infer intent, understanding, confusion, or effort.
+  // The finding describes only the observable instructional
+  // condition of the response.
 
   return beginStuckSupportFromPending(
     s,
@@ -21671,21 +21735,67 @@ const detailValidation =
     }
   );
 
-  if (!detailValidation.valid) {
+const instructionalFinding = {
+  ...buildComponentInstructionalFinding({
+    frameComponent:
+      "details",
 
-      const instructionalFinding = {
-    ...buildComponentInstructionalFinding({
-      frameComponent:
-        "details",
-  
-      validation:
-        detailValidation,
-  
-      evidence: {
-        currentMainIdea,
-      
-        currentDetailIndex:
-          detailIndex,
+    validation:
+      detailValidation,
+
+    evidence: {
+      keyTopic:
+        s.frame.keyTopic || "",
+
+      isAbout:
+        s.frame.isAbout || "",
+
+      currentMainIdea,
+
+      currentMainIdeaIndex:
+        idx,
+
+      currentDetailIndex:
+        detailIndex,
+
+      captureMode:
+        "revision",
+
+      previousDetail:
+        s.frame.details?.[idx]?.[detailIndex] || "",
+
+      attemptedDetail:
+        cleanText(msg),
+    },
+  }),
+
+  validationSource:
+    detailValidation.validationSource || null,
+
+  currentMainIdea,
+
+  currentMainIdeaIndex:
+    idx,
+
+  currentDetailIndex:
+    detailIndex,
+
+  captureMode:
+    "revision",
+};
+
+refreshShadowInstructionalSituationWithComponentFinding({
+  state:
+    s,
+
+  currentResponse:
+    msg,
+
+  componentFinding:
+    instructionalFinding,
+});
+
+if (!detailValidation.valid) {
       
         attemptedDetail:
           cleanText(msg),
