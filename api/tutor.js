@@ -1532,11 +1532,11 @@ function getInstructionalContract(
 }
 
 // ------------------------------------------------------
-// SHADOW INSTRUCTIONAL CONTRACT SELECTION
+// INSTRUCTIONAL CONTRACT SELECTION
 // ------------------------------------------------------
 //
 // Selects the predetermined Instructional Contract that
-// corresponds to an established governed Instructional
+// corresponds to the established governed Instructional
 // Situation.
 //
 // This selector answers exactly one question:
@@ -1544,27 +1544,24 @@ function getInstructionalContract(
 // Which predetermined contract corresponds to the
 // established Frame component and Instructional Situation?
 //
-// Current migration scope:
+// Current authoritative scope:
 //
 // • Is About only.
 //
-// Current authority:
-//
-// • Shadow mode only.
+// The selected contract controls Is About instructional
+// activation and communication.
 //
 // This selector does not:
 //
-// • execute the selected contract;
-// • generate communication;
+// • validate student work;
+// • determine the Instructional Situation;
 // • determine support level;
-// • change pending state;
 // • save or reject student work;
-// • control progression;
-// • replace any authoritative runtime decision.
+// • directly change runtime progression.
 //
 // ------------------------------------------------------
 
-function buildShadowInstructionalContractSelection(
+function buildInstructionalContractSelection(
   instructionalSituationArtifact
 ) {
   const safeSituation =
@@ -1585,11 +1582,11 @@ function buildShadowInstructionalContractSelection(
         ?.instructionalSituation || ""
     );
 
-  const isWithinCurrentMigrationScope =
+  const isWithinCurrentAuthoritativeScope =
     frameComponent === "isAbout";
 
   const selectedContract =
-    isWithinCurrentMigrationScope &&
+    isWithinCurrentAuthoritativeScope &&
     instructionalSituation
       ? getInstructionalContract(
           frameComponent,
@@ -1614,8 +1611,8 @@ function buildShadowInstructionalContractSelection(
       instructionalSituation || null,
 
     selectionStatus:
-      !isWithinCurrentMigrationScope
-        ? "outsideCurrentMigrationScope"
+      !isWithinCurrentAuthoritativeScope
+        ? "outsideCurrentAuthoritativeScope"
         : selectedContract
           ? "contractSelected"
           : "contractUnavailable",
@@ -1631,11 +1628,11 @@ function buildShadowInstructionalContractSelection(
         : null,
 
     governance: {
-      currentMigrationScope:
+      currentAuthoritativeScope:
         "isAbout",
 
       contractExecuted:
-        false,
+        selectedContract !== null,
 
       controlsProgression:
         false,
@@ -1644,13 +1641,13 @@ function buildShadowInstructionalContractSelection(
         false,
 
       controlsCommunication:
-        false,
+        selectedContract !== null,
 
       authoritative:
-        false,
+        true,
 
       shadowMode:
-        true,
+        false,
     },
   };
 }
@@ -3103,8 +3100,8 @@ function refreshShadowInstructionalSituationWithComponentFinding({
       instructionalSituation
     );
 
-  const instructionalContractSelection =
-    buildShadowInstructionalContractSelection(
+    const instructionalContractSelection =
+    buildInstructionalContractSelection(
       instructionalSituation
     );
 
