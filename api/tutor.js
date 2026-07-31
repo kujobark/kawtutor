@@ -4181,15 +4181,27 @@ function validateInstructionalCommunicationResponse(
 // INSTRUCTIONAL CONTRACT EXECUTION
 // ======================================================
 
-function executeInstructionalContract(contract, state) {
+function executeInstructionalContract(
+  contract,
+  state
+) {
   if (!contract) return null;
 
   switch (contract.contractId) {
+    case "IA-NCE-001":
+    case "IA-CNR-001":
+    case "IA-RNR-001":
     case "IA-GS-001":
-      return executeIAGS001(contract, state);
+      return executeIsAboutInstructionalContract(
+        contract,
+        state
+      );
 
     case "ED-GS-001":
-      return executeEDGS001(contract, state);
+      return executeEDGS001(
+        contract,
+        state
+      );
 
     case "MI-GS-001":
       return executeMIGS001(
@@ -4208,18 +4220,22 @@ function executeInstructionalContract(contract, state) {
   }
 }
 
-function executeIAGS001(contract, state) {
+function executeIsAboutInstructionalContract(
+  contract,
+  state
+) {
   const instructionalFinding =
-    state?.pending?.instructionalFinding ||
-    state?.pending?.resumePending
+    state?.pending
       ?.instructionalFinding ||
-    null;
 
-  const selectedThinkingMove =
-    selectIAGS001ThinkingMove(
-      instructionalFinding,
-      contract.thinkingMove
-    );
+    state?.pending
+      ?.resumePending
+      ?.instructionalFinding ||
+
+    state
+      ?.componentInstructionalFinding ||
+
+    null;
 
   return {
     contractId:
@@ -4228,16 +4244,16 @@ function executeIAGS001(contract, state) {
     instructionalGoal:
       contract.instructionalGoal,
 
-   teachingMove:
-    contract.teachingMove,
+    teachingMove:
+      contract.teachingMove,
 
-  thinkingMove:
-    selectedThinkingMove,
+    thinkingMove:
+      contract.thinkingMove,
 
-  communicationPattern:
-    contract.communicationPattern ||
-    "questionOnly",
-    
+    communicationPattern:
+      contract.communicationPattern ||
+      "questionOnly",
+
     aiContextualizes:
       contract.aiContextualizes,
 
@@ -4245,7 +4261,8 @@ function executeIAGS001(contract, state) {
 
     context: {
       assignmentContext:
-        state?.frameMeta?.assignmentContext || {},
+        state?.frameMeta
+          ?.assignmentContext || {},
 
       thinkingTask:
         state?.assignmentReasoning || {},
@@ -4254,10 +4271,12 @@ function executeIAGS001(contract, state) {
         contract.frameComponent,
 
       keyTopic:
-        state?.frame?.keyTopic || "",
+        state?.frame
+          ?.keyTopic || "",
 
       isAbout:
-        state?.frame?.isAbout || "",
+        state?.frame
+          ?.isAbout || "",
 
       currentMainIdea:
         "",
