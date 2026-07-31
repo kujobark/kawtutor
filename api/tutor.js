@@ -19341,17 +19341,15 @@ async function applyMainIdeaCapture(
     s.frameMeta?.frameType ===
     "causeEffect";
 
-  const validation =
-  await validateMainIdeaResponseGoverned(
-    text,
-    s.frame?.keyTopic || "",
-    s.frame?.isAbout || ""
-  );
+    const validation =
+    await validateMainIdeaResponseGoverned(
+      text,
+      s.frame?.keyTopic || "",
+      s.frame?.isAbout || ""
+    );
 
-if (!validation.valid) {
-
-  const instructionalFinding = {
-    ...buildComponentInstructionalFinding({
+  const instructionalFinding =
+    buildComponentInstructionalFinding({
       frameComponent:
         "mainIdeas",
 
@@ -19371,8 +19369,20 @@ if (!validation.valid) {
 
         revisionIndex,
       },
-    }),
-  };
+    });
+
+  refreshShadowInstructionalSituationWithComponentFinding({
+    state:
+      s,
+
+    currentResponse:
+      text,
+
+    componentFinding:
+      instructionalFinding,
+  });
+
+  if (!validation.valid) {
 
   let resumePending;
     if (isRevision) {
