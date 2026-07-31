@@ -3074,6 +3074,121 @@ function buildComponentInstructionalFinding({
   };
 }
 
+// ------------------------------------------------------
+// COMPONENT FINDING → INSTRUCTIONAL SITUATION
+// SHADOW-MODE REFRESH
+// ------------------------------------------------------
+//
+// Re-runs the governed Instructional Situation Engine after
+// current component validation has produced a completed
+// Component Instructional Finding.
+//
+// The beginning-of-cycle situation cannot yet include the
+// current Component Finding because component validation
+// occurs later inside the authoritative runtime branch.
+//
+// This function closes that temporary migration gap by:
+//
+// • rebuilding Evidence State for the validated response;
+// • preserving the existing governed Interaction Finding;
+// • attaching the current Component Finding;
+// • rebuilding the governed Instructional Situation;
+// • storing the refreshed shadow-mode artifacts.
+//
+// This function does not:
+//
+// • select an Instructional Contract;
+// • determine support level;
+// • change pending state;
+// • save or reject student work;
+// • control progression;
+// • generate communication;
+// • alter authoritative runtime behavior.
+//
+// ------------------------------------------------------
+
+function refreshShadowInstructionalSituationWithComponentFinding({
+  state,
+  currentResponse = "",
+  componentFinding = null,
+} = {}) {
+  if (
+    !state ||
+    typeof state !== "object" ||
+    !componentFinding ||
+    typeof componentFinding !== "object"
+  ) {
+    return null;
+  }
+
+  const observationReport =
+    state?.observationReport &&
+    typeof state.observationReport === "object"
+      ? state.observationReport
+      : buildEmptyObservationReport(
+          currentResponse,
+          "notProvided"
+        );
+
+  const evidenceState =
+    buildEvidenceState(
+      state,
+      currentResponse,
+      observationReport
+    );
+
+  const instructionalAssessment =
+    state?.instructionalAssessment &&
+    typeof state.instructionalAssessment === "object"
+      ? structuredClone(
+          state.instructionalAssessment
+        )
+      : buildInstructionalAssessment(
+          evidenceState
+        );
+
+  instructionalAssessment
+    .componentInstructionalFinding =
+      structuredClone(
+        componentFinding
+      );
+
+  const instructionalSituation =
+    buildInstructionalSituation({
+      evidenceState,
+
+      instructionalAssessment,
+
+      componentFinding,
+
+      relationshipFinding:
+        componentFinding,
+    });
+
+  instructionalAssessment
+    .instructionalSituation =
+      structuredClone(
+        instructionalSituation
+      );
+
+  state.instructionalAssessment =
+    structuredClone(
+      instructionalAssessment
+    );
+
+  state.componentInstructionalFinding =
+    structuredClone(
+      componentFinding
+    );
+
+  state.instructionalSituation =
+    structuredClone(
+      instructionalSituation
+    );
+
+  return instructionalSituation;
+}
+
 // ======================================================
 // LAYER 5B — INSTRUCTIONAL STRATEGY
 // ======================================================
@@ -18317,30 +18432,45 @@ async function applyIsAboutCapture(s, msg) {
           )
         : cleanedIsAbout;
 
-  const validation =
+    const validation =
     await validateIsAboutResponseGoverned(
       normalizedIsAbout,
       keyTopic
     );
 
+  const instructionalFinding =
+    buildComponentInstructionalFinding({
+      frameComponent:
+        "isAbout",
+
+      validation,
+
+      evidence: {
+        keyTopic:
+          s.frame?.keyTopic || "",
+
+        attemptedIsAbout:
+          cleanText(msg),
+
+        normalizedIsAbout:
+          cleanText(
+            normalizedIsAbout
+          ),
+      },
+    });
+
+  refreshShadowInstructionalSituationWithComponentFinding({
+    state:
+      s,
+
+    currentResponse:
+      normalizedIsAbout,
+
+    componentFinding:
+      instructionalFinding,
+  });
+
   if (!validation.valid) {
-  
-  const instructionalFinding = {
-  ...buildComponentInstructionalFinding({
-    frameComponent:
-      "isAbout",
-
-    validation,
-
-    evidence: {
-      keyTopic:
-        s.frame?.keyTopic || "",
-
-      attemptedIsAbout:
-        cleanText(msg),
-    },
-  }),
-};
     
   const instructionalContract =
     getInstructionalContract(
