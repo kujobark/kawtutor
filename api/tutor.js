@@ -19401,14 +19401,10 @@ async function applyIsAboutCapture(s, msg) {
   });
 
     if (!validation.valid) {
-    const instructionalContract =
+        const instructionalContract =
       s?.instructionalContractSelection
         ?.selectedContract ||
-    
-      getInstructionalContract(
-        "isAbout",
-        "genuineStruggle"
-  );
+      null;
 
   const activationState = {
     ...s,
