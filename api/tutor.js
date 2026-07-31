@@ -9921,6 +9921,120 @@ async function runIsAboutSelfTests() {
   const keyTopic =
     "Photosynthesis";
 
+  const validIsAboutResponse =
+    "Photosynthesis is the process plants use to make food using sunlight.";
+
+  // --------------------------------------------------
+  // IS ABOUT RUNTIME TEST STATE FACTORY
+  //
+  // Creates a fully established Assignment Understanding
+  // state positioned at Is About capture.
+  //
+  // Fully established Assignment Understanding is
+  // required so the Instructional Situation Engine may
+  // evaluate the current component evidence rather than
+  // correctly stopping at assignmentUnderstandingRequired.
+  // --------------------------------------------------
+
+  function createIsAboutRuntimeTestState() {
+    const state =
+      defaultState();
+
+    state.interactionMode =
+      "build";
+
+    state.frameMeta.assignmentContext = {
+      valid:
+        true,
+
+      raw:
+        "Explain how photosynthesis helps plants make food.",
+
+      understanding:
+        "Explain how photosynthesis helps plants make food.",
+
+      studentSummary:
+        "You're explaining how photosynthesis helps plants make food.",
+
+      reasoningType:
+        "explain",
+
+      confidence:
+        "high",
+
+      confirmed:
+        true,
+
+      assignmentEvidenceLevel:
+        "substantive",
+
+      assignmentCriteriaStatus:
+        "satisfied",
+
+      assignmentContextStatus:
+        "established",
+
+      assignmentDemandStatus:
+        "established",
+
+      summaryReadinessStatus:
+        "ready",
+
+      diagnosis:
+        null,
+
+      assignmentEvidence:
+        null,
+
+      validationSource:
+        "deterministic",
+
+      needsClarification:
+        false,
+
+      childAnchor:
+        "",
+
+      clarificationCount:
+        0,
+    };
+
+    state.assignmentReasoning = {
+      task:
+        "explain",
+
+      label:
+        "Explain",
+
+      confidence:
+        1,
+
+      evidence: [
+        "assignmentTestState",
+      ],
+
+      lastUpdated:
+        null,
+    };
+
+    state.frame.keyTopic =
+      keyTopic;
+
+    state.frame.isAbout =
+      "";
+
+    state.frame.parentItems =
+      [];
+
+    state.frame.details =
+      [];
+
+    state.pending =
+      null;
+
+    return state;
+  }
+
   const tests = [
     {
       name:
@@ -9930,7 +10044,8 @@ async function runIsAboutSelfTests() {
         "",
 
       expected: {
-        valid: false,
+        valid:
+          false,
 
         componentEvidenceLevel:
           "none",
@@ -9954,7 +10069,8 @@ async function runIsAboutSelfTests() {
         "idk",
 
       expected: {
-        valid: false,
+        valid:
+          false,
 
         componentEvidenceLevel:
           "none",
@@ -9978,7 +10094,8 @@ async function runIsAboutSelfTests() {
         "Photosynthesis",
 
       expected: {
-        valid: false,
+        valid:
+          false,
 
         componentEvidenceLevel:
           "limited",
@@ -10002,7 +10119,8 @@ async function runIsAboutSelfTests() {
         "Plants make food",
 
       expected: {
-        valid: false,
+        valid:
+          false,
 
         componentEvidenceLevel:
           "limited",
@@ -10023,10 +10141,11 @@ async function runIsAboutSelfTests() {
         "IA - Observable paraphrase",
 
       response:
-        "Photosynthesis is the process plants use to make food using sunlight.",
+        validIsAboutResponse,
 
       expected: {
-        valid: true,
+        valid:
+          true,
 
         componentEvidenceLevel:
           "substantive",
@@ -10087,40 +10206,22 @@ async function runIsAboutSelfTests() {
     });
 
   // --------------------------------------------------
-  // LIVE RUNTIME TEST
+  // LIVE RUNTIME + SHADOW SITUATION TEST
   //
-  // Confirms that repeating the Key Topic is blocked
-  // before the response is saved as the Is About.
+  // Repeating the accepted Key Topic fails the required
+  // Is About relationship.
+  //
+  // Legacy authority:
+  // • blocks the response;
+  // • preserves empty Is About;
+  // • enters stuckNudge support.
+  //
+  // Governed shadow result:
+  // • relationshipNeedsRepair.
   // --------------------------------------------------
 
   const repeatedTopicState =
-    defaultState();
-
-  repeatedTopicState.frameMeta.assignmentContext = {
-    raw:
-      "Explain how photosynthesis helps plants make food.",
-
-    understanding:
-      "Explain how photosynthesis helps plants make food.",
-
-    studentSummary:
-      "You're explaining how photosynthesis helps plants make food.",
-
-    confidence:
-      "high",
-
-    needsClarification:
-      false,
-
-    childAnchor:
-      "",
-
-    clarificationCount:
-      0,
-  };
-
-  repeatedTopicState.frame.keyTopic =
-    "Photosynthesis";
+    createIsAboutRuntimeTestState();
 
   const repeatedTopicActual =
     await updateStateFromStudent(
@@ -10129,25 +10230,51 @@ async function runIsAboutSelfTests() {
     );
 
   const repeatedTopicPassed =
-    repeatedTopicActual?.frame?.isAbout ===
-      "" &&
+    repeatedTopicActual
+      ?.frame
+      ?.isAbout === "" &&
 
-    repeatedTopicActual?.pending?.type ===
+    repeatedTopicActual
+      ?.pending
+      ?.type ===
       "stuckNudge" &&
 
-    repeatedTopicActual?.pending
+    repeatedTopicActual
+      ?.pending
       ?.instructionalFinding
       ?.diagnosis ===
       "repeatsKeyTopic" &&
 
-    repeatedTopicActual?.pending
+    repeatedTopicActual
+      ?.pending
       ?.resumePending
       ?.type ===
-      "reviseIsAbout";
+      "reviseIsAbout" &&
+
+    repeatedTopicActual
+      ?.componentInstructionalFinding
+      ?.frameComponent ===
+      "isAbout" &&
+
+    repeatedTopicActual
+      ?.componentInstructionalFinding
+      ?.diagnosis ===
+      "repeatsKeyTopic" &&
+
+    repeatedTopicActual
+      ?.instructionalSituation
+      ?.instructionalSituation ===
+      INSTRUCTIONAL_SITUATIONS
+        .RELATIONSHIP_NEEDS_REPAIR &&
+
+    repeatedTopicActual
+      ?.instructionalSituation
+      ?.governance
+      ?.shadowMode === true;
 
   results.push({
     name:
-      "IA Runtime - Repeated Key Topic is blocked",
+      "IA Runtime - Repeated Key Topic produces relationship repair shadow situation",
 
     passed:
       repeatedTopicPassed,
@@ -10167,67 +10294,326 @@ async function runIsAboutSelfTests() {
 
       resumePendingType:
         "reviseIsAbout",
+
+      governedSituation:
+        INSTRUCTIONAL_SITUATIONS
+          .RELATIONSHIP_NEEDS_REPAIR,
+
+      shadowMode:
+        true,
     },
 
     actual: {
       savedIsAbout:
-        repeatedTopicActual?.frame
+        repeatedTopicActual
+          ?.frame
           ?.isAbout || "",
 
       pendingType:
-        repeatedTopicActual?.pending
+        repeatedTopicActual
+          ?.pending
           ?.type || null,
 
       diagnosis:
-        repeatedTopicActual?.pending
+        repeatedTopicActual
+          ?.pending
           ?.instructionalFinding
           ?.diagnosis || null,
 
       resumePendingType:
-        repeatedTopicActual?.pending
+        repeatedTopicActual
+          ?.pending
           ?.resumePending
           ?.type || null,
+
+      componentFinding:
+        repeatedTopicActual
+          ?.componentInstructionalFinding ||
+        null,
+
+      governedSituation:
+        repeatedTopicActual
+          ?.instructionalSituation
+          ?.instructionalSituation ||
+        null,
+
+      shadowMode:
+        repeatedTopicActual
+          ?.instructionalSituation
+          ?.governance
+          ?.shadowMode === true,
     },
   });
 
   // --------------------------------------------------
-  // LIVE RUNTIME TEST
+  // LIVE RUNTIME + SHADOW SITUATION TEST
   //
-  // Confirms that a valid Is About paraphrase is saved
-  // and advances to the confirmation checkpoint.
+  // Limited Is About evidence requires component
+  // revision but does not establish relationship failure.
+  //
+  // Legacy authority:
+  // • blocks the response;
+  // • enters support.
+  //
+  // Governed shadow result:
+  // • componentNeedsRevision.
+  // --------------------------------------------------
+
+  const limitedEvidenceState =
+    createIsAboutRuntimeTestState();
+
+  const limitedEvidenceActual =
+    await updateStateFromStudent(
+      limitedEvidenceState,
+      "Plants make food"
+    );
+
+  const limitedEvidencePassed =
+    limitedEvidenceActual
+      ?.frame
+      ?.isAbout === "" &&
+
+    limitedEvidenceActual
+      ?.pending
+      ?.type ===
+      "stuckNudge" &&
+
+    limitedEvidenceActual
+      ?.pending
+      ?.instructionalFinding
+      ?.diagnosis ===
+      "insufficientObservableEvidence" &&
+
+    limitedEvidenceActual
+      ?.componentInstructionalFinding
+      ?.componentCriteriaStatus ===
+      "partiallySatisfied" &&
+
+    limitedEvidenceActual
+      ?.componentInstructionalFinding
+      ?.relationshipStatus ===
+      "undetermined" &&
+
+    limitedEvidenceActual
+      ?.instructionalSituation
+      ?.instructionalSituation ===
+      INSTRUCTIONAL_SITUATIONS
+        .COMPONENT_NEEDS_REVISION &&
+
+    limitedEvidenceActual
+      ?.instructionalSituation
+      ?.governance
+      ?.shadowMode === true;
+
+  results.push({
+    name:
+      "IA Runtime - Limited evidence produces component revision shadow situation",
+
+    passed:
+      limitedEvidencePassed,
+
+    response:
+      "Plants make food",
+
+    expected: {
+      savedIsAbout:
+        "",
+
+      pendingType:
+        "stuckNudge",
+
+      diagnosis:
+        "insufficientObservableEvidence",
+
+      componentCriteriaStatus:
+        "partiallySatisfied",
+
+      relationshipStatus:
+        "undetermined",
+
+      governedSituation:
+        INSTRUCTIONAL_SITUATIONS
+          .COMPONENT_NEEDS_REVISION,
+
+      shadowMode:
+        true,
+    },
+
+    actual: {
+      savedIsAbout:
+        limitedEvidenceActual
+          ?.frame
+          ?.isAbout || "",
+
+      pendingType:
+        limitedEvidenceActual
+          ?.pending
+          ?.type || null,
+
+      diagnosis:
+        limitedEvidenceActual
+          ?.pending
+          ?.instructionalFinding
+          ?.diagnosis || null,
+
+      componentCriteriaStatus:
+        limitedEvidenceActual
+          ?.componentInstructionalFinding
+          ?.componentCriteriaStatus ||
+        null,
+
+      relationshipStatus:
+        limitedEvidenceActual
+          ?.componentInstructionalFinding
+          ?.relationshipStatus ||
+        null,
+
+      governedSituation:
+        limitedEvidenceActual
+          ?.instructionalSituation
+          ?.instructionalSituation ||
+        null,
+
+      shadowMode:
+        limitedEvidenceActual
+          ?.instructionalSituation
+          ?.governance
+          ?.shadowMode === true,
+    },
+  });
+
+  // --------------------------------------------------
+  // LIVE RUNTIME + SHADOW SITUATION TEST
+  //
+  // A first no-evidence response does not establish
+  // genuine struggle.
+  //
+  // Legacy authority:
+  // • enters stuckNudge support.
+  //
+  // Governed shadow result:
+  // • noComponentEvidence.
+  // --------------------------------------------------
+
+  const noEvidenceState =
+    createIsAboutRuntimeTestState();
+
+  const noEvidenceActual =
+    await updateStateFromStudent(
+      noEvidenceState,
+      "idk"
+    );
+
+  const noEvidencePassed =
+    noEvidenceActual
+      ?.frame
+      ?.isAbout === "" &&
+
+    noEvidenceActual
+      ?.pending
+      ?.type ===
+      "stuckNudge" &&
+
+    noEvidenceActual
+      ?.pending
+      ?.instructionalFinding
+      ?.diagnosis ===
+      "noComponentEvidence" &&
+
+    noEvidenceActual
+      ?.componentInstructionalFinding
+      ?.componentEvidenceLevel ===
+      "none" &&
+
+    noEvidenceActual
+      ?.instructionalSituation
+      ?.instructionalSituation ===
+      INSTRUCTIONAL_SITUATIONS
+        .NO_COMPONENT_EVIDENCE &&
+
+    noEvidenceActual
+      ?.instructionalSituation
+      ?.governance
+      ?.shadowMode === true;
+
+  results.push({
+    name:
+      "IA Runtime - First no-evidence response does not establish genuine struggle",
+
+    passed:
+      noEvidencePassed,
+
+    response:
+      "idk",
+
+    expected: {
+      savedIsAbout:
+        "",
+
+      pendingType:
+        "stuckNudge",
+
+      diagnosis:
+        "noComponentEvidence",
+
+      componentEvidenceLevel:
+        "none",
+
+      governedSituation:
+        INSTRUCTIONAL_SITUATIONS
+          .NO_COMPONENT_EVIDENCE,
+
+      shadowMode:
+        true,
+    },
+
+    actual: {
+      savedIsAbout:
+        noEvidenceActual
+          ?.frame
+          ?.isAbout || "",
+
+      pendingType:
+        noEvidenceActual
+          ?.pending
+          ?.type || null,
+
+      diagnosis:
+        noEvidenceActual
+          ?.pending
+          ?.instructionalFinding
+          ?.diagnosis || null,
+
+      componentEvidenceLevel:
+        noEvidenceActual
+          ?.componentInstructionalFinding
+          ?.componentEvidenceLevel ||
+        null,
+
+      governedSituation:
+        noEvidenceActual
+          ?.instructionalSituation
+          ?.instructionalSituation ||
+        null,
+
+      shadowMode:
+        noEvidenceActual
+          ?.instructionalSituation
+          ?.governance
+          ?.shadowMode === true,
+    },
+  });
+
+  // --------------------------------------------------
+  // LIVE RUNTIME + SHADOW SITUATION TEST
+  //
+  // A valid Is About is still saved by the authoritative
+  // legacy runtime while the governed engine independently
+  // establishes readyToProgress.
   // --------------------------------------------------
 
   const validIsAboutState =
-    defaultState();
-
-  validIsAboutState.frameMeta.assignmentContext = {
-    raw:
-      "Explain how photosynthesis helps plants make food.",
-
-    understanding:
-      "Explain how photosynthesis helps plants make food.",
-
-    studentSummary:
-      "You're explaining how photosynthesis helps plants make food.",
-
-    confidence:
-      "high",
-
-    needsClarification:
-      false,
-
-    childAnchor:
-      "",
-
-    clarificationCount:
-      0,
-  };
-
-  validIsAboutState.frame.keyTopic =
-    "Photosynthesis";
-
-  const validIsAboutResponse =
-    "Photosynthesis is the process plants use to make food using sunlight.";
+    createIsAboutRuntimeTestState();
 
   const validIsAboutActual =
     await updateStateFromStudent(
@@ -10236,15 +10622,46 @@ async function runIsAboutSelfTests() {
     );
 
   const validIsAboutPassed =
-    validIsAboutActual?.frame?.isAbout ===
+    validIsAboutActual
+      ?.frame
+      ?.isAbout ===
       validIsAboutResponse &&
 
-    validIsAboutActual?.pending?.type ===
-      "confirmIsAbout";
+    validIsAboutActual
+      ?.pending
+      ?.type ===
+      "confirmIsAbout" &&
+
+    validIsAboutActual
+      ?.componentInstructionalFinding
+      ?.componentCriteriaStatus ===
+      "satisfied" &&
+
+    validIsAboutActual
+      ?.componentInstructionalFinding
+      ?.relationshipStatus ===
+      "established" &&
+
+    validIsAboutActual
+      ?.instructionalSituation
+      ?.instructionalSituation ===
+      INSTRUCTIONAL_SITUATIONS
+        .READY_TO_PROGRESS &&
+
+    validIsAboutActual
+      ?.instructionalSituation
+      ?.governance
+      ?.controlsProgression ===
+      false &&
+
+    validIsAboutActual
+      ?.instructionalSituation
+      ?.governance
+      ?.shadowMode === true;
 
   results.push({
     name:
-      "IA Runtime - Valid paraphrase is saved and advances",
+      "IA Runtime - Valid paraphrase produces ready-to-progress shadow situation",
 
     passed:
       validIsAboutPassed,
@@ -10258,19 +10675,307 @@ async function runIsAboutSelfTests() {
 
       pendingType:
         "confirmIsAbout",
+
+      componentCriteriaStatus:
+        "satisfied",
+
+      relationshipStatus:
+        "established",
+
+      governedSituation:
+        INSTRUCTIONAL_SITUATIONS
+          .READY_TO_PROGRESS,
+
+      controlsProgression:
+        false,
+
+      shadowMode:
+        true,
     },
 
     actual: {
       savedIsAbout:
-        validIsAboutActual?.frame
+        validIsAboutActual
+          ?.frame
           ?.isAbout || null,
 
       pendingType:
-        validIsAboutActual?.pending
+        validIsAboutActual
+          ?.pending
           ?.type || null,
+
+      componentCriteriaStatus:
+        validIsAboutActual
+          ?.componentInstructionalFinding
+          ?.componentCriteriaStatus ||
+        null,
+
+      relationshipStatus:
+        validIsAboutActual
+          ?.componentInstructionalFinding
+          ?.relationshipStatus ||
+        null,
+
+      governedSituation:
+        validIsAboutActual
+          ?.instructionalSituation
+          ?.instructionalSituation ||
+        null,
+
+      controlsProgression:
+        validIsAboutActual
+          ?.instructionalSituation
+          ?.governance
+          ?.controlsProgression === true,
+
+      shadowMode:
+        validIsAboutActual
+          ?.instructionalSituation
+          ?.governance
+          ?.shadowMode === true,
     },
   });
-  
+
+  // --------------------------------------------------
+  // GOVERNED PERSISTENCE TEST
+  //
+  // Genuine struggle requires:
+  //
+  // • current no-component evidence;
+  // • prior governed support;
+  // • prior no-component evidence;
+  // • the same active instructional location.
+  //
+  // This test exercises the shadow refresh directly so
+  // contract activation and communication do not influence
+  // the Instructional Situation result.
+  // --------------------------------------------------
+
+  const persistentStruggleState =
+    createIsAboutRuntimeTestState();
+
+  persistentStruggleState.pending = {
+    type:
+      "stuckNudge",
+
+    stage:
+      "isAbout",
+
+    instructionalFinding: {
+      frameComponent:
+        "isAbout",
+
+      componentEvidenceLevel:
+        "none",
+
+      componentCriteriaStatus:
+        "notSatisfied",
+
+      relationshipStatus:
+        "undetermined",
+
+      diagnosis:
+        "noComponentEvidence",
+    },
+
+    resumePending: {
+      type:
+        "reviseIsAbout",
+    },
+  };
+
+  const persistentObservationReport = {
+    version:
+      "1.0",
+
+    source:
+      "selfTestObservation",
+
+    studentInteraction:
+      "idk",
+
+    observations: [
+      {
+        category:
+          "uncertaintyExpression",
+
+        evidenceText:
+          "idk",
+
+        confidence:
+          1,
+      },
+    ],
+
+    ambiguityPresent:
+      false,
+  };
+
+  persistentStruggleState.observationReport =
+    structuredClone(
+      persistentObservationReport
+    );
+
+  const persistentEvidenceState =
+    buildEvidenceState(
+      persistentStruggleState,
+      "idk",
+      persistentObservationReport
+    );
+
+  const persistentAssessment =
+    buildInstructionalAssessment(
+      persistentEvidenceState
+    );
+
+  persistentAssessment
+    .interactionInstructionalFinding =
+      buildInteractionInstructionalFinding(
+        persistentEvidenceState,
+        persistentAssessment
+      );
+
+  persistentStruggleState
+    .instructionalAssessment =
+      structuredClone(
+        persistentAssessment
+      );
+
+  const persistentValidation =
+    validateIsAboutResponse(
+      "idk",
+      keyTopic
+    );
+
+  const persistentComponentFinding =
+    buildComponentInstructionalFinding({
+      frameComponent:
+        "isAbout",
+
+      validation:
+        persistentValidation,
+
+      evidence: {
+        keyTopic,
+
+        attemptedIsAbout:
+          "idk",
+
+        normalizedIsAbout:
+          "idk",
+      },
+    });
+
+  const persistentSituation =
+    refreshShadowInstructionalSituationWithComponentFinding({
+      state:
+        persistentStruggleState,
+
+      currentResponse:
+        "idk",
+
+      componentFinding:
+        persistentComponentFinding,
+    });
+
+  const persistentStrugglePassed =
+    persistentSituation
+      ?.instructionalSituation ===
+      INSTRUCTIONAL_SITUATIONS
+        .GENUINE_STRUGGLE &&
+
+    persistentSituation
+      ?.inputs
+      ?.evidenceHistory
+      ?.priorSupportActive === true &&
+
+    persistentSituation
+      ?.inputs
+      ?.evidenceHistory
+      ?.priorNoEvidence === true &&
+
+    persistentSituation
+      ?.governance
+      ?.genuineStruggleRequiresPersistence ===
+      true &&
+
+    persistentSituation
+      ?.governance
+      ?.selectsInstructionalContract ===
+      false &&
+
+    persistentSituation
+      ?.governance
+      ?.shadowMode === true;
+
+  results.push({
+    name:
+      "IA Governed - Persistent no-evidence after support establishes genuine struggle",
+
+    passed:
+      persistentStrugglePassed,
+
+    response:
+      "idk",
+
+    expected: {
+      governedSituation:
+        INSTRUCTIONAL_SITUATIONS
+          .GENUINE_STRUGGLE,
+
+      priorSupportActive:
+        true,
+
+      priorNoEvidence:
+        true,
+
+      genuineStruggleRequiresPersistence:
+        true,
+
+      selectsInstructionalContract:
+        false,
+
+      shadowMode:
+        true,
+    },
+
+    actual: {
+      governedSituation:
+        persistentSituation
+          ?.instructionalSituation ||
+        null,
+
+      priorSupportActive:
+        persistentSituation
+          ?.inputs
+          ?.evidenceHistory
+          ?.priorSupportActive === true,
+
+      priorNoEvidence:
+        persistentSituation
+          ?.inputs
+          ?.evidenceHistory
+          ?.priorNoEvidence === true,
+
+      genuineStruggleRequiresPersistence:
+        persistentSituation
+          ?.governance
+          ?.genuineStruggleRequiresPersistence ===
+        true,
+
+      selectsInstructionalContract:
+        persistentSituation
+          ?.governance
+          ?.selectsInstructionalContract ===
+        true,
+
+      shadowMode:
+        persistentSituation
+          ?.governance
+          ?.shadowMode === true,
+    },
+  });
+
   const passedCount =
     results.filter(
       (result) =>
