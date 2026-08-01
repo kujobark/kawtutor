@@ -22208,10 +22208,46 @@ if (s.pending?.type === "offerAnotherDetail") {
       instructionalFinding,
   });
 
-if (!detailValidation.valid) {
+  if (!detailValidation.valid) {
+  const instructionalContract =
+    s?.instructionalContractSelection
+      ?.selectedContract ||
+    null;
+
   s.pending = {
-    type: "collectAnotherDetail",
-    index: idx,
+    type:
+      "collectAnotherDetail",
+
+    index:
+      idx,
+
+    instructionalFinding,
+
+    instructionalContract:
+      instructionalContract
+        ? {
+            contractId:
+              instructionalContract.contractId,
+
+            frameComponent:
+              instructionalContract.frameComponent,
+
+            instructionalSituation:
+              instructionalContract.instructionalSituation,
+
+            instructionalGoal:
+              instructionalContract.instructionalGoal,
+
+            teachingMove:
+              instructionalContract.teachingMove,
+
+            thinkingMove:
+              instructionalContract.thinkingMove,
+
+            aiContextualizes:
+              instructionalContract.aiContextualizes,
+          }
+        : null,
   };
 
   return beginStuckSupportFromPending(
