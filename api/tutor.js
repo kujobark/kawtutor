@@ -20854,12 +20854,8 @@ function computeNextQuestion(state) {
 ) {
   return (
     "✨ Great—we have a shared understanding of your assignment!\n\n" +
-    "🪜 How can I support your thinking today?\n\n" +
-    "1️⃣ Build a new Frame\n" +
-    "We'll construct your Framing Routine together, one thinking step at a time.\n\n" +
-    "2️⃣ Strengthen an existing Frame\n" +
-    "I'll review what you've already written and coach you through revisions.\n\n" +
-    "Reply with 1 or 2."
+    "Now let’s begin building your Frame, one thinking step at a time.\n\n" +
+    "What is the main topic you’ll be exploring?"
   );
 }
 
@@ -21023,15 +21019,6 @@ function computeNextQuestion(state) {
   );
 }
 
-  if (s.pending?.type === "chooseWorkflow") {
-  return (
-    "How can I support your work today?\n" +
-    "1) Build a new Frame\n" +
-    "2) Get feedback on an existing Frame\n" +
-    "Reply with 1 or 2."
-  );
-}
-  
   if (s.pending?.type === "confirmLanguageSwitch") {
     const candNative = s.pending?.candidateNativeName || s.pending?.candidateName || "that language";
     const candName = s.pending?.candidateName || "that language";
@@ -22055,44 +22042,22 @@ return s;
   return s;
 }
   
-if (s.pending?.type === "assignmentReasoningIntro") {
-  s.pending = { type: "chooseWorkflow" };
-  return await updateStateFromStudent(s, msg);
+if (
+  s.pending?.type ===
+  "assignmentReasoningIntro"
+) {
+  s.interactionMode =
+    "build";
+
+  s.pending =
+    null;
+
+  return await updateStateFromStudent(
+    s,
+    msg
+  );
 }
- 
- if (s.pending?.type === "chooseWorkflow") {
-  const choice = msg.toLowerCase().trim();
-
-if (choice === "1" || choice.includes("build")) {
-  s.interactionMode = "build";
-  s.feedback.active = false;
-  s.pending = null;
-  return s;
-}
-
-  if (
-    choice === "2" ||
-    choice.includes("feedback") ||
-    choice.includes("strengthen") ||
-    choice.includes("existing")
-  ) {
-    s.interactionMode = "feedback";
-    s.feedback.active = true;
-    s.feedback.origin = "standalone";
-    s.feedback.pendingStep =
-      "selectSection";
-
-    s.pending = {
-      type:
-        "feedbackSelectSection",
-    };
-
-    return s;
-  }
-
-  return s;
-}
-
+  
 if (
   s.pending?.type ===
   "feedbackSelectSection"
