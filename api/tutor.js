@@ -19874,15 +19874,15 @@ async function applyMainIdeaCapture(
     }
 
   const instructionalContract =
-    getInstructionalContractFromSelection(
-      contractSelection
-  );
+    s?.instructionalContractSelection
+      ?.selectedContract ||
+    null;
 
-const activationState = {
-  ...s,
-  pending: {
-    ...resumePending,
-    instructionalFinding,
+  const activationState = {
+    ...s,
+    pending: {
+      ...resumePending,
+      instructionalFinding,
   },
 };
 
