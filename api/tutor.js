@@ -1696,17 +1696,221 @@ const INSTRUCTIONAL_PLAYBOOK = {
       },
     },
   },
-  
-  details: {
+
+    details: {
+    noComponentEvidence: {
+      contractId:
+        "ED-NCE-001",
+
+      frameComponent:
+        "details",
+
+      instructionalSituation:
+        "noComponentEvidence",
+
+      instructionalGoal:
+        "elicitEssentialDetailEvidence",
+
+      teachingMove:
+        "reduceCognitiveLoad",
+
+      thinkingMove:
+        "Reconnect the student to the accepted Main Idea and invite them to identify one concrete fact, example, observation, explanation, or piece of evidence that could support it. Do not suggest or generate the Essential Detail.",
+
+      communicationPattern:
+        "briefReassuranceThenQuestion",
+
+      aiContextualizes:
+        true,
+
+      validation: {
+        type:
+          "essentialDetail",
+
+        description:
+          "The student's next response must provide observable Essential Detail content that can be evaluated as support for the accepted Main Idea.",
+      },
+
+      resumeBehavior: {
+        type:
+          "returnToExactInstructionalLocation",
+
+        description:
+          "Return to the exact required, optional, or revision Essential Detail location and validate the student's next response.",
+      },
+
+      studentWorkProtection: {
+        preserveExistingWork:
+          true,
+
+        preserveCaptureMode:
+          true,
+
+        neverSaveStruggleLanguage:
+          true,
+
+        neverGenerateStudentWork:
+          true,
+
+        neverSupplyEssentialDetail:
+          true,
+
+        neverReplaceMainIdea:
+          true,
+
+        neverInferMeaning:
+          true,
+      },
+    },
+
+    relationshipNeedsRepair: {
+      contractId:
+        "ED-RNR-001",
+
+      frameComponent:
+        "details",
+
+      instructionalSituation:
+        "relationshipNeedsRepair",
+
+      instructionalGoal:
+        "establishSupportingRelationship",
+
+      teachingMove:
+        "clarifyConnection",
+
+      thinkingMove:
+        "Reference the student's observable idea without claiming that it already supports the accepted Main Idea, then invite the student to explain how the idea connects to and supports that Main Idea. Do not supply the connection or generate a replacement Essential Detail.",
+
+      communicationPattern:
+        "acknowledgeThenQuestion",
+
+      aiContextualizes:
+        true,
+
+      validation: {
+        type:
+          "essentialDetail",
+
+        description:
+          "The revised response must establish an observable supporting relationship between the Essential Detail and the accepted Main Idea.",
+      },
+
+      resumeBehavior: {
+        type:
+          "returnToExactInstructionalLocation",
+
+        description:
+          "Return to the exact required, optional, or revision Essential Detail location and validate whether the required supporting relationship is established.",
+      },
+
+      studentWorkProtection: {
+        preserveExistingWork:
+          true,
+
+        preserveCaptureMode:
+          true,
+
+        neverSaveUnvalidatedRevision:
+          true,
+
+        neverGenerateStudentWork:
+          true,
+
+        neverSupplyEssentialDetail:
+          true,
+
+        neverSupplyConnection:
+          true,
+
+        neverReplaceMainIdea:
+          true,
+
+        neverInferRelationship:
+          true,
+      },
+    },
+
+    componentNeedsRevision: {
+      contractId:
+        "ED-CNR-001",
+
+      frameComponent:
+        "details",
+
+      instructionalSituation:
+        "componentNeedsRevision",
+
+      instructionalGoal:
+        "strengthenEssentialDetailEvidence",
+
+      teachingMove:
+        "increaseSpecificity",
+
+      thinkingMove:
+        "Invite the student to make the response more specific by identifying one concrete fact, example, observation, explanation, or piece of evidence related to the accepted Main Idea. Do not infer or supply the missing information.",
+
+      communicationPattern:
+        "briefReassuranceThenQuestion",
+
+      aiContextualizes:
+        true,
+
+      validation: {
+        type:
+          "essentialDetail",
+
+        description:
+          "The revised response must provide enough observable and specific information to function as an Essential Detail beneath the accepted Main Idea.",
+      },
+
+      resumeBehavior: {
+        type:
+          "returnToExactInstructionalLocation",
+
+        description:
+          "Return to the exact required, optional, or revision Essential Detail location and validate the student's revised response.",
+      },
+
+      studentWorkProtection: {
+        preserveExistingWork:
+          true,
+
+        preserveCaptureMode:
+          true,
+
+        neverSaveUnvalidatedRevision:
+          true,
+
+        neverGenerateStudentWork:
+          true,
+
+        neverSupplyEssentialDetail:
+          true,
+
+        neverReplaceStudentThinking:
+          true,
+
+        neverInferMeaning:
+          true,
+      },
+    },
+
     genuineStruggle: {
-      contractId: "ED-GS-001",
+      contractId:
+        "ED-GS-001",
 
-      frameComponent: "details",
-      instructionalSituation: "genuineStruggle",
+      frameComponent:
+        "details",
 
-      instructionalGoal: "restartThinking",
+      instructionalSituation:
+        "genuineStruggle",
 
-      teachingMove: "recall",
+      instructionalGoal:
+        "restartThinking",
+
+      teachingMove:
+        "recall",
 
       thinkingMove:
         "Think of one supporting fact, example, observation, explanation, or piece of evidence that supports this Main Idea.",
@@ -1714,29 +1918,148 @@ const INSTRUCTIONAL_PLAYBOOK = {
       communicationPattern:
         "briefReassuranceThenQuestion",
 
-      aiContextualizes: true,
+      aiContextualizes:
+        true,
 
       validation: {
-        type: "essentialDetail",
+        type:
+          "essentialDetail",
+
         description:
           "The student provides a clear Essential Detail that directly supports the current Main Idea.",
       },
 
       resumeBehavior: {
-        type: "returnToExactInstructionalLocation",
+        type:
+          "returnToExactInstructionalLocation",
+
         description:
-          "Return to the same Essential Detail and Main Idea where support was requested.",
+          "Return to the exact required, optional, or revision Essential Detail location and Main Idea where support was requested.",
       },
 
       progressiveSupport: {
         principle:
           "If the first intervention does not restart productive thinking, provide progressively more targeted support without supplying the student's Essential Detail.",
+
+        scaffolds: [
+          {
+            level:
+              1,
+
+            move:
+              "refocus",
+
+            purpose:
+              "Reconnect the student to the accepted Main Idea.",
+          },
+
+          {
+            level:
+              2,
+
+            move:
+              "differentiate",
+
+            purpose:
+              "Remind the student that an Essential Detail is one specific fact, example, observation, explanation, or piece of evidence that supports the Main Idea.",
+          },
+
+          {
+            level:
+              3,
+
+            move:
+              "supportingEvidencePrompt",
+
+            purpose:
+              "Invite the student to recall one concrete piece of information that helps explain, illustrate, demonstrate, or support the accepted Main Idea.",
+          },
+        ],
       },
 
       studentWorkProtection: {
-        preserveExistingWork: true,
-        neverSaveStruggleLanguage: true,
-        neverGenerateStudentWork: true,
+        preserveExistingWork:
+          true,
+
+        preserveCaptureMode:
+          true,
+
+        neverSaveStruggleLanguage:
+          true,
+
+        neverGenerateStudentWork:
+          true,
+
+        neverSupplyEssentialDetail:
+          true,
+
+        neverChooseEvidence:
+          true,
+
+        neverReplaceStudentThinking:
+          true,
+      },
+    },
+
+    readyToProgress: {
+      contractId:
+        "ED-RTP-001",
+
+      frameComponent:
+        "details",
+
+      instructionalSituation:
+        "readyToProgress",
+
+      instructionalGoal:
+        "preserveAcceptedThinkingAndAdvance",
+
+      teachingMove:
+        "confirm",
+
+      thinkingMove:
+        null,
+
+      communicationPattern:
+        null,
+
+      aiContextualizes:
+        false,
+
+      validation: {
+        type:
+          "essentialDetail",
+
+        description:
+          "The accepted response satisfies Essential Detail criteria and establishes the required supporting relationship to the accepted Main Idea.",
+      },
+
+      progressionBehavior: {
+        type:
+          "continueExistingRuntimeProgression",
+
+        description:
+          "Preserve the accepted Essential Detail and continue through the existing required, optional, or revision Essential Detail progression pathway.",
+      },
+
+      studentWorkProtection: {
+        preserveExistingWork:
+          true,
+
+        preserveAcceptedEssentialDetail:
+          true,
+
+        preserveCaptureMode:
+          true,
+
+        neverRewriteStudentWork:
+          true,
+
+        neverGenerateStudentWork:
+          true,
+
+        neverAdvanceWithoutEstablishedRelationship:
+          true,
       },
     },
   },
@@ -1879,9 +2202,10 @@ function getInstructionalContract(
 //
 // • Is About
 // • Main Ideas
-//
-// The selected contract controls Is About instructional
-// activation and communication.
+// • Essential Details
+// The selected contract controls authoritative
+// instructional activation and communication for the
+// currently migrated Frame components.
 //
 // This selector does not:
 //
@@ -1914,9 +2238,10 @@ function buildInstructionalContractSelection(
         ?.instructionalSituation || ""
     );
 
-  const isWithinCurrentAuthoritativeScope =
+    const isWithinCurrentAuthoritativeScope =
     frameComponent === "isAbout" ||
-    frameComponent === "mainIdeas";
+    frameComponent === "mainIdeas" ||
+    frameComponent === "details";
 
   const selectedContract =
     isWithinCurrentAuthoritativeScope &&
@@ -1961,8 +2286,8 @@ function buildInstructionalContractSelection(
         : null,
 
     governance: {
-      currentAuthoritativeScope:
-        "isAbout, mainIdeas",
+        currentAuthoritativeScope:
+        "isAbout, mainIdeas, details",
 
       contractExecuted:
         selectedContract !== null,
@@ -3885,6 +4210,15 @@ function executeInstructionalContract(
         state
   );
 
+    case "ED-NCE-001":
+    case "ED-CNR-001":
+    case "ED-RNR-001":
+    case "ED-GS-001":
+      return executeEssentialDetailInstructionalContract(
+        contract,
+        state
+  );
+
     case "SW-GS-001":
       return executeSWGS001(
         contract,
@@ -4153,13 +4487,35 @@ function selectEDGS001InstructionalDecision(
   return fallbackDecision;
 }
 
-function executeEDGS001(contract, state) {
+// ------------------------------------------------------
+// ESSENTIAL DETAIL INSTRUCTIONAL CONTRACT EXECUTION
+// ------------------------------------------------------
+//
+// Executes the already-selected authoritative Essential
+// Detail contract.
+//
+// The Instructional Situation Engine and Instructional
+// Contract Selector have already determined the contract.
+//
+// This executor does not select a different Teaching Move,
+// Thinking Move, or communication pattern by diagnosis.
+//
+// ------------------------------------------------------
+
+function executeEssentialDetailInstructionalContract(
+  contract,
+  state
+) {
   const ideas =
-    getIdeaList(state).filter(Boolean);
+    getIdeaList(state)
+      .filter(Boolean);
 
   const resume =
-    state?.pending?.resumePending ||
+    state?.pending
+      ?.resumePending ||
+
     state?.pending ||
+
     null;
 
   const currentMainIdea =
@@ -4167,26 +4523,18 @@ function executeEDGS001(contract, state) {
       ? ideas[resume.index] || ""
       : "";
 
-  // Read the instructional finding established before
-  // this contract was activated.
-  //
-  // The finding describes only the observable instructional
-  // condition. It does not infer student intent, emotion,
-  // understanding, effort, or meaning.
   const instructionalFinding =
-    state?.pending?.instructionalFinding ||
-    state?.pending?.resumePending?.instructionalFinding ||
-    null;
+    state?.pending
+      ?.instructionalFinding ||
 
-  // Select the predetermined Thinking Move from the
-  // deterministic instructional finding.
-  //
-  // AI does not choose this move.
-   const instructionalDecision =
-    selectEDGS001InstructionalDecision(
-      instructionalFinding,
-      contract
-    );
+    state?.pending
+      ?.resumePending
+      ?.instructionalFinding ||
+
+    state
+      ?.componentInstructionalFinding ||
+
+    null;
 
   return {
     contractId:
@@ -4194,15 +4542,16 @@ function executeEDGS001(contract, state) {
 
     instructionalGoal:
       contract.instructionalGoal,
-  
+
     teachingMove:
-      instructionalDecision.teachingMove,
+      contract.teachingMove,
 
     thinkingMove:
-      instructionalDecision.thinkingMove,
+      contract.thinkingMove,
 
     communicationPattern:
-      instructionalDecision.communicationPattern,
+      contract.communicationPattern ||
+      "questionOnly",
 
     aiContextualizes:
       contract.aiContextualizes,
@@ -4211,7 +4560,8 @@ function executeEDGS001(contract, state) {
 
     context: {
       assignmentContext:
-        state?.frameMeta?.assignmentContext || {},
+        state?.frameMeta
+          ?.assignmentContext || {},
 
       thinkingTask:
         state?.assignmentReasoning || {},
@@ -4219,21 +4569,29 @@ function executeEDGS001(contract, state) {
       frameComponent:
         contract.frameComponent,
 
+      keyTopic:
+        state?.frame
+          ?.keyTopic || "",
+
+      isAbout:
+        state?.frame
+          ?.isAbout || "",
+
+      mainIdeas:
+        ideas,
+
       currentMainIdea,
 
       existingDetails:
         Number.isInteger(resume?.index) &&
         Array.isArray(
-          state?.frame?.details?.[resume.index]
+          state?.frame
+            ?.details?.[resume.index]
         )
-          ? state.frame.details[resume.index]
+          ? state.frame.details[
+              resume.index
+            ].filter(Boolean)
           : [],
-
-      keyTopic:
-        state?.frame?.keyTopic || "",
-
-      isAbout:
-        state?.frame?.isAbout || "",
     },
   };
 }
