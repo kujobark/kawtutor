@@ -3876,11 +3876,14 @@ function executeInstructionalContract(
         state
       );
 
+    case "MI-NCE-001":
+    case "MI-CNR-001":
+    case "MI-RNR-001":
     case "MI-GS-001":
-      return executeMIGS001(
+      return executeMainIdeaInstructionalContract(
         contract,
         state
-      );
+  );
 
     case "SW-GS-001":
       return executeSWGS001(
@@ -4440,23 +4443,37 @@ function selectMIGS001InstructionalDecision(
   return fallbackDecision;
 }
 
-
 // ------------------------------------------------------
-// MI-GS-001 CONTRACT EXECUTION
+// MAIN IDEA INSTRUCTIONAL CONTRACT EXECUTION
+// ------------------------------------------------------
+//
+// Executes the already-selected authoritative Main Idea
+// contract.
+//
+// The Instructional Situation Engine and Instructional
+// Contract Selector have already determined the contract.
+//
+// This executor does not select a different Teaching Move,
+// Thinking Move, or communication pattern by diagnosis.
+//
 // ------------------------------------------------------
 
-function executeMIGS001(contract, state) {
+function executeMainIdeaInstructionalContract(
+  contract,
+  state
+) {
   const instructionalFinding =
-    state?.pending?.instructionalFinding ||
-    state?.pending?.resumePending
+    state?.pending
       ?.instructionalFinding ||
-    null;
 
-  const instructionalDecision =
-    selectMIGS001InstructionalDecision(
-      instructionalFinding,
-      contract
-    );
+    state?.pending
+      ?.resumePending
+      ?.instructionalFinding ||
+
+    state
+      ?.componentInstructionalFinding ||
+
+    null;
 
   return {
     contractId:
@@ -4466,13 +4483,14 @@ function executeMIGS001(contract, state) {
       contract.instructionalGoal,
 
     teachingMove:
-      instructionalDecision.teachingMove,
+      contract.teachingMove,
 
     thinkingMove:
-      instructionalDecision.thinkingMove,
+      contract.thinkingMove,
 
     communicationPattern:
-      instructionalDecision.communicationPattern,
+      contract.communicationPattern ||
+      "questionOnly",
 
     aiContextualizes:
       contract.aiContextualizes,
@@ -4481,7 +4499,8 @@ function executeMIGS001(contract, state) {
 
     context: {
       assignmentContext:
-        state?.frameMeta?.assignmentContext || {},
+        state?.frameMeta
+          ?.assignmentContext || {},
 
       thinkingTask:
         state?.assignmentReasoning || {},
@@ -4490,10 +4509,12 @@ function executeMIGS001(contract, state) {
         contract.frameComponent,
 
       keyTopic:
-        state?.frame?.keyTopic || "",
+        state?.frame
+          ?.keyTopic || "",
 
       isAbout:
-        state?.frame?.isAbout || "",
+        state?.frame
+          ?.isAbout || "",
 
       mainIdeas:
         getIdeaList(state)
