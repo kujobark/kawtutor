@@ -16089,7 +16089,6 @@ const componentKnowledge =
       ? getParentAnchorContext(state)
       : null,
     frame: state?.frame || {},
-    feedback: state?.feedback || {},
     pending: state?.pending || null,
     transcript: Array.isArray(state?.transcript) ? state.transcript : [],
   };
@@ -19615,25 +19614,6 @@ return {
         clarificationCount: 0,
     },
 },
-
-  feedback: {
-    active: false,
-    origin: null,
-    targetSection: null,
-    targetIndex: null,
-    originalResponse: "",
-    currentResponse: "",
-    detectedGaps: [],
-    primaryGap: null,
-    coachingTurns: 0,
-    maxCoachingTurns: 3,
-    questionHistory: [],
-    studentThinking: [],
-    thinkingSummary: "",
-    revisionRequested: false,
-    modelOffered: false,
-    pendingStep: null,
-  },
 
     frame: {
       keyTopic: "",
