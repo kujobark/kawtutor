@@ -9589,16 +9589,17 @@ async function runEvidenceStateSelfTests() {
         "Muckrakers showed that journalism could build public support for reform.",
     },
 
-    pending: {
-      type:
-        "collectAnotherDetail",
+  pending: {
+    type:
+      "collectAnotherDetail",
 
-      index:
-        1,
-    },
+  index:
+    1,
+  },
+};
 
-  const originalSnapshot =
-    structuredClone(originalState);
+const originalSnapshot =
+  structuredClone(originalState);
 
   const currentResponse =
     "Public awareness created pressure for reform.";
