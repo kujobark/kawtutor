@@ -881,12 +881,6 @@ function buildEvidenceState(
       ? structuredClone(safeState.pending)
       : null;
 
-  const feedback =
-    safeState?.feedback &&
-    typeof safeState.feedback === "object"
-      ? structuredClone(safeState.feedback)
-      : null;
-
   const studentResponseGovernance =
     safeState?.studentResponseGovernance &&
     typeof safeState.studentResponseGovernance === "object"
@@ -956,9 +950,7 @@ function buildEvidenceState(
       pending,
     },
 
-    interactionContext: {
-      feedback,
-    
+    interactionContext: {  
       studentResponseGovernance,
 },
   };
