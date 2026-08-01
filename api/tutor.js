@@ -1328,43 +1328,374 @@ const INSTRUCTIONAL_PLAYBOOK = {
   },
   
     mainIdeas: {
-      genuineStruggle: {
-      contractId: "MI-GS-001",
+    noComponentEvidence: {
+      contractId:
+        "MI-NCE-001",
 
-    frameComponent: "mainIdeas",
-    instructionalSituation: "genuineStruggle",
+      frameComponent:
+        "mainIdeas",
 
-    instructionalGoal: "restartThinking",
+      instructionalSituation:
+        "noComponentEvidence",
 
-    teachingMove: "clarify",
+      instructionalGoal:
+        "elicitMainIdeaEvidence",
 
-    thinkingMove:
-      "Explain the larger idea that this Main Idea helps your reader understand about the topic.",
+      teachingMove:
+        "reduceCognitiveLoad",
 
-    communicationPattern:
-      "briefReassuranceThenQuestion",
+      thinkingMove:
+        "Reconnect the student to the accepted Key Topic and Is About statement, then invite them to identify one larger idea, category, cause, effect, part, stage, pattern, or major event that helps organize the topic. Do not suggest or generate the Main Idea.",
 
-    aiContextualizes: true,
+      communicationPattern:
+        "briefReassuranceThenQuestion",
 
-    validation: {
-      type: "mainIdea",
-      description:
-        "The student provides an organizing idea that explains the topic and can be supported by multiple details.",
+      aiContextualizes:
+        true,
+
+      validation: {
+        type:
+          "mainIdea",
+
+        description:
+          "The student's next response must provide observable Main Idea content that can be evaluated as one major organizing idea within the accepted Frame.",
+      },
+
+      resumeBehavior: {
+        type:
+          "returnToExactInstructionalLocation",
+
+        description:
+          "Return to the exact required, optional, or revision Main Idea location and validate the student's next response.",
+      },
+
+      studentWorkProtection: {
+        preserveExistingWork:
+          true,
+
+        preserveCaptureMode:
+          true,
+
+        neverSaveStruggleLanguage:
+          true,
+
+        neverGenerateStudentWork:
+          true,
+
+        neverSupplyMainIdea:
+          true,
+
+        neverReplaceKeyTopic:
+          true,
+
+        neverReplaceIsAbout:
+          true,
+
+        neverInferMeaning:
+          true,
+      },
     },
 
-    resumeBehavior: {
-      type: "returnToExactInstructionalLocation",
-      description:
-        "Return to the Main Idea where support was requested and validate the student's next response.",
+    relationshipNeedsRepair: {
+      contractId:
+        "MI-RNR-001",
+
+      frameComponent:
+        "mainIdeas",
+
+      instructionalSituation:
+        "relationshipNeedsRepair",
+
+      instructionalGoal:
+        "establishMainIdeaRelationship",
+
+      teachingMove:
+        "differentiate",
+
+      thinkingMove:
+        "Reconnect the student to the accepted Key Topic and Is About statement, then invite them to identify one larger organizing idea within that topic rather than repeating the whole topic or supplying only one specific Essential Detail. Do not provide the Main Idea.",
+
+      communicationPattern:
+        "acknowledgeThenQuestion",
+
+      aiContextualizes:
+        true,
+
+      validation: {
+        type:
+          "mainIdea",
+
+        description:
+          "The revised response must establish an observable relationship to the accepted Key Topic and Is About statement and function as one organizing Main Idea rather than only an Essential Detail.",
+      },
+
+      resumeBehavior: {
+        type:
+          "returnToExactInstructionalLocation",
+
+        description:
+          "Return to the exact required, optional, or revision Main Idea location and validate whether the required organizing relationship is established.",
+      },
+
+      studentWorkProtection: {
+        preserveExistingWork:
+          true,
+
+        preserveCaptureMode:
+          true,
+
+        neverSaveUnvalidatedRevision:
+          true,
+
+        neverGenerateStudentWork:
+          true,
+
+        neverSupplyMainIdea:
+          true,
+
+        neverReplaceKeyTopic:
+          true,
+
+        neverReplaceIsAbout:
+          true,
+
+        neverInferRelationship:
+          true,
+      },
     },
 
-    studentWorkProtection: {
-      preserveExistingWork: true,
-      neverSaveStruggleLanguage: true,
-      neverGenerateStudentWork: true,
+    componentNeedsRevision: {
+      contractId:
+        "MI-CNR-001",
+
+      frameComponent:
+        "mainIdeas",
+
+      instructionalSituation:
+        "componentNeedsRevision",
+
+      instructionalGoal:
+        "strengthenOrganizingMainIdea",
+
+      teachingMove:
+        "increaseSpecificity",
+
+      thinkingMove:
+        "Invite the student to expand or clarify the response enough to show the larger idea they want this section of the Frame to organize and the kinds of Essential Details that could fit beneath it. Do not infer or supply the missing meaning.",
+
+      communicationPattern:
+        "briefReassuranceThenQuestion",
+
+      aiContextualizes:
+        true,
+
+      validation: {
+        type:
+          "mainIdea",
+
+        description:
+          "The revised response must provide enough observable meaning to function as one understandable organizing Main Idea that can support multiple Essential Details.",
+      },
+
+      resumeBehavior: {
+        type:
+          "returnToExactInstructionalLocation",
+
+        description:
+          "Return to the exact required, optional, or revision Main Idea location and validate the student's revised response.",
+      },
+
+      studentWorkProtection: {
+        preserveExistingWork:
+          true,
+
+        preserveCaptureMode:
+          true,
+
+        neverSaveUnvalidatedRevision:
+          true,
+
+        neverGenerateStudentWork:
+          true,
+
+        neverSupplyMainIdea:
+          true,
+
+        neverReplaceStudentThinking:
+          true,
+
+        neverInferMeaning:
+          true,
+      },
+    },
+
+    genuineStruggle: {
+      contractId:
+        "MI-GS-001",
+
+      frameComponent:
+        "mainIdeas",
+
+      instructionalSituation:
+        "genuineStruggle",
+
+      instructionalGoal:
+        "restartThinking",
+
+      teachingMove:
+        "clarify",
+
+      thinkingMove:
+        "Explain the larger idea that this Main Idea helps your reader understand about the topic.",
+
+      communicationPattern:
+        "briefReassuranceThenQuestion",
+
+      aiContextualizes:
+        true,
+
+      validation: {
+        type:
+          "mainIdea",
+
+        description:
+          "The student provides an organizing idea that explains the topic and can be supported by multiple Essential Details.",
+      },
+
+      resumeBehavior: {
+        type:
+          "returnToExactInstructionalLocation",
+
+        description:
+          "Return to the exact required, optional, or revision Main Idea location where support was requested and validate the student's next response.",
+      },
+
+      progressiveSupport: {
+        principle:
+          "If the first intervention does not restart productive thinking, provide progressively more targeted support without supplying the student's Main Idea.",
+
+        scaffolds: [
+          {
+            level:
+              1,
+
+            move:
+              "refocus",
+
+            purpose:
+              "Reconnect the student to the accepted Key Topic and Is About statement.",
+          },
+
+          {
+            level:
+              2,
+
+            move:
+              "differentiate",
+
+            purpose:
+              "Remind the student that a Main Idea is one larger organizing idea rather than the whole topic or one specific Essential Detail.",
+          },
+
+          {
+            level:
+              3,
+
+            move:
+              "organizingPrompt",
+
+            purpose:
+              "Invite the student to identify one major category, cause, effect, part, stage, pattern, or event that could organize several Essential Details.",
+          },
+        ],
+      },
+
+      studentWorkProtection: {
+        preserveExistingWork:
+          true,
+
+        preserveCaptureMode:
+          true,
+
+        neverSaveStruggleLanguage:
+          true,
+
+        neverGenerateStudentWork:
+          true,
+
+        neverSupplyMainIdea:
+          true,
+
+        neverChooseOrganizer:
+          true,
+
+        neverReplaceStudentThinking:
+          true,
+      },
+    },
+
+    readyToProgress: {
+      contractId:
+        "MI-RTP-001",
+
+      frameComponent:
+        "mainIdeas",
+
+      instructionalSituation:
+        "readyToProgress",
+
+      instructionalGoal:
+        "preserveAcceptedThinkingAndAdvance",
+
+      teachingMove:
+        "confirm",
+
+      thinkingMove:
+        null,
+
+      communicationPattern:
+        null,
+
+      aiContextualizes:
+        false,
+
+      validation: {
+        type:
+          "mainIdea",
+
+        description:
+          "The accepted response satisfies Main Idea criteria, establishes the required relationship to the accepted Frame, and can organize multiple Essential Details.",
+      },
+
+      progressionBehavior: {
+        type:
+          "continueExistingRuntimeProgression",
+
+        description:
+          "Preserve the accepted Main Idea and continue through the existing required, optional, or revision Main Idea progression pathway.",
+      },
+
+      studentWorkProtection: {
+        preserveExistingWork:
+          true,
+
+        preserveAcceptedMainIdea:
+          true,
+
+        preserveCaptureMode:
+          true,
+
+        neverRewriteStudentWork:
+          true,
+
+        neverGenerateStudentWork:
+          true,
+
+        neverAdvanceWithoutEstablishedRelationship:
+          true,
+      },
     },
   },
-},
   
   details: {
     genuineStruggle: {
@@ -1546,7 +1877,8 @@ function getInstructionalContract(
 //
 // Current authoritative scope:
 //
-// • Is About only.
+// • Is About
+// • Main Ideas
 //
 // The selected contract controls Is About instructional
 // activation and communication.
@@ -1583,7 +1915,8 @@ function buildInstructionalContractSelection(
     );
 
   const isWithinCurrentAuthoritativeScope =
-    frameComponent === "isAbout";
+    frameComponent === "isAbout" ||
+    frameComponent === "mainIdeas";
 
   const selectedContract =
     isWithinCurrentAuthoritativeScope &&
@@ -1629,7 +1962,7 @@ function buildInstructionalContractSelection(
 
     governance: {
       currentAuthoritativeScope:
-        "isAbout",
+        "isAbout, mainIdeas",
 
       contractExecuted:
         selectedContract !== null,
@@ -19541,9 +19874,8 @@ async function applyMainIdeaCapture(
     }
 
   const instructionalContract =
-  getInstructionalContract(
-    "mainIdeas",
-    "genuineStruggle"
+    getInstructionalContractFromSelection(
+      contractSelection
   );
 
 const activationState = {
