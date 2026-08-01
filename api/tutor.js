@@ -4195,12 +4195,6 @@ function executeInstructionalContract(
         state
       );
 
-    case "ED-GS-001":
-      return executeEDGS001(
-        contract,
-        state
-      );
-
     case "MI-NCE-001":
     case "MI-CNR-001":
     case "MI-RNR-001":
