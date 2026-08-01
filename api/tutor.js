@@ -16723,14 +16723,6 @@ const PROTECTED_PENDING_TYPES = new Set([
   "offerExport",
   "chooseExportType",
 
-  // Feedback Mode
-  "feedbackSelectSection",
-  "feedbackCollectResponse",
-  "feedbackCoach",
-  "feedbackThinkingSummary",
-  "feedbackRevise",
-  "feedbackComplete",
-
   // Stuck-support engine
   "stuckConfirm",
   "stuckMenu",
