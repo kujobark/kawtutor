@@ -2064,7 +2064,205 @@ const INSTRUCTIONAL_PLAYBOOK = {
     },
   },
   
-      soWhat: {
+    soWhat: {
+    noComponentEvidence: {
+      contractId:
+        "SW-NCE-001",
+
+      frameComponent:
+        "soWhat",
+
+      instructionalSituation:
+        "noComponentEvidence",
+
+      instructionalGoal:
+        "elicitSoWhatEvidence",
+
+      teachingMove:
+        "reduceCognitiveLoad",
+
+      thinkingMove:
+        "Reconnect the student to the completed Frame and invite them to identify one larger understanding, conclusion, connection, implication, or takeaway that becomes clear when the Main Ideas and Essential Details are considered together. Do not suggest or generate the So What.",
+
+      communicationPattern:
+        "briefReassuranceThenQuestion",
+
+      aiContextualizes:
+        true,
+
+      validation: {
+        type:
+          "soWhat",
+
+        description:
+          "The student's next response must provide observable So What content that can be evaluated as a culminating understanding supported by the completed Frame.",
+      },
+
+      resumeBehavior: {
+        type:
+          "returnToExactInstructionalLocation",
+
+        description:
+          "Return to the exact initial, additional-content, or revision So What location and validate the student's next response.",
+      },
+
+      studentWorkProtection: {
+        preserveExistingWork:
+          true,
+
+        preserveCaptureMode:
+          true,
+
+        neverSaveStruggleLanguage:
+          true,
+
+        neverGenerateStudentWork:
+          true,
+
+        neverSupplyTakeaway:
+          true,
+
+        neverChooseConclusion:
+          true,
+
+        neverInferMeaning:
+          true,
+      },
+    },
+
+    relationshipNeedsRepair: {
+      contractId:
+        "SW-RNR-001",
+
+      frameComponent:
+        "soWhat",
+
+      instructionalSituation:
+        "relationshipNeedsRepair",
+
+      instructionalGoal:
+        "establishCompletedFrameRelationship",
+
+      teachingMove:
+        "reconnectToFrame",
+
+      thinkingMove:
+        "Reconnect the student to the accepted Key Topic, Main Ideas, and Essential Details, then invite them to explain the larger understanding that those completed parts support together. Do not supply the connection or generate a replacement So What.",
+
+      communicationPattern:
+        "acknowledgeThenQuestion",
+
+      aiContextualizes:
+        true,
+
+      validation: {
+        type:
+          "soWhat",
+
+        description:
+          "The revised response must establish an observable relationship to the completed Frame and communicate a supported culminating understanding.",
+      },
+
+      resumeBehavior: {
+        type:
+          "returnToExactInstructionalLocation",
+
+        description:
+          "Return to the exact initial, additional-content, or revision So What location and validate whether the required completed-Frame relationship is established.",
+      },
+
+      studentWorkProtection: {
+        preserveExistingWork:
+          true,
+
+        preserveCaptureMode:
+          true,
+
+        neverSaveUnvalidatedRevision:
+          true,
+
+        neverGenerateStudentWork:
+          true,
+
+        neverSupplyTakeaway:
+          true,
+
+        neverSupplyConnection:
+          true,
+
+        neverChooseConclusion:
+          true,
+
+        neverInferRelationship:
+          true,
+      },
+    },
+
+    componentNeedsRevision: {
+      contractId:
+        "SW-CNR-001",
+
+      frameComponent:
+        "soWhat",
+
+      instructionalSituation:
+        "componentNeedsRevision",
+
+      instructionalGoal:
+        "strengthenCulminatingUnderstanding",
+
+      teachingMove:
+        "increaseSpecificity",
+
+      thinkingMove:
+        "Invite the student to clarify the actual larger understanding, significance, implication, connection, or takeaway they reached after considering the completed Frame. Do not infer or supply the missing meaning.",
+
+      communicationPattern:
+        "briefReassuranceThenQuestion",
+
+      aiContextualizes:
+        true,
+
+      validation: {
+        type:
+          "soWhat",
+
+        description:
+          "The revised response must communicate a meaningful and sufficiently specific culminating understanding rather than only a vague statement or repetition of earlier Frame content.",
+      },
+
+      resumeBehavior: {
+        type:
+          "returnToExactInstructionalLocation",
+
+        description:
+          "Return to the exact initial, additional-content, or revision So What location and validate the student's revised response.",
+      },
+
+      studentWorkProtection: {
+        preserveExistingWork:
+          true,
+
+        preserveCaptureMode:
+          true,
+
+        neverSaveUnvalidatedRevision:
+          true,
+
+        neverGenerateStudentWork:
+          true,
+
+        neverSupplyTakeaway:
+          true,
+
+        neverReplaceStudentSynthesis:
+          true,
+
+        neverInferMeaning:
+          true,
+      },
+    },
+
     genuineStruggle: {
       contractId:
         "SW-GS-001",
@@ -2103,7 +2301,7 @@ const INSTRUCTIONAL_PLAYBOOK = {
           "returnToExactInstructionalLocation",
 
         description:
-          "Return to the So What capture or revision location where support was requested and validate the student's next response.",
+          "Return to the exact initial, additional-content, or revision So What location where support was requested and validate the student's next response.",
       },
 
       progressiveSupport: {
@@ -2150,6 +2348,9 @@ const INSTRUCTIONAL_PLAYBOOK = {
         preserveExistingWork:
           true,
 
+        preserveCaptureMode:
+          true,
+
         neverSaveStruggleLanguage:
           true,
 
@@ -2163,6 +2364,68 @@ const INSTRUCTIONAL_PLAYBOOK = {
           true,
 
         neverReplaceStudentSynthesis:
+          true,
+      },
+    },
+
+    readyToProgress: {
+      contractId:
+        "SW-RTP-001",
+
+      frameComponent:
+        "soWhat",
+
+      instructionalSituation:
+        "readyToProgress",
+
+      instructionalGoal:
+        "preserveAcceptedThinkingAndAdvance",
+
+      teachingMove:
+        "confirm",
+
+      thinkingMove:
+        null,
+
+      communicationPattern:
+        null,
+
+      aiContextualizes:
+        false,
+
+      validation: {
+        type:
+          "soWhat",
+
+        description:
+          "The accepted response communicates a meaningful culminating understanding that is anchored to, traceable to, and supported by the completed Frame.",
+      },
+
+      progressionBehavior: {
+        type:
+          "continueExistingRuntimeProgression",
+
+        description:
+          "Preserve the accepted So What and continue through the existing optional expansion, confirmation, and export progression pathway.",
+      },
+
+      studentWorkProtection: {
+        preserveExistingWork:
+          true,
+
+        preserveAcceptedSoWhat:
+          true,
+
+        preserveCaptureMode:
+          true,
+
+        neverRewriteStudentWork:
+          true,
+
+        neverGenerateStudentWork:
+          true,
+
+        neverAdvanceWithoutSupportedSynthesis:
           true,
       },
     },
@@ -2238,11 +2501,12 @@ function buildInstructionalContractSelection(
         ?.instructionalSituation || ""
     );
 
-    const isWithinCurrentAuthoritativeScope =
+  const isWithinCurrentAuthoritativeScope =
     frameComponent === "isAbout" ||
     frameComponent === "mainIdeas" ||
-    frameComponent === "details";
-
+    frameComponent === "details" ||
+    frameComponent === "soWhat";
+  
   const selectedContract =
     isWithinCurrentAuthoritativeScope &&
     instructionalSituation
@@ -2287,7 +2551,7 @@ function buildInstructionalContractSelection(
 
     governance: {
         currentAuthoritativeScope:
-        "isAbout, mainIdeas, details",
+        "isAbout, mainIdeas, details, soWhat",
 
       contractExecuted:
         selectedContract !== null,
