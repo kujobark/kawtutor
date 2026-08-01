@@ -9529,7 +9529,7 @@ function buildSoWhatValidationContext(state) {
 //   evidence;
 // - accepted Frame content is preserved;
 // - instructional location is observable;
-// - pending and feedback context are copied;
+// - pending context is copied;
 // - the original runtime state is not mutated.
 //
 // ------------------------------------------------------
@@ -9596,12 +9596,6 @@ async function runEvidenceStateSelfTests() {
       index:
         1,
     },
-
-    feedback: {
-      mode:
-        "brief",
-    },
-  };
 
   const originalSnapshot =
     structuredClone(originalState);
@@ -19308,99 +19302,6 @@ function getIdeaList(state) {
     ? state.frame.parentItems
     : [];
 }
-
-// -------------------------------------
-// INTERACTION OWNERSHIP PRINCIPLE
-// -------------------------------------
-//
-// Only one instructional mode may own
-// the conversation at a time.
-//
-// Build Mode owns frame construction.
-//
-// Feedback Mode owns revision and coaching.
-//
-// Modes must not compete for progression,
-// prompting, state mutation, or stage ownership.
-//
-// Transition between modes must occur
-// explicitly through user choice.
-//
-// BUILD MODE
-// Goal: Create a Frame
-//
-// FEEDBACK MODE
-// Goal: Improve a Frame
-//
-// This principle preserves instructional
-// clarity and mirrors teacher practice
-// within the KUCRL Framing Routine.
-//
-
-// ---------------------
-// EXPLICIT MODE SWITCH PRINCIPLE
-// ---------------------
-//
-// If a student appears to request a mode
-// change during an active interaction,
-// Kaw must confirm before switching.
-//
-// Feedback Mode may not silently become
-// Build Mode.
-//
-// Build Mode may not silently become
-// Feedback Mode.
-//
-// Mode switching requires explicit
-// student confirmation.
-//
-
-// -------------------------------------
-// INSTRUCTIONAL GOAL PRIORITY PRINCIPLE
-// -------------------------------------
-//
-// Kaw should remain focused on the
-// current instructional goal even when
-// student responses introduce interesting
-// or unrelated topics.
-//
-// Student responses may provide context,
-// but they should not redirect the
-// instructional purpose of the interaction.
-//
-// Acknowledge.
-// Reconnect.
-// Continue.
-//
-// The current instructional goal always
-// supersedes conversational novelty.
-//
-// Examples:
-// - Build Mode -> Continue building
-//   the Frame.
-// - Feedback Mode -> Continue improving
-//   the selected section.
-//
-// Kaw may use student responses as
-// context for coaching, but should not
-// abandon the current instructional task.
-//
-
-// -------------------------------------
-// FEEDBACK PRIORITIZATION PRINCIPLE
-// -------------------------------------
-// Feedback Mode may identify multiple gaps.
-//
-// Kaw should coach the highest-priority gap first.
-//
-// After revision, gap detection should run again.
-//
-// Solving a primary gap may naturally resolve
-// secondary gaps.
-//
-// Kaw should avoid overwhelming students by
-// addressing multiple gaps simultaneously.
-//
 
 // ---------------------
 // PARENT ANCHOR BRIDGE
