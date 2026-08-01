@@ -18002,59 +18002,6 @@ function formatNudgeText(nudges) {
 }
 
 // ---------------------
-// FEEDBACK GAP BANK
-// ---------------------
-// Controlled internal categories Kaw can choose from.
-// Student-facing questions should be generated from the
-// gap + section + assignment context + student response.
-
-const FEEDBACK_GAP_BANK = {
-
-  offTopic: {
-    priority: 1,
-    description:
-      "The response does not clearly connect to the selected Frame section."
-  },
-
-   adviceInsteadOfInsight: {
-    priority: 2,
-    description:
-      "The response gives advice instead of explaining an insight or message."
-  },
-
-  summaryInsteadOfThinking: {
-    priority: 3,
-    description:
-      "The response summarizes what happened instead of explaining deeper thinking."
-  },
-
-  missingConnection: {
-    priority: 4,
-    description:
-      "The response needs a clearer connection to the Key Topic, Is About, Main Idea/Cause, or Detail."
-  },
-
-  tooBroad: {
-    priority: 5,
-    description:
-      "The response is generally correct but too broad."
-  },
-
-  vague: {
-    priority: 6,
-    description:
-      "The response is unclear or uses general language."
-  },
-
-  needsSpecificity: {
-    priority: 7,
-    description:
-      "The response needs a more specific example, detail, or explanation."
-  }
-
-};
-
-// ---------------------
 // STUCK NUDGES
 // ---------------------
 
