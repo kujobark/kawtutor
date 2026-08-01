@@ -4477,8 +4477,11 @@ function executeInstructionalContract(
         state
   );
 
+    case "SW-NCE-001":
+    case "SW-CNR-001":
+    case "SW-RNR-001":
     case "SW-GS-001":
-      return executeSWGS001(
+      return executeSoWhatInstructionalContract(
         contract,
         state
       );
@@ -5145,16 +5148,36 @@ function executeMainIdeaInstructionalContract(
   };
 }
 
-function executeSWGS001(
+// ------------------------------------------------------
+// SO WHAT INSTRUCTIONAL CONTRACT EXECUTION
+// ------------------------------------------------------
+//
+// Executes the already-selected authoritative So What
+// instructional contract.
+//
+// The Instructional Situation Engine and Instructional
+// Contract Selector have already determined the contract.
+//
+// This executor does not select a different Teaching Move,
+// Thinking Move, or communication pattern by diagnosis.
+//
+// ------------------------------------------------------
+
+function executeSoWhatInstructionalContract(
   contract,
   state
 ) {
   const instructionalFinding =
     state?.pending
       ?.instructionalFinding ||
+
     state?.pending
       ?.resumePending
       ?.instructionalFinding ||
+
+    state
+      ?.componentInstructionalFinding ||
+
     null;
 
   return {
@@ -5172,7 +5195,7 @@ function executeSWGS001(
 
     communicationPattern:
       contract.communicationPattern ||
-      "briefReassuranceThenQuestion",
+      "questionOnly",
 
     aiContextualizes:
       contract.aiContextualizes,
@@ -5191,10 +5214,12 @@ function executeSWGS001(
         contract.frameComponent,
 
       keyTopic:
-        state?.frame?.keyTopic || "",
+        state?.frame
+          ?.keyTopic || "",
 
       isAbout:
-        state?.frame?.isAbout || "",
+        state?.frame
+          ?.isAbout || "",
 
       mainIdeas:
         getIdeaList(state)
@@ -5202,7 +5227,8 @@ function executeSWGS001(
 
       details:
         Array.isArray(
-          state?.frame?.details
+          state?.frame
+            ?.details
         )
           ? state.frame.details.map(
               (bucket) =>
@@ -5213,7 +5239,8 @@ function executeSWGS001(
           : [],
 
       currentSoWhat:
-        state?.frame?.soWhat || "",
+        state?.frame
+          ?.soWhat || "",
 
       currentMainIdea:
         "",
