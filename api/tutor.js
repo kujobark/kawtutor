@@ -23126,7 +23126,7 @@ return s;
     }
   );
 
-   if (!detailValidation.valid) {
+    if (!detailValidation.valid) {
   const instructionalFinding = {
     ...buildComponentInstructionalFinding({
       frameComponent:
@@ -23136,10 +23136,22 @@ return s;
         detailValidation,
 
       evidence: {
+        keyTopic:
+          s.frame.keyTopic || "",
+
+        isAbout:
+          s.frame.isAbout || "",
+
         currentMainIdea,
+
+        currentMainIdeaIndex:
+          i,
 
         currentDetailIndex:
           arr.length,
+
+        captureMode:
+          "required",
 
         attemptedDetail:
           cleanText(msg),
@@ -23152,26 +23164,82 @@ return s;
 
     currentMainIdea,
 
+    currentMainIdeaIndex:
+      i,
+
     currentDetailIndex:
       arr.length,
+
+    captureMode:
+      "required",
   };
-    
-      s.pending = {
-        type: "collectAnotherDetail",
-        index: i,
-      };
-    
-      return beginStuckSupportFromPending(
-        s,
-        msg,
-        {
-          intent: "stuck",
-          confidence: 1,
-    
-          source:
-            `detailValidation:${detailValidation.diagnosis}`,
-    
-          instructionalFinding,
+
+  refreshShadowInstructionalSituationWithComponentFinding({
+    state:
+      s,
+
+    currentResponse:
+      msg,
+
+    componentFinding:
+      instructionalFinding,
+  });
+
+  const instructionalContract =
+    s?.instructionalContractSelection
+      ?.selectedContract ||
+    null;
+
+  s.pending = {
+    type:
+      "collectAnotherDetail",
+
+    index:
+      i,
+
+    instructionalFinding,
+
+    instructionalContract:
+      instructionalContract
+        ? {
+            contractId:
+              instructionalContract.contractId,
+
+            frameComponent:
+              instructionalContract.frameComponent,
+
+            instructionalSituation:
+              instructionalContract.instructionalSituation,
+
+            instructionalGoal:
+              instructionalContract.instructionalGoal,
+
+            teachingMove:
+              instructionalContract.teachingMove,
+
+            thinkingMove:
+              instructionalContract.thinkingMove,
+
+            aiContextualizes:
+              instructionalContract.aiContextualizes,
+          }
+        : null,
+  };
+
+  return beginStuckSupportFromPending(
+    s,
+    msg,
+    {
+      intent:
+        "stuck",
+
+      confidence:
+        1,
+
+      source:
+        `detailValidation:${detailValidation.diagnosis}`,
+
+      instructionalFinding,
     }
   );
 }
