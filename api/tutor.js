@@ -10656,7 +10656,7 @@ async function runIsAboutSelfTests() {
     limitedEvidenceActual
       ?.pending
       ?.type ===
-      "stuckNudge" &&
+      "reviseIsAbout" &&
 
     limitedEvidenceActual
       ?.pending
@@ -10700,7 +10700,7 @@ async function runIsAboutSelfTests() {
         "",
 
       pendingType:
-        "stuckNudge",
+        "reviseIsAbout",
 
       diagnosis:
         "insufficientObservableEvidence",
@@ -10793,7 +10793,7 @@ async function runIsAboutSelfTests() {
     noEvidenceActual
       ?.pending
       ?.type ===
-      "stuckNudge" &&
+      "reviseIsAbout" &&
 
     noEvidenceActual
       ?.pending
@@ -10832,7 +10832,7 @@ async function runIsAboutSelfTests() {
         "",
 
       pendingType:
-        "stuckNudge",
+        "reviseIsAbout",
 
       diagnosis:
         "noComponentEvidence",
