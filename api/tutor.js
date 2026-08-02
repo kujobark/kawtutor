@@ -4598,16 +4598,16 @@ function executeEssentialDetailInstructionalContract(
 
       currentMainIdea,
 
-existingDetails:
-  Number.isInteger(pending?.index) &&
-  Array.isArray(
-    state?.frame
-      ?.details?.[pending.index]
-  )
-    ? state.frame.details[
-        pending.index
-      ].filter(Boolean)
-    : [],
+      existingDetails:
+        Number.isInteger(pending?.index) &&
+        Array.isArray(
+          state?.frame
+            ?.details?.[pending.index]
+        )
+          ? state.frame.details[
+              pending.index
+            ].filter(Boolean)
+          : [],
     },
   };
 }
