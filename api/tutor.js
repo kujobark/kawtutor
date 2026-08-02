@@ -21325,9 +21325,77 @@ if (
       ivlResults
   });
 }
-    
-  let incoming = body.state || body.vercelState || body.framing || {};
-  let state = normalizeIncomingState(incoming);
+
+  let incoming =
+  body.state ||
+  body.vercelState ||
+  body.framing ||
+  {};
+
+console.log(
+  "[KAW PHASE 6B] INCOMING STATE SHAPE:",
+  JSON.stringify(
+    {
+      source: body.state
+        ? "body.state"
+        : body.vercelState
+          ? "body.vercelState"
+          : body.framing
+            ? "body.framing"
+            : "empty",
+
+      topLevelKeys:
+        incoming &&
+        typeof incoming === "object"
+          ? Object.keys(incoming)
+          : [],
+
+      assignmentReasoning:
+        incoming?.assignmentReasoning || null,
+
+      legacyTopLevelFrameFields: {
+        keyTopic:
+          incoming?.keyTopic ?? null,
+
+        isAbout:
+          incoming?.isAbout ?? null,
+
+        soWhat:
+          incoming?.soWhat ?? null,
+      },
+
+      frame: {
+        keyTopic:
+          incoming?.frame?.keyTopic ?? null,
+
+        isAbout:
+          incoming?.frame?.isAbout ?? null,
+
+        soWhat:
+          incoming?.frame?.soWhat ?? null,
+
+        detailsType:
+          Array.isArray(
+            incoming?.frame?.details
+          )
+            ? "array"
+            : incoming?.frame?.details &&
+                typeof incoming.frame.details ===
+                  "object"
+              ? "object"
+              : "missing",
+
+        details:
+          incoming?.frame?.details ?? null,
+      },
+    },
+    null,
+    2
+  )
+);
+
+let state =
+  normalizeIncomingState(incoming);
 
   // Keep an unchanged recovery copy from before this request
   // begins mutating instructional state.
