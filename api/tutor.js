@@ -2825,8 +2825,6 @@ function buildInstructionalAssessment(
 
     interactionAssessment,
 
-    legacyInteractionComparison,
-
     findings:
       existingInstructionalFinding
         ? [
