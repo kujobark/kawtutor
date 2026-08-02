@@ -19619,37 +19619,32 @@ if (s.pending?.type === "offerAnotherDetail") {
 
   // Declining is available only after the two required
   // Essential Details have been completed.
-  if (
-    currentCount >= 2 &&
-    (isNegative(normalized) || normalized === "2")
-  ) {
-    s.pending = { type: "confirmDetails", index: idx };
-    return s;
-  }
+ if (
+  currentCount >= 2 &&
+  (isNegative(normalized) || normalized === "2")
+) {
+  s.pending = {
+    type: "confirmDetails",
+    index: idx,
+  };
 
-  const mutationIntent =
-    await classifyStudentWorkMutationIntent(s, msg);
-
-if (!mutationIntent.accept) {
-  // Genuine struggle, frustration, or a request to strengthen
-  // the current work enters intent-specific coaching without
-  // losing this exact optional Detail capture location.
-  if (
-    mutationIntent.intent === "stuck" ||
-    mutationIntent.intent === "frustrated" ||
-    mutationIntent.intent === "revision_direction"
-  ) {
-    return beginStuckSupportFromPending(
-      s,
-      msg,
-      mutationIntent
-    );
-  }
-
-  // Uncertainty and other non-content responses remain
-  // protected until their coaching behavior is explicit.
   return s;
 }
+
+// All proposed responses proceed to governed Essential
+// Detail validation.
+//
+// Conversational, meta, uncertainty, and struggle language
+// are identified as no component evidence by the governed
+// validator. They must not enter a separate recovery router.
+
+const currentMainIdea =
+  getIdeaList(s)[idx] || "";
+
+const detailValidation =
+  await validateEssentialDetailResponseGoverned(
+
+
 
   const currentMainIdea =
   getIdeaList(s)[idx] || "";
@@ -19740,9 +19735,7 @@ if (!detailValidation.valid) {
     s,
     msg,
     {
-      // This remains the current contract-routing behavior
-      // temporarily. The next change will select support from
-      // the instructional finding rather than this generic label.
+  
       intent: "stuck",
 
       confidence: 1,
