@@ -20132,10 +20132,6 @@ async function applyMainIdeaCapture(
   const isOptional =
     captureMode === "optional";
 
-  const isCE =
-    s.frameMeta?.frameType ===
-    "causeEffect";
-
     const validation =
     await validateMainIdeaResponseGoverned(
       text,
@@ -20294,20 +20290,12 @@ s.pending = {
   // frame-type behavior without replacing governed
   // validation.
 
-  // --------------------------------------------------
-  // CANONICAL MAIN IDEA STATE MUTATION
-  //
-  // frame.parentItems is the authoritative runtime
-  // collection for every Main Idea.
-  //
-  // Cause-and-Effect sessions temporarily mirror the
-  // canonical collection into frame.causes so remaining
-  // compatibility pathways continue to function during
-  // migration.
-  //
-  // New instructional authority must not be added to
-  // frame.causes.
-  // --------------------------------------------------
+// --------------------------------------------------
+// CANONICAL MAIN IDEA STATE MUTATION
+//
+// frame.parentItems is the authoritative runtime
+// collection for every Main Idea.
+// --------------------------------------------------
 
   if (
     !Array.isArray(
@@ -20336,13 +20324,6 @@ s.pending = {
       ] = text;
     }
 
-    // Temporary Cause-and-Effect compatibility mirror.
-    if (isCE) {
-      s.frame.causes = [
-        ...s.frame.parentItems,
-      ];
-    }
-
     s.pending = {
       type:
         "confirmMainIdeas",
@@ -20363,14 +20344,7 @@ s.pending = {
   ) {
     s.frame.details[newIndex] = [];
   }
-
-  // Temporary Cause-and-Effect compatibility mirror.
-  if (isCE) {
-    s.frame.causes = [
-      ...s.frame.parentItems,
-    ];
-  }
-
+  
   clearMatchingSkip(
     s,
     "mainIdeas"
