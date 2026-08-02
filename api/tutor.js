@@ -10736,10 +10736,19 @@ async function runIsAboutSelfTests() {
       INSTRUCTIONAL_SITUATIONS
         .RELATIONSHIP_NEEDS_REPAIR &&
 
-    repeatedTopicActual
-      ?.instructionalSituation
-      ?.governance
-      ?.shadowMode === true;
+   repeatedTopicActual
+    ?.instructionalSituation
+    ?.governance
+    ?.shadowMode === true &&
+
+  repeatedTopicActual
+    ?.progressionAuthorization
+    ?.authorized === false &&
+
+  repeatedTopicActual
+    ?.progressionAuthorization
+    ?.selectedContractId ===
+    "IA-RNR-001";
 
   results.push({
     name:
@@ -10767,6 +10776,12 @@ async function runIsAboutSelfTests() {
 
       shadowMode:
         true,
+
+      progressionAuthorized:
+        false,
+
+      selectedContractId:
+        "IA-RNR-001",
     },
 
     actual: {
@@ -10797,11 +10812,21 @@ async function runIsAboutSelfTests() {
           ?.instructionalSituation ||
         null,
 
-      shadowMode:
+    shadowMode:
         repeatedTopicActual
           ?.instructionalSituation
           ?.governance
           ?.shadowMode === true,
+
+      progressionAuthorized:
+        repeatedTopicActual
+          ?.progressionAuthorization
+          ?.authorized === true,
+
+      selectedContractId:
+        repeatedTopicActual
+          ?.progressionAuthorization
+          ?.selectedContractId || null,
     },
   });
 
@@ -11115,7 +11140,16 @@ async function runIsAboutSelfTests() {
     validIsAboutActual
       ?.instructionalSituation
       ?.governance
-      ?.shadowMode === true;
+      ?.shadowMode === true &&
+
+    validIsAboutActual
+      ?.progressionAuthorization
+      ?.authorized === true &&
+
+    validIsAboutActual
+      ?.progressionAuthorization
+      ?.selectedContractId ===
+      "IA-RTP-001";
 
   results.push({
     name:
@@ -11149,6 +11183,12 @@ async function runIsAboutSelfTests() {
 
       shadowMode:
         true,
+
+      progressionAuthorized:
+        true,
+
+      selectedContractId:
+        "IA-RTP-001",
     },
 
     actual: {
@@ -11191,6 +11231,16 @@ async function runIsAboutSelfTests() {
           ?.instructionalSituation
           ?.governance
           ?.shadowMode === true,
+
+      progressionAuthorized:
+        validIsAboutActual
+          ?.progressionAuthorization
+          ?.authorized === true,
+
+      selectedContractId:
+        validIsAboutActual
+          ?.progressionAuthorization
+          ?.selectedContractId || null,
     },
   });
 
