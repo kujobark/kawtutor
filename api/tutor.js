@@ -15097,39 +15097,56 @@ results.push({
   );
 
   const incompleteDetailPassed =
-    state?.frame?.details?.[0]?.length === 0 &&
-    state?.pending?.type ===
-      "stuckNudge" &&
-    state?.pending?.instructionalFinding
-      ?.diagnosis ===
-      "relationshipIncomplete";
+  state?.frame?.details?.[0]?.length === 0 &&
+  state?.pending?.type ===
+    "collectAnotherDetail" &&
+  state?.pending?.index ===
+    0 &&
+  state?.pending?.instructionalFinding
+    ?.diagnosis ===
+    "relationshipIncomplete";
 
-  results.push({
-    name:
-      "Student Simulation - Incomplete Detail is blocked",
+results.push({
+  name:
+    "Student Simulation - Incomplete Detail is blocked",
 
-    passed:
-      incompleteDetailPassed,
+  passed:
+    incompleteDetailPassed,
 
-    expected: {
-      savedDetailCount: 0,
-      pendingType: "stuckNudge",
-      diagnosis: "relationshipIncomplete",
-    },
+  expected: {
+    savedDetailCount:
+      0,
 
-    actual: {
-      savedDetailCount:
-        state?.frame?.details?.[0]?.length || 0,
+    pendingType:
+      "collectAnotherDetail",
 
-      pendingType:
-        state?.pending?.type || null,
+    pendingIndex:
+      0,
 
-      diagnosis:
-        state?.pending?.instructionalFinding
-          ?.diagnosis || null,
-    },
-  });
+    diagnosis:
+      "relationshipIncomplete",
+  },
 
+  actual: {
+    savedDetailCount:
+      state?.frame?.details?.[0]?.length || 0,
+
+    pendingType:
+      state?.pending?.type || null,
+
+    pendingIndex:
+      Number.isInteger(
+        state?.pending?.index
+      )
+        ? state.pending.index
+        : null,
+
+    diagnosis:
+      state?.pending?.instructionalFinding
+        ?.diagnosis || null,
+  },
+});
+  
   // --------------------------------------------------
   // STEP 12: Revised Essential Detail is accepted
   // --------------------------------------------------
