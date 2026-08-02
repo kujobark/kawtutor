@@ -20672,22 +20672,32 @@ if (
 
   const skipped = s.skips[0];
 
-  let label = "a part of the frame";
+  let label = "a part of the Frame";
+
 if (skipped.stage === "mainIdeas") {
-  const nextCauseNumber =
-  (s.frameMeta?.frameType === "causeEffect"
-    ? (s.frame.causes || []).length
-    : (s.frame.mainIdeas || []).length) + 1;
-  label = `${s.frameMeta?.frameType === "causeEffect" ? "Cause" : "Main Idea"} ${nextCauseNumber}`; 
+  const nextMainIdeaNumber =
+    getIdeaList(s).length + 1;
+
+  label =
+    `Main Idea ${nextMainIdeaNumber}`;
 }
 
-if (skipped.stage === "soWhat") label = "the So What statement";
+if (skipped.stage === "soWhat") {
+  label =
+    "the So What statement";
+}
 
-if (skipped.stage?.startsWith("details")) {
-  const idx = Number(skipped.stage.split(":")[1]);
-  const labelBase = s.frameMeta?.frameType === "causeEffect" ? "Cause" : "Main Idea";
-  const detailLabel = "Essential Detail";
-  label = `${detailLabel} for ${labelBase} ${idx + 1}`;
+if (
+  typeof skipped.stage === "string" &&
+  skipped.stage.startsWith("details")
+) {
+  const idx =
+    Number(
+      skipped.stage.split(":")[1]
+    );
+
+  label =
+    `Essential Details for Main Idea ${idx + 1}`;
 }
 
   // Keep the skip for now; remove it after the student completes this stage.
