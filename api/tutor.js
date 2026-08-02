@@ -15954,35 +15954,37 @@ function beginStuckSupportFromPending(
     stage = "soWhat";
   }
 
-  const frameComponent =
-    typeof stage === "string" && stage.startsWith("details:")
-      ? "details"
-      : getBaseStage(stage);
-
   const instructionalSituation =
-    intentResult.intent === "stuck" ||
-    intentResult.intent === "frustrated"
-      ? "genuineStruggle"
-      : null;
-
-  console.log(
-    "[KAW][STUCK] Instructional Situation:",
-    instructionalSituation
-);
-
-  const instructionalContract =
-    frameComponent &&
-    instructionalSituation
-      ? getInstructionalContract(
-          frameComponent,
-          instructionalSituation
-      )
+  state?.instructionalSituation &&
+  typeof state.instructionalSituation ===
+    "object"
+    ? state.instructionalSituation
     : null;
 
+  const instructionalContract =
+    state?.instructionalContractSelection
+      ?.selectedContract ||
+    null;
+
   console.log(
-    "[KAW][STUCK] Selected Contract:",
-    instructionalContract?.contractId
+    "[KAW][GOVERNED SUPPORT] Instructional Situation:",
+    instructionalSituation
+      ?.instructionalSituation || null
 );
+
+  console.log(
+    "[KAW][GOVERNED SUPPORT] Selected Contract:",
+    instructionalContract?.contractId || null
+); 
+
+  if (
+    !instructionalSituation ||
+    !instructionalContract
+) {
+  throw new Error(
+    "Governed support requires an established Instructional Situation and selected Instructional Contract."
+  );
+}
  
   // Build a temporary activation state that includes the
   // deterministic instructional finding before the new
@@ -17404,6 +17406,14 @@ const PARENT_ANCHOR_BRIDGE = {
     chooseExportType: "export",
   },
 
+  // Overlay pending states are helper flows, not structural stages.
+  // They should be interpreted around the current structural stage.
+  overlayPendingTypes: new Set([
+    "confirmLanguageSwitch",
+    "stuckNudge",
+    "stuckMini",
+]),
+
   // Raw getStage() outputs mapped to Parent Anchor structural stages.
   //
   // Detail buckets like details:0 / details:1 collapse to the single
@@ -18188,36 +18198,21 @@ s.pending = {
       : null,
 
   instructionalActivation:
-    instructionalActivation
-      ? {
-          contractId:
-            instructionalActivation.contractId,
+  instructionalActivation
+    ? {
+        contractId:
+          instructionalActivation.contractId,
 
-          execution:
-            instructionalActivation.execution,
+        execution:
+          instructionalActivation.execution,
 
-          aiPayload:
-            instructionalActivation.aiPayload,
-        }
-      : null,
+        aiPayload:
+          instructionalActivation.aiPayload,
+      }
+    : null,
 };
-  
-  return beginStuckSupportFromPending(
-    s,
-    text,
-    {
-      intent:
-        "stuck",
 
-      confidence:
-        1,
-
-      source:
-        `mainIdeaValidation:${validation.diagnosis}`,
-
-      instructionalFinding,
-    }
-  );
+return s;
 }
 
   // Preserve the existing Build Mode lane guardrail.
@@ -19333,31 +19328,18 @@ if (s.pending?.type === "reviseBuildLane") {
   return await updateStateFromStudent(s, msg);
 }
 
-  if (s.pending?.type === "reviseIsAbout") {
-    const mutationIntent =
-      await classifyStudentWorkMutationIntent(s, msg);
+if (s.pending?.type === "reviseIsAbout") {
 
-   if (!mutationIntent.accept) {
-  // Genuine struggle or frustration enters the existing
-  // Stuck Support sequence without losing the exact
-  // Is About revision location.
-  if (
-  mutationIntent.intent === "stuck" ||
-  mutationIntent.intent === "frustrated"
-) {
-  // Legacy STUCK flow removed.
-  // Fall through to governed instructional handling.
-}
+  // All proposed responses proceed to governed Is About
+  // validation.
+  //
+  // Conversational, meta, uncertainty, and struggle language
+  // are identified as no component evidence by the governed
+  // validator. They must not enter a separate recovery router.
 
-  // Revision directions, uncertainty, and other non-content
-  // responses remain protected until their coaching behavior
-  // is handled explicitly.
+  await applyIsAboutCapture(s, msg);
   return s;
 }
-
-    await applyIsAboutCapture(s, msg);
-    return s;
-  }
 
 if (s.pending?.type === "confirmMainIdeas") {
   const normalized = msg.toLowerCase().trim();
@@ -19871,31 +19853,14 @@ if (s.pending?.type === "reviseDetailAt") {
     return s;
   }
 
-  const mutationIntent =
-    await classifyStudentWorkMutationIntent(s, msg);
+// The proposed revision proceeds to governed Essential
+// Detail validation before any accepted student work may
+// be replaced.
+//
+// Conversational or no-evidence responses fail governed
+// validation and preserve the existing Essential Detail.
 
-  if (!mutationIntent.accept) {
-  // Genuine struggle or frustration enters the existing
-  // Stuck Support sequence without losing the selected
-  // Essential Detail revision location.
-  if (
-    mutationIntent.intent === "stuck" ||
-    mutationIntent.intent === "frustrated"
-  ) {
-    return beginStuckSupportFromPending(
-      s,
-      msg,
-      mutationIntent
-    );
-  }
-
-  // Revision directions, uncertainty, and other non-content
-  // responses remain protected until their coaching behavior
-  // is handled explicitly.
-  return s;
-}
-
-  // Validate the proposed revision before replacing the
+// Validate the proposed revision before replacing the
 // previously accepted Essential Detail.
 
 const currentMainIdea =
@@ -20054,26 +20019,11 @@ if (
       return s;
     }
 
-    const mutationIntent =
-      await classifyStudentWorkMutationIntent(
-        s,
-        msg
-      );
-
-    if (!mutationIntent.accept) {
-      if (
-        mutationIntent.intent === "stuck" ||
-        mutationIntent.intent === "frustrated"
-      ) {
-        return beginStuckSupportFromPending(
-          s,
-          msg,
-          mutationIntent
-        );
-      }
-
-      return s;
-    }
+// Additional proposed So What content proceeds to governed
+// validation.
+//
+// No-evidence and conversational responses must be handled
+// by the governed So What finding and contract pathway.
 
     const proposedSoWhat =
       cleanText(
@@ -20209,42 +20159,37 @@ if (!soWhatValidation.valid) {
       return s;
     }
 
-    const mutationIntent =
-      await classifyStudentWorkMutationIntent(
-        s,
-        msg
-      );
+  const mutationIntent =
+  await classifyStudentWorkMutationIntent(
+    s,
+    msg
+  );
 
-    // Preserve the current So What until the student
-    // supplies actual replacement wording.
-    if (
-      isNegative(normalized) ||
-      normalized === "2" ||
-      mutationIntent.intent ===
-        "revision_direction"
-    ) {
-      s.pending = {
-        type: "confirmSoWhat",
-        awaitingRevision: true,
-      };
-    
-      return s;
-    }
+// A decline or revision-direction command is not replacement
+// So What content. Preserve the accepted student work and
+// remain at the revision decision.
+if (
+  isNegative(normalized) ||
+  normalized === "2" ||
+  mutationIntent.intent ===
+    "revision_direction"
+) {
+  s.pending = {
+    type:
+      "confirmSoWhat",
 
-    if (!mutationIntent.accept) {
-      if (
-        mutationIntent.intent === "stuck" ||
-        mutationIntent.intent === "frustrated"
-      ) {
-        return beginStuckSupportFromPending(
-          s,
-          msg,
-          mutationIntent
-        );
-      }
+    awaitingRevision:
+      true,
+  };
 
-      return s;
-    }
+  return s;
+}
+
+// All other proposed replacement wording proceeds to the
+// governed So What validator.
+//
+// No-evidence responses fail validation and cannot replace
+// the accepted So What.
 
     const previousSoWhat =
   s.frame?.soWhat || "";
@@ -20657,28 +20602,12 @@ return s;
       return s;
     }
 
-    const mutationIntent =
-      await classifyStudentWorkMutationIntent(
-        s,
-        msg
-      );
-
-    if (!mutationIntent.accept) {
-      if (
-        mutationIntent.intent === "stuck" ||
-        mutationIntent.intent === "frustrated" ||
-        mutationIntent.intent ===
-          "revision_direction"
-      ) {
-        return beginStuckSupportFromPending(
-          s,
-          msg,
-          mutationIntent
-        );
-      }
-
-      return s;
-    }
+// The student's proposed So What proceeds directly to
+// governed validation.
+//
+// Conversational, meta, revision-direction, and struggle
+// language produce no component evidence and must not be
+// interpreted by a separate recovery router.
 
    const soWhatValidation =
   await validateSoWhatResponseGoverned(
