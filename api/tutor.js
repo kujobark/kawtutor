@@ -20639,12 +20639,10 @@ if (
   return res.status(200).json({
     reply,
 
-    state:
+     state:
       body.state ||
-      body.vercelState ||
-      body.framing ||
       defaultState(),
-
+    
     selfTest:
       testResults,
   });
@@ -20727,11 +20725,9 @@ if (requestedSoWhatBatch) {
   return res.status(200).json({
     reply,
 
-    state:
-      body.state ||
-      body.vercelState ||
-      body.framing ||
-      defaultState(),
+   state:
+    body.state ||
+    defaultState(),
 
     selfTest: {
       suite:
@@ -20769,11 +20765,9 @@ if (requestedComponentSuiteId) {
       reply:
         "The requested Kaw self-test suite could not be found.",
 
-      state:
-        body.state ||
-        body.vercelState ||
-        body.framing ||
-        defaultState(),
+     state:
+      body.state ||
+      defaultState(),
 
       selfTest: {
         suite:
@@ -20792,11 +20786,9 @@ if (requestedComponentSuiteId) {
     reply:
       suiteExecution.formatted,
 
-    state:
-      body.state ||
-      body.vercelState ||
-      body.framing ||
-      defaultState(),
+  state:
+    body.state ||
+    defaultState(),
 
     selfTest: {
       suite:
@@ -20848,11 +20840,9 @@ if (
   return res.status(200).json({
     reply,
 
-    state:
-      body.state ||
-      body.vercelState ||
-      body.framing ||
-      defaultState(),
+  state:
+    body.state ||
+    defaultState(),
 
     selfTest: {
       suite:
@@ -20899,10 +20889,8 @@ if (
   return res.status(200).json({
     reply,
 
-    state:
+   state:
       body.state ||
-      body.vercelState ||
-      body.framing ||
       defaultState(),
 
     selfTest: {
@@ -20980,10 +20968,8 @@ if (
   return res.status(200).json({
     reply,
 
-    state:
+   state:
       body.state ||
-      body.vercelState ||
-      body.framing ||
       defaultState(),
 
     instructionalValidationTest: {
@@ -21050,11 +21036,9 @@ if (mainIdeaIVLCommand) {
     return res.status(200).json({
       reply,
 
-      state:
-        body.state ||
-        body.vercelState ||
-        body.framing ||
-        defaultState(),
+     state:
+      body.state ||
+      defaultState(),
     });
   }
 
@@ -21075,8 +21059,6 @@ if (mainIdeaIVLCommand) {
 
       state:
         body.state ||
-        body.vercelState ||
-        body.framing ||
         defaultState(),
     });
   }
@@ -21148,8 +21130,6 @@ if (mainIdeaIVLCommand) {
 
     state:
       body.state ||
-      body.vercelState ||
-      body.framing ||
       defaultState(),
 
     instructionalValidationLab: {
@@ -21219,8 +21199,6 @@ if (essentialDetailIVLCommand) {
 
       state:
         body.state ||
-        body.vercelState ||
-        body.framing ||
         defaultState(),
     });
   }
@@ -21242,8 +21220,6 @@ if (essentialDetailIVLCommand) {
 
       state:
         body.state ||
-        body.vercelState ||
-        body.framing ||
         defaultState(),
     });
   }
@@ -21315,8 +21291,6 @@ if (essentialDetailIVLCommand) {
 
     state:
       body.state ||
-      body.vercelState ||
-      body.framing ||
       defaultState(),
 
     instructionalValidationLab: {
@@ -21354,8 +21328,6 @@ if (
 
     state:
       body.state ||
-      body.vercelState ||
-      body.framing ||
       defaultState(),
 
     instructionalValidationLab:
@@ -21365,8 +21337,6 @@ if (
 
 let incoming =
   body.state ||
-  body.vercelState ||
-  body.framing ||
   {};
 
 let state =
