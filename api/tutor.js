@@ -17483,53 +17483,7 @@ function normalizeIncomingState(raw) {
   base.interactionMode =
   s.interactionMode || "build";
 
-const assignmentReasoning =
-  s.assignmentReasoning && typeof s.assignmentReasoning === "object"
-    ? s.assignmentReasoning
-    : {};
-
-base.assignmentReasoning = {
-  task: assignmentReasoning.task || assignmentReasoning.mode || null,
-  label: cleanText(assignmentReasoning.label || ""),
-  confidence: Number.isFinite(Number(assignmentReasoning.confidence))
-    ? Number(assignmentReasoning.confidence)
-    : 0,
-  evidence: Array.isArray(assignmentReasoning.evidence)
-    ? assignmentReasoning.evidence.map(cleanText).filter(Boolean)
-    : [],
-  lastUpdated: assignmentReasoning.lastUpdated || null,
-};
- 
-const frame =
-  s.frame && typeof s.frame === "object"
-    ? s.frame
-    : {};
-
-base.frame.keyTopic =
-  cleanFrameText(frame.keyTopic || s.keyTopic || "")
-    .replace(/[.!?]$/, "");
-
-base.frame.isAbout =
-  cleanFrameText(frame.isAbout || s.isAbout || "");
-
-base.frame.parentItems =
-  Array.isArray(frame.parentItems)
-    ? frame.parentItems
-        .map(cleanText)
-        .filter(Boolean)
-    : [];
-
-if (Array.isArray(frame.details)) {
-  base.frame.details = frame.details.map((bucket) =>
-    Array.isArray(bucket)
-      ? bucket.map(cleanText).filter(Boolean)
-      : []
-  );
-} else if (
-  frame.details &&
-  typeof frame.details === "object"
-) {
- 
+  
   // Legacy object format
   const obj = frame.details;
 
@@ -21327,73 +21281,11 @@ if (
   });
 }
 
-  let incoming =
+let incoming =
   body.state ||
   body.vercelState ||
   body.framing ||
   {};
-
-console.log(
-  "[KAW PHASE 6B] INCOMING STATE SHAPE:",
-  JSON.stringify(
-    {
-      source: body.state
-        ? "body.state"
-        : body.vercelState
-          ? "body.vercelState"
-          : body.framing
-            ? "body.framing"
-            : "empty",
-
-      topLevelKeys:
-        incoming &&
-        typeof incoming === "object"
-          ? Object.keys(incoming)
-          : [],
-
-      assignmentReasoning:
-        incoming?.assignmentReasoning || null,
-
-      legacyTopLevelFrameFields: {
-        keyTopic:
-          incoming?.keyTopic ?? null,
-
-        isAbout:
-          incoming?.isAbout ?? null,
-
-        soWhat:
-          incoming?.soWhat ?? null,
-      },
-
-      frame: {
-        keyTopic:
-          incoming?.frame?.keyTopic ?? null,
-
-        isAbout:
-          incoming?.frame?.isAbout ?? null,
-
-        soWhat:
-          incoming?.frame?.soWhat ?? null,
-
-        detailsType:
-          Array.isArray(
-            incoming?.frame?.details
-          )
-            ? "array"
-            : incoming?.frame?.details &&
-                typeof incoming.frame.details ===
-                  "object"
-              ? "object"
-              : "missing",
-
-        details:
-          incoming?.frame?.details ?? null,
-      },
-    },
-    null,
-    2
-  )
-);
 
 let state =
   normalizeIncomingState(incoming);
