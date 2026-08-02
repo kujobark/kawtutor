@@ -19480,12 +19480,10 @@ return {
     frame: {
       keyTopic: "",
       isAbout: "",
-      causes: [],
-      effect: "",
       parentItems: [],
-      mainIdeas: [],
       details: [],
       soWhat: "",
+},
 },
     pending: null,
     settings: {
@@ -19537,98 +19535,24 @@ base.assignmentReasoning = {
   lastUpdated: assignmentReasoning.lastUpdated || null,
 };
  
-  const frame = s.frame && typeof s.frame === "object" ? s.frame : {};
+const frame =
+  s.frame && typeof s.frame === "object"
+    ? s.frame
+    : {};
 
-  base.frame.keyTopic =
+base.frame.keyTopic =
   cleanFrameText(frame.keyTopic || s.keyTopic || "")
     .replace(/[.!?]$/, "");
-  base.frame.isAbout = cleanFrameText(frame.isAbout || s.isAbout || "");
 
-  // --------------------------------------------------
-  // CANONICAL MAIN IDEA MIGRATION BOUNDARY
-  //
-  // frame.parentItems is the canonical runtime collection
-  // for Main Ideas.
-  //
-  // Legacy Cause-and-Effect and early Main Idea states may
-  // still arrive through frame.causes or frame.mainIdeas.
-  //
-  // Normalize those legacy collections into parentItems at
-  // the incoming-state boundary so the active runtime does
-  // not require parallel instructional architectures.
-  //
-  // The legacy fields remain temporarily available only
-  // for compatibility and will be removed after all active
-  // runtime references have been redirected and verified.
-  // --------------------------------------------------
+base.frame.isAbout =
+  cleanFrameText(frame.isAbout || s.isAbout || "");
 
-  const legacyCauses =
-    Array.isArray(frame.causes)
-      ? frame.causes
-          .map(cleanText)
-          .filter(Boolean)
-      : cleanText(
-          frame.cause ||
-          s.cause ||
-          ""
-        )
-        ? [
-            cleanText(
-              frame.cause ||
-              s.cause ||
-              ""
-            ),
-          ]
-        : [];
-
-  const legacyMainIdeas =
-    Array.isArray(frame.mainIdeas)
-      ? frame.mainIdeas
-          .map(cleanText)
-          .filter(Boolean)
-      : [];
-
-  const canonicalParentItems =
-    Array.isArray(frame.parentItems)
-      ? frame.parentItems
-          .map(cleanText)
-          .filter(Boolean)
-      : [];
-
-  base.frame.parentItems =
-    canonicalParentItems.length > 0
-      ? canonicalParentItems
-      : legacyCauses.length > 0
-        ? legacyCauses
-        : legacyMainIdeas;
-
-  // Temporary compatibility fields.
-  //
-  // These fields may preserve older incoming state during
-  // migration, but they are not the canonical source used
-  // by the active Frame progression engine.
-  base.frame.causes =
-    legacyCauses;
-
-  base.frame.mainIdeas =
-    legacyMainIdeas;
-
-  base.frame.effect =
-    cleanText(
-      frame.effect ||
-      s.effect ||
-      ""
-    );
-
-  // Preserve older Cause-and-Effect state whose effect was
-  // stored only through the Is About statement.
-  if (
-    !base.frame.effect &&
-    base.frame.isAbout
-  ) {
-    base.frame.effect =
-      base.frame.isAbout;
-  }
+base.frame.parentItems =
+  Array.isArray(frame.parentItems)
+    ? frame.parentItems
+        .map(cleanText)
+        .filter(Boolean)
+    : [];
 
 if (Array.isArray(frame.details)) {
   base.frame.details = frame.details.map((bucket) =>
@@ -19636,7 +19560,11 @@ if (Array.isArray(frame.details)) {
       ? bucket.map(cleanText).filter(Boolean)
       : []
   );
-} else if (frame.details && typeof frame.details === "object") {
+} else if (
+  frame.details &&
+  typeof frame.details === "object"
+) {
+ 
   // Legacy object format
   const obj = frame.details;
 
