@@ -17476,29 +17476,111 @@ assignmentReasoning: {
   };
 }
 
-function normalizeIncomingState(raw) {
-  const s = raw && typeof raw === "object" ? raw : {};
-  const base = defaultState();
+  function normalizeIncomingState(raw) {
+  const s =
+    raw &&
+    typeof raw === "object"
+      ? raw
+      : {};
+
+  const base =
+    defaultState();
 
   base.interactionMode =
-  s.interactionMode || "build";
+    s.interactionMode ||
+    "build";
 
-  
-  // Legacy object format
-  const obj = frame.details;
+  const assignmentReasoning =
+    s.assignmentReasoning &&
+    typeof s.assignmentReasoning ===
+      "object"
+      ? s.assignmentReasoning
+      : {};
 
-  base.frame.details = base.frame.parentItems.map((mi) => {
-    const bucket = obj[mi];
-    return Array.isArray(bucket)
-      ? bucket.map(cleanText).filter(Boolean)
+  base.assignmentReasoning = {
+    task:
+      assignmentReasoning.task ||
+      null,
+
+    label:
+      cleanText(
+        assignmentReasoning.label ||
+        ""
+      ),
+
+    confidence:
+      Number.isFinite(
+        Number(
+          assignmentReasoning.confidence
+        )
+      )
+        ? Number(
+            assignmentReasoning.confidence
+          )
+        : 0,
+
+    evidence:
+      Array.isArray(
+        assignmentReasoning.evidence
+      )
+        ? assignmentReasoning.evidence
+            .map(cleanText)
+            .filter(Boolean)
+        : [],
+
+    lastUpdated:
+      assignmentReasoning.lastUpdated ||
+      null,
+  };
+
+  const frame =
+    s.frame &&
+    typeof s.frame === "object"
+      ? s.frame
+      : {};
+
+  base.frame.keyTopic =
+    cleanFrameText(
+      frame.keyTopic ||
+      ""
+    )
+      .replace(/[.!?]$/, "");
+
+  base.frame.isAbout =
+    cleanFrameText(
+      frame.isAbout ||
+      ""
+    );
+
+  base.frame.parentItems =
+    Array.isArray(
+      frame.parentItems
+    )
+      ? frame.parentItems
+          .map(cleanText)
+          .filter(Boolean)
       : [];
-  });
-} else {
-  base.frame.details = [];
-}
 
-  base.frame.soWhat = cleanText(frame.soWhat || s.soWhat || "");
+  base.frame.details =
+    Array.isArray(
+      frame.details
+    )
+      ? frame.details.map(
+          (bucket) =>
+            Array.isArray(bucket)
+              ? bucket
+                  .map(cleanText)
+                  .filter(Boolean)
+              : []
+        )
+      : [];
 
+  base.frame.soWhat =
+    cleanText(
+      frame.soWhat ||
+      ""
+    );
+    
   const frameMeta = s.frameMeta && typeof s.frameMeta === "object" ? s.frameMeta : {};
 
   const assignmentContext =
