@@ -15493,15 +15493,6 @@ function getParentAnchorContext(state) {
   };
 }
 
-function getComponentKnowledge(frameStage) {
-  const baseStage =
-    typeof getBaseStage === "function"
-      ? getBaseStage(frameStage)
-      : frameStage;
-
-  return KU_FRAME_COMPONENTS[baseStage] || null;
-}
-
 function getComponentConversation(componentName) {
   return (
     KU_FRAME_COMPONENTS?.[componentName]?.conversationSupport || {}
@@ -22195,31 +22186,6 @@ if (
   // Keep an unchanged recovery copy from before this request
   // begins mutating instructional state.
   safeState = structuredClone(state);
-
-// ------------------
-// TRANSITIONAL INSTRUCTIONAL PLAN SNAPSHOT
-// ------------------
-//
-// Captures the output of the older read-only planning
-// pathway for comparison and migration support.
-//
-// This snapshot does not control the authoritative runtime.
-// Its useful responsibilities will be consolidated into:
-//
-// • Evidence State
-// • Instructional Assessment
-// • Instructional Strategy
-//
-// Do not expand this pathway with new authority.
-    
- const instructionalContext = buildInstructionalContext(state, message);
- const instructionalPlan = createInstructionalPlan(instructionalContext);
- 
- state.instructionalContext =
-   instructionalContext;
-
- state.instructionalPlan =
-   instructionalPlan;
 
     // Safety
     if (message) {
