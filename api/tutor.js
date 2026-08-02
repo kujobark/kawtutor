@@ -4,6 +4,8 @@ import { classifyMessage } from "../lib/safetyCheck.js";
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+// Force fresh deployment — Tutor 22
+
 // ---------------------
 // CONFIG
 // ---------------------
