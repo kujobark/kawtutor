@@ -16366,64 +16366,6 @@ function diagnoseInstructionalNeed(context) {
   };
 }
 
-function analyzeBuildLane(state, stage, response) {
-  const frameType = state?.frameMeta?.frameType || "";
-  const text = cleanText(response);
-
-  if (!text) return null;
-
-  if (frameType === "themes" && stage === "mainIdeas") {
-    if (looksLikeAdvice(text)) {
-      return {
-        type: "reviseBuildLane",
-        stage: "mainIdeas",
-        feedback: "That sounds more like advice than a Main Idea.",
-        revisionPrompt: "What idea, example, or moment helps show your message about life?"
-      };
-    }
-
-   const summaryPatterns = [
-  /\b(moved|joined|went|met|lost|found|started|stopped)\b.*\band\b.*\b(moved|joined|went|met|lost|found|started|stopped)\b/i
-];
-
-const looksLikeEventSummary =
-  summaryPatterns.some(pattern => pattern.test(text));
-
-    if (looksLikeSequenceSummary(text) || looksLikeEventSummary) {
-      return {
-        type: "reviseBuildLane",
-        stage: "mainIdeas",
-        feedback: "That tells what happened.",
-        revisionPrompt: "What idea does this experience help show?"
-      };
-    }
-  }
-
-  if (frameType === "themes" && stage === "details") {
-  const lower = text.toLowerCase();
-
-  const soundsBroad =
-    lower === cleanText(state?.frame?.isAbout || "").toLowerCase() ||
-    lower.includes("people often") ||
-    lower.includes("can be difficult") ||
-    lower.includes("is important") ||
-    lower.includes("matters") ||
-    lower.startsWith("people ") ||
-    lower.startsWith("someone ") ||
-    lower.startsWith("everyone ");
-
-  if (soundsBroad) {
-    return {
-      type: "reviseBuildLane",
-      stage: "details",
-      feedback: "That is a good idea, but it sounds broad for an Essential Detail.",
-      revisionPrompt: "What specific example, event, or explanation helps show this idea in action?"
-    };
-  }
-}
-  
-  return null;
-}
 function shouldRequestEvidenceDetail(state, detailText) {
   if (state.frameMeta?.frameType !== "causeEffect") return false;
 
@@ -20351,21 +20293,8 @@ s.pending = {
   // The existing lane check may still enforce specialized
   // frame-type behavior without replacing governed
   // validation.
-  const laneCheck =
-    analyzeBuildLane(
-      s,
-      "mainIdeas",
-      text
-    );
 
-  if (laneCheck) {
-    s.pending =
-      laneCheck;
-
-    return s;
-  }
-
-    // --------------------------------------------------
+  // --------------------------------------------------
   // CANONICAL MAIN IDEA STATE MUTATION
   //
   // frame.parentItems is the authoritative runtime
