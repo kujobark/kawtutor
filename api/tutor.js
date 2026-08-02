@@ -4423,10 +4423,6 @@ function executeIsAboutInstructionalContract(
     state?.pending
       ?.instructionalFinding ||
 
-    state?.pending
-      ?.resumePending
-      ?.instructionalFinding ||
-
     state
       ?.componentInstructionalFinding ||
 
@@ -4536,25 +4532,19 @@ function executeEssentialDetailInstructionalContract(
     getIdeaList(state)
       .filter(Boolean);
 
-  const resume =
-    state?.pending
-      ?.resumePending ||
-
-    state?.pending ||
-
-    null;
+  const pending =
+    state?.pending &&
+    typeof state.pending === "object"
+      ? state.pending
+      : null;
 
   const currentMainIdea =
-    Number.isInteger(resume?.index)
-      ? ideas[resume.index] || ""
+    Number.isInteger(pending?.index)
+      ? ideas[pending.index] || ""
       : "";
 
   const instructionalFinding =
     state?.pending
-      ?.instructionalFinding ||
-
-    state?.pending
-      ?.resumePending
       ?.instructionalFinding ||
 
     state
@@ -4608,16 +4598,16 @@ function executeEssentialDetailInstructionalContract(
 
       currentMainIdea,
 
-      existingDetails:
-        Number.isInteger(resume?.index) &&
-        Array.isArray(
-          state?.frame
-            ?.details?.[resume.index]
-        )
-          ? state.frame.details[
-              resume.index
-            ].filter(Boolean)
-          : [],
+existingDetails:
+  Number.isInteger(pending?.index) &&
+  Array.isArray(
+    state?.frame
+      ?.details?.[pending.index]
+  )
+    ? state.frame.details[
+        pending.index
+      ].filter(Boolean)
+    : [],
     },
   };
 }
@@ -4643,10 +4633,6 @@ function executeMainIdeaInstructionalContract(
 ) {
   const instructionalFinding =
     state?.pending
-      ?.instructionalFinding ||
-
-    state?.pending
-      ?.resumePending
       ?.instructionalFinding ||
 
     state
@@ -4729,10 +4715,6 @@ function executeSoWhatInstructionalContract(
 ) {
   const instructionalFinding =
     state?.pending
-      ?.instructionalFinding ||
-
-    state?.pending
-      ?.resumePending
       ?.instructionalFinding ||
 
     state
