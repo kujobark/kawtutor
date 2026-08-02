@@ -17286,51 +17286,6 @@ function formatNudgeText(nudges) {
   return items.join("\n\n");
 }
 
-// ---------------------
-// STUCK NUDGES
-// ---------------------
-
-// ---------------------
-// CAUSE/EFFECT EVIDENCE GUARDRAILS
-// ---------------------
-// Evidence detection lives in Formative Assessment.
-// Evidence-request interpretation lives in Diagnosis.
-
-// ---------------------
-// BUILD MODE LANE GUARDRAILS
-// ---------------------
-// Light checks only.
-// Purpose: keep students in the correct section/lane while building.
-// This is NOT Feedback Mode.
-
-function looksLikeSequenceSummary(text) {
-  const t = cleanText(text).toLowerCase();
-  if (!t) return false;
-
-  return (
-    t.startsWith("first ") ||
-    t.startsWith("then ") ||
-    t.startsWith("next ") ||
-    t.startsWith("finally ") ||
-    t.startsWith("the story is about") ||
-    t.startsWith("this story is about") ||
-    t.startsWith("the text is about") ||
-    t.startsWith("this text is about")
-  );
-}
-
-function looksLikeAdvice(text) {
-  const t = cleanText(text).toLowerCase();
-  if (!t) return false;
-
-  return (
-    t.startsWith("you should") ||
-    t.startsWith("people should") ||
-    t.includes("should always") ||
-    t.includes("should never")
-  );
-}
-
 // ------------------------------------------------------
 // THINKING TASK LIBRARY
 // ------------------------------------------------------
