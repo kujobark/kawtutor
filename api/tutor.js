@@ -4040,6 +4040,160 @@ function refreshInstructionalSituationWithComponentFinding({
   return instructionalSituation;
 }
 
+// ------------------------------------------------------
+// GOVERNED PROGRESSION AUTHORIZATION
+// ------------------------------------------------------
+//
+// Determines whether the governed instructional pipeline
+// has authorized progression for the active Frame
+// component.
+//
+// Authorization requires:
+//
+// • Instructional Situation = readyToProgress;
+// • the situation belongs to the expected Frame component;
+// • one predetermined Instructional Contract was selected;
+// • the selected contract is the expected ready-to-progress
+//   contract;
+// • the contract explicitly authorizes continuation through
+//   the current runtime progression pathway.
+//
+// This helper does not:
+//
+// • save or modify student work;
+// • change pending state;
+// • select a different Instructional Contract;
+// • determine the Instructional Situation;
+// • execute progression.
+//
+// It creates the governed authorization that the Runtime
+// Progression Layer will later be required to obey.
+//
+// ------------------------------------------------------
+
+function buildProgressionAuthorization(
+  state,
+  {
+    frameComponent = "",
+    expectedContractId = "",
+  } = {}
+) {
+  const instructionalSituation =
+    state?.instructionalSituation &&
+    typeof state.instructionalSituation ===
+      "object"
+      ? state.instructionalSituation
+      : null;
+
+  const contractSelection =
+    state?.instructionalContractSelection &&
+    typeof state.instructionalContractSelection ===
+      "object"
+      ? state.instructionalContractSelection
+      : null;
+
+  const selectedContract =
+    contractSelection?.selectedContract &&
+    typeof contractSelection.selectedContract ===
+      "object"
+      ? contractSelection.selectedContract
+      : null;
+
+  const situationReady =
+    instructionalSituation
+      ?.instructionalSituation ===
+    INSTRUCTIONAL_SITUATIONS
+      .READY_TO_PROGRESS;
+
+  const componentMatches =
+    cleanText(
+      instructionalSituation?.frameComponent ||
+      ""
+    ) === cleanText(frameComponent);
+
+  const contractSelected =
+    contractSelection?.selectionStatus ===
+      "contractSelected" &&
+    selectedContract !== null;
+
+  const contractMatches =
+    cleanText(
+      selectedContract?.contractId || ""
+    ) === cleanText(expectedContractId);
+
+  const continuationAuthorized =
+    selectedContract
+      ?.progressionBehavior
+      ?.type ===
+    "continueExistingRuntimeProgression";
+
+  const authorized =
+    situationReady &&
+    componentMatches &&
+    contractSelected &&
+    contractMatches &&
+    continuationAuthorized;
+
+  return {
+    artifactType:
+      "progressionAuthorization",
+
+    version:
+      "1.0",
+
+    source:
+      "deterministicProgressionAuthorization",
+
+    authorized,
+
+    frameComponent:
+      cleanText(frameComponent) || null,
+
+    expectedContractId:
+      cleanText(expectedContractId) || null,
+
+    instructionalSituation:
+      instructionalSituation
+        ?.instructionalSituation || null,
+
+    selectedContractId:
+      selectedContract?.contractId || null,
+
+    progressionBehavior:
+      selectedContract?.progressionBehavior
+        ? structuredClone(
+            selectedContract.progressionBehavior
+          )
+        : null,
+
+    evidence: {
+      situationReady,
+
+      componentMatches,
+
+      contractSelected,
+
+      contractMatches,
+
+      continuationAuthorized,
+    },
+
+    governance: {
+      controlsProgression:
+        false,
+
+      controlsPendingState:
+        false,
+
+      authorizationEstablished:
+        authorized,
+
+      migrationStage:
+        "authorizationOnly",
+    },
+  };
+}
+
 // ======================================================================
 // LAYER 6 — INSTRUCTIONAL COMMUNICATION
 //
@@ -17892,7 +18046,25 @@ async function applyIsAboutCapture(s, msg) {
       instructionalFinding,
   });
 
-    if (!validation.valid) {
+  const progressionAuthorization =
+    buildProgressionAuthorization(
+      s,
+      {
+        frameComponent:
+          "isAbout",
+
+        expectedContractId:
+          "IA-RTP-001",
+      }
+    );
+
+  s.progressionAuthorization =
+    structuredClone(
+      progressionAuthorization
+    );
+
+  if (!validation.valid) {
+  
         const instructionalContract =
       s?.instructionalContractSelection
         ?.selectedContract ||
