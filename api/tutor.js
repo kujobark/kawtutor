@@ -16366,18 +16366,6 @@ function diagnoseInstructionalNeed(context) {
   };
 }
 
-function shouldRequestEvidenceDetail(state, detailText) {
-  if (state.frameMeta?.frameType !== "causeEffect") return false;
-
-  const t = cleanText(detailText);
-  if (!t) return false;
-
-  // If it already looks like evidence, don't interrupt.
-  if (looksLikeEvidence(t)) return false;
-
-  // If it looks like mechanism but not evidence, ask for evidence.
-  return looksLikeMechanism(t);
-}
 // ------------------------------------------------------
 // INSTRUCTIONAL DECISION
 // Chooses the best instructional move.
@@ -21475,13 +21463,6 @@ if (s.pending?.type === "offerAnotherDetail") {
     return s;
   }
 
-    if (shouldRequestEvidenceDetail(s, msg)) {
-    s.pending = {
-      type: "needEvidenceDetail",
-      index: idx,
-      mechanism: msg,
-    };
-
     return s;
   }
   
@@ -21670,13 +21651,6 @@ if (!mutationIntent.accept) {
   // protected until their coaching behavior is explicit.
   return s;
 }
-
-  if (shouldRequestEvidenceDetail(s, msg)) {
-    s.pending = {
-      type: "needEvidenceDetail",
-      index: idx,
-      mechanism: msg,
-    };
 
     return s;
   }
@@ -22730,21 +22704,6 @@ return s;
               "aiIntentFallback"
                 ? struggleCheck.confidence
                 : undefined,
-          };
-
-          return s;
-        }
-
-        if (
-          shouldRequestEvidenceDetail(
-            s,
-            msg
-          )
-        ) {
-          s.pending = {
-            type: "needEvidenceDetail",
-            index: i,
-            mechanism: msg,
           };
 
           return s;
