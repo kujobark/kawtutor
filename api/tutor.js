@@ -13767,67 +13767,67 @@ async function runSoWhatSelfTests(
     );
 
   const invalidInitialPassed =
-    invalidInitialActual?.frame?.soWhat ===
-      "" &&
+  invalidInitialActual?.frame?.soWhat ===
+    "" &&
 
-    invalidInitialActual?.pending?.type ===
-      "stuckNudge" &&
+  invalidInitialActual?.pending?.type ===
+    "collectMoreSoWhat" &&
 
-    invalidInitialActual?.pending
-      ?.instructionalFinding
-      ?.frameComponent ===
-      "soWhat" &&
+  invalidInitialActual?.pending
+    ?.instructionalFinding
+    ?.frameComponent ===
+    "soWhat" &&
 
-    invalidInitialActual?.pending
-      ?.instructionalFinding
-      ?.diagnosis ===
-      "insufficientObservableEvidence";
+  invalidInitialActual?.pending
+    ?.instructionalFinding
+    ?.diagnosis ===
+    "insufficientObservableEvidence";
 
-  results.push({
-    name:
-      "SW Runtime - Invalid initial So What is blocked",
+results.push({
+  name:
+    "SW Runtime - Invalid initial So What is blocked",
 
-    passed:
-      invalidInitialPassed,
+  passed:
+    invalidInitialPassed,
 
-    response:
-      invalidInitialResponse,
+  response:
+    invalidInitialResponse,
 
-    expected: {
-      savedSoWhat:
-        "",
+  expected: {
+    savedSoWhat:
+      "",
 
-      pendingType:
-        "stuckNudge",
+    pendingType:
+      "collectMoreSoWhat",
 
-      frameComponent:
-        "soWhat",
+    frameComponent:
+      "soWhat",
 
-      diagnosis:
-        "insufficientObservableEvidence",
-    },
+    diagnosis:
+      "insufficientObservableEvidence",
+  },
 
-    actual: {
-      savedSoWhat:
-        invalidInitialActual?.frame
-          ?.soWhat || "",
+  actual: {
+    savedSoWhat:
+      invalidInitialActual?.frame
+        ?.soWhat || "",
 
-      pendingType:
-        invalidInitialActual?.pending
-          ?.type || null,
+    pendingType:
+      invalidInitialActual?.pending
+        ?.type || null,
 
-      frameComponent:
-        invalidInitialActual?.pending
-          ?.instructionalFinding
-          ?.frameComponent || null,
+    frameComponent:
+      invalidInitialActual?.pending
+        ?.instructionalFinding
+        ?.frameComponent || null,
 
-      diagnosis:
-        invalidInitialActual?.pending
-          ?.instructionalFinding
-          ?.diagnosis || null,
-    },
-  });
-
+    diagnosis:
+      invalidInitialActual?.pending
+        ?.instructionalFinding
+        ?.diagnosis || null,
+  },
+});
+    
   // --------------------------------------------------
   // LIVE RUNTIME: VALID INITIAL CAPTURE
   //
@@ -13911,80 +13911,78 @@ async function runSoWhatSelfTests(
     );
 
   const invalidRevisionPassed =
-    invalidRevisionActual?.frame?.soWhat ===
-      supportedSoWhat &&
+  invalidRevisionActual?.frame?.soWhat ===
+    supportedSoWhat &&
 
-    invalidRevisionActual?.pending?.type ===
-      "stuckNudge" &&
+  invalidRevisionActual?.pending?.type ===
+    "confirmSoWhat" &&
 
-    invalidRevisionActual?.pending
-      ?.instructionalFinding
-      ?.frameComponent ===
-      "soWhat" &&
+  invalidRevisionActual?.pending
+    ?.awaitingRevision ===
+    true &&
 
-    invalidRevisionActual?.pending
-      ?.instructionalFinding
-      ?.diagnosis ===
-      "insufficientObservableEvidence" &&
+  invalidRevisionActual?.pending
+    ?.instructionalFinding
+    ?.frameComponent ===
+    "soWhat" &&
 
-    invalidRevisionActual?.pending
-      ?.resumePending
-      ?.type ===
-      "confirmSoWhat";
+  invalidRevisionActual?.pending
+    ?.instructionalFinding
+    ?.diagnosis ===
+    "insufficientObservableEvidence";
 
-  results.push({
-    name:
-      "SW Runtime - Invalid revision preserves original So What",
+results.push({
+  name:
+    "SW Runtime - Invalid revision preserves original So What",
 
-    passed:
-      invalidRevisionPassed,
+  passed:
+    invalidRevisionPassed,
 
-    response:
-      invalidRevisionResponse,
+  response:
+    invalidRevisionResponse,
 
-    expected: {
-      preservedSoWhat:
-        supportedSoWhat,
+  expected: {
+    preservedSoWhat:
+      supportedSoWhat,
 
-      pendingType:
-        "stuckNudge",
+    pendingType:
+      "confirmSoWhat",
 
-      frameComponent:
-        "soWhat",
+    awaitingRevision:
+      true,
 
-      diagnosis:
-        "insufficientObservableEvidence",
+    frameComponent:
+      "soWhat",
 
-      resumePendingType:
-        "confirmSoWhat",
-    },
+    diagnosis:
+      "insufficientObservableEvidence",
+  },
 
-    actual: {
-      preservedSoWhat:
-        invalidRevisionActual?.frame
-          ?.soWhat || null,
+  actual: {
+    preservedSoWhat:
+      invalidRevisionActual?.frame
+        ?.soWhat || null,
 
-      pendingType:
-        invalidRevisionActual?.pending
-          ?.type || null,
+    pendingType:
+      invalidRevisionActual?.pending
+        ?.type || null,
 
-      frameComponent:
-        invalidRevisionActual?.pending
-          ?.instructionalFinding
-          ?.frameComponent || null,
+    awaitingRevision:
+      invalidRevisionActual?.pending
+        ?.awaitingRevision === true,
 
-      diagnosis:
-        invalidRevisionActual?.pending
-          ?.instructionalFinding
-          ?.diagnosis || null,
+    frameComponent:
+      invalidRevisionActual?.pending
+        ?.instructionalFinding
+        ?.frameComponent || null,
 
-      resumePendingType:
-        invalidRevisionActual?.pending
-          ?.resumePending
-          ?.type || null,
-    },
-  });
-
+    diagnosis:
+      invalidRevisionActual?.pending
+        ?.instructionalFinding
+        ?.diagnosis || null,
+  },
+});
+    
   // --------------------------------------------------
   // LIVE RUNTIME: VALID REVISION
   //
