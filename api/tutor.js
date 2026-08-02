@@ -2446,6 +2446,7 @@ function getInstructionalContract(
 // • Is About
 // • Main Ideas
 // • Essential Details
+// • So What
 // The selected contract controls authoritative
 // instructional activation and communication for the
 // currently migrated Frame components.
