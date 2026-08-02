@@ -17330,35 +17330,6 @@ const THINKING_TASKS = {
 
 };
 
-const THINKING_TASK_PRESENTATION = {
-  interpret: {
-    intro: "Let's build a Frame that helps uncover the deeper meaning and support it with evidence."
-  },
-
-  explain: {
-    intro: "Let's build a Frame that helps explain your ideas clearly."
-  },
-
-  analyze: {
-    intro: "Let's build a Frame that helps examine the important parts and how they work together."
-  },
-
-  compare: {
-    intro: "Let's build a Frame that helps identify the most important similarities and differences."
-  },
-
-  evaluate: {
-    intro: "Let's build a Frame that helps support your judgment with strong evidence."
-  },
-
-  synthesize: {
-    intro: "Let's build a Frame that helps connect ideas into a new understanding."
-  },
-
-  reflect: {
-    intro: "Let's build a Frame that helps capture what you learned and why it matters."
-  }
-};
 
 // ------------------------------------------------------
 // THINKING TASK INFERENCE
