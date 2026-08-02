@@ -16051,43 +16051,24 @@ function beginStuckSupportFromPending(
         }
       : null,
 
-  instructionalActivation:
+   instructionalActivation:
     instructionalActivation
       ? {
           contractId:
             instructionalActivation.contractId,
-
+  
           execution:
             instructionalActivation.execution,
-
+  
           aiPayload:
             instructionalActivation.aiPayload,
         }
       : null,
 
-  resumePending,
-
-  resumeQuestion:
-    computeNextQuestion({
-      ...state,
-
-      pending:
-        resumePending,
-    }),
-
-  miniQuestion:
-    buildMiniQuestion({
-      ...state,
-
-      pending: {
-        ...resumePending,
-
-        stage,
-      },
-    }),
+resumePending,
 };
-  
-  return state;
+
+return state;
 }
 
 // ------------------------------------------------------
@@ -17423,18 +17404,6 @@ const PARENT_ANCHOR_BRIDGE = {
     chooseExportType: "export",
   },
 
-  // Overlay pending states are helper flows, not structural stages.
-  // They should be interpreted around the current structural stage.
-  overlayPendingTypes: new Set([
-    "confirmLanguageSwitch",
-    "stuckConfirm",
-    "stuckMenu",
-    "stuckReask",
-    "stuckNudge",
-    "stuckMini",
-    "stuckSkip",
-  ]),
-
   // Raw getStage() outputs mapped to Parent Anchor structural stages.
   //
   // Detail buckets like details:0 / details:1 collapse to the single
@@ -18043,28 +18012,13 @@ async function applyIsAboutCapture(s, msg) {
           }
         : null,
 
-    resumePending: {
-      type: "reviseIsAbout",
-    },
+  resumePending: {
+    type:
+      "reviseIsAbout",
+},
+};
 
-    resumeQuestion:
-      getComponentPrompt(
-        "isAbout",
-        "revisePrompt"
-      ),
-
-    miniQuestion:
-      getComponentPrompt(
-        "isAbout",
-        "initialPrompt",
-        {
-          keyTopic:
-            s.frame?.keyTopic || "",
-        }
-      ),
-  };
-
-    return s;
+return s;
 }
 
 s.frame.isAbout =
@@ -18485,45 +18439,8 @@ if (s.pending?.type === "reviseBuildLane") {
   ].filter(Boolean).join("\n\n");
 }
   
-if (s.pending?.type === "stuckConfirm")
-  return (
-    "🌱 Sounds like you're stuck.\n\n" +
-    "Would you like a quick thinking move?\n\n" +
-    "1) Yes — Give me a thinking move.\n" +
-    "2) No — Let me try again.\n\n" +
-    "Reply with 1 or 2."
-  );
- 
-if (s.pending?.type === "stuckMenu") {
-
-  const intro = s.pending?.retryFromMini
-    ? "No problem — that smaller question didn’t help enough yet. Let’s try a different help move.\n\n"
-    : "";
-
-return (
-  intro +
-  "📋 Pick a quick thinking move:\n\n" +
-  "1) Check directions\n" +
-  "2) Re-read source/notes\n" +
-  "3) Ask me a smaller question for this step\n" +
-  "4) Skip for now and come back\n\n" +
-  "Reply with 1–4."
-);
-}
-
-if (s.pending?.type === "stuckReask") {
-  return (
-    cleanText(
-      s.pending?.resumeQuestion || ""
-    ) ||
-    buildMiniQuestion(s)
-  );
-}
- 
-  if (s.pending?.type === "stuckMini") return s.pending.miniQuestion || buildMiniQuestion(s);
-
-  if (s.pending?.type === "stuckSkip")
-    return "Got it — we’ll come back to this. Want to try the next step now? (yes/no)";
+  if (s.pending?.type === "stuckMini") 
+    return s.pending.miniQuestion || buildMiniQuestion(s);
 
   if (s.pending?.type === "reviseIsAbout") {
     return getComponentPrompt("isAbout", "revisePrompt");
