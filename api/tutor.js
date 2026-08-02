@@ -10500,20 +10500,20 @@ async function runIsAboutSelfTests() {
       };
     });
 
-  // --------------------------------------------------
-  // LIVE RUNTIME + SHADOW SITUATION TEST
-  //
-  // Repeating the accepted Key Topic fails the required
-  // Is About relationship.
-  //
-  // Legacy authority:
-  // • blocks the response;
-  // • preserves empty Is About;
-  // • enters stuckNudge support.
-  //
-  // Governed shadow result:
-  // • relationshipNeedsRepair.
-  // --------------------------------------------------
+// LIVE RUNTIME + SHADOW SITUATION TEST
+//
+// Repeating the accepted Key Topic fails the required
+// Is About relationship.
+//
+// Authoritative runtime:
+// • blocks the response;
+// • preserves the empty Is About;
+// • preserves the reviseIsAbout location;
+// • attaches the governed instructional artifacts.
+//
+// Governed result:
+// • relationshipNeedsRepair.
+// --------------------------------------------------
 
   const repeatedTopicState =
     createIsAboutRuntimeTestState();
@@ -10640,20 +10640,20 @@ async function runIsAboutSelfTests() {
     },
   });
 
-  // --------------------------------------------------
-  // LIVE RUNTIME + SHADOW SITUATION TEST
-  //
-  // Limited Is About evidence requires component
-  // revision but does not establish relationship failure.
-  //
-  // Legacy authority:
-  // • blocks the response;
-  // • enters support.
-  //
-  // Governed shadow result:
-  // • componentNeedsRevision.
-  // --------------------------------------------------
-
+// LIVE RUNTIME + SHADOW SITUATION TEST
+//
+// Limited Is About evidence requires component
+// revision but does not establish relationship failure.
+//
+// Authoritative runtime:
+// • blocks the response;
+// • preserves the empty Is About;
+// • preserves the reviseIsAbout location;
+// • attaches the governed instructional artifacts.
+//
+// Governed result:
+// • componentNeedsRevision.
+// --------------------------------------------------
   const limitedEvidenceState =
     createIsAboutRuntimeTestState();
 
@@ -10777,19 +10777,20 @@ async function runIsAboutSelfTests() {
     },
   });
 
-  // --------------------------------------------------
-  // LIVE RUNTIME + SHADOW SITUATION TEST
-  //
-  // A first no-evidence response does not establish
-  // genuine struggle.
-  //
-  // Legacy authority:
-  // • enters stuckNudge support.
-  //
-  // Governed shadow result:
-  // • noComponentEvidence.
-  // --------------------------------------------------
-
+ // LIVE RUNTIME + SHADOW SITUATION TEST
+//
+// A first no-evidence response does not establish
+// genuine struggle.
+//
+// Authoritative runtime:
+// • blocks the response;
+// • preserves the empty Is About;
+// • preserves the reviseIsAbout location;
+// • attaches the governed instructional artifacts.
+//
+// Governed result:
+// • noComponentEvidence.
+// --------------------------------------------------
   const noEvidenceState =
     createIsAboutRuntimeTestState();
 
@@ -10899,14 +10900,11 @@ async function runIsAboutSelfTests() {
     },
   });
 
-  // --------------------------------------------------
-  // LIVE RUNTIME + SHADOW SITUATION TEST
-  //
-  // A valid Is About is still saved by the authoritative
-  // legacy runtime while the governed engine independently
-  // establishes readyToProgress.
-  // --------------------------------------------------
-
+// LIVE RUNTIME + SHADOW SITUATION TEST
+//
+// A valid Is About is saved by the authoritative runtime,
+// and the governed engine establishes readyToProgress.
+// --------------------------------------------------
   const validIsAboutState =
     createIsAboutRuntimeTestState();
 
@@ -11050,35 +11048,68 @@ async function runIsAboutSelfTests() {
     createIsAboutRuntimeTestState();
 
   persistentStruggleState.pending = {
-    type:
-      "stuckNudge",
+  type:
+    "reviseIsAbout",
 
-    stage:
+  instructionalFinding: {
+    frameComponent:
       "isAbout",
 
-    instructionalFinding: {
-      frameComponent:
-        "isAbout",
+    componentEvidenceLevel:
+      "none",
 
-      componentEvidenceLevel:
-        "none",
+    componentCriteriaStatus:
+      "notSatisfied",
 
-      componentCriteriaStatus:
-        "notSatisfied",
+    relationshipStatus:
+      "undetermined",
 
-      relationshipStatus:
-        "undetermined",
+    diagnosis:
+      "noComponentEvidence",
+  },
 
-      diagnosis:
-        "noComponentEvidence",
+  instructionalContract: {
+    contractId:
+      "IA-NCE-001",
+
+    frameComponent:
+      "isAbout",
+
+    instructionalSituation:
+      "noComponentEvidence",
+
+    instructionalGoal:
+      "elicitComponentEvidence",
+
+    teachingMove:
+      "reduceCognitiveLoad",
+
+    thinkingMove:
+      "Reconnect the student to the accepted Key Topic and invite them to explain what the whole topic is about in their own understandable words without suggesting or supplying the Is About statement.",
+
+    communicationPattern:
+      "briefReassuranceThenQuestion",
+
+    aiContextualizes:
+      true,
+  },
+
+  instructionalActivation: {
+    contractId:
+      "IA-NCE-001",
+
+    execution: {
+      contractId:
+        "IA-NCE-001",
     },
 
-    resumePending: {
-      type:
-        "reviseIsAbout",
+    aiPayload: {
+      contractId:
+        "IA-NCE-001",
     },
-  };
-
+  },
+};
+  
   const persistentObservationReport = {
     version:
       "1.0",
