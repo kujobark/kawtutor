@@ -5110,49 +5110,6 @@ return cleanText(response);
 // Gathers evidence about student understanding.
 // ------------------------------------------------------
 
-function detectStuckTone(text) {
-  const t = cleanText(text).toLowerCase();
-  if (!t) return "neutral";
-
-  const frustration = [
-    "confus",
-    "frustrat",
-    "annoy",
-    "angry",
-    "mad",
-    "ugh",
-    "this sucks",
-    "this is hard",
-    "this is confusing",
-    "this makes no sense",
-    "i'm confused",
-    "im confused",
-    "i'm lost",
-    "im lost",
-    "i can't do this",
-    "i cant do this",
-    "stupid",
-    "dumb",
-    "hate",
-  ];
-  if (frustration.some((p) => t.includes(p))) return "frustration";
-
-  const resistance = [
-    "do we have to",
-    "why do we have to",
-    "why am i doing",
-    "what's the point",
-    "whats the point",
-    "pointless",
-    "this is pointless",
-    "can you just tell me",
-    "just tell me",
-  ];
-  if (resistance.some((p) => t.includes(p))) return "resistance";
-
-  return "neutral";
-}
-
 function isStuckMessage(text) {
   const t = cleanText(text)
     .toLowerCase()
@@ -15535,65 +15492,6 @@ function buildMiniQuestion(state) {
   );
 }
 
-// ======================================================
-// INSTRUCTIONAL MOVE LIBRARY
-// ======================================================
-//
-// This section contains reusable teaching moves Kaw can execute
-// after the engine interprets the student's need.
-
-// ------------------------------------------------------
-// SCAFFOLD / REMIND
-// Breaks the task into smaller supports and reminds students
-// of relevant prior thinking without giving the answer.
-// ------------------------------------------------------
-function buildStuckNudges(state, stage) {
-  const keyTopic = state?.frame?.keyTopic || "your topic";
-  const isAbout = state?.frame?.isAbout || "";
-  const ideas = getIdeaList(state).filter(Boolean);
-
-  const contract = state.pending?.instructionalContract || null;
-
-  if (contract?.thinkingMove === "Recall observable evidence") {
-    return [
-      "👀 Let's start with what you can actually observe.",
-      "Think about the text, image, data, or source—not your opinion yet.",
-      "What is one specific piece of evidence you notice?"
-    ];
-  }
-
-  if (typeof stage === "string" && stage.startsWith("details:")) {
-    const idx = Number(stage.split(":")[1]);
-    const selectedMainIdea =
-      Number.isInteger(idx) && ideas[idx]
-        ? ideas[idx]
-        : "this Main Idea";
-
-     return [
-    `🧭 You're working on this Main Idea:\n"${selectedMainIdea}"`,
-    "💡 A strong Essential Detail helps your reader better understand this Main Idea.",
-    "🔎 Think of one fact, example, observation, piece of evidence, or explanation that supports it.",
-    "✍️ What Essential Detail could you add?"
-  ];
-  }
-
-  if (stage === "soWhat") {
-    return [
-      "🧭 You are writing the So What.",
-      "💡 The So What explains why the completed Frame matters.",
-      "🔎 Look across your Key Topic, Is About, Main Ideas, and Details. Instead of repeating them, ask what someone should understand from the whole Frame.",
-      "✍️ What is the larger takeaway?"
-    ];
-  }
-
-  return [
-    "🧭 Let’s pause and choose the best support move for where you are in the Frame.",
-    "💡 Let’s use the smallest helpful step instead of guessing.",
-    "🔎 Look at your Frame and choose the part that feels easiest to restart.",
-    "✍️ What part do you want to work on: Key Topic, Is About, Main Ideas, Details, or So What?"
-  ];
-}
-
 // ------------------------------------------------------
 // STUDENT-WORK MUTATION PROTECTION
 //
@@ -16115,17 +16013,15 @@ function beginStuckSupportFromPending(
   "ACTIVATION:",
   instructionalActivation
 );
-  
+
   state.pending = {
-  type: "stuckNudge",
+  type:
+    "stuckNudge",
+
   stage,
+
   // Preserve the deterministic instructional finding that
   // caused this support sequence.
-  //
-  // This allows downstream contract selection and
-  // communication to respond to what was instructionally
-  // established rather than treating every invalid response
-  // as generic struggle.
   instructionalFinding:
     intentResult?.instructionalFinding || null,
 
@@ -16134,16 +16030,22 @@ function beginStuckSupportFromPending(
       ? {
           contractId:
             instructionalContract.contractId,
+
           frameComponent:
             instructionalContract.frameComponent,
+
           instructionalSituation:
             instructionalContract.instructionalSituation,
+
           instructionalGoal:
             instructionalContract.instructionalGoal,
+
           teachingMove:
             instructionalContract.teachingMove,
+
           thinkingMove:
             instructionalContract.thinkingMove,
+
           aiContextualizes:
             instructionalContract.aiContextualizes,
         }
@@ -16154,64 +16056,38 @@ function beginStuckSupportFromPending(
       ? {
           contractId:
             instructionalActivation.contractId,
+
           execution:
             instructionalActivation.execution,
+
           aiPayload:
             instructionalActivation.aiPayload,
         }
       : null,
-     
-    tone:
-      intentResult.intent === "frustrated"
-        ? "frustration"
-        : detectStuckTone(message),
-    resumePending,
-    resumeQuestion: computeNextQuestion({
+
+  resumePending,
+
+  resumeQuestion:
+    computeNextQuestion({
       ...state,
-      pending: resumePending,
+
+      pending:
+        resumePending,
     }),
-    miniQuestion: buildMiniQuestion({
+
+  miniQuestion:
+    buildMiniQuestion({
       ...state,
+
       pending: {
         ...resumePending,
+
         stage,
       },
     }),
-    nudgeText:
-      intentResult.intent === "revision_direction"
-        ? formatNudgeText([
-            "💡 It sounds like you want help strengthening this part.",
-            "🧭 I can help you think it through, but the wording needs to stay yours.",
-            ...buildStuckNudges(state, stage),
-          ])
-        : formatNudgeText(
-            buildStuckNudges(state, stage)
-          ),
-    detectedBy:
-      intentResult.source || "deterministic",
-    aiIntent:
-      intentResult.source === "aiIntentFallback"
-        ? intentResult.intent
-        : undefined,
-    aiConfidence:
-      intentResult.source === "aiIntentFallback"
-        ? intentResult.confidence
-        : undefined,
-  };
-
+};
+  
   return state;
-}
-
-function formatNudgeText(nudges) {
-  const items = Array.isArray(nudges)
-    ? nudges.map((n) => (n || "").toString().trim()).filter(Boolean)
-    : [];
-
-  if (!items.length) {
-    return "Try one small step:";
-  }
-
-  return items.join("\n\n");
 }
 
 // ------------------------------------------------------
@@ -18186,15 +18062,6 @@ async function applyIsAboutCapture(s, msg) {
             s.frame?.keyTopic || "",
         }
       ),
-
-    // Temporary deterministic fallback only.
-    // The governed AI response is used when contract
-    // activation and communication validation succeed.
-    nudgeText:
-      "Your Is About statement should explain the whole Key Topic in your own words.\n\nWhat is this topic mainly about?",
-
-    tone:
-      "neutral",
   };
 
     return s;
@@ -18653,20 +18520,6 @@ if (s.pending?.type === "stuckReask") {
   );
 }
  
- if (s.pending?.type === "stuckNudge") {
-  const tone = s.pending.tone || "neutral";
-  const ack =
-    tone === "frustration"
-      ? "🌱 That can feel frustrating. Let’s try one small step.\n\n"
-      : tone === "resistance"
-        ? "🌱 I hear you. Let’s use one small thinking move and keep going.\n\n"
-        : "🌱 Let’s try one small step.\n\n";
-
-  const nudge = (s.pending.nudgeText || "").toString().trim();
-
-  return `${ack}${nudge}`;
-}
-
   if (s.pending?.type === "stuckMini") return s.pending.miniQuestion || buildMiniQuestion(s);
 
   if (s.pending?.type === "stuckSkip")
@@ -21924,23 +21777,40 @@ if (
     }
   }
 
-  const instructionalActivation =
-    state?.pending?.instructionalActivation || null;
-    
-      const instructionalResponse =
-        instructionalActivation
-          ? await getInstructionalResponse(
-              instructionalActivation
-            )
-          : null;
+    const instructionalActivation =
+  state?.pending?.instructionalActivation || null;
 
-      console.log(
-        "AI RESPONSE:",
-        instructionalResponse
-    );
-      const nextQ =
-        instructionalResponse ||
-        computeNextQuestion(state);
+const instructionalResponse =
+  instructionalActivation
+    ? await getInstructionalResponse(
+        instructionalActivation
+      )
+    : null;
+
+console.log(
+  "AI RESPONSE:",
+  instructionalResponse
+);
+
+// A selected Kaw 2.5 Instructional Contract is the sole
+// instructional authority for this support response.
+//
+// Do not silently switch to the legacy pending-state
+// communication engine when governed contextualization or
+// Communication Validation fails.
+if (
+  instructionalActivation &&
+  !instructionalResponse
+) {
+  throw new Error(
+    "Governed instructional communication failed."
+  );
+}
+
+const nextQ =
+  instructionalActivation
+    ? instructionalResponse
+    : computeNextQuestion(state);
       
       let reply =
         enforceSingleQuestion(nextQ);
