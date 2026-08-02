@@ -10530,21 +10530,15 @@ async function runIsAboutSelfTests() {
       ?.isAbout === "" &&
 
     repeatedTopicActual
-      ?.pending
-      ?.type ===
-      "stuckNudge" &&
+    ?.pending
+    ?.type ===
+    "reviseIsAbout" &&
 
     repeatedTopicActual
       ?.pending
       ?.instructionalFinding
       ?.diagnosis ===
       "repeatsKeyTopic" &&
-
-    repeatedTopicActual
-      ?.pending
-      ?.resumePending
-      ?.type ===
-      "reviseIsAbout" &&
 
     repeatedTopicActual
       ?.componentInstructionalFinding
@@ -10582,13 +10576,10 @@ async function runIsAboutSelfTests() {
         "",
 
       pendingType:
-        "stuckNudge",
+        "reviseIsAbout",
 
       diagnosis:
         "repeatsKeyTopic",
-
-      resumePendingType:
-        "reviseIsAbout",
 
       governedSituation:
         INSTRUCTIONAL_SITUATIONS
@@ -10614,12 +10605,6 @@ async function runIsAboutSelfTests() {
           ?.pending
           ?.instructionalFinding
           ?.diagnosis || null,
-
-      resumePendingType:
-        repeatedTopicActual
-          ?.pending
-          ?.resumePending
-          ?.type || null,
 
       componentFinding:
         repeatedTopicActual
