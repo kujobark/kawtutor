@@ -5427,58 +5427,6 @@ function isWeakFrameResponse(text) {
   return false;
 }
 
-function looksLikeEvidence(text) {
-  const t = cleanText(text).toLowerCase();
-  if (!t) return false;
-
-  // numbers, percentages, or quoted text often signal evidence
-  if (/\d/.test(t)) return true;
-  if (t.includes("%")) return true;
-  if (t.includes('"') || t.includes("“") || t.includes("”")) return true;
-
-  const markers = [
-    "for example",
-    "for instance",
-    "such as",
-    "according to",
-    "the text says",
-    "in the text",
-    "in the article",
-    "in the source",
-    "the author",
-    "the study",
-    "research",
-    "survey",
-    "data",
-    "statistic",
-    "evidence",
-    "report",
-    "shows that",
-    "found that",
-  ];
-  return markers.some((p) => t.includes(p));
-}
-
-function looksLikeMechanism(text) {
-  const t = cleanText(text).toLowerCase();
-  if (!t) return false;
-
-  // causal connectives often signal mechanism/explanation rather than evidence
-  const markers = [
-    "because",
-    "leads to",
-    "causes",
-    "results in",
-    "therefore",
-    "so that",
-    "this makes",
-    "which makes",
-    "as a result",
-    "due to",
-  ];
-  return markers.some((p) => t.includes(p));
-}
-
 // ------------------------------------------------------
 // ESSENTIAL DETAIL RELATIONSHIP ANALYSIS
 //
