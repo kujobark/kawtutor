@@ -20520,171 +20520,258 @@ if (s.pending?.type === "confirmIsAbout") {
   });
 }
  
-if (s.pending?.type === "confirmMainIdeas") {
-  const isCE = s.frameMeta?.frameType === "causeEffect";
+  if (s.pending?.type === "confirmMainIdeas") {
+  const lines = getIdeaList(s)
+    .map(
+      (mainIdea, index) =>
+        `Main Idea ${index + 1}: ${mainIdea}`
+    )
+    .join("\n");
 
-  const lines = getIdeaList(s).map((mi, i) =>
-    `${isCE ? "Cause" : "Main Idea"} ${i + 1}: ${mi}`
-  ).join("\n");
-
-  return getComponentPrompt("mainIdeas", "confirmationPrompt", {
-  mainIdeasList: lines
-});
+  return getComponentPrompt(
+    "mainIdeas",
+    "confirmationPrompt",
+    {
+      mainIdeasList: lines,
+    }
+  );
 }
 
-if (s.pending?.type === "chooseMainIdeaToRevise") {
-  const isCE = s.frameMeta?.frameType === "causeEffect";
-
-  const lines = getIdeaList(s).map((mi, i) =>
-    `${i + 1}) ${isCE ? "Cause" : "Main Idea"} ${i + 1}: ${mi}`
-  ).join("\n");
-
-  return `Which ${isCE ? "Cause" : "Main Idea"} would you like to revise?\n\n${lines}\n\nReply with the number.`;
-}
-
-if (s.pending?.type === "reviseMainIdeaAt") {
-  const isCE = s.frameMeta?.frameType === "causeEffect";
-  const idx = Number(s.pending.index);
-  const current = getIdeaList(s)[idx] || "";
-
-  return `Revise ${isCE ? "Cause" : "Main Idea"} ${idx + 1}:\n\n"${current}"\n\nWhat should it say instead?`;
-}
-
-if (s.pending?.type === "chooseDetailToRevise") {
-  const idx = Number(s.pending.index);
-  const arr = Array.isArray(s.frame.details?.[idx]) ? s.frame.details[idx] : [];
-  const lineLabel = "Essential Detail";
-  const lines = arr.map((d, k) => `${k + 1}) ${lineLabel} ${k + 1}: ${d}`).join("\n");
-
-  return `Which ${lineLabel} would you like to revise?\n\n${lines}\n\nReply with the number.`;
-}
-
-if (s.pending?.type === "reviseDetailAt") {
-  const idx = Number(s.pending.index);
-  const detailIndex = Number(s.pending.detailIndex);
-  const current = s.frame.details?.[idx]?.[detailIndex] || "";
-  const lineLabel = "Essential Detail";
-
-  return `Revise ${lineLabel} ${detailIndex + 1}:\n\n"${current}"\n\nWhat should it say instead?`;
-}
- 
-if (s.pending?.type === "offerAnotherMainIdea") {
-  const isCE = s.frameMeta?.frameType === "causeEffect";
-  const count = getIdeaList(s).length;
-  const label = isCE ? "Cause" : "Main Idea";
+if (
+  s.pending?.type ===
+  "chooseMainIdeaToRevise"
+) {
+  const lines = getIdeaList(s)
+    .map(
+      (mainIdea, index) =>
+        `${index + 1}) Main Idea ${index + 1}: ${mainIdea}`
+    )
+    .join("\n");
 
   return (
-    `📋 You currently have ${count} ${label}${count > 1 ? "s" : ""}.\n\n` +
-    `Would you like to add another ${label}?\n\n` +
-    `1) Yes — Add another ${label}.\n` +
+    `Which Main Idea would you like to revise?\n\n` +
+    `${lines}\n\n` +
+    `Reply with the number.`
+  );
+}
+
+if (
+  s.pending?.type ===
+  "reviseMainIdeaAt"
+) {
+  const index =
+    Number(s.pending.index);
+
+  const currentMainIdea =
+    getIdeaList(s)[index] || "";
+
+  return (
+    `Revise Main Idea ${index + 1}:\n\n` +
+    `"${currentMainIdea}"\n\n` +
+    `What should it say instead?`
+  );
+}
+
+if (
+  s.pending?.type ===
+  "chooseDetailToRevise"
+) {
+  const index =
+    Number(s.pending.index);
+
+  const details =
+    Array.isArray(
+      s.frame.details?.[index]
+    )
+      ? s.frame.details[index]
+      : [];
+
+  const lines = details
+    .map(
+      (detail, detailIndex) =>
+        `${detailIndex + 1}) Essential Detail ${detailIndex + 1}: ${detail}`
+    )
+    .join("\n");
+
+  return (
+    `Which Essential Detail would you like to revise?\n\n` +
+    `${lines}\n\n` +
+    `Reply with the number.`
+  );
+}
+
+if (
+  s.pending?.type ===
+  "reviseDetailAt"
+) {
+  const index =
+    Number(s.pending.index);
+
+  const detailIndex =
+    Number(s.pending.detailIndex);
+
+  const currentDetail =
+    s.frame.details?.[index]
+      ?.[detailIndex] || "";
+
+  return (
+    `Revise Essential Detail ${detailIndex + 1}:\n\n` +
+    `"${currentDetail}"\n\n` +
+    `What should it say instead?`
+  );
+}
+
+if (
+  s.pending?.type ===
+  "offerAnotherMainIdea"
+) {
+  const count =
+    getIdeaList(s).length;
+
+  return (
+    `📋 You currently have ${count} Main Idea${count > 1 ? "s" : ""}.\n\n` +
+    `Would you like to add another Main Idea?\n\n` +
+    `1) Yes — Add another Main Idea.\n` +
     `2) No — Continue.\n\n` +
     `Reply with 1 or 2.`
   );
 }
 
-if (s.pending?.type === "collectAnotherMainIdea") {
-  const isCE = s.frameMeta?.frameType === "causeEffect";
+if (
+  s.pending?.type ===
+  "collectAnotherMainIdea"
+) {
+  return getComponentPrompt(
+    "mainIdeas",
+    "additionalPrompt",
+    {
+      keyTopic:
+        s.frame.keyTopic,
 
-  if (isCE) {
-    return `What is another cause that leads to this effect: "${s.frame.effect}"?`;
-  }
-
-  return getComponentPrompt("mainIdeas", "additionalPrompt", {
-    keyTopic: s.frame.keyTopic,
-    isAbout: s.frame.isAbout
-  });
+      isAbout:
+        s.frame.isAbout,
+    }
+  );
 }
 
-if (s.pending?.type === "offerAnotherDetail") {
-  const i = Number(s.pending.index);
-  const mi = getIdeaList(s)[i] || "";
+if (
+  s.pending?.type ===
+  "offerAnotherDetail"
+) {
+  const index =
+    Number(s.pending.index);
 
-  const isCE = s.frameMeta?.frameType === "causeEffect";
-  const miLabel = isCE ? "Cause" : "Main Idea";
-  const dLabel = "Essential Detail";
+  const currentMainIdea =
+    getIdeaList(s)[index] || "";
 
-  const count =
-    Array.isArray(s.frame.details?.[i])
-      ? s.frame.details[i].length
+  const detailCount =
+    Array.isArray(
+      s.frame.details?.[index]
+    )
+      ? s.frame.details[index].length
       : 0;
 
   const completionMessage =
-  count === 2
-    ? `✅ You now have the two required ${dLabel}s for ${miLabel} ${i + 1}:\n`
-    : `✅ You currently have ${count} ${dLabel}s for ${miLabel} ${i + 1}:\n`;
-
-return (
-  completionMessage +
-  `"${mi}"\n\n` +
-  `Would you like to strengthen this ${miLabel} by adding another ${dLabel}?\n\n` +
-  `1) Yes — Add another ${dLabel}.\n` +
-  `2) No — Continue.\n\n` +
-  `Reply with 1 or 2.`
-);
-}
-  
-if (s.pending?.type === "collectAnotherDetail") {
-  const i = Number(s.pending.index);
-  const mi = getIdeaList(s)[i] || "";
-
-  const isCE = s.frameMeta?.frameType === "causeEffect";
-  const miLabel = isCE ? "Cause" : "Main Idea";
-  const dLabel = "Essential Detail";
-
-  const currentCount =
-    Array.isArray(s.frame.details?.[i])
-      ? s.frame.details[i].length
-      : 0;
-
-  const nextCount = currentCount + 1;
-
-  // The second Detail is required to fully support the Main Idea.
-  if (currentCount === 1) {
-    return (
-      `🎉 Great! You have your first ${dLabel}.\n\n` +
-      `✍️ Let's add one more required ${dLabel} to fully support this ${miLabel}.\n\n` +
-      `${miLabel} ${i + 1}: "${mi}"\n\n` +
-      `What is ${dLabel} ${nextCount}?`
-    );
-  }
-
-  const ideas = getIdeaList(s);
-  const hasNextMainIdea = i < ideas.length - 1;
-
-  const nextDestination = hasNextMainIdea
-    ? `${miLabel} ${i + 2}`
-    : "your So What statement";
+    detailCount === 2
+      ? `✅ You now have the two required Essential Details for Main Idea ${index + 1}:\n`
+      : `✅ You currently have ${detailCount} Essential Details for Main Idea ${index + 1}:\n`;
 
   return (
-    `What is ${dLabel} ${nextCount} for ${miLabel} ${i + 1}?\n` +
-    `"${mi}"\n\n` +
-    `💡 This additional ${dLabel} is optional and can help strengthen your Frame.\n\n` +
-    `Add another ${dLabel}, or reply with 2 to review these Details and continue to ${nextDestination}.`
-  );
-}
-  
- if (s.pending?.type === "confirmDetails") {
-  const i = Number(s.pending.index);
-  const mi = getIdeaList(s)[i] || "";
-  const arr = Array.isArray(s.frame.details?.[i]) ? s.frame.details[i] : [];
-
-  const isCE = s.frameMeta?.frameType === "causeEffect";
-  const miLabel = isCE ? "Cause" : "Main Idea";
-  const dLabel = "Essential Detail";
-
-  const lines = arr.map((d, k) => `${dLabel} ${k + 1}: ${d}`).join("\n");
-
-  return (
-    `✅ Checkpoint\n\n` +
-    `For this ${miLabel}: "${mi}", you identified:\n\n` +
-    `${lines}\n\n` +
-    `Does this accurately capture your thinking?\n\n` +
-    `1) Yes — Continue building my Frame.\n` +
-    `2) No — Revise one ${dLabel}.\n\n` +
+    completionMessage +
+    `"${currentMainIdea}"\n\n` +
+    `Would you like to strengthen this Main Idea by adding another Essential Detail?\n\n` +
+    `1) Yes — Add another Essential Detail.\n` +
+    `2) No — Continue.\n\n` +
     `Reply with 1 or 2.`
   );
 }
 
+if (
+  s.pending?.type ===
+  "collectAnotherDetail"
+) {
+  const index =
+    Number(s.pending.index);
+
+  const currentMainIdea =
+    getIdeaList(s)[index] || "";
+
+  const currentDetailCount =
+    Array.isArray(
+      s.frame.details?.[index]
+    )
+      ? s.frame.details[index].length
+      : 0;
+
+  const nextDetailNumber =
+    currentDetailCount + 1;
+
+  // The second Essential Detail is required to fully
+  // support the current Main Idea.
+  if (currentDetailCount === 1) {
+    return (
+      `🎉 Great! You have your first Essential Detail.\n\n` +
+      `✍️ Let's add one more required Essential Detail to fully support this Main Idea.\n\n` +
+      `Main Idea ${index + 1}: "${currentMainIdea}"\n\n` +
+      `What is Essential Detail ${nextDetailNumber}?`
+    );
+  }
+
+  const mainIdeas =
+    getIdeaList(s);
+
+  const hasNextMainIdea =
+    index <
+    mainIdeas.length - 1;
+
+  const nextDestination =
+    hasNextMainIdea
+      ? `Main Idea ${index + 2}`
+      : "your So What statement";
+
+  return (
+    `What is Essential Detail ${nextDetailNumber} for Main Idea ${index + 1}?\n` +
+    `"${currentMainIdea}"\n\n` +
+    `💡 This additional Essential Detail is optional and can help strengthen your Frame.\n\n` +
+    `Add another Essential Detail, or reply with 2 to review these Details and continue to ${nextDestination}.`
+  );
+}
+
+if (
+  s.pending?.type ===
+  "confirmDetails"
+) {
+  const index =
+    Number(s.pending.index);
+
+  const currentMainIdea =
+    getIdeaList(s)[index] || "";
+
+  const details =
+    Array.isArray(
+      s.frame.details?.[index]
+    )
+      ? s.frame.details[index]
+      : [];
+
+  const lines = details
+    .map(
+      (detail, detailIndex) =>
+        `Essential Detail ${detailIndex + 1}: ${detail}`
+    )
+    .join("\n");
+
+  return (
+    `✅ Checkpoint\n\n` +
+    `For this Main Idea: "${currentMainIdea}", you identified:\n\n` +
+    `${lines}\n\n` +
+    `Does this accurately capture your thinking?\n\n` +
+    `1) Yes — Continue building my Frame.\n` +
+    `2) No — Revise one Essential Detail.\n\n` +
+    `Reply with 1 or 2.`
+  );
+}
+  
 if (s.pending?.type === "offerMoreSoWhat") {
   return (
     "📋 You currently have a So What statement.\n\n" +
