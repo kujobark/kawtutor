@@ -9607,17 +9607,19 @@ async function runEssentialDetailSelfTests() {
       "because it does"
     );
 
-  const runtimePassed =
-    Array.isArray(
-      runtimeActual?.frame?.details?.[0]
-    ) &&
-    runtimeActual.frame.details[0].length === 0 &&
-    runtimeActual?.pending?.type ===
-      "stuckNudge" &&
-    runtimeActual?.pending
-      ?.instructionalFinding
-      ?.diagnosis ===
-      "insufficientObservableEvidence";
+   const runtimePassed =
+      Array.isArray(
+        runtimeActual?.frame?.details?.[0]
+      ) &&
+      runtimeActual.frame.details[0].length === 0 &&
+      runtimeActual?.pending?.type ===
+        "collectAnotherDetail" &&
+      runtimeActual?.pending?.index ===
+        0 &&
+      runtimeActual?.pending
+        ?.instructionalFinding
+        ?.diagnosis ===
+        "insufficientObservableEvidence";
 
   results.push({
     name:
@@ -9629,12 +9631,29 @@ async function runEssentialDetailSelfTests() {
     response:
       "because it does",
 
-    expected: {
-      savedDetailCount: 0,
-      pendingType: "stuckNudge",
-      diagnosis:
-        "insufficientObservableEvidence",
-    },
+    actual: {
+  savedDetailCount:
+    Array.isArray(
+      runtimeActual?.frame?.details?.[0]
+    )
+      ? runtimeActual.frame.details[0].length
+      : null,
+
+  pendingType:
+    runtimeActual?.pending?.type || null,
+
+  pendingIndex:
+    Number.isInteger(
+      runtimeActual?.pending?.index
+    )
+      ? runtimeActual.pending.index
+      : null,
+
+  diagnosis:
+    runtimeActual?.pending
+      ?.instructionalFinding
+      ?.diagnosis || null,
+},
 
     actual: {
       savedDetailCount:
@@ -9763,52 +9782,68 @@ async function runEssentialDetailSelfTests() {
     );
 
   const stuckRuntimePassed =
-    Array.isArray(
-      stuckRuntimeActual?.frame?.details?.[0]
-    ) &&
-    stuckRuntimeActual.frame.details[0].length === 0 &&
-    stuckRuntimeActual?.pending?.type ===
-      "stuckNudge" &&
-    stuckRuntimeActual?.pending
-      ?.instructionalFinding
-      ?.diagnosis ===
-      "noComponentEvidence";
+  Array.isArray(
+    stuckRuntimeActual?.frame?.details?.[0]
+  ) &&
+  stuckRuntimeActual.frame.details[0].length === 0 &&
+  stuckRuntimeActual?.pending?.type ===
+    "collectAnotherDetail" &&
+  stuckRuntimeActual?.pending?.index ===
+    0 &&
+  stuckRuntimeActual?.pending
+    ?.instructionalFinding
+    ?.diagnosis ===
+    "noComponentEvidence";
 
-  results.push({
-    name:
-      "ED Runtime - First detail blocks no-evidence response",
+results.push({
+  name:
+    "ED Runtime - First detail blocks no-evidence response",
 
-    passed:
-      stuckRuntimePassed,
+  passed:
+    stuckRuntimePassed,
 
-    response:
-      "idk",
+  response:
+    "idk",
 
-    expected: {
-      savedDetailCount: 0,
-      pendingType: "stuckNudge",
-      diagnosis:
-        "noComponentEvidence",
-    },
+  expected: {
+    savedDetailCount:
+      0,
 
-    actual: {
-      savedDetailCount:
-        Array.isArray(
-          stuckRuntimeActual?.frame?.details?.[0]
-        )
-          ? stuckRuntimeActual.frame.details[0].length
-          : null,
+    pendingType:
+      "collectAnotherDetail",
 
-      pendingType:
-        stuckRuntimeActual?.pending?.type || null,
+    pendingIndex:
+      0,
 
-      diagnosis:
-        stuckRuntimeActual?.pending
-          ?.instructionalFinding
-          ?.diagnosis || null,
-    },
-  });
+    diagnosis:
+      "noComponentEvidence",
+  },
 
+  actual: {
+    savedDetailCount:
+      Array.isArray(
+        stuckRuntimeActual?.frame?.details?.[0]
+      )
+        ? stuckRuntimeActual.frame.details[0].length
+        : null,
+
+    pendingType:
+      stuckRuntimeActual?.pending?.type || null,
+
+    pendingIndex:
+      Number.isInteger(
+        stuckRuntimeActual?.pending?.index
+      )
+        ? stuckRuntimeActual.pending.index
+        : null,
+
+    diagnosis:
+      stuckRuntimeActual?.pending
+        ?.instructionalFinding
+        ?.diagnosis || null,
+  },
+});
+  
     // --------------------------------------------------
   // LIVE RUNTIME TEST
   //
@@ -10029,87 +10064,84 @@ async function runEssentialDetailSelfTests() {
       "because it does"
     );
 
-  const secondDetailInvalidPassed =
-    Array.isArray(
-      secondDetailInvalidActual?.frame
-        ?.details?.[0]
-    ) &&
-    secondDetailInvalidActual.frame
-      .details[0].length === 1 &&
-    secondDetailInvalidActual.frame
-      .details[0][0] ===
-      existingFirstDetail &&
-    secondDetailInvalidActual?.pending?.type ===
-      "stuckNudge" &&
-    secondDetailInvalidActual?.pending
-      ?.instructionalFinding
-      ?.diagnosis ===
-      "insufficientObservableEvidence" &&
-    secondDetailInvalidActual?.pending
-      ?.resumePending?.type ===
-      "collectAnotherDetail" &&
-    secondDetailInvalidActual?.pending
-      ?.resumePending?.index === 0;
+   const secondDetailInvalidPassed =
+  Array.isArray(
+    secondDetailInvalidActual?.frame
+      ?.details?.[0]
+  ) &&
+  secondDetailInvalidActual.frame
+    .details[0].length === 1 &&
+  secondDetailInvalidActual.frame
+    .details[0][0] ===
+    existingFirstDetail &&
+  secondDetailInvalidActual?.pending?.type ===
+    "collectAnotherDetail" &&
+  secondDetailInvalidActual?.pending?.index ===
+    0 &&
+  secondDetailInvalidActual?.pending
+    ?.instructionalFinding
+    ?.diagnosis ===
+    "insufficientObservableEvidence";
 
-  results.push({
-    name:
-      "ED Runtime - Second required detail blocks circular response",
+results.push({
+  name:
+    "ED Runtime - Second required detail blocks circular response",
 
-    passed:
-      secondDetailInvalidPassed,
+  passed:
+    secondDetailInvalidPassed,
 
-    response:
-      "because it does",
+  response:
+    "because it does",
 
-    expected: {
-      savedDetailCount: 1,
-      preservedFirstDetail:
-        existingFirstDetail,
-      pendingType: "stuckNudge",
-      diagnosis:
-        "insufficientObservableEvidence",
-      resumePendingType:
-        "collectAnotherDetail",
-      resumePendingIndex: 0,
-    },
+  expected: {
+    savedDetailCount:
+      1,
 
-    actual: {
-      savedDetailCount:
-        Array.isArray(
-          secondDetailInvalidActual?.frame
-            ?.details?.[0]
-        )
-          ? secondDetailInvalidActual.frame
-              .details[0].length
-          : null,
+    preservedFirstDetail:
+      existingFirstDetail,
 
-      preservedFirstDetail:
+    pendingType:
+      "collectAnotherDetail",
+
+    pendingIndex:
+      0,
+
+    diagnosis:
+      "insufficientObservableEvidence",
+  },
+
+  actual: {
+    savedDetailCount:
+      Array.isArray(
         secondDetailInvalidActual?.frame
-          ?.details?.[0]?.[0] || null,
+          ?.details?.[0]
+      )
+        ? secondDetailInvalidActual.frame
+            .details[0].length
+        : null,
 
-      pendingType:
+    preservedFirstDetail:
+      secondDetailInvalidActual?.frame
+        ?.details?.[0]?.[0] || null,
+
+    pendingType:
+      secondDetailInvalidActual?.pending
+        ?.type || null,
+
+    pendingIndex:
+      Number.isInteger(
         secondDetailInvalidActual?.pending
-          ?.type || null,
+          ?.index
+      )
+        ? secondDetailInvalidActual.pending.index
+        : null,
 
-      diagnosis:
-        secondDetailInvalidActual?.pending
-          ?.instructionalFinding
-          ?.diagnosis || null,
-
-      resumePendingType:
-        secondDetailInvalidActual?.pending
-          ?.resumePending?.type || null,
-
-      resumePendingIndex:
-        Number.isInteger(
-          secondDetailInvalidActual?.pending
-            ?.resumePending?.index
-        )
-          ? secondDetailInvalidActual.pending
-              .resumePending.index
-          : null,
-    },
-  });
+    diagnosis:
+      secondDetailInvalidActual?.pending
+        ?.instructionalFinding
+        ?.diagnosis || null,
+  },
+});
   
   const passedCount =
     results.filter((result) => result.passed).length;
