@@ -3219,65 +3219,6 @@ function hasEstablishedAssignmentUnderstandingFromEvidence(
   );
 }
 
-function getInstructionalSituationEvidenceHistory(
-  evidenceState
-) {
-  const pending =
-    evidenceState
-      ?.instructionalLocation
-      ?.pending;
-
-  const pendingType =
-    cleanText(
-      evidenceState
-        ?.instructionalLocation
-        ?.pendingType || ""
-    );
-
-  const priorFinding =
-    pending?.instructionalFinding &&
-    typeof pending
-      .instructionalFinding === "object"
-      ? pending.instructionalFinding
-      : null;
-
-  const priorSupportActive =
-    pendingType === "stuckNudge" ||
-    pendingType === "stuckMini";
-
-  const priorDiagnosis =
-    cleanText(
-      priorFinding?.diagnosis || ""
-    );
-
-  const priorNoEvidence =
-    priorDiagnosis ===
-      "emptyResponse" ||
-    priorDiagnosis ===
-      "noComponentEvidence";
-
-  return {
-    priorSupportActive,
-
-    priorDiagnosis:
-      priorDiagnosis || null,
-
-    priorNoEvidence,
-
-    priorFrameComponent:
-      cleanText(
-        priorFinding?.frameComponent || ""
-      ) || null,
-
-    priorFinding:
-      priorFinding
-        ? structuredClone(
-            priorFinding
-          )
-        : null,
-  };
-}
-
 function buildInstructionalSituation({
   evidenceState = null,
   instructionalAssessment = null,
@@ -15896,70 +15837,41 @@ Rules:
 // ---------------------
 // STUCK SUPPORT (SSOT)
 // ---------------------
-
-function cloneResumePending(pending) {
-  if (!pending || typeof pending !== "object") {
-    return null;
-  }
-
-  return structuredClone(pending);
-}
-
 function beginStuckSupportFromPending(
   state,
   message,
   intentResult = {}
 ) {
   console.log(
-  "[KAW][STUCK] Student Response:",
-  message
-);
-  
-  const resumePending =
-    cloneResumePending(state.pending);
+    "[KAW][GOVERNED SUPPORT] Student Response:",
+    message
+  );
 
-  const pendingType =
-    resumePending?.type || "";
+  const currentPending =
+    state?.pending &&
+    typeof state.pending === "object"
+      ? structuredClone(
+          state.pending
+        )
+      : null;
 
-  let stage = getStage(state);
-
-  if (
-    pendingType === "collectAnotherMainIdea" ||
-    pendingType === "reviseMainIdeaAt"
-  ) {
-    stage = "mainIdeas";
+  if (!currentPending) {
+    throw new Error(
+      "Governed support requires an active instructional location."
+    );
   }
 
-  if (
-    pendingType === "collectAnotherDetail" ||
-    pendingType === "reviseDetailAt"
-  ) {
-    const index = Number(resumePending?.index);
-
-    if (Number.isInteger(index)) {
-      stage = `details:${index}`;
-    }
-  }
-
-  if (
-    pendingType === "reviseIsAbout"
-  ) {
-    stage = "isAbout";
-  }
-
-  if (
-    pendingType === "collectMoreSoWhat" ||
-    pendingType === "confirmSoWhat"
-  ) {
-    stage = "soWhat";
-  }
+  const instructionalFinding =
+    intentResult
+      ?.instructionalFinding ||
+    null;
 
   const instructionalSituation =
-  state?.instructionalSituation &&
-  typeof state.instructionalSituation ===
-    "object"
-    ? state.instructionalSituation
-    : null;
+    state?.instructionalSituation &&
+    typeof state
+      .instructionalSituation === "object"
+      ? state.instructionalSituation
+      : null;
 
   const instructionalContract =
     state?.instructionalContractSelection
@@ -15970,107 +15882,105 @@ function beginStuckSupportFromPending(
     "[KAW][GOVERNED SUPPORT] Instructional Situation:",
     instructionalSituation
       ?.instructionalSituation || null
-);
+  );
 
   console.log(
     "[KAW][GOVERNED SUPPORT] Selected Contract:",
-    instructionalContract?.contractId || null
-); 
+    instructionalContract
+      ?.contractId || null
+  );
 
   if (
     !instructionalSituation ||
     !instructionalContract
-) {
-  throw new Error(
-    "Governed support requires an established Instructional Situation and selected Instructional Contract."
-  );
-}
- 
-  // Build a temporary activation state that includes the
-  // deterministic instructional finding before the new
-  // pending support state is committed.
-  //
-  // This ensures contract execution can read the finding
-  // during activation without changing the student's saved
-  // Frame or instructional location.
+  ) {
+    throw new Error(
+      "Governed support requires an established Instructional Situation and selected Instructional Contract."
+    );
+  }
+
+  // Contract execution must see the current deterministic
+  // finding while preserving the exact instructional
+  // location already owned by runtime progression.
   const activationState = {
     ...state,
 
     pending: {
-      ...(state?.pending || {}),
+      ...currentPending,
 
-      instructionalFinding:
-        intentResult?.instructionalFinding || null,
+      instructionalFinding,
     },
   };
 
   const instructionalActivation =
-    instructionalContract
-      ? activateInstructionalContract(
-          instructionalContract,
-          activationState
-        )
-      : null;
-    console.log(
-  "ACTIVATION:",
-  instructionalActivation
-);
+    activateInstructionalContract(
+      instructionalContract,
+      activationState
+    );
 
-  state.pending = {
-  type:
-    "stuckNudge",
-
-  stage,
-
-  // Preserve the deterministic instructional finding that
-  // caused this support sequence.
-  instructionalFinding:
-    intentResult?.instructionalFinding || null,
-
-  instructionalContract:
-    instructionalContract
-      ? {
-          contractId:
-            instructionalContract.contractId,
-
-          frameComponent:
-            instructionalContract.frameComponent,
-
-          instructionalSituation:
-            instructionalContract.instructionalSituation,
-
-          instructionalGoal:
-            instructionalContract.instructionalGoal,
-
-          teachingMove:
-            instructionalContract.teachingMove,
-
-          thinkingMove:
-            instructionalContract.thinkingMove,
-
-          aiContextualizes:
-            instructionalContract.aiContextualizes,
-        }
-      : null,
-
-   instructionalActivation:
+  console.log(
+    "ACTIVATION:",
     instructionalActivation
-      ? {
-          contractId:
-            instructionalActivation.contractId,
-  
-          execution:
-            instructionalActivation.execution,
-  
-          aiPayload:
-            instructionalActivation.aiPayload,
-        }
-      : null,
+  );
 
-resumePending,
-};
+  if (!instructionalActivation) {
+    throw new Error(
+      "Governed support requires a valid Instructional Contract activation."
+    );
+  }
 
-return state;
+  // Preserve the real instructional location directly.
+  //
+  // No recovery overlay, resume wrapper, or alternate
+  // pending-state identity is created.
+  state.pending = {
+    ...currentPending,
+
+    instructionalFinding,
+
+    instructionalContract: {
+      contractId:
+        instructionalContract.contractId,
+
+      frameComponent:
+        instructionalContract.frameComponent,
+
+      instructionalSituation:
+        instructionalContract
+          .instructionalSituation,
+
+      instructionalGoal:
+        instructionalContract
+          .instructionalGoal,
+
+      teachingMove:
+        instructionalContract.teachingMove,
+
+      thinkingMove:
+        instructionalContract.thinkingMove,
+
+      communicationPattern:
+        instructionalContract
+          .communicationPattern,
+
+      aiContextualizes:
+        instructionalContract
+          .aiContextualizes,
+    },
+
+    instructionalActivation: {
+      contractId:
+        instructionalActivation.contractId,
+
+      execution:
+        instructionalActivation.execution,
+
+      aiPayload:
+        instructionalActivation.aiPayload,
+    },
+  };
+
+  return state;
 }
 
 // ------------------------------------------------------
@@ -17409,9 +17319,8 @@ const PARENT_ANCHOR_BRIDGE = {
   // Overlay pending states are helper flows, not structural stages.
   // They should be interpreted around the current structural stage.
   overlayPendingTypes: new Set([
-    "confirmLanguageSwitch",
-    "stuckNudge",
-    "stuckMini",
+  "confirmLanguageSwitch",
+  "stuckMini",
 ]),
 
   // Raw getStage() outputs mapped to Parent Anchor structural stages.
@@ -17969,65 +17878,60 @@ async function applyIsAboutCapture(s, msg) {
         )
       : null;
 
-  s.pending = {
-    type: "stuckNudge",
-    stage: "isAbout",
+s.pending = {
+  type:
+    "reviseIsAbout",
 
-    instructionalFinding,
+  instructionalFinding,
 
-    instructionalContract:
-      instructionalContract
-        ? {
-            contractId:
-              instructionalContract.contractId,
+  instructionalContract:
+    instructionalContract
+      ? {
+          contractId:
+            instructionalContract.contractId,
 
-            frameComponent:
-              instructionalContract.frameComponent,
+          frameComponent:
+            instructionalContract.frameComponent,
 
-            instructionalSituation:
-              instructionalContract
-                .instructionalSituation,
+          instructionalSituation:
+            instructionalContract
+              .instructionalSituation,
 
-            instructionalGoal:
-              instructionalContract
-                .instructionalGoal,
+          instructionalGoal:
+            instructionalContract
+              .instructionalGoal,
 
-            teachingMove:
-              instructionalContract.teachingMove,
+          teachingMove:
+            instructionalContract.teachingMove,
 
-            thinkingMove:
-              instructionalContract.thinkingMove,
+          thinkingMove:
+            instructionalContract.thinkingMove,
 
-            communicationPattern:
-              instructionalContract
-                .communicationPattern,
+          communicationPattern:
+            instructionalContract
+              .communicationPattern,
 
-            aiContextualizes:
-              instructionalContract
-                .aiContextualizes,
-          }
-        : null,
+          aiContextualizes:
+            instructionalContract
+              .aiContextualizes,
+        }
+      : null,
 
-    instructionalActivation:
-      instructionalActivation
-        ? {
-            contractId:
-              instructionalActivation.contractId,
+  instructionalActivation:
+    instructionalActivation
+      ? {
+          contractId:
+            instructionalActivation.contractId,
 
-            execution:
-              instructionalActivation.execution,
+          execution:
+            instructionalActivation.execution,
 
-            aiPayload:
-              instructionalActivation.aiPayload,
-          }
-        : null,
-
-  resumePending: {
-    type:
-      "reviseIsAbout",
-},
+          aiPayload:
+            instructionalActivation.aiPayload,
+        }
+      : null,
 };
-
+      
 return s;
 }
 
