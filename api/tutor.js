@@ -17071,12 +17071,6 @@ function cloneResumePending(pending) {
   return structuredClone(pending);
 }
 
-function restoreResumePending(stuckPending) {
-  return cloneResumePending(
-    stuckPending?.resumePending || null
-  );
-}
-
 function beginStuckSupportFromPending(
   state,
   message,
