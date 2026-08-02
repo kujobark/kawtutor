@@ -2818,55 +2818,6 @@ function buildInstructionalAssessment(
     },
   };
 
-  // --------------------------------------------------
-  // LEGACY COMPARISON — SHADOW MODE ONLY
-  //
-  // The previous Student Response Governance result is
-  // preserved temporarily so the new Observation-based
-  // assessment can be compared with legacy behavior.
-  //
-  // It remains non-authoritative here and must not be
-  // merged into the governed interaction assessment.
-  // --------------------------------------------------
-
-  const studentResponseGovernance =
-    interactionContext
-      ?.studentResponseGovernance &&
-    typeof interactionContext
-      .studentResponseGovernance ===
-        "object"
-      ? interactionContext
-          .studentResponseGovernance
-      : null;
-
-  const legacyInteractionComparison =
-    studentResponseGovernance
-      ? {
-          instructionalState:
-            studentResponseGovernance
-              ?.instructionalState || null,
-
-          instructionalBehavior:
-            studentResponseGovernance
-              ?.instructionalBehavior || null,
-
-          supportLevel:
-            studentResponseGovernance
-              ?.supportLevel || "none",
-
-          signals:
-            studentResponseGovernance
-              ?.signals &&
-            typeof studentResponseGovernance
-              .signals === "object"
-              ? structuredClone(
-                  studentResponseGovernance
-                    .signals
-                )
-              : {},
-        }
-      : null;
-
   return {
     criteriaAssessment,
 
