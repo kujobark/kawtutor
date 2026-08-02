@@ -9622,57 +9622,54 @@ async function runEssentialDetailSelfTests() {
         "insufficientObservableEvidence";
 
   results.push({
-    name:
-      "ED Runtime - First detail blocks circular response",
+  name:
+    "ED Runtime - First detail blocks circular response",
 
-    passed:
-      runtimePassed,
+  passed:
+    runtimePassed,
 
-    response:
-      "because it does",
+  response:
+    "because it does",
 
-    actual: {
-  savedDetailCount:
-    Array.isArray(
-      runtimeActual?.frame?.details?.[0]
-    )
-      ? runtimeActual.frame.details[0].length
-      : null,
+  expected: {
+    savedDetailCount:
+      0,
 
-  pendingType:
-    runtimeActual?.pending?.type || null,
+    pendingType:
+      "collectAnotherDetail",
 
-  pendingIndex:
-    Number.isInteger(
-      runtimeActual?.pending?.index
-    )
-      ? runtimeActual.pending.index
-      : null,
+    pendingIndex:
+      0,
 
-  diagnosis:
-    runtimeActual?.pending
-      ?.instructionalFinding
-      ?.diagnosis || null,
-},
+    diagnosis:
+      "insufficientObservableEvidence",
+  },
 
-    actual: {
-      savedDetailCount:
-        Array.isArray(
-          runtimeActual?.frame?.details?.[0]
-        )
-          ? runtimeActual.frame.details[0].length
-          : null,
+  actual: {
+    savedDetailCount:
+      Array.isArray(
+        runtimeActual?.frame?.details?.[0]
+      )
+        ? runtimeActual.frame.details[0].length
+        : null,
 
-      pendingType:
-        runtimeActual?.pending?.type || null,
+    pendingType:
+      runtimeActual?.pending?.type || null,
 
-      diagnosis:
-        runtimeActual?.pending
-          ?.instructionalFinding
-          ?.diagnosis || null,
-    },
-  });
+    pendingIndex:
+      Number.isInteger(
+        runtimeActual?.pending?.index
+      )
+        ? runtimeActual.pending.index
+        : null,
 
+    diagnosis:
+      runtimeActual?.pending
+        ?.instructionalFinding
+        ?.diagnosis || null,
+  },
+});
+  
     // --------------------------------------------------
   // LIVE RUNTIME TEST
   //
