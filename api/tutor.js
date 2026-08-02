@@ -15908,62 +15908,6 @@ function buildStuckNudges(state, stage) {
   ];
 }
 
-const PROTECTED_PENDING_TYPES = new Set([
-  "confirmLanguageSwitch",
-  "confirmAssignmentUnderstanding",
-  "assignmentReasoningIntro",
-  "chooseWorkflow",
-
-  // Is About confirmation and revision
-  "confirmIsAbout",
-  "reviseIsAbout",
-
-  // Main Idea optional capture, confirmation, and revision
-  "offerAnotherMainIdea",
-  "collectAnotherMainIdea",
-  "confirmMainIdeas",
-  "chooseMainIdeaToRevise",
-  "reviseMainIdeaAt",
-
-  // Essential Detail optional capture, confirmation, and revision
-  "offerAnotherDetail",
-  "collectAnotherDetail",
-  "confirmDetails",
-  "chooseDetailToRevise",
-  "reviseDetailAt",
-
-  // So What expansion and confirmation
-  "offerMoreSoWhat",
-  "collectMoreSoWhat",
-  "confirmSoWhat",
-
-  // Export choice
-  "offerExport",
-  "chooseExportType",
-
-  // Stuck-support engine
-  "stuckConfirm",
-  "stuckMenu",
-  "stuckReask",
-  "stuckNudge",
-  "stuckMini",
-  "stuckSkip",
-]);
-
-function isProtectedPendingType(
-  pendingType
-) {
-  const normalizedPendingType =
-    cleanText(pendingType);
-
-  return (
-    Boolean(normalizedPendingType) &&
-    PROTECTED_PENDING_TYPES.has(
-      normalizedPendingType
-    )
-  );
-}
-
 // ------------------------------------------------------
 // AI INTENT FALLBACK
 // Used only when deterministic rules do not recognize
