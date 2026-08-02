@@ -15415,49 +15415,6 @@ return template
 }
 
 // ------------------------------------------------------
-// DIAGNOSIS
-// Interprets the instructional meaning of the evidence.
-// ------------------------------------------------------
-
-  if (
-    assignmentText.includes("cause") ||
-    assignmentText.includes("effect") ||
-    assignmentText.includes("why") ||
-    assignmentText.includes("how")
-  ) {
-    return "explain_relationship";
-  }
-
-  if (
-    assignmentText.includes("theme") ||
-    assignmentText.includes("message") ||
-    assignmentText.includes("central idea") ||
-    assignmentText.includes("big idea")
-  ) {
-    return "interpret_meaning";
-  }
-
-  if (
-    assignmentText.includes("compare") ||
-    assignmentText.includes("contrast") ||
-    assignmentText.includes("similar") ||
-    assignmentText.includes("different")
-  ) {
-    return "compare_features";
-  }
-
-  if (
-    assignmentText.includes("evidence") ||
-    assignmentText.includes("source") ||
-    assignmentText.includes("text")
-  ) {
-    return "organize_evidence";
-  }
-
-  return "organize_thinking";
-}
-
-// ------------------------------------------------------
 // INSTRUCTIONAL DECISION
 // Chooses the best instructional move.
 // ------------------------------------------------------
