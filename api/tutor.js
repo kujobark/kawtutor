@@ -3905,39 +3905,38 @@ function buildComponentInstructionalFinding({
 }
 
 // ------------------------------------------------------
-// COMPONENT FINDING → INSTRUCTIONAL SITUATION
-// SHADOW-MODE REFRESH
+// COMPONENT FINDING → INSTRUCTIONAL SITUATION REFRESH
 // ------------------------------------------------------
 //
 // Re-runs the governed Instructional Situation Engine after
-// current component validation has produced a completed
+// current component validation produces a completed
 // Component Instructional Finding.
 //
-// The beginning-of-cycle situation cannot yet include the
-// current Component Finding because component validation
-// occurs later inside the authoritative runtime branch.
+// The beginning-of-cycle Instructional Situation cannot
+// include the current Component Finding because component
+// validation occurs later inside the active runtime branch.
 //
-// This function closes that temporary migration gap by:
+// This refresh:
 //
-// • rebuilding Evidence State for the validated response;
-// • preserving the existing governed Interaction Finding;
-// • attaching the current Component Finding;
-// • rebuilding the governed Instructional Situation;
-// • storing the refreshed shadow-mode artifacts.
+// • rebuilds Evidence State for the validated response;
+// • preserves the governed Interaction Instructional
+//   Finding;
+// • attaches the current Component Instructional Finding;
+// • rebuilds the governed Instructional Situation;
+// • selects the corresponding Instructional Contract for
+//   migrated Frame components;
+// • stores the refreshed governed artifacts.
 //
 // This function does not:
 //
-// • select an Instructional Contract;
 // • determine support level;
-// • change pending state;
+// • directly change pending location;
 // • save or reject student work;
-// • control progression;
-// • generate communication;
-// • alter authoritative runtime behavior.
+// • directly control runtime progression;
+// • generate student-facing communication.
 //
 // ------------------------------------------------------
-
-function refreshShadowInstructionalSituationWithComponentFinding({
+function refreshInstructionalSituationWithComponentFinding({
   state,
   currentResponse = "",
   componentFinding = null,
@@ -11204,7 +11203,7 @@ async function runIsAboutSelfTests() {
     });
 
   const persistentSituation =
-    refreshShadowInstructionalSituationWithComponentFinding({
+    refreshInstructionalSituationWithComponentFinding({
       state:
         persistentStruggleState,
 
@@ -17881,7 +17880,7 @@ async function applyIsAboutCapture(s, msg) {
       },
     });
 
-  refreshShadowInstructionalSituationWithComponentFinding({
+  refreshInstructionalSituationWithComponentFinding({
     state:
       s,
 
@@ -18053,7 +18052,7 @@ async function applyMainIdeaCapture(
       },
     });
 
-  refreshShadowInstructionalSituationWithComponentFinding({
+  refreshInstructionalSituationWithComponentFinding({
     state:
       s,
 
@@ -19430,7 +19429,7 @@ if (s.pending?.type === "offerAnotherDetail") {
       "optionalDirectEntry",
   };
 
-  refreshShadowInstructionalSituationWithComponentFinding({
+  refreshInstructionalSituationWithComponentFinding({
     state:
       s,
 
@@ -19610,7 +19609,7 @@ const instructionalFinding = {
   captureMode,
 };
 
-refreshShadowInstructionalSituationWithComponentFinding({
+refreshInstructionalSituationWithComponentFinding({
   state:
     s,
 
@@ -19819,7 +19818,7 @@ const instructionalFinding = {
     "revision",
 };
 
-refreshShadowInstructionalSituationWithComponentFinding({
+refreshInstructionalSituationWithComponentFinding({
   state:
     s,
 
@@ -19983,7 +19982,7 @@ const instructionalFinding = {
     "additionalContent",
 };
 
-refreshShadowInstructionalSituationWithComponentFinding({
+refreshInstructionalSituationWithComponentFinding({
   state:
     s,
 
@@ -20144,7 +20143,7 @@ const instructionalFinding = {
     "revision",
 };
 
-refreshShadowInstructionalSituationWithComponentFinding({
+refreshInstructionalSituationWithComponentFinding({
   state:
     s,
 
@@ -20366,7 +20365,7 @@ return s;
       "required",
   };
 
-  refreshShadowInstructionalSituationWithComponentFinding({
+  refreshInstructionalSituationWithComponentFinding({
     state:
       s,
 
@@ -20545,7 +20544,7 @@ const instructionalFinding = {
     "initial",
 };
 
-refreshShadowInstructionalSituationWithComponentFinding({
+refreshInstructionalSituationWithComponentFinding({
   state:
     s,
 
