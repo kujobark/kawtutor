@@ -3219,6 +3219,124 @@ function hasEstablishedAssignmentUnderstandingFromEvidence(
   );
 }
 
+function getInstructionalSituationEvidenceHistory(
+  evidenceState
+) {
+  const instructionalLocation =
+    evidenceState
+      ?.instructionalLocation &&
+    typeof evidenceState
+      .instructionalLocation ===
+        "object"
+      ? evidenceState
+          .instructionalLocation
+      : {};
+
+  const pending =
+    instructionalLocation?.pending &&
+    typeof instructionalLocation
+      .pending === "object"
+      ? instructionalLocation.pending
+      : null;
+
+  const rawStage =
+    cleanText(
+      instructionalLocation?.rawStage || ""
+    );
+
+  const currentFrameComponent =
+    cleanText(
+      getBaseStage(rawStage) || ""
+    );
+
+  const priorFinding =
+    pending?.instructionalFinding &&
+    typeof pending
+      .instructionalFinding ===
+        "object"
+      ? pending.instructionalFinding
+      : null;
+
+  const priorFrameComponent =
+    cleanText(
+      priorFinding?.frameComponent || ""
+    );
+
+  const sameInstructionalComponent =
+    Boolean(
+      currentFrameComponent &&
+      priorFrameComponent &&
+      currentFrameComponent ===
+        priorFrameComponent
+    );
+
+  const governedContractPresent =
+    Boolean(
+      pending?.instructionalContract &&
+      typeof pending
+        .instructionalContract ===
+          "object"
+    );
+
+  const governedActivationPresent =
+    Boolean(
+      pending?.instructionalActivation &&
+      typeof pending
+        .instructionalActivation ===
+          "object"
+    );
+
+  // Prior governed support is established by Kaw 2.5's
+  // actual instructional artifacts—not by a legacy
+  // pending-state identity.
+  const priorSupportActive =
+    Boolean(
+      priorFinding &&
+      governedContractPresent &&
+      governedActivationPresent &&
+      sameInstructionalComponent
+    );
+
+  const priorDiagnosis =
+    cleanText(
+      priorFinding?.diagnosis || ""
+    );
+
+  const priorNoEvidence =
+    priorDiagnosis ===
+      "emptyResponse" ||
+    priorDiagnosis ===
+      "noComponentEvidence";
+
+  return {
+    priorSupportActive,
+
+    priorDiagnosis:
+      priorDiagnosis || null,
+
+    priorNoEvidence,
+
+    priorFrameComponent:
+      priorFrameComponent || null,
+
+    currentFrameComponent:
+      currentFrameComponent || null,
+
+    sameInstructionalComponent,
+
+    governedContractPresent,
+
+    governedActivationPresent,
+
+    priorFinding:
+      priorFinding
+        ? structuredClone(
+            priorFinding
+          )
+        : null,
+  };
+}
+
 function buildInstructionalSituation({
   evidenceState = null,
   instructionalAssessment = null,
