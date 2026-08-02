@@ -21778,14 +21778,6 @@ if (!mutationIntent.accept) {
 
     return s;
   }
-    
-  const laneCheck =
-    analyzeBuildLane(s, "details", msg);
-
-  if (laneCheck) {
-    s.pending = laneCheck;
-    return s;
-  }
 
   const currentMainIdea =
   getIdeaList(s)[idx] || "";
@@ -22853,18 +22845,6 @@ return s;
             mechanism: msg,
           };
 
-          return s;
-        }
-
-        const laneCheck =
-          analyzeBuildLane(
-            s,
-            "details",
-            msg
-          );
-
-        if (laneCheck) {
-          s.pending = laneCheck;
           return s;
         }
 
