@@ -16100,12 +16100,6 @@ function getParentAnchorStage(state) {
     return PARENT_ANCHOR_BRIDGE.confirmationStageByPending[pendingType];
   }
 
-  // Interrupts belong to an underlying structural stage and do not
-  // create a new Parent Anchor stage.
-  if (pendingType && PARENT_ANCHOR_BRIDGE.interruptStageByPending[pendingType]) {
-    return PARENT_ANCHOR_BRIDGE.interruptStageByPending[pendingType];
-  }
-
   // Stuck overlays should use the saved stage only if it actually exists
   // in the current pending payload. Otherwise, fall back to getStage(state).
   if (pendingType && pendingType.startsWith("stuck")) {
@@ -16142,11 +16136,6 @@ function getParentAnchorOwnerStage(state) {
     return PARENT_ANCHOR_BRIDGE.confirmationStageByPending[pendingType];
   }
 
-  // Interrupt pending states belong to an underlying structural stage.
-  if (pendingType && PARENT_ANCHOR_BRIDGE.interruptStageByPending[pendingType]) {
-    return PARENT_ANCHOR_BRIDGE.interruptStageByPending[pendingType];
-  }
-
   // Overlay helper flows do not create a new structural stage.
   // If they saved a raw resume stage, map that back to its structural owner.
   if (pendingType && PARENT_ANCHOR_BRIDGE.overlayPendingTypes.has(pendingType)) {
@@ -16176,10 +16165,6 @@ function getParentAnchorLoopType(state) {
 
   if (pendingType && PARENT_ANCHOR_BRIDGE.overlayPendingTypes.has(pendingType)) {
     return "overlay";
-  }
-
-  if (pendingType && PARENT_ANCHOR_BRIDGE.interruptStageByPending[pendingType]) {
-    return "interrupt";
   }
 
   if (pendingType && PARENT_ANCHOR_BRIDGE.confirmationStageByPending[pendingType]) {
