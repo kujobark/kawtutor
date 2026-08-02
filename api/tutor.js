@@ -12441,32 +12441,26 @@ results.push({
     );
 
   const invalidRevisionPassed =
-    invalidRevisionActual?.frame
-      ?.parentItems?.length ===
-      2 &&
+  invalidRevisionActual?.frame
+    ?.parentItems?.length ===
+    2 &&
 
-    invalidRevisionActual?.frame
-      ?.parentItems?.[0] ===
-      validMainIdea &&
+  invalidRevisionActual?.frame
+    ?.parentItems?.[0] ===
+    validMainIdea &&
 
-    invalidRevisionActual?.pending
-      ?.type ===
-      "stuckNudge" &&
+  invalidRevisionActual?.pending
+    ?.type ===
+    "reviseMainIdeaAt" &&
 
-    invalidRevisionActual?.pending
-      ?.instructionalFinding
-      ?.diagnosis ===
-      "repeatsKeyTopic" &&
+  invalidRevisionActual?.pending
+    ?.index ===
+    0 &&
 
-    invalidRevisionActual?.pending
-      ?.resumePending
-      ?.type ===
-      "reviseMainIdeaAt" &&
-
-    invalidRevisionActual?.pending
-      ?.resumePending
-      ?.index ===
-      0;
+  invalidRevisionActual?.pending
+    ?.instructionalFinding
+    ?.diagnosis ===
+    "repeatsKeyTopic";
 
   results.push({
     name:
@@ -12480,58 +12474,49 @@ results.push({
 
     expected: {
       mainIdeaCount:
-        2,
+    2,
 
-      preservedMainIdea:
-        validMainIdea,
+  preservedMainIdea:
+    validMainIdea,
 
-      pendingType:
-        "stuckNudge",
+  pendingType:
+    "reviseMainIdeaAt",
 
-      diagnosis:
-        "repeatsKeyTopic",
+  pendingIndex:
+    0,
 
-      resumePendingType:
-        "reviseMainIdeaAt",
-
-      resumePendingIndex:
-        0,
-    },
+  diagnosis:
+    "repeatsKeyTopic",
+},
 
     actual: {
-      mainIdeaCount:
-        invalidRevisionActual?.frame
-          ?.parentItems?.length || 0,
+  mainIdeaCount:
+    invalidRevisionActual?.frame
+      ?.parentItems?.length || 0,
 
-      preservedMainIdea:
-        invalidRevisionActual?.frame
-          ?.parentItems?.[0] || null,
+  preservedMainIdea:
+    invalidRevisionActual?.frame
+      ?.parentItems?.[0] || null,
 
-      pendingType:
-        invalidRevisionActual?.pending
-          ?.type || null,
+  pendingType:
+    invalidRevisionActual?.pending
+      ?.type || null,
 
-      diagnosis:
-        invalidRevisionActual?.pending
-          ?.instructionalFinding
-          ?.diagnosis || null,
+  pendingIndex:
+    Number.isInteger(
+      invalidRevisionActual?.pending
+        ?.index
+    )
+      ? invalidRevisionActual
+          .pending
+          .index
+      : null,
 
-      resumePendingType:
-        invalidRevisionActual?.pending
-          ?.resumePending
-          ?.type || null,
-
-      resumePendingIndex:
-        Number.isInteger(
-          invalidRevisionActual?.pending
-            ?.resumePending?.index
-        )
-          ? invalidRevisionActual
-              .pending
-              .resumePending
-              .index
-          : null,
-    },
+  diagnosis:
+    invalidRevisionActual?.pending
+      ?.instructionalFinding
+      ?.diagnosis || null,
+},
   });
 
   // --------------------------------------------------
@@ -12565,32 +12550,27 @@ results.push({
       isAbout
     );
 
-  const invalidOptionalPassed =
-    invalidOptionalActual?.frame
-      ?.parentItems?.length ===
-      2 &&
+ const invalidOptionalPassed =
+  invalidOptionalActual?.frame
+    ?.parentItems?.length ===
+    2 &&
 
-    invalidOptionalActual?.frame
-      ?.parentItems?.[0] ===
-      validMainIdea &&
+  invalidOptionalActual?.frame
+    ?.parentItems?.[0] ===
+    validMainIdea &&
 
-    invalidOptionalActual?.frame
-      ?.parentItems?.[1] ===
-      secondMainIdea &&
+  invalidOptionalActual?.frame
+    ?.parentItems?.[1] ===
+    secondMainIdea &&
 
-    invalidOptionalActual?.pending
-      ?.type ===
-      "stuckNudge" &&
+  invalidOptionalActual?.pending
+    ?.type ===
+    "collectAnotherMainIdea" &&
 
-    invalidOptionalActual?.pending
-      ?.instructionalFinding
-      ?.diagnosis ===
-      "repeatsIsAbout" &&
-
-    invalidOptionalActual?.pending
-      ?.resumePending
-      ?.type ===
-      "collectAnotherMainIdea";
+  invalidOptionalActual?.pending
+    ?.instructionalFinding
+    ?.diagnosis ===
+    "repeatsIsAbout";
 
   results.push({
     name:
@@ -12606,35 +12586,27 @@ results.push({
       mainIdeaCount:
         2,
 
-      pendingType:
-        "stuckNudge",
+  pendingType:
+    "collectAnotherMainIdea",
 
-      diagnosis:
-        "repeatsIsAbout",
+  diagnosis:
+    "repeatsIsAbout",
+},
 
-      resumePendingType:
-        "collectAnotherMainIdea",
-    },
+     actual: {
+  mainIdeaCount:
+    invalidOptionalActual?.frame
+      ?.parentItems?.length || 0,
 
-    actual: {
-      mainIdeaCount:
-        invalidOptionalActual?.frame
-          ?.parentItems?.length || 0,
+  pendingType:
+    invalidOptionalActual?.pending
+      ?.type || null,
 
-      pendingType:
-        invalidOptionalActual?.pending
-          ?.type || null,
-
-      diagnosis:
-        invalidOptionalActual?.pending
-          ?.instructionalFinding
-          ?.diagnosis || null,
-
-      resumePendingType:
-        invalidOptionalActual?.pending
-          ?.resumePending
-          ?.type || null,
-    },
+  diagnosis:
+    invalidOptionalActual?.pending
+      ?.instructionalFinding
+      ?.diagnosis || null,
+},
   });
 
   const passedCount =
