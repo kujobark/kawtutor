@@ -4720,26 +4720,6 @@ function executeEssentialDetailInstructionalContract(
 }
 
 // ------------------------------------------------------
-// MI-GS-001 INSTRUCTIONAL DECISION
-//
-// Selects the predetermined Main Idea Teaching Move,
-// Thinking Move, and communication pattern from the
-// established instructional finding.
-//
-// Validation has already determined the observable
-// instructional condition.
-//
-// This function does not:
-//
-// • validate the student's response;
-// • reinterpret semantic evidence;
-// • generate student-facing language;
-// • change runtime progression;
-// • save or replace student work.
-//
-// ------------------------------------------------------
-
-// ------------------------------------------------------
 // MAIN IDEA INSTRUCTIONAL CONTRACT EXECUTION
 // ------------------------------------------------------
 //
@@ -15594,7 +15574,6 @@ function getParentAnchorContext(state) {
 
     isCapture: loopType === "capture",
     isConfirmation: loopType === "confirm",
-    isInterrupt: loopType === "interrupt",
     isOverlay: loopType === "overlay",
     isExport: loopType === "export",
   };
@@ -18697,11 +18676,6 @@ const PARENT_ANCHOR_BRIDGE = {
 // These helpers are read-only and sandbox-only in purpose.
 // They exist to make the engine easier to inspect structurally.
 // They must not be used to alter routing or progression behavior.
-
-function getParentAnchorDisplayLabel(state) {
-  const context = getParentAnchorContext(state);
-  return context.ownerStructuralStage;
-}
 
 function getParentAnchorObservation(state) {
   const context =
@@ -23226,15 +23200,11 @@ if (
 
   return res.status(200).json({ reply, state });
 }
-     
-  const assignmentUnderstandingIncomplete =
-  !hasSufficientAssignmentUnderstanding(
-    state
-  );
 
-          state = await updateStateFromStudent(
-        state,
-        message
+
+  state = await updateStateFromStudent(
+    state,
+      message
       );
     }
   }
