@@ -19850,14 +19850,6 @@ s.instructionalSituation =
   structuredClone(
     instructionalSituation
   );
-
-const instructionalStrategy =
-  buildInstructionalStrategy(
-    instructionalAssessment
-  );
-
-// Strategy remains non-authoritative during this step.
-void instructionalStrategy;
   
 // --------------------------------------------------
 // ASSIGNMENT UNDERSTANDING RUNTIME GATE
@@ -22437,11 +22429,6 @@ if (
 
  state.instructionalPlan =
    instructionalPlan;
-
-  // Optional debug only; does not affect current behavior.
-      if (state?.settings?.debugInstructionalPlan) {
-        console.log("[KAW PLAN]", instructionalPlan);
-    }
 
     // Safety
     if (message) {
