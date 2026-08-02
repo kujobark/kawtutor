@@ -19474,7 +19474,7 @@ return {
       details: [],
       soWhat: "",
 },
-},
+  
     pending: null,
     settings: {
       language: "en",
