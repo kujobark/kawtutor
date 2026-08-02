@@ -15447,82 +15447,6 @@ return template
 }
 
 // ------------------------------------------------------
-// INSTRUCTIONAL DECISION
-// Chooses the best instructional move.
-// ------------------------------------------------------
-function buildMiniQuestion(state) {
-  let stage =
-    state?.pending?.stage ||
-    getStage(state);
-
-  if (
-    state?.pending?.type ===
-    "collectAnotherMainIdea"
-  ) {
-    stage =
-      "mainIdeas";
-  }
-
-  const keyTopic =
-    state?.frame?.keyTopic ||
-    "your topic";
-
-  if (stage === "keyTopic") {
-    return (
-      "Your Frame begins with the Key Topic.\n\n" +
-      "In just a few words, what is the name of the topic you are exploring?"
-    );
-  }
-
-  if (stage === "isAbout") {
-    return (
-      `Your Frame starts with this Key Topic:\n\n"${keyTopic}"\n\n` +
-      "Now explain what the whole topic is about in your own understandable words.\n\n" +
-      "What is this Key Topic about?"
-    );
-  }
-
-  if (stage === "mainIdeas") {
-    return (
-      `Your Frame says:\n\n"${keyTopic}" is about ` +
-      `"${state?.frame?.isAbout || "your topic"}".\n\n` +
-      "What is one larger Main Idea that helps organize or explain this topic?"
-    );
-  }
-
-  if (
-    typeof stage === "string" &&
-    stage.startsWith("details:")
-  ) {
-    const index =
-      Number(
-        stage.split(":")[1]
-      );
-
-    const mainIdea =
-      getIdeaList(state)[index] ||
-      "this Main Idea";
-
-    return (
-      `You identified this Main Idea:\n\n"${mainIdea}"\n\n` +
-      "What is one specific fact, example, observation, explanation, or piece of evidence that supports it?"
-    );
-  }
-
-  if (stage === "soWhat") {
-    return (
-      `Your completed Frame is about:\n\n"${keyTopic}"\n\n` +
-      "Looking across your Main Ideas and Essential Details, what is the larger understanding or takeaway someone should have?"
-    );
-  }
-
-  return (
-    "What part of your Frame feels easiest to work on right now: " +
-    "Key Topic, Is About, Main Ideas, Essential Details, or So What?"
-  );
-}
-
-// ------------------------------------------------------
 // STUDENT-WORK MUTATION PROTECTION
 //
 // Prevents clearly conversational responses from being
@@ -17408,8 +17332,7 @@ const PARENT_ANCHOR_BRIDGE = {
   // Overlay pending states are helper flows, not structural stages.
   // They should be interpreted around the current structural stage.
   overlayPendingTypes: new Set([
-  "confirmLanguageSwitch",
-  "stuckMini",
+    "confirmLanguageSwitch",
 ]),
 
   // Raw getStage() outputs mapped to Parent Anchor structural stages.
@@ -17542,7 +17465,6 @@ return {
       exportOffered: false,
       exportChoice: null,
     },
-    skips: [],
 
 assignmentReasoning: {
   task: null,
@@ -17757,12 +17679,6 @@ base.frameMeta.assignmentContext = {
   const flags = s.flags && typeof s.flags === "object" ? s.flags : {};
   base.flags.exportOffered = !!flags.exportOffered;
   base.flags.exportChoice = flags.exportChoice || null;
-
-  if (Array.isArray(s.skips)) {
-    base.skips = s.skips
-      .map((x) => ({ stage: cleanText(x?.stage || ""), at: Number(x?.at || 0) }))
-      .filter((x) => x.stage);
-  }
 
 // ensure detail buckets exist for each parent item
 for (let i = 0; i < base.frame.parentItems.length; i++) {
@@ -18275,11 +18191,6 @@ return s;
     s.frame.details[newIndex] = [];
   }
   
-  clearMatchingSkip(
-    s,
-    "mainIdeas"
-  );
-
   const count =
     getIdeaList(s).length;
 
@@ -18430,71 +18341,18 @@ if (s.pending?.type === "reviseBuildLane") {
   ].filter(Boolean).join("\n\n");
 }
   
-  if (s.pending?.type === "stuckMini") 
-    return s.pending.miniQuestion || buildMiniQuestion(s);
-
-  if (s.pending?.type === "reviseIsAbout") {
-    return getComponentPrompt("isAbout", "revisePrompt");
-}
-   
-// --- Return to skipped work before confirmation ---
-if (
-  Array.isArray(s.skips) &&
-  s.skips.length > 0 &&
-  ["confirmIsAbout", "confirmMainIdeas", "confirmDetails", "confirmSoWhat"].includes(s.pending?.type)
-) {
-
-  const skipped = s.skips[0];
-
-  let label = "a part of the Frame";
-
-if (skipped.stage === "mainIdeas") {
-  const nextMainIdeaNumber =
-    getIdeaList(s).length + 1;
-
-  label =
-    `Main Idea ${nextMainIdeaNumber}`;
-}
-
-if (skipped.stage === "soWhat") {
-  label =
-    "the So What statement";
-}
-
-if (
-  typeof skipped.stage === "string" &&
-  skipped.stage.startsWith("details")
-) {
-  const idx =
-    Number(
-      skipped.stage.split(":")[1]
-    );
-
-  label =
-    `Essential Details for Main Idea ${idx + 1}`;
-}
-
-  // Keep the skip for now; remove it after the student completes this stage.
-
-    const intro = `Before we confirm your thinking and move on, let's return to the part we skipped earlier: ${label}.\n\n`;
-
-  s.pending = {
-    type: "stuckMini",
-    stage: skipped.stage,
-    miniQuestion: buildMiniQuestion({
-      ...s,
-      pending: { stage: skipped.stage }
-    })
-  };
-
-  return intro + s.pending.miniQuestion;
-}
-  
 if (s.pending?.type === "confirmIsAbout") {
   const isAboutDisplay = (s.frame.isAbout || "")
     .trim()
     .replace(/\.$/, "")
     .replace(/^[A-Z]/, c => c.toLowerCase());
+
+if (s.pending?.type === "reviseIsAbout") {
+  return getComponentPrompt(
+    "isAbout",
+    "revisePrompt"
+  );
+}
 
   return getComponentPrompt("isAbout", "confirmationPrompt", {
     keyTopic: s.frame.keyTopic,
@@ -18993,15 +18851,6 @@ if (!s.frame.soWhat) {
 // ---------------------
 // STATE UPDATE (SSOT)
 // ---------------------
-function clearMatchingSkip(state, completedStage) {
-  if (!Array.isArray(state.skips) || !state.skips.length) return;
-
-  const first = state.skips[0];
-  if (first?.stage === completedStage) {
-    state.skips.shift();
-  }
-}
-
 async function updateStateFromStudent(state, message) {
   const msg = cleanText(message);
   const s = structuredClone(state);
@@ -20320,7 +20169,6 @@ refreshShadowInstructionalSituationWithComponentFinding({
     if (!s.frame.isAbout) {
       // Route extracted Is About content through governed capture.
       await applyIsAboutCapture(s, parsed.isAbout);
-      clearMatchingSkip(s, "isAbout");
     } else {
       s.pending = { type: "confirmIsAbout" };
     }
@@ -20366,7 +20214,6 @@ return s;
     const lowered = msg.toLowerCase().trim();
     if (lowered !== "revise" && lowered !== "change") {
       await applyIsAboutCapture(s, msg);
-      clearMatchingSkip(s, "isAbout");
     }
     return s;
   }
@@ -20377,18 +20224,13 @@ return s;
   if (ideas.length < 2) {
     if (!isNegative(msg)) {
       await applyMainIdeaCapture(
-        s,
-        msg
-      );
-
-      clearMatchingSkip(
-        s,
-        "mainIdeas"
-      );
-    }
-
-    return s;
+      s,
+      msg
+    );
   }
+
+  return s;
+}
   
     // 5) Details capture
   for (let i = 0; i < ideas.length; i++) {
@@ -20538,12 +20380,6 @@ return s;
           msg,
         ];
 
-        clearMatchingSkip(
-          s,
-          `details:${i}`
-        );
-      }
-
       const updatedArr =
         Array.isArray(s.frame.details[i])
           ? s.frame.details[i]
@@ -20684,11 +20520,6 @@ if (!soWhatValidation.valid) {
 // Save only after governed validation.
 s.frame.soWhat =
   msg;
-
-clearMatchingSkip(
-  s,
-  "soWhat"
-);
 
 s.pending = {
   type:
