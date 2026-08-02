@@ -2555,28 +2555,31 @@ function buildInstructionalContractSelection(
 }
 
 // ======================================================
-// LAYER 5 — INSTRUCTIONAL ASSESSMENT
+// LAYER 4 — INSTRUCTIONAL ASSESSMENT
 // ======================================================
 //
-// Instructional Assessment interprets observable evidence.
+// Instructional Assessment organizes and interprets
+// observable instructional evidence.
 //
-// It never:
+// It produces:
 //
-// • changes runtime state;
-// • validates student work;
-// • selects instructional strategy;
-// • generates communication.
+// • Criteria Assessment;
+// • Relational Assessment;
+// • Interaction Assessment;
+// • governed instructional findings.
 //
-// Assessment converts organized Evidence State into
-// deterministic instructional findings.
+// Instructional Assessment does not:
 //
-// Current status:
+// • save or reject student work;
+// • select an Instructional Contract;
+// • determine a Teaching Move or Thinking Move;
+// • control runtime progression;
+// • generate student-facing communication.
 //
-// Transitional shell.
-//
-// This subsystem currently exposes the assessment
-// interface while migration occurs from the legacy
-// instructional reasoning pathway.
+// Current component validation occurs inside the active
+// runtime branch. After validation, the assessment is
+// refreshed with the current Component Instructional
+// Finding and governed Instructional Situation.
 //
 // ======================================================
 
@@ -18947,10 +18950,20 @@ const evidenceState =
 // INSTRUCTIONAL ASSESSMENT
 // --------------------------------------------------
 //
-// Assessment interprets the organized instructional
-// evidence but does not yet participate in runtime
-// decision-making. This shell will gradually replace
-// the legacy instructional reasoning pathway.
+// Organizes current observable evidence into governed
+// instructional findings.
+//
+// At the beginning of the request cycle, the assessment
+// contains interaction evidence and the initial
+// Instructional Situation.
+//
+// Component validation occurs later in the active runtime
+// branch. After validation, the assessment and
+// Instructional Situation are refreshed with the current
+// Component Instructional Finding.
+//
+// Assessment does not itself save student work, control
+// progression, or generate communication.
 //
 // --------------------------------------------------
 
@@ -18965,12 +18978,17 @@ const interactionInstructionalFinding =
     instructionalAssessment
   );
 
-// Attach the new deterministic finding to the current
-// assessment artifact.
+// Attach the deterministic Interaction Instructional
+// Finding to the current assessment artifact.
 //
-// This remains shadow-mode evidence. It does not yet
-// control contracts, progression, pending state, support
-// level, or communication.
+// This finding interprets only the governed Observation
+// Report within the student's current instructional
+// location.
+//
+// It may establish whether the response functions only as
+// an interaction, but it does not independently classify
+// genuine struggle, select a contract, control progression,
+// change pending state, or generate communication.
 
 instructionalAssessment
   .interactionInstructionalFinding =
@@ -18995,26 +19013,39 @@ const instructionalSituation =
       null,
   });
 
-// Attach the canonical deterministic situation to the
-// assessment artifact.
+// Attach the beginning-of-cycle Instructional Situation
+// to the current assessment artifact.
 //
-// This remains shadow mode and does not yet select a
-// contract or control progression.
+// At this point, current component validation has not yet
+// occurred, so substantive responses may remain in
+// componentEvidenceRequiresValidation.
+//
+// After the active runtime branch completes component
+// validation, the Instructional Situation is refreshed
+// with the current Component Instructional Finding.
+//
+// The situation does not directly save student work or
+// control progression. For migrated Frame components, its
+// refreshed result supports deterministic contract
+// selection and governed communication.
+
 instructionalAssessment
   .instructionalSituation =
     structuredClone(
       instructionalSituation
     );
 
-// Store the complete deterministic assessment artifact so
-// it remains inspectable during migration.
+// Store the complete governed Instructional Assessment
+// artifact for use by later runtime reasoning and for
+// development verification.
 s.instructionalAssessment =
   structuredClone(
     instructionalAssessment
   );
 
-// Store the current canonical Instructional Situation
-// separately for easier inspection during migration.
+// Store the beginning-of-cycle Instructional Situation
+// separately so it remains available until current
+// component validation refreshes the governed situation.
 s.instructionalSituation =
   structuredClone(
     instructionalSituation
