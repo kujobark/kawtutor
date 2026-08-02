@@ -5117,34 +5117,28 @@ return cleanText(response);
   }
 }
 
-// ======================================================
-// TRANSITIONAL INSTRUCTIONAL REASONING SHELL
-// ======================================================
+// ============================================================
+// INSTRUCTIONAL REASONING LAYER (SSOT)
+// ============================================================
 //
-// This subsystem predates the unified Kaw Operating
-// System and remains temporarily available for comparison
-// and migration support.
+// Purpose
+// -------
+// Performs deterministic instructional reasoning for the
+// Framing Routine.
 //
-// It gathers context, interprets student needs, creates an
-// instructional plan, and selects an instructional move,
-// but it does not currently control Kaw's authoritative
-// runtime response.
+// Responsibilities
+// ----------------
+// • Analyze student evidence.
+// • Classify instructional situations.
+// • Select instructional contracts.
+// • Govern instructional progression.
+// • Protect accepted student work.
+// • Prepare instructional context for the
+//   Communication Layer.
 //
-// Current architectural destination:
+// This layer owns instructional decisions.
+// The Communication Layer owns expression.
 //
-// • Evidence-gathering responsibilities move into
-//   Evidence State.
-//
-// • Student-need interpretation moves into
-//   Instructional Assessment.
-//
-// • Instructional planning and move selection move into
-//   Instructional Strategy.
-//
-// This shell must not be expanded with new authority.
-//
-// After its useful logic has been migrated and verified,
-// this subsystem should be removed.
 
 // ------------------------------------------------------
 // FORMATIVE ASSESSMENT
@@ -18069,10 +18063,10 @@ async function applyMainIdeaCapture(
 
   if (!validation.valid) {
 
-  let instructionalPending;
+  let pendingLocation;
 
 if (isRevision) {
-  instructionalPending = {
+  pendingLocation = {
     type:
       "reviseMainIdeaAt",
 
@@ -18080,12 +18074,12 @@ if (isRevision) {
       revisionIndex,
   };
 } else if (isOptional) {
-  instructionalPending = {
+  pendingLocation = {
     type:
       "collectAnotherMainIdea",
   };
 } else {
-  instructionalPending = {
+  pendingLocation = {
     type:
       "collectAnotherMainIdea",
   };
@@ -18100,7 +18094,7 @@ const activationState = {
   ...s,
 
   pending: {
-    ...instructionalPending,
+    ...pendingLocation,
 
     instructionalFinding,
   },
@@ -18115,7 +18109,7 @@ const instructionalActivation =
     : null;
 
 s.pending = {
-  ...instructionalPending,
+  ...pendingLocation,
 
   instructionalFinding,
 
