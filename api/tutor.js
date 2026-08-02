@@ -18100,37 +18100,40 @@ async function applyMainIdeaCapture(
 
   if (!validation.valid) {
 
-  let resumePending;
-    if (isRevision) {
-      resumePending = {
-        type:
-          "reviseMainIdeaAt",
+  let instructionalPending;
 
-        index:
-          revisionIndex,
-      };
-    } else if (isOptional) {
-      resumePending = {
-        type:
-          "collectAnotherMainIdea",
-      };
-    } else {
-      resumePending = {
-        type:
-          "collectAnotherMainIdea",
-      };
-    }
+if (isRevision) {
+  instructionalPending = {
+    type:
+      "reviseMainIdeaAt",
 
-  const instructionalContract =
-    s?.instructionalContractSelection
-      ?.selectedContract ||
-    null;
+    index:
+      revisionIndex,
+  };
+} else if (isOptional) {
+  instructionalPending = {
+    type:
+      "collectAnotherMainIdea",
+  };
+} else {
+  instructionalPending = {
+    type:
+      "collectAnotherMainIdea",
+  };
+}
 
-  const activationState = {
-    ...s,
-    pending: {
-      ...resumePending,
-      instructionalFinding,
+const instructionalContract =
+  s?.instructionalContractSelection
+    ?.selectedContract ||
+  null;
+
+const activationState = {
+  ...s,
+
+  pending: {
+    ...instructionalPending,
+
+    instructionalFinding,
   },
 };
 
@@ -18143,7 +18146,7 @@ const instructionalActivation =
     : null;
 
 s.pending = {
-  ...resumePending,
+  ...instructionalPending,
 
   instructionalFinding,
 
