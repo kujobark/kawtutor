@@ -15930,22 +15930,6 @@ function buildMiniQuestion(state) {
   );
 }
 
-function normalizeStuckChoice(msg) {
-  const t = cleanText(msg).toLowerCase();
-  if (!t) return null;
-
-  if (t === "1" || t.startsWith("1 ")) return "1";
-  if (t === "2" || t.startsWith("2 ")) return "2";
-  if (t === "3" || t.startsWith("3 ")) return "3";
-  if (t === "4" || t.startsWith("4 ")) return "4";
-
-  if (t.includes("direction") || t.includes("prompt")) return "1";
-  if (t.includes("re-read") || t.includes("reread") || t.includes("notes") || t.includes("text")) return "2";
-  if (t.includes("smaller") || t.includes("small") || t.includes("mini")) return "3";
-  if (t.includes("skip") || t.includes("later") || t.includes("come back")) return "4";
-
-  return null;
-}
 // ======================================================
 // INSTRUCTIONAL MOVE LIBRARY
 // ======================================================
