@@ -3376,10 +3376,22 @@ function buildInstructionalSituation({
       "noSpecialInteractionCondition"
     );
 
-  const noCurrentComponentEvidence =
+    const noCurrentComponentEvidence =
     interactionFinding
       ?.componentEvidenceFinding ===
-      "noComponentEvidenceObserved";
+      "noComponentEvidenceObserved" ||
+
+    safeComponentFinding
+      ?.componentEvidenceLevel ===
+      "none" ||
+
+    safeComponentFinding
+      ?.diagnosis ===
+      "emptyResponse" ||
+
+    safeComponentFinding
+      ?.diagnosis ===
+      "noComponentEvidence";
 
   const responseFunctionsOnlyAsInteraction =
     interactionFinding
