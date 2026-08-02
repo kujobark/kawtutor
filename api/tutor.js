@@ -19336,12 +19336,6 @@ const PARENT_ANCHOR_BRIDGE = {
     chooseExportType: "export",
   },
 
-  // Pending states that temporarily interrupt input capture
-  // but do NOT create a new structural stage.
-    interruptStageByPending: {
-    needEvidenceDetail: "detailsLoop",
-  },
-
   // Overlay pending states are helper flows, not structural stages.
   // They should be interpreted around the current structural stage.
   overlayPendingTypes: new Set([
@@ -20472,16 +20466,8 @@ if (s.pending?.type === "stuckReask") {
   if (s.pending?.type === "stuckSkip")
     return "Got it — we’ll come back to this. Want to try the next step now? (yes/no)";
 
-  if (s.pending?.type === "needEvidenceDetail") {
-    const i = Number(s.pending.index);
-    const mi = getIdeaList(s)[i] || "this Cause";
-    const eff = s.frame.effect || "the effect";
-    const mech = cleanText(s.pending.mechanism || "");
-    const ctx = mech ? `You're explaining how it works: "${mech}". ` : "";
-    return `${ctx}Can you add one concrete piece of evidence (example, fact, quote, or statistic) that shows how "${mi}" connects to ${eff}?`;
-}
-if (s.pending?.type === "reviseIsAbout") {
-  return getComponentPrompt("isAbout", "revisePrompt");
+  if (s.pending?.type === "reviseIsAbout") {
+    return getComponentPrompt("isAbout", "revisePrompt");
 }
    
 // --- Return to skipped work before confirmation ---
@@ -21291,29 +21277,6 @@ if (s.pending?.type === "reviseBuildLane") {
   s.pending = null;
   return await updateStateFromStudent(s, msg);
 }
-
-  // Cause/Effect evidence guardrail follow-up
-  if (s.pending?.type === "needEvidenceDetail") {
-    const idx = Number(s.pending.index);
-    if (!Array.isArray(s.frame.details[idx])) s.frame.details[idx] = [];
-
-    const mechanism = cleanText(s.pending.mechanism || "");
-    const evidence = msg;
-
-    // Store a combined detail (mechanism + evidence) so the student's thinking is preserved.
-    const combined = mechanism ? `${mechanism} (evidence: ${evidence})` : evidence;
-
-    const arr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
-    if (arr.length < 2 && !isNegative(evidence)) {
-      s.frame.details[idx] = [...arr, combined];
-      clearMatchingSkip(s, `details:${idx}`);
-      s.pending = { type: "offerAnotherDetail", index: idx };
-      return s;
-    }
-
-    s.pending = null;
-    return s;
-  }
 
   if (s.pending?.type === "reviseIsAbout") {
     const mutationIntent =
