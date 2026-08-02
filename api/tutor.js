@@ -19604,14 +19604,6 @@ const currentMainIdea =
 
 const detailValidation =
   await validateEssentialDetailResponseGoverned(
-
-
-
-  const currentMainIdea =
-  getIdeaList(s)[idx] || "";
-
-  const detailValidation =
-  await validateEssentialDetailResponseGoverned(
     msg,
     currentMainIdea,
     {
