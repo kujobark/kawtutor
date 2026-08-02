@@ -15906,10 +15906,10 @@ Rules:
   }
 }
 
-// ---------------------
-// STUCK SUPPORT (SSOT)
-// ---------------------
-function beginStuckSupportFromPending(
+// ------------------------------------------------------
+// GOVERNED INSTRUCTIONAL SUPPORT ATTACHMENT
+// ------------------------------------------------------
+function attachGovernedSupportToPending(
   state,
   message,
   intentResult = {}
@@ -19553,7 +19553,7 @@ if (s.pending?.type === "offerAnotherDetail") {
         : null,
   };
 
-  return beginStuckSupportFromPending(
+  return attachGovernedSupportToPending(
     s,
     msg,
     {
@@ -19699,7 +19699,7 @@ if (!detailValidation.valid) {
   // The finding describes only the observable instructional
   // condition of the response.
 
-  return beginStuckSupportFromPending(
+  return attachGovernedSupportToPending(
     s,
     msg,
     {
@@ -19901,7 +19901,7 @@ refreshShadowInstructionalSituationWithComponentFinding({
 });
 
   if (!detailValidation.valid) {
-  return beginStuckSupportFromPending(
+  return attachGovernedSupportToPending(
     s,
     msg,
     {
@@ -20066,7 +20066,7 @@ refreshShadowInstructionalSituationWithComponentFinding({
 
 if (!soWhatValidation.valid) {
 
-      return beginStuckSupportFromPending(
+      return attachGovernedSupportToPending(
         s,
         msg,
         {
@@ -20226,7 +20226,7 @@ refreshShadowInstructionalSituationWithComponentFinding({
 });
 
   if (!soWhatValidation.valid) {
-  return beginStuckSupportFromPending(
+  return attachGovernedSupportToPending(
     s,
     msg,
     {
@@ -20495,7 +20495,7 @@ return s;
         : null,
   };
 
-  return beginStuckSupportFromPending(
+  return attachGovernedSupportToPending(
     s,
     msg,
     {
@@ -20643,7 +20643,7 @@ if (!soWhatValidation.valid) {
     type:
       "collectMoreSoWhat",
   };
-  return beginStuckSupportFromPending(
+  return attachGovernedSupportToPending(
     s,
     msg,
     {
