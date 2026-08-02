@@ -21462,11 +21462,8 @@ if (s.pending?.type === "offerAnotherDetail") {
     s.pending = { type: "confirmDetails", index: idx };
     return s;
   }
-
-    return s;
-  }
   
-    const detailValidation =
+  const detailValidation =
     await validateEssentialDetailResponseGoverned(
       msg,
       currentMainIdea,
@@ -21651,9 +21648,6 @@ if (!mutationIntent.accept) {
   // protected until their coaching behavior is explicit.
   return s;
 }
-
-    return s;
-  }
 
   const currentMainIdea =
   getIdeaList(s)[idx] || "";
