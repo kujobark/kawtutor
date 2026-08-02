@@ -3978,102 +3978,6 @@ function refreshShadowInstructionalSituationWithComponentFinding({
   return instructionalSituation;
 }
 
-// ======================================================
-// LAYER 5B — INSTRUCTIONAL STRATEGY
-// ======================================================
-//
-// Instructional Strategy converts completed
-// Instructional Assessment into a deterministic,
-// teacher-authored instructional strategy.
-//
-// Strategy:
-//
-// • selects instructional contracts;
-// • determines instructional objectives;
-// • selects Teaching Moves;
-// • selects Thinking Moves;
-// • determines support level;
-// • preserves student-work protections.
-//
-// Strategy does not:
-//
-// • validate student work;
-// • change runtime progression;
-// • generate communication.
-//
-// Current status:
-//
-// Transitional shell.
-//
-// ======================================================
-
-function buildInstructionalStrategy(
-  instructionalAssessment,
-  {
-    frameComponent = "",
-    instructionalSituation = "",
-  } = {}
-) {
-
-  const selectedContract =
-    frameComponent &&
-    instructionalSituation
-      ? getInstructionalContract(
-          frameComponent,
-          instructionalSituation
-        )
-      : null;
-
-  return {
-    instructionalAssessment,
-
-    selectedContract,
-
-    instructionalGoal:
-      selectedContract
-        ?.instructionalGoal || null,
-
-    teachingMove:
-      selectedContract
-        ?.teachingMove || null,
-
-    thinkingMove:
-      selectedContract
-        ?.thinkingMove || null,
-
-    supportLevel:
-      determineSupportLevel(
-        instructionalAssessment
-      ),
-
-    studentWorkProtection:
-      selectedContract
-        ?.studentWorkProtection
-        ? structuredClone(
-            selectedContract
-              .studentWorkProtection
-          )
-        : null,
-  };
-}
-
-function determineSupportLevel(
-  instructionalAssessment
-) {
-  const supportLevel =
-    instructionalAssessment
-      ?.interactionAssessment
-      ?.supportLevel;
-
-  return (
-    supportLevel === "high" ||
-    supportLevel === "moderate" ||
-    supportLevel === "low"
-      ? supportLevel
-      : "none"
-  );
-}
-
 // ======================================================================
 // LAYER 6 — INSTRUCTIONAL COMMUNICATION
 //
@@ -16313,30 +16217,22 @@ function beginStuckSupportFromPending(
       : null;
 
   console.log(
-  "[KAW][STUCK] Instructional Situation:",
-  instructionalSituation
+    "[KAW][STUCK] Instructional Situation:",
+    instructionalSituation
 );
 
-  const strategy =
-  buildInstructionalStrategy(
-    null,
-    {
-      frameComponent,
-      instructionalSituation,
-    }
-  );
-
-console.log(
-  "[KAW][STUCK] Strategy:",
-  strategy
-);
-
-const instructionalContract =
-  strategy?.selectedContract || null;
+  const instructionalContract =
+    frameComponent &&
+    instructionalSituation
+      ? getInstructionalContract(
+          frameComponent,
+          instructionalSituation
+      )
+    : null;
 
   console.log(
-  "[KAW][STUCK] Selected Contract:",
-  instructionalContract?.contractId
+    "[KAW][STUCK] Selected Contract:",
+    instructionalContract?.contractId
 );
  
   // Build a temporary activation state that includes the
