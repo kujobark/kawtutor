@@ -20640,6 +20640,10 @@ refreshShadowInstructionalSituationWithComponentFinding({
 });
 
 if (!soWhatValidation.valid) {
+    s.pending = {
+    type:
+      "collectMoreSoWhat",
+  };
   return beginStuckSupportFromPending(
     s,
     msg,
