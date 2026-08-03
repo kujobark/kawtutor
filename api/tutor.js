@@ -20133,7 +20133,7 @@ return s;
     return s;
   }
 
-  if (
+    if (
     s.pending?.type ===
     "strengthenCurrentMainIdea"
   ) {
@@ -20148,10 +20148,41 @@ return s;
       .currentMainIdea =
       currentMainIdea;
 
-    s.pending = {
-      type:
-        "strengthenReadyForGovernedConnection",
-    };
+    // Hydrate the existing canonical Frame state so the
+    // governed Main Idea architecture receives the same
+    // evidence shape used by Build Mode.
+    s.frame.keyTopic =
+      s.strengthenContext
+        ?.keyTopic ||
+      "";
+
+    s.frame.isAbout =
+      s.strengthenContext
+        ?.isAbout ||
+      "";
+
+    s.frame.parentItems = [
+      currentMainIdea,
+    ];
+
+    s.frame.details = [
+      [],
+    ];
+
+    // The student is strengthening existing work, so the
+    // current Main Idea enters the governed architecture
+    // as revision evidence rather than new Build evidence.
+    await applyMainIdeaCapture(
+      s,
+      currentMainIdea,
+      {
+        captureMode:
+          "revision",
+
+        index:
+          0,
+      }
+    );
 
     return s;
   }
