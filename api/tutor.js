@@ -20034,6 +20034,9 @@ return s;
       s.pending = {
         type:
           "strengthenCurrentTopicContext",
+
+        targetComponent:
+          selectedComponent,
       };
 
       return s;
@@ -20085,11 +20088,12 @@ return s;
       .isAbout =
       currentIsAbout;
 
-    const targetComponent =
-      s.strengthenContext
-        ?.targetComponent ||
-      "";
-
+     const targetComponent =
+  s.pending?.targetComponent ||
+  s.strengthenContext
+    ?.targetComponent ||
+  "";
+      
     if (
       targetComponent ===
       "isAbout"
