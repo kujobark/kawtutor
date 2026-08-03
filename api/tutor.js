@@ -19739,7 +19739,25 @@ if (s.pending?.type === "offerAnotherDetail") {
       instructionalFinding,
   });
 
+  const progressionAuthorization =
+    buildProgressionAuthorization(
+      s,
+      {
+        frameComponent:
+          "details",
+
+        expectedContractId:
+          "ED-RTP-001",
+      }
+    );
+
+  s.progressionAuthorization =
+    structuredClone(
+      progressionAuthorization
+    );
+
   if (!detailValidation.valid) {
+    
   const instructionalContract =
     s?.instructionalContractSelection
       ?.selectedContract ||
