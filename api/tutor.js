@@ -20051,12 +20051,12 @@ return s;
 
     const keyTopicMatch =
       topicContextText.match(
-        /(?:^|\n)\s*(?:🔑\s*)?key\s*topic\s*:\s*([\s\S]*?)(?=\n\s*(?:🧩\s*)?is\s*about\s*:|$)/i
+        /(?:^|\s)(?:🔑\s*)?key\s*topic\s*:\s*(.*?)(?=\s+(?:🧩\s*)?is\s*about\s*:|$)/i
       );
 
     const isAboutMatch =
       topicContextText.match(
-        /(?:^|\n)\s*(?:🧩\s*)?is\s*about\s*:\s*([\s\S]+)$/i
+        /(?:^|\s)(?:🧩\s*)?is\s*about\s*:\s*(.+)$/i
       );
 
     const currentKeyTopic =
