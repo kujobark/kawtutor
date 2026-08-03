@@ -10107,12 +10107,37 @@ results.push({
     Array.isArray(
       validRuntimeActual?.frame?.details?.[0]
     ) &&
-    validRuntimeActual.frame.details[0].length === 1 &&
-    validRuntimeActual.frame.details[0][0] ===
+
+    validRuntimeActual
+      .frame
+      .details[0]
+      .length ===
+      1 &&
+
+    validRuntimeActual
+      .frame
+      .details[0][0] ===
       validRuntimeResponse &&
-    validRuntimeActual?.pending?.type ===
+
+    validRuntimeActual
+      ?.pending
+      ?.type ===
       "collectAnotherDetail" &&
-    validRuntimeActual?.pending?.index === 0;
+
+    validRuntimeActual
+      ?.pending
+      ?.index ===
+      0 &&
+
+    validRuntimeActual
+      ?.progressionAuthorization
+      ?.authorized ===
+      true &&
+
+    validRuntimeActual
+      ?.progressionAuthorization
+      ?.selectedContractId ===
+      "ED-RTP-001";
 
   results.push({
     name:
@@ -10125,20 +10150,35 @@ results.push({
       validRuntimeResponse,
 
     expected: {
-      savedDetailCount: 1,
-      savedDetail:
-        validRuntimeResponse,
-      pendingType:
-        "collectAnotherDetail",
-      pendingIndex: 0,
+      savedDetailCount:
+        1,
+
+    savedDetail:
+      validRuntimeResponse,
+
+    pendingType:
+      "collectAnotherDetail",
+
+    pendingIndex:
+      0,
+
+    progressionAuthorized:
+      true,
+
+    selectedContractId:
+      "ED-RTP-001",
     },
 
-    actual: {
+      actual: {
       savedDetailCount:
         Array.isArray(
-          validRuntimeActual?.frame?.details?.[0]
+          validRuntimeActual?.frame
+            ?.details?.[0]
         )
-          ? validRuntimeActual.frame.details[0].length
+          ? validRuntimeActual
+              .frame
+              .details[0]
+              .length
           : null,
 
       savedDetail:
@@ -10146,14 +10186,28 @@ results.push({
           ?.details?.[0]?.[0] || null,
 
       pendingType:
-        validRuntimeActual?.pending?.type || null,
+        validRuntimeActual?.pending
+          ?.type || null,
 
       pendingIndex:
         Number.isInteger(
-          validRuntimeActual?.pending?.index
+          validRuntimeActual?.pending
+            ?.index
         )
-          ? validRuntimeActual.pending.index
+          ? validRuntimeActual
+              .pending
+              .index
           : null,
+
+      progressionAuthorized:
+        validRuntimeActual
+          ?.progressionAuthorization
+          ?.authorized === true,
+
+      selectedContractId:
+        validRuntimeActual
+          ?.progressionAuthorization
+          ?.selectedContractId || null,
     },
   });
 
