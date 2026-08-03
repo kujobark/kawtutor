@@ -12411,16 +12411,6 @@ results.push({
       ?.progressionAuthorization
       ?.selectedContractId ===
       "MI-RTP-001";
-
-    requiredActual
-      ?.progressionAuthorization
-      ?.authorized ===
-      true &&
-
-    requiredActual
-      ?.progressionAuthorization
-      ?.selectedContractId ===
-      "MI-RTP-001";
   
   results.push({
     name:
