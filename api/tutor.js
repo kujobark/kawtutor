@@ -3396,11 +3396,11 @@ function buildInstructionalSituation({
         ?.rawStage || ""
     );
 
-  const frameComponent =
+   const frameComponent =
     cleanText(
-      interactionFinding
-        ?.frameComponent ||
       safeComponentFinding
+        ?.frameComponent ||
+      interactionFinding
         ?.frameComponent ||
       getBaseStage(rawStage) ||
       ""
