@@ -18358,8 +18358,12 @@ s.progressionAuthorization =
     progressionAuthorization
   );
   
-  if (!validation.valid) {
-
+if (
+  !validation.valid ||
+  progressionAuthorization
+    ?.authorized !== true
+) {
+  
   let pendingLocation;
 
 if (isRevision) {
