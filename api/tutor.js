@@ -20040,7 +20040,8 @@ return s;
     }
 
     return s;
-
+    }
+  
     if (
     s.pending?.type ===
     "strengthenCurrentTopicContext"
@@ -20120,50 +20121,6 @@ return s;
       s.pending = {
         type:
           "strengthenSupportingMainIdea",
-      };
-
-      return s;
-    }
-
-    return s;
-  }
-
-  if (
-    s.pending?.type ===
-    "strengthenCurrentIsAbout"
-  ) {
-    const currentIsAbout =
-      cleanText(msg);
-
-    if (!currentIsAbout) {
-      return s;
-    }
-
-    s.strengthenContext
-      .isAbout =
-      currentIsAbout;
-
-    if (
-      s.strengthenContext
-        ?.targetComponent ===
-      "isAbout"
-    ) {
-      s.pending = {
-        type:
-          "strengthenReadyForGovernedConnection",
-      };
-
-      return s;
-    }
-
-    if (
-      s.strengthenContext
-        ?.targetComponent ===
-      "mainIdeas"
-    ) {
-      s.pending = {
-        type:
-          "strengthenCurrentMainIdea",
       };
 
       return s;
