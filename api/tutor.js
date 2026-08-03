@@ -20497,8 +20497,11 @@ s.progressionAuthorization =
     progressionAuthorization
   );
 
-if (!soWhatValidation.valid) {
-
+if (
+  !soWhatValidation.valid ||
+  progressionAuthorization
+    ?.authorized !== true
+) {
       return attachGovernedSupportToPending(
         s,
         msg,
@@ -20675,7 +20678,11 @@ s.progressionAuthorization =
     progressionAuthorization
   );
 
-if (!soWhatValidation.valid) {
+ if (
+  !soWhatValidation.valid ||
+  progressionAuthorization
+    ?.authorized !== true
+) {   
   return attachGovernedSupportToPending(
     s,
     msg,
@@ -21114,7 +21121,11 @@ s.progressionAuthorization =
     progressionAuthorization
   );
 
-if (!soWhatValidation.valid) {
+if (
+  !soWhatValidation.valid ||
+  progressionAuthorization
+    ?.authorized !== true
+) {
     s.pending = {
     type:
       "collectMoreSoWhat",
