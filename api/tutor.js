@@ -19937,6 +19937,23 @@ refreshInstructionalSituationWithComponentFinding({
     instructionalFinding,
 });
 
+const progressionAuthorization =
+  buildProgressionAuthorization(
+    s,
+    {
+      frameComponent:
+        "details",
+
+      expectedContractId:
+        "ED-RTP-001",
+    }
+  );
+
+s.progressionAuthorization =
+  structuredClone(
+    progressionAuthorization
+  );
+
 if (!detailValidation.valid) {
   // Preserve exactly what the deterministic validator
   // established about this response.
@@ -20146,7 +20163,24 @@ refreshInstructionalSituationWithComponentFinding({
     instructionalFinding,
 });
 
-  if (!detailValidation.valid) {
+const progressionAuthorization =
+  buildProgressionAuthorization(
+    s,
+    {
+      frameComponent:
+        "details",
+
+      expectedContractId:
+        "ED-RTP-001",
+    }
+  );
+
+s.progressionAuthorization =
+  structuredClone(
+    progressionAuthorization
+  );
+
+if (!detailValidation.valid) {
   return attachGovernedSupportToPending(
     s,
     msg,
