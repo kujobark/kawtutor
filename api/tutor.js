@@ -14198,7 +14198,17 @@ results.push({
       supportedSoWhat &&
 
     validInitialActual?.pending?.type ===
-      "offerMoreSoWhat";
+      "offerMoreSoWhat" &&
+
+    validInitialActual
+      ?.progressionAuthorization
+      ?.authorized ===
+      true &&
+
+    validInitialActual
+      ?.progressionAuthorization
+      ?.selectedContractId ===
+      "SW-RTP-001";
 
   results.push({
     name:
@@ -14216,6 +14226,12 @@ results.push({
 
       pendingType:
         "offerMoreSoWhat",
+
+      progressionAuthorized:
+        true,
+
+      selectedContractId:
+        "SW-RTP-001",
     },
 
     actual: {
@@ -14226,6 +14242,16 @@ results.push({
       pendingType:
         validInitialActual?.pending
           ?.type || null,
+
+      progressionAuthorized:
+        validInitialActual
+          ?.progressionAuthorization
+          ?.authorized === true,
+
+      selectedContractId:
+        validInitialActual
+          ?.progressionAuthorization
+          ?.selectedContractId || null,
     },
   });
 
