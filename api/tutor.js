@@ -19920,6 +19920,137 @@ return s;
 
     if (
     s.pending?.type ===
+    "strengthenComponentSelection"
+  ) {
+    const choice =
+      msg
+        .toLowerCase()
+        .trim();
+
+    let selectedComponent =
+      null;
+
+    if (
+      choice === "1" ||
+      choice === "key topic" ||
+      choice === "keytopic" ||
+      choice.includes(
+        "key topic"
+      )
+    ) {
+      selectedComponent =
+        "keyTopic";
+    }
+
+    if (
+      choice === "2" ||
+      choice === "is about" ||
+      choice === "isabout" ||
+      choice.includes(
+        "is about"
+      )
+    ) {
+      selectedComponent =
+        "isAbout";
+    }
+
+    if (
+      choice === "3" ||
+      choice === "main idea" ||
+      choice === "mainidea" ||
+      choice.includes(
+        "main idea"
+      )
+    ) {
+      selectedComponent =
+        "mainIdeas";
+    }
+
+    if (
+      choice === "4" ||
+      choice ===
+        "essential detail" ||
+      choice ===
+        "essentialdetail" ||
+      choice.includes(
+        "essential detail"
+      ) ||
+      choice === "detail"
+    ) {
+      selectedComponent =
+        "details";
+    }
+
+    if (!selectedComponent) {
+      return s;
+    }
+
+    s.strengthenContext = {
+      targetComponent:
+        selectedComponent,
+
+      keyTopic:
+        "",
+
+      isAbout:
+        "",
+
+      currentMainIdea:
+        "",
+
+      supportingMainIdea:
+        "",
+
+      currentEssentialDetail:
+        "",
+
+      completionTarget:
+        "strengthenComponentComplete",
+    };
+
+    if (
+      selectedComponent ===
+      "keyTopic"
+    ) {
+      s.pending = {
+        type:
+          "strengthenCurrentKeyTopic",
+      };
+
+      return s;
+    }
+
+    if (
+      selectedComponent ===
+        "isAbout" ||
+      selectedComponent ===
+        "mainIdeas"
+    ) {
+      s.pending = {
+        type:
+          "strengthenCurrentKeyTopic",
+      };
+
+      return s;
+    }
+
+    if (
+      selectedComponent ===
+      "details"
+    ) {
+      s.pending = {
+        type:
+          "strengthenSupportingMainIdea",
+      };
+
+      return s;
+    }
+
+    return s;
+  }
+
+    if (
+    s.pending?.type ===
     "strengthenCurrentKeyTopic"
   ) {
     const currentKeyTopic =
