@@ -19050,6 +19050,33 @@ function computeNextQuestion(state) {
     );
   }
 
+    if (
+    s.pending?.type ===
+    "strengthenMainIdeaComplete"
+  ) {
+    const strengthenedMainIdea =
+      cleanText(
+        s.strengthenContext
+          ?.currentMainIdea ||
+        s.frame
+          ?.parentItems
+          ?.[s.pending?.index] ||
+        ""
+      );
+
+    return (
+      "✅ Your Main Idea is working as a larger idea that helps organize this Frame.\n\n" +
+      "💡 Main Idea:\n" +
+      strengthenedMainIdea +
+      "\n\n" +
+      "Would you like to:\n\n" +
+      "1️⃣ Keep it as written\n" +
+      "2️⃣ Strengthen it further\n" +
+      "3️⃣ End this session\n\n" +
+      "Reply with 1, 2, or 3."
+    );
+  }
+
   if (
     s.pending?.type ===
     "strengthenReadyForGovernedConnection"
@@ -20275,33 +20302,6 @@ return s;
     };
 
         return s;
-  }
-
-  if (
-    s.pending?.type ===
-    "strengthenMainIdeaComplete"
-  ) {
-    const strengthenedMainIdea =
-      cleanText(
-        s.strengthenContext
-          ?.currentMainIdea ||
-        s.frame
-          ?.parentItems
-          ?.[s.pending?.index] ||
-        ""
-      );
-
-    return (
-      "✅ Your Main Idea is working as a larger idea that helps organize this Frame.\n\n" +
-      "💡 Main Idea:\n" +
-      strengthenedMainIdea +
-      "\n\n" +
-      "Would you like to:\n\n" +
-      "1️⃣ Keep it as written\n" +
-      "2️⃣ Strengthen it further\n" +
-      "3️⃣ End this session\n\n" +
-      "Reply with 1, 2, or 3."
-    );
   }
 
   if (
