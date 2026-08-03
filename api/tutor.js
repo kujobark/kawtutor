@@ -12377,7 +12377,7 @@ results.push({
       validMainIdea
     );
 
-  const requiredPassed =
+    const requiredPassed =
     Array.isArray(
       requiredActual?.frame?.parentItems
     ) &&
@@ -12401,6 +12401,16 @@ results.push({
       ?.pending
       ?.type ===
       "offerAnotherMainIdea" &&
+
+    requiredActual
+      ?.progressionAuthorization
+      ?.authorized ===
+      true &&
+
+    requiredActual
+      ?.progressionAuthorization
+      ?.selectedContractId ===
+      "MI-RTP-001";
 
     requiredActual
       ?.progressionAuthorization
