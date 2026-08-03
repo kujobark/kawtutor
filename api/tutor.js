@@ -12400,8 +12400,18 @@ results.push({
     requiredActual
       ?.pending
       ?.type ===
-      "offerAnotherMainIdea";
+      "offerAnotherMainIdea" &&
 
+    requiredActual
+      ?.progressionAuthorization
+      ?.authorized ===
+      true &&
+
+    requiredActual
+      ?.progressionAuthorization
+      ?.selectedContractId ===
+      "MI-RTP-001";
+  
   results.push({
     name:
       "MI Runtime - Required Main Idea saves and advances",
@@ -12718,7 +12728,7 @@ results.push({
       ?.selectedContractId ===
       "MI-RNR-001";
 
-  results.push({
+     results.push({
     name:
       "MI Runtime - Invalid revision preserves original work",
 
@@ -12732,61 +12742,64 @@ results.push({
       mainIdeaCount:
         2,
 
-    preservedMainIdea:
-      validMainIdea,
+      preservedMainIdea:
+        validMainIdea,
 
-    pendingType:
-      "reviseMainIdeaAt",
+      pendingType:
+        "reviseMainIdeaAt",
 
-    pendingIndex:
-      0,
+      pendingIndex:
+        0,
 
-    diagnosis:
-      "repeatsKeyTopic",
+      diagnosis:
+        "repeatsKeyTopic",
 
-    progressionAuthorized:
-      false,
+      progressionAuthorized:
+        false,
 
-    selectedContractId:
-      "MI-RNR-001",
+      selectedContractId:
+        "MI-RNR-001",
     },
 
-    const requiredPassed =
-    Array.isArray(
-      requiredActual?.frame?.parentItems
-    ) &&
+    actual: {
+      mainIdeaCount:
+        invalidRevisionActual?.frame
+          ?.parentItems?.length || 0,
 
-    requiredActual
-      .frame
-      .parentItems
-      .length ===
-      1 &&
+      preservedMainIdea:
+        invalidRevisionActual?.frame
+          ?.parentItems?.[0] || null,
 
-    requiredActual
-      .frame
-      .parentItems[0] ===
-      validMainIdea &&
+      pendingType:
+        invalidRevisionActual?.pending
+          ?.type || null,
 
-    Array.isArray(
-      requiredActual?.frame?.details?.[0]
-    ) &&
+      pendingIndex:
+        Number.isInteger(
+          invalidRevisionActual?.pending
+            ?.index
+        )
+          ? invalidRevisionActual
+              .pending
+              .index
+          : null,
 
-    requiredActual
-      ?.pending
-      ?.type ===
-      "offerAnotherMainIdea" &&
+      diagnosis:
+        invalidRevisionActual?.pending
+          ?.instructionalFinding
+          ?.diagnosis || null,
 
-    requiredActual
-      ?.progressionAuthorization
-      ?.authorized ===
-      true &&
+      progressionAuthorized:
+        invalidRevisionActual
+          ?.progressionAuthorization
+          ?.authorized === true,
 
-    requiredActual
-      ?.progressionAuthorization
-      ?.selectedContractId ===
-      "MI-RTP-001";
+      selectedContractId:
+        invalidRevisionActual
+          ?.progressionAuthorization
+          ?.selectedContractId || null,
+    },
   });
-
   // --------------------------------------------------
   // LIVE RUNTIME: INVALID OPTIONAL CAPTURE
   //
