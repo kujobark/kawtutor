@@ -10170,16 +10170,59 @@ results.push({
 
   secondDetailInvalidState.frameMeta
     .assignmentContext = {
+      valid:
+        true,
+
       raw:
         "Explain how social media can affect teen mental health.",
+
       understanding:
         "Explain how social media can affect teen mental health.",
+
       studentSummary:
         "you're explaining how social media can affect teen mental health.",
-      confidence: "high",
-      needsClarification: false,
-      childAnchor: "",
-      clarificationCount: 0,
+
+      reasoningType:
+        "explain",
+
+      confidence:
+        "high",
+
+      confirmed:
+        true,
+
+      assignmentEvidenceLevel:
+        "substantive",
+
+      assignmentCriteriaStatus:
+        "satisfied",
+
+      assignmentContextStatus:
+        "established",
+
+      assignmentDemandStatus:
+        "established",
+
+      summaryReadinessStatus:
+        "ready",
+
+      diagnosis:
+        null,
+
+      assignmentEvidence:
+        null,
+
+      validationSource:
+        "deterministic",
+
+      needsClarification:
+        false,
+
+      childAnchor:
+        "",
+
+      clarificationCount:
+        0,
     };
 
   secondDetailInvalidState.frame.keyTopic =
