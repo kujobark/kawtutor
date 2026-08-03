@@ -12416,17 +12416,23 @@ results.push({
       mainIdeaCount:
         1,
 
-      firstMainIdea:
-        validMainIdea,
+    firstMainIdea:
+      validMainIdea,
 
-      firstDetailBucketExists:
-        true,
+    firstDetailBucketExists:
+      true,
 
-      pendingType:
-        "offerAnotherMainIdea",
+    pendingType:
+      "offerAnotherMainIdea",
+
+    progressionAuthorized:
+      true,
+
+    selectedContractId:
+      "MI-RTP-001",
     },
-
-    actual: {
+    
+        actual: {
       mainIdeaCount:
         requiredActual?.frame
           ?.parentItems?.length || 0,
@@ -12444,6 +12450,16 @@ results.push({
       pendingType:
         requiredActual?.pending
           ?.type || null,
+
+      progressionAuthorized:
+        requiredActual
+          ?.progressionAuthorization
+          ?.authorized === true,
+
+      selectedContractId:
+        requiredActual
+          ?.progressionAuthorization
+          ?.selectedContractId || null,
     },
   });
 
@@ -12670,27 +12686,37 @@ results.push({
       keyTopic
     );
 
-  const invalidRevisionPassed =
-  invalidRevisionActual?.frame
-    ?.parentItems?.length ===
-    2 &&
+    const invalidRevisionPassed =
+    invalidRevisionActual?.frame
+      ?.parentItems?.length ===
+      2 &&
 
-  invalidRevisionActual?.frame
-    ?.parentItems?.[0] ===
-    validMainIdea &&
+    invalidRevisionActual?.frame
+      ?.parentItems?.[0] ===
+      validMainIdea &&
 
-  invalidRevisionActual?.pending
-    ?.type ===
-    "reviseMainIdeaAt" &&
+    invalidRevisionActual?.pending
+      ?.type ===
+      "reviseMainIdeaAt" &&
 
-  invalidRevisionActual?.pending
-    ?.index ===
-    0 &&
+    invalidRevisionActual?.pending
+      ?.index ===
+      0 &&
 
-  invalidRevisionActual?.pending
-    ?.instructionalFinding
-    ?.diagnosis ===
-    "repeatsKeyTopic";
+    invalidRevisionActual?.pending
+      ?.instructionalFinding
+      ?.diagnosis ===
+      "repeatsKeyTopic" &&
+
+    invalidRevisionActual
+      ?.progressionAuthorization
+      ?.authorized ===
+      false &&
+
+    invalidRevisionActual
+      ?.progressionAuthorization
+      ?.selectedContractId ===
+      "MI-RNR-001";
 
   results.push({
     name:
@@ -12704,49 +12730,61 @@ results.push({
 
     expected: {
       mainIdeaCount:
-    2,
+        2,
 
-  preservedMainIdea:
-    validMainIdea,
+    preservedMainIdea:
+      validMainIdea,
 
-  pendingType:
-    "reviseMainIdeaAt",
+    pendingType:
+      "reviseMainIdeaAt",
 
-  pendingIndex:
-    0,
+    pendingIndex:
+      0,
 
-  diagnosis:
-    "repeatsKeyTopic",
-},
+    diagnosis:
+      "repeatsKeyTopic",
 
-    actual: {
-  mainIdeaCount:
-    invalidRevisionActual?.frame
-      ?.parentItems?.length || 0,
+    progressionAuthorized:
+      false,
 
-  preservedMainIdea:
-    invalidRevisionActual?.frame
-      ?.parentItems?.[0] || null,
+    selectedContractId:
+      "MI-RNR-001",
+    },
 
-  pendingType:
-    invalidRevisionActual?.pending
-      ?.type || null,
+    const requiredPassed =
+    Array.isArray(
+      requiredActual?.frame?.parentItems
+    ) &&
 
-  pendingIndex:
-    Number.isInteger(
-      invalidRevisionActual?.pending
-        ?.index
-    )
-      ? invalidRevisionActual
-          .pending
-          .index
-      : null,
+    requiredActual
+      .frame
+      .parentItems
+      .length ===
+      1 &&
 
-  diagnosis:
-    invalidRevisionActual?.pending
-      ?.instructionalFinding
-      ?.diagnosis || null,
-},
+    requiredActual
+      .frame
+      .parentItems[0] ===
+      validMainIdea &&
+
+    Array.isArray(
+      requiredActual?.frame?.details?.[0]
+    ) &&
+
+    requiredActual
+      ?.pending
+      ?.type ===
+      "offerAnotherMainIdea" &&
+
+    requiredActual
+      ?.progressionAuthorization
+      ?.authorized ===
+      true &&
+
+    requiredActual
+      ?.progressionAuthorization
+      ?.selectedContractId ===
+      "MI-RTP-001";
   });
 
   // --------------------------------------------------
