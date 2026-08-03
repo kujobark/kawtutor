@@ -18290,6 +18290,23 @@ async function applyMainIdeaCapture(
       instructionalFinding,
   });
 
+  const progressionAuthorization =
+  buildProgressionAuthorization(
+    s,
+    {
+      frameComponent:
+        "mainIdeas",
+
+      expectedContractId:
+        "MI-RTP-001",
+    }
+  );
+
+s.progressionAuthorization =
+  structuredClone(
+    progressionAuthorization
+  );
+  
   if (!validation.valid) {
 
   let pendingLocation;
