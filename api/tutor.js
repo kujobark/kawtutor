@@ -18024,6 +18024,13 @@ assignmentReasoning: {
       ),
   };
 
+    const assignmentReasoning =
+    s.assignmentReasoning &&
+    typeof s.assignmentReasoning ===
+      "object"
+      ? s.assignmentReasoning
+      : {};
+
   base.assignmentReasoning = {
     task:
       assignmentReasoning.task ||
@@ -19027,32 +19034,6 @@ function computeNextQuestion(state) {
       "We are ready to strengthen it together."
     );
   }
-    
-    const componentLabels = {
-      keyTopic:
-        "Key Topic",
-
-      isAbout:
-        "Is About statement",
-
-      mainIdeas:
-        "Main Idea",
-
-      details:
-        "Essential Detail",
-    };
-
-    const label =
-      componentLabels[
-        s.pending?.frameComponent
-      ] ||
-      "Frame component";
-
-    return (
-      `📝 Please share the ${label} you would like to strengthen.\n\n` +
-      "Paste or type your existing work exactly as it currently appears."
-    );
-  }
   
   if (s.pending?.type === "confirmLanguageSwitch") {
     const candNative = s.pending?.candidateNativeName || s.pending?.candidateName || "that language";
@@ -19939,192 +19920,46 @@ return s;
 
     if (
     s.pending?.type ===
-    "strengthenComponentSelection"
+    "strengthenCurrentKeyTopic"
   ) {
-    const choice =
-      msg
-        .toLowerCase()
-        .trim();
+    const currentKeyTopic =
+      cleanText(msg)
+        .replace(/[.!?]$/, "");
 
-    let selectedComponent =
-      null;
-
-    if (
-      choice === "1" ||
-      choice === "key topic" ||
-      choice === "keytopic" ||
-      choice.includes(
-        "key topic"
-      )
-    ) {
-      selectedComponent =
-        "keyTopic";
-    }
-
-    if (
-      choice === "2" ||
-      choice === "is about" ||
-      choice === "isabout" ||
-      choice.includes(
-        "is about"
-      )
-    ) {
-      selectedComponent =
-        "isAbout";
-    }
-
-    if (
-      choice === "3" ||
-      choice === "main idea" ||
-      choice === "mainidea" ||
-      choice.includes(
-        "main idea"
-      )
-    ) {
-      selectedComponent =
-        "mainIdeas";
-    }
-
-    if (
-      choice === "4" ||
-      choice === "essential detail" ||
-      choice === "essentialdetail" ||
-      choice.includes(
-        "essential detail"
-      ) ||
-      choice === "detail"
-    ) {
-      selectedComponent =
-        "details";
-    }
-
-    if (!selectedComponent) {
+    if (!currentKeyTopic) {
       return s;
     }
 
-      if (
-    s.pending?.type ===
-    "strengthenComponentSelection"
-  ) {
-    const choice =
-      msg
-        .toLowerCase()
-        .trim();
+    s.strengthenContext
+      .keyTopic =
+      currentKeyTopic;
 
-    let selectedComponent =
-      null;
+    const targetComponent =
+      s.strengthenContext
+        ?.targetComponent ||
+      "";
 
     if (
-      choice === "1" ||
-      choice === "key topic" ||
-      choice === "keytopic" ||
-      choice.includes(
-        "key topic"
-      )
-    ) {
-      selectedComponent =
-        "keyTopic";
-    }
-
-    if (
-      choice === "2" ||
-      choice === "is about" ||
-      choice === "isabout" ||
-      choice.includes(
-        "is about"
-      )
-    ) {
-      selectedComponent =
-        "isAbout";
-    }
-
-    if (
-      choice === "3" ||
-      choice === "main idea" ||
-      choice === "mainidea" ||
-      choice.includes(
-        "main idea"
-      )
-    ) {
-      selectedComponent =
-        "mainIdeas";
-    }
-
-    if (
-      choice === "4" ||
-      choice ===
-        "essential detail" ||
-      choice ===
-        "essentialdetail" ||
-      choice.includes(
-        "essential detail"
-      ) ||
-      choice === "detail"
-    ) {
-      selectedComponent =
-        "details";
-    }
-
-    if (!selectedComponent) {
-      return s;
-    }
-
-    s.strengthenContext = {
-      targetComponent:
-        selectedComponent,
-
-      keyTopic:
-        "",
-
-      isAbout:
-        "",
-
-      currentMainIdea:
-        "",
-
-      supportingMainIdea:
-        "",
-
-      currentEssentialDetail:
-        "",
-
-      completionTarget:
-        "strengthenComponentComplete",
-    };
-
-    if (
-      selectedComponent ===
+      targetComponent ===
       "keyTopic"
     ) {
       s.pending = {
         type:
-          "strengthenCurrentKeyTopic",
+          "strengthenReadyForGovernedConnection",
       };
 
       return s;
     }
 
     if (
-      selectedComponent ===
-      "isAbout" ||
-      selectedComponent ===
-      "mainIdeas"
+      targetComponent ===
+        "isAbout" ||
+      targetComponent ===
+        "mainIdeas"
     ) {
       s.pending = {
         type:
-          "strengthenCurrentKeyTopic",
-      };
-
-      return s;
-    }
-
-    if (
-      selectedComponent ===
-      "details"
-    ) {
-      s.pending = {
-        type:
-          "strengthenSupportingMainIdea",
+          "strengthenCurrentIsAbout",
       };
 
       return s;
@@ -20133,6 +19968,123 @@ return s;
     return s;
   }
 
+  if (
+    s.pending?.type ===
+    "strengthenCurrentIsAbout"
+  ) {
+    const currentIsAbout =
+      cleanText(msg);
+
+    if (!currentIsAbout) {
+      return s;
+    }
+
+    s.strengthenContext
+      .isAbout =
+      currentIsAbout;
+
+    if (
+      s.strengthenContext
+        ?.targetComponent ===
+      "isAbout"
+    ) {
+      s.pending = {
+        type:
+          "strengthenReadyForGovernedConnection",
+      };
+
+      return s;
+    }
+
+    if (
+      s.strengthenContext
+        ?.targetComponent ===
+      "mainIdeas"
+    ) {
+      s.pending = {
+        type:
+          "strengthenCurrentMainIdea",
+      };
+
+      return s;
+    }
+
+    return s;
+  }
+
+  if (
+    s.pending?.type ===
+    "strengthenCurrentMainIdea"
+  ) {
+    const currentMainIdea =
+      cleanText(msg);
+
+    if (!currentMainIdea) {
+      return s;
+    }
+
+    s.strengthenContext
+      .currentMainIdea =
+      currentMainIdea;
+
+    s.pending = {
+      type:
+        "strengthenReadyForGovernedConnection",
+    };
+
+    return s;
+  }
+
+  if (
+    s.pending?.type ===
+    "strengthenSupportingMainIdea"
+  ) {
+    const supportingMainIdea =
+      cleanText(msg);
+
+    if (!supportingMainIdea) {
+      return s;
+    }
+
+    s.strengthenContext
+      .supportingMainIdea =
+      supportingMainIdea;
+
+    s.pending = {
+      type:
+        "strengthenCurrentEssentialDetail",
+    };
+
+    return s;
+  }
+
+  if (
+    s.pending?.type ===
+    "strengthenCurrentEssentialDetail"
+  ) {
+    const currentEssentialDetail =
+      cleanText(msg);
+
+    if (!currentEssentialDetail) {
+      return s;
+    }
+
+    s.strengthenContext
+      .currentEssentialDetail =
+      currentEssentialDetail;
+
+    s.pending = {
+      type:
+        "strengthenReadyForGovernedConnection",
+    };
+
+    return s;
+  }
+
+  if (
+    s.pending?.type ===
+    "strengthenReadyForGovernedConnection"
+  ) {
     return s;
   }
   
