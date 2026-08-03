@@ -18851,18 +18851,20 @@ function computeNextQuestion(state) {
   );
 }
 
-    if (
-    s.pending?.type ===
-    "assignmentReasoningIntro"
-  ) {
-    return (
-      "✨ Great—we have a shared understanding of your assignment!\n\n" +
-      "How can I support your thinking today?\n\n" +
-      "1) Build a new Frame\n" +
-      "2) Strengthen an existing Frame\n\n" +
-      "Reply with 1 or 2."
-    );
-  }
+  if (
+  s.pending?.type ===
+  "assignmentReasoningIntro"
+) {
+  return (
+    "✨ Great—we have a shared understanding of your assignment!\n\n" +
+    "🎯 How can I support your thinking today?\n\n" +
+    "🛠️  1. Build a new Frame\n" +
+    "    Start a new Framing Routine one step at a time.\n\n" +
+    "🔧  2. Strengthen an existing Frame\n" +
+    "    Improve one part of a Frame you've already started.\n\n" +
+    "Reply with 1 or 2."
+  );
+}
   
   if (s.pending?.type === "confirmLanguageSwitch") {
     const candNative = s.pending?.candidateNativeName || s.pending?.candidateName || "that language";
