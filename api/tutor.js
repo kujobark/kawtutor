@@ -19052,6 +19052,20 @@ function computeNextQuestion(state) {
 
     if (
     s.pending?.type ===
+    "strengthenSessionComplete"
+  ) {
+    return (
+      "🎉 Nice work!\n\n" +
+      "Your " +
+      s.pending.componentLabel +
+      " is stronger and better supports your Frame.\n\n" +
+      "Keep up the great thinking!\n\n" +
+      "I'll be here whenever you'd like to strengthen another part of your Frame."
+  );
+  }
+
+    if (
+    s.pending?.type ===
     "strengthenMainIdeaComplete"
   ) {
     const strengthenedMainIdea =
@@ -19064,17 +19078,17 @@ function computeNextQuestion(state) {
         ""
       );
 
-    return (
-      "✅ Your Main Idea is working as a larger idea that helps organize this Frame.\n\n" +
-      "💡 Main Idea:\n" +
-      strengthenedMainIdea +
-      "\n\n" +
-      "Would you like to:\n\n" +
-      "1️⃣ Keep it as written\n" +
-      "2️⃣ Strengthen it further\n" +
-      "3️⃣ End this session\n\n" +
-      "Reply with 1, 2, or 3."
-    );
+   return (
+    "✅ Your Main Idea is working as a larger idea that helps organize this Frame.\n\n" +
+    "💡 Main Idea:\n" +
+    strengthenedMainIdea +
+    "\n\n" +
+    "Would you like to:\n\n" +
+    "1️⃣ Keep it as written and end this session\n" +
+    "2️⃣ Strengthen it further\n" +
+    "3️⃣ Strengthen another part of your Frame\n\n" +
+    "Reply with 1, 2, or 3."
+);
   }
 
   if (
@@ -20302,6 +20316,57 @@ return s;
     };
 
         return s;
+  }
+
+    if (
+    s.pending?.type ===
+    "strengthenMainIdeaComplete"
+  ) {
+    const choice =
+      cleanText(msg);
+
+    if (choice === "1") {
+      s.pending = {
+        type:
+          "strengthenSessionComplete",
+
+        component:
+          "mainIdeas",
+
+        componentLabel:
+          "Main Idea",
+
+        completedWork:
+          s.strengthenContext
+            ?.currentMainIdea ||
+          s.frame
+            ?.parentItems
+            ?.[s.pending?.index] ||
+          "",
+      };
+
+      return s;
+    }
+
+    if (choice === "2") {
+      s.pending = {
+        type:
+          "strengthenCurrentMainIdea",
+      };
+
+      return s;
+    }
+
+    if (choice === "3") {
+      s.pending = {
+        type:
+          "strengthenComponentSelection",
+      };
+
+      return s;
+    }
+
+    return s;
   }
 
   if (
