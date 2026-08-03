@@ -20772,27 +20772,46 @@ return s;
           {
             keyTopic:
               s.frame.keyTopic || "",
-      
+
             isAbout:
               s.frame.isAbout || "",
-    }
-  );
+          }
+        );
 
-    if (!detailValidation.valid) {
-  const instructionalFinding = {
-    ...buildComponentInstructionalFinding({
-      frameComponent:
-        "details",
+      const instructionalFinding = {
+        ...buildComponentInstructionalFinding({
+          frameComponent:
+            "details",
 
-      validation:
-        detailValidation,
+          validation:
+            detailValidation,
 
-      evidence: {
-        keyTopic:
-          s.frame.keyTopic || "",
+          evidence: {
+            keyTopic:
+              s.frame.keyTopic || "",
 
-        isAbout:
-          s.frame.isAbout || "",
+            isAbout:
+              s.frame.isAbout || "",
+
+            currentMainIdea,
+
+            currentMainIdeaIndex:
+              i,
+
+            currentDetailIndex:
+              arr.length,
+
+            captureMode:
+              "required",
+
+            attemptedDetail:
+              cleanText(msg),
+          },
+        }),
+
+        validationSource:
+          detailValidation.validationSource ||
+          null,
 
         currentMainIdea,
 
@@ -20804,97 +20823,99 @@ return s;
 
         captureMode:
           "required",
+      };
 
-        attemptedDetail:
-          cleanText(msg),
-      },
-    }),
+      refreshInstructionalSituationWithComponentFinding({
+        state:
+          s,
 
-    validationSource:
-      detailValidation.validationSource ||
-      null,
+        currentResponse:
+          msg,
 
-    currentMainIdea,
+        componentFinding:
+          instructionalFinding,
+      });
 
-    currentMainIdeaIndex:
-      i,
-
-    currentDetailIndex:
-      arr.length,
-
-    captureMode:
-      "required",
-  };
-
-  refreshInstructionalSituationWithComponentFinding({
-    state:
-      s,
-
-    currentResponse:
-      msg,
-
-    componentFinding:
-      instructionalFinding,
-  });
-
-  const instructionalContract =
-    s?.instructionalContractSelection
-      ?.selectedContract ||
-    null;
-
-  s.pending = {
-    type:
-      "collectAnotherDetail",
-
-    index:
-      i,
-
-    instructionalFinding,
-
-    instructionalContract:
-      instructionalContract
-        ? {
-            contractId:
-              instructionalContract.contractId,
-
+      const progressionAuthorization =
+        buildProgressionAuthorization(
+          s,
+          {
             frameComponent:
-              instructionalContract.frameComponent,
+              "details",
 
-            instructionalSituation:
-              instructionalContract.instructionalSituation,
-
-            instructionalGoal:
-              instructionalContract.instructionalGoal,
-
-            teachingMove:
-              instructionalContract.teachingMove,
-
-            thinkingMove:
-              instructionalContract.thinkingMove,
-
-            aiContextualizes:
-              instructionalContract.aiContextualizes,
+            expectedContractId:
+              "ED-RTP-001",
           }
-        : null,
-  };
+        );
 
-  return attachGovernedSupportToPending(
-    s,
-    msg,
-    {
-      intent:
-        "stuck",
+      s.progressionAuthorization =
+        structuredClone(
+          progressionAuthorization
+        );
 
-      confidence:
-        1,
+      if (
+        !detailValidation.valid ||
+        progressionAuthorization
+          ?.authorized !== true
+      ) {
+        const instructionalContract =
+          s?.instructionalContractSelection
+            ?.selectedContract ||
+          null;
 
-      source:
-        `detailValidation:${detailValidation.diagnosis}`,
+        s.pending = {
+          type:
+            "collectAnotherDetail",
 
-      instructionalFinding,
-    }
-  );
-}
+          index:
+            i,
+
+          instructionalFinding,
+
+          instructionalContract:
+            instructionalContract
+              ? {
+                  contractId:
+                    instructionalContract.contractId,
+
+                  frameComponent:
+                    instructionalContract.frameComponent,
+
+                  instructionalSituation:
+                    instructionalContract.instructionalSituation,
+
+                  instructionalGoal:
+                    instructionalContract.instructionalGoal,
+
+                  teachingMove:
+                    instructionalContract.teachingMove,
+
+                  thinkingMove:
+                    instructionalContract.thinkingMove,
+
+                  aiContextualizes:
+                    instructionalContract.aiContextualizes,
+                }
+              : null,
+        };
+
+        return attachGovernedSupportToPending(
+          s,
+          msg,
+          {
+            intent:
+              "stuck",
+
+            confidence:
+              1,
+
+            source:
+              `detailValidation:${detailValidation.diagnosis}`,
+
+            instructionalFinding,
+          }
+        );
+      }
 
         s.frame.details[i] = [
           ...arr,
