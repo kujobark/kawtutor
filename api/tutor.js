@@ -18582,7 +18582,11 @@ async function applyMainIdeaCapture(
   const isOptional =
     captureMode === "optional";
 
-    const validation =
+  const isStrengthen =
+    captureMode === "strengthen" &&
+    Number.isInteger(revisionIndex);
+
+  const validation =
     await validateMainIdeaResponseGoverned(
       text,
       s.frame?.keyTopic || "",
@@ -18646,28 +18650,36 @@ if (
     ?.authorized !== true
 ) {
   
-  let pendingLocation;
+let pendingLocation;
 
-if (isRevision) {
-  pendingLocation = {
-    type:
-      "reviseMainIdeaAt",
+if (isStrengthen) {
+    pendingLocation = {
+        type:
+            "strengthenCurrentMainIdea",
 
-    index:
-      revisionIndex,
-  };
+        index:
+            revisionIndex,
+    };
+} else if (isRevision) {
+    pendingLocation = {
+        type:
+            "reviseMainIdeaAt",
+
+        index:
+            revisionIndex,
+    };
 } else if (isOptional) {
-  pendingLocation = {
-    type:
-      "collectAnotherMainIdea",
-  };
+    pendingLocation = {
+        type:
+            "collectAnotherMainIdea",
+    };
 } else {
-  pendingLocation = {
-    type:
-      "collectAnotherMainIdea",
-  };
+    pendingLocation = {
+        type:
+            "collectAnotherMainIdea",
+    };
 }
-
+  
 const instructionalContract =
   s?.instructionalContractSelection
     ?.selectedContract ||
@@ -18770,6 +18782,37 @@ return s;
     )
   ) {
     s.frame.details = [];
+  }
+
+    if (isStrengthen) {
+    if (
+      s.frame.parentItems[
+        revisionIndex
+      ] !== undefined
+    ) {
+      s.frame.parentItems[
+        revisionIndex
+      ] = text;
+    }
+
+    s.strengthenContext
+      .currentMainIdea =
+      text;
+
+    s.pending = {
+      type:
+        "strengthenMainIdeaComplete",
+
+      index:
+        revisionIndex,
+
+      instructionalFinding:
+        structuredClone(
+          instructionalFinding
+        ),
+    };
+
+    return s;
   }
 
   if (isRevision) {
@@ -20172,17 +20215,18 @@ return s;
     // The student is strengthening existing work, so the
     // current Main Idea enters the governed architecture
     // as revision evidence rather than new Build evidence.
+
     await applyMainIdeaCapture(
       s,
       currentMainIdea,
       {
         captureMode:
-          "revision",
-
+          "strengthen",
+    
         index:
           0,
-      }
-    );
+  }
+);
 
     return s;
   }
@@ -20230,7 +20274,34 @@ return s;
         "strengthenReadyForGovernedConnection",
     };
 
-    return s;
+        return s;
+  }
+
+  if (
+    s.pending?.type ===
+    "strengthenMainIdeaComplete"
+  ) {
+    const strengthenedMainIdea =
+      cleanText(
+        s.strengthenContext
+          ?.currentMainIdea ||
+        s.frame
+          ?.parentItems
+          ?.[s.pending?.index] ||
+        ""
+      );
+
+    return (
+      "✅ Your Main Idea is working as a larger idea that helps organize this Frame.\n\n" +
+      "💡 Main Idea:\n" +
+      strengthenedMainIdea +
+      "\n\n" +
+      "Would you like to:\n\n" +
+      "1️⃣ Keep it as written\n" +
+      "2️⃣ Strengthen it further\n" +
+      "3️⃣ End this session\n\n" +
+      "Reply with 1, 2, or 3."
+    );
   }
 
   if (
