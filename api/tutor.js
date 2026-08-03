@@ -18113,8 +18113,12 @@ async function applyIsAboutCapture(s, msg) {
       progressionAuthorization
     );
 
-  if (!validation.valid) {
-  
+    if (
+    !validation.valid ||
+    progressionAuthorization
+      ?.authorized !== true
+  ) {
+      
         const instructionalContract =
       s?.instructionalContractSelection
         ?.selectedContract ||
