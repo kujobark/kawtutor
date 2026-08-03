@@ -20454,6 +20454,23 @@ refreshInstructionalSituationWithComponentFinding({
     instructionalFinding,
 });
 
+const progressionAuthorization =
+  buildProgressionAuthorization(
+    s,
+    {
+      frameComponent:
+        "soWhat",
+
+      expectedContractId:
+        "SW-RTP-001",
+    }
+  );
+
+s.progressionAuthorization =
+  structuredClone(
+    progressionAuthorization
+  );
+
 if (!soWhatValidation.valid) {
 
       return attachGovernedSupportToPending(
@@ -20615,7 +20632,24 @@ refreshInstructionalSituationWithComponentFinding({
     instructionalFinding,
 });
 
-  if (!soWhatValidation.valid) {
+const progressionAuthorization =
+  buildProgressionAuthorization(
+    s,
+    {
+      frameComponent:
+        "soWhat",
+
+      expectedContractId:
+        "SW-RTP-001",
+    }
+  );
+
+s.progressionAuthorization =
+  structuredClone(
+    progressionAuthorization
+  );
+
+if (!soWhatValidation.valid) {
   return attachGovernedSupportToPending(
     s,
     msg,
@@ -21036,6 +21070,23 @@ refreshInstructionalSituationWithComponentFinding({
   componentFinding:
     instructionalFinding,
 });
+
+const progressionAuthorization =
+  buildProgressionAuthorization(
+    s,
+    {
+      frameComponent:
+        "soWhat",
+
+      expectedContractId:
+        "SW-RTP-001",
+    }
+  );
+
+s.progressionAuthorization =
+  structuredClone(
+    progressionAuthorization
+  );
 
 if (!soWhatValidation.valid) {
     s.pending = {
