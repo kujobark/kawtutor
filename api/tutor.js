@@ -17892,6 +17892,23 @@ return {
 
   interactionMode: "build",
 
+strengthenContext: {
+  targetComponent: "",
+
+  keyTopic: "",
+
+  isAbout: "",
+
+  currentMainIdea: "",
+
+  supportingMainIdea: "",
+
+  currentEssentialDetail: "",
+
+  completionTarget:
+    "strengthenComponentComplete",
+},
+  
   frameMeta: {
     assignmentContext: {
         raw: "",
@@ -17949,12 +17966,63 @@ assignmentReasoning: {
     s.interactionMode ||
     "build";
 
-  const assignmentReasoning =
-    s.assignmentReasoning &&
-    typeof s.assignmentReasoning ===
+    const strengthenContext =
+    s.strengthenContext &&
+    typeof s.strengthenContext ===
       "object"
-      ? s.assignmentReasoning
+      ? s.strengthenContext
       : {};
+
+  base.strengthenContext = {
+    targetComponent:
+      cleanText(
+        strengthenContext
+          .targetComponent ||
+        ""
+      ),
+
+    keyTopic:
+      cleanText(
+        strengthenContext
+          .keyTopic ||
+        ""
+      ),
+
+    isAbout:
+      cleanText(
+        strengthenContext
+          .isAbout ||
+        ""
+      ),
+
+    currentMainIdea:
+      cleanText(
+        strengthenContext
+          .currentMainIdea ||
+        ""
+      ),
+
+    supportingMainIdea:
+      cleanText(
+        strengthenContext
+          .supportingMainIdea ||
+        ""
+      ),
+
+    currentEssentialDetail:
+      cleanText(
+        strengthenContext
+          .currentEssentialDetail ||
+        ""
+      ),
+
+    completionTarget:
+      cleanText(
+        strengthenContext
+          .completionTarget ||
+        "strengthenComponentComplete"
+      ),
+  };
 
   base.assignmentReasoning = {
     task:
@@ -18867,27 +18935,99 @@ function computeNextQuestion(state) {
   }
 
   if (
+  s.pending?.type ===
+  "strengthenComponentSelection"
+) {
+  return (
+    "🔧 Which part of your Frame would you like to strengthen?\n\n" +
+    "1️⃣  Key Topic\n" +
+    "    Clearly name the main topic of your Frame.\n\n" +
+    "2️⃣  Is About\n" +
+    "    Clarify what your Key Topic is about.\n\n" +
+    "3️⃣  Main Idea\n" +
+    "    Strengthen one Main Idea from your Frame.\n\n" +
+    "4️⃣  Essential Detail\n" +
+    "    Strengthen one Essential Detail that supports a Main Idea.\n\n" +
+    "Reply with 1, 2, 3, or 4."
+  );
+}
+
+     if (
     s.pending?.type ===
-    "strengthenComponentSelection"
+    "strengthenCurrentKeyTopic"
   ) {
     return (
-      "🔧 Which part of your Frame would you like to strengthen?\n\n" +
-      "1️⃣  Key Topic\n" +
-      "    Clearly name the main topic of your Frame.\n\n" +
-      "2️⃣  Is About\n" +
-      "    Clarify what the whole Key Topic is about.\n\n" +
-      "3️⃣  Main Idea\n" +
-      "    Strengthen one major idea that organizes your topic.\n\n" +
-      "4️⃣  Essential Detail\n" +
-      "    Strengthen one detail that supports a Main Idea.\n\n" +
-      "Reply with 1, 2, 3, or 4."
+      "🔑 What is the current Key Topic in your Frame?"
     );
   }
 
   if (
     s.pending?.type ===
-    "strengthenArtifactCollection"
+    "strengthenCurrentIsAbout"
   ) {
+    return (
+      "🧩 What is your current Is About statement?"
+    );
+  }
+
+  if (
+    s.pending?.type ===
+    "strengthenCurrentMainIdea"
+  ) {
+    return (
+      "💡 What is the Main Idea you would like to strengthen?"
+    );
+  }
+
+  if (
+    s.pending?.type ===
+    "strengthenSupportingMainIdea"
+  ) {
+    return (
+      "💡 What Main Idea does this Essential Detail support?"
+    );
+  }
+
+  if (
+    s.pending?.type ===
+    "strengthenCurrentEssentialDetail"
+  ) {
+    return (
+      "📝 What is the Essential Detail you would like to strengthen?"
+    );
+  }
+
+  if (
+    s.pending?.type ===
+    "strengthenReadyForGovernedConnection"
+  ) {
+    const componentLabels = {
+      keyTopic:
+        "Key Topic",
+
+      isAbout:
+        "Is About statement",
+
+      mainIdeas:
+        "Main Idea",
+
+      details:
+        "Essential Detail",
+    };
+
+    const label =
+      componentLabels[
+        s.strengthenContext
+          ?.targetComponent
+      ] ||
+      "Frame component";
+
+    return (
+      `✅ I have the context for your ${label}.\n\n` +
+      "We are ready to strengthen it together."
+    );
+  }
+    
     const componentLabels = {
       keyTopic:
         "Key Topic",
@@ -19862,13 +20002,136 @@ return s;
       return s;
     }
 
-    s.pending = {
-      type:
-        "strengthenArtifactCollection",
+      if (
+    s.pending?.type ===
+    "strengthenComponentSelection"
+  ) {
+    const choice =
+      msg
+        .toLowerCase()
+        .trim();
 
-      frameComponent:
+    let selectedComponent =
+      null;
+
+    if (
+      choice === "1" ||
+      choice === "key topic" ||
+      choice === "keytopic" ||
+      choice.includes(
+        "key topic"
+      )
+    ) {
+      selectedComponent =
+        "keyTopic";
+    }
+
+    if (
+      choice === "2" ||
+      choice === "is about" ||
+      choice === "isabout" ||
+      choice.includes(
+        "is about"
+      )
+    ) {
+      selectedComponent =
+        "isAbout";
+    }
+
+    if (
+      choice === "3" ||
+      choice === "main idea" ||
+      choice === "mainidea" ||
+      choice.includes(
+        "main idea"
+      )
+    ) {
+      selectedComponent =
+        "mainIdeas";
+    }
+
+    if (
+      choice === "4" ||
+      choice ===
+        "essential detail" ||
+      choice ===
+        "essentialdetail" ||
+      choice.includes(
+        "essential detail"
+      ) ||
+      choice === "detail"
+    ) {
+      selectedComponent =
+        "details";
+    }
+
+    if (!selectedComponent) {
+      return s;
+    }
+
+    s.strengthenContext = {
+      targetComponent:
         selectedComponent,
+
+      keyTopic:
+        "",
+
+      isAbout:
+        "",
+
+      currentMainIdea:
+        "",
+
+      supportingMainIdea:
+        "",
+
+      currentEssentialDetail:
+        "",
+
+      completionTarget:
+        "strengthenComponentComplete",
     };
+
+    if (
+      selectedComponent ===
+      "keyTopic"
+    ) {
+      s.pending = {
+        type:
+          "strengthenCurrentKeyTopic",
+      };
+
+      return s;
+    }
+
+    if (
+      selectedComponent ===
+      "isAbout" ||
+      selectedComponent ===
+      "mainIdeas"
+    ) {
+      s.pending = {
+        type:
+          "strengthenCurrentKeyTopic",
+      };
+
+      return s;
+    }
+
+    if (
+      selectedComponent ===
+      "details"
+    ) {
+      s.pending = {
+        type:
+          "strengthenSupportingMainIdea",
+      };
+
+      return s;
+    }
+
+    return s;
+  }
 
     return s;
   }
