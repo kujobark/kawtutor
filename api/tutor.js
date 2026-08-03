@@ -19853,8 +19853,12 @@ if (s.pending?.type === "offerAnotherDetail") {
       progressionAuthorization
     );
 
-  if (!detailValidation.valid) {
-    
+  if (
+    !detailValidation.valid ||
+    progressionAuthorization
+      ?.authorized !== true
+) {
+  
   const instructionalContract =
     s?.instructionalContractSelection
       ?.selectedContract ||
@@ -20051,7 +20055,12 @@ s.progressionAuthorization =
     progressionAuthorization
   );
 
-if (!detailValidation.valid) {
+  if (
+    !detailValidation.valid ||
+    progressionAuthorization
+      ?.authorized !== true
+) {
+    
   // Preserve exactly what the deterministic validator
   // established about this response.
   //
@@ -20277,7 +20286,11 @@ s.progressionAuthorization =
     progressionAuthorization
   );
 
-if (!detailValidation.valid) {
+  if (
+    !detailValidation.valid ||
+    progressionAuthorization
+      ?.authorized !== true
+) {
   return attachGovernedSupportToPending(
     s,
     msg,
