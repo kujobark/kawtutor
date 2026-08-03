@@ -18959,7 +18959,7 @@ function computeNextQuestion(state) {
   );
 }
 
-     if (
+    if (
     s.pending?.type ===
     "strengthenCurrentKeyTopic"
   ) {
@@ -18970,10 +18970,13 @@ function computeNextQuestion(state) {
 
   if (
     s.pending?.type ===
-    "strengthenCurrentIsAbout"
+    "strengthenCurrentTopicContext"
   ) {
     return (
-      "🧩 What is your current Is About statement?"
+      "🧭 Before we begin, remind me what your Frame is about.\n\n" +
+      "Please share both parts:\n\n" +
+      "🔑 Key Topic:\n" +
+      "🧩 Is About:"
     );
   }
 
@@ -20008,7 +20011,7 @@ return s;
         "strengthenComponentComplete",
     };
 
-    if (
+       if (
       selectedComponent ===
       "keyTopic"
     ) {
@@ -20024,46 +20027,62 @@ return s;
       selectedComponent ===
         "isAbout" ||
       selectedComponent ===
-        "mainIdeas"
-    ) {
-      s.pending = {
-        type:
-          "strengthenCurrentKeyTopic",
-      };
-
-      return s;
-    }
-
-    if (
+        "mainIdeas" ||
       selectedComponent ===
-      "details"
+        "details"
     ) {
       s.pending = {
         type:
-          "strengthenSupportingMainIdea",
+          "strengthenCurrentTopicContext",
       };
 
       return s;
     }
 
     return s;
-  }
 
     if (
     s.pending?.type ===
-    "strengthenCurrentKeyTopic"
+    "strengthenCurrentTopicContext"
   ) {
+    const topicContextText =
+      String(msg || "").trim();
+
+    const keyTopicMatch =
+      topicContextText.match(
+        /(?:^|\n)\s*(?:🔑\s*)?key\s*topic\s*:\s*([\s\S]*?)(?=\n\s*(?:🧩\s*)?is\s*about\s*:|$)/i
+      );
+
+    const isAboutMatch =
+      topicContextText.match(
+        /(?:^|\n)\s*(?:🧩\s*)?is\s*about\s*:\s*([\s\S]+)$/i
+      );
+
     const currentKeyTopic =
-      cleanText(msg)
+      cleanText(
+        keyTopicMatch?.[1] || ""
+      )
         .replace(/[.!?]$/, "");
 
-    if (!currentKeyTopic) {
+    const currentIsAbout =
+      cleanText(
+        isAboutMatch?.[1] || ""
+      );
+
+    if (
+      !currentKeyTopic ||
+      !currentIsAbout
+    ) {
       return s;
     }
 
     s.strengthenContext
       .keyTopic =
       currentKeyTopic;
+
+    s.strengthenContext
+      .isAbout =
+      currentIsAbout;
 
     const targetComponent =
       s.strengthenContext
@@ -20072,7 +20091,7 @@ return s;
 
     if (
       targetComponent ===
-      "keyTopic"
+      "isAbout"
     ) {
       s.pending = {
         type:
@@ -20084,13 +20103,23 @@ return s;
 
     if (
       targetComponent ===
-        "isAbout" ||
-      targetComponent ===
-        "mainIdeas"
+      "mainIdeas"
     ) {
       s.pending = {
         type:
-          "strengthenCurrentIsAbout",
+          "strengthenCurrentMainIdea",
+      };
+
+      return s;
+    }
+
+    if (
+      targetComponent ===
+      "details"
+    ) {
+      s.pending = {
+        type:
+          "strengthenSupportingMainIdea",
       };
 
       return s;
