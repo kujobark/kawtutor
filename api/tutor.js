@@ -15207,6 +15207,70 @@ results.push({
   },
 });
 
+// --------------------------------------------------
+// WORKFLOW GATEWAY: Strengthen branch remains bounded
+// --------------------------------------------------
+
+  const strengthenWorkflowState =
+    structuredClone(
+      state
+    );
+
+  const strengthenSelectedState =
+    await updateStateFromStudent(
+      strengthenWorkflowState,
+      "2"
+    );
+
+  const strengthenWorkflowPassed =
+    strengthenSelectedState
+      ?.interactionMode ===
+      "strengthen" &&
+
+    strengthenSelectedState
+      ?.pending
+      ?.type ===
+      "strengthenComponentSelection" &&
+
+    strengthenSelectedState
+      ?.frame
+      ?.keyTopic === "";
+
+  results.push({
+    name:
+      "Student Simulation - Strengthen workflow selected without changing student work",
+
+    passed:
+      strengthenWorkflowPassed,
+
+    expected: {
+      interactionMode:
+        "strengthen",
+
+      pendingType:
+        "strengthenComponentSelection",
+
+      keyTopic:
+        "",
+    },
+
+    actual: {
+      interactionMode:
+        strengthenSelectedState
+          ?.interactionMode || null,
+
+      pendingType:
+        strengthenSelectedState
+          ?.pending
+          ?.type || null,
+
+      keyTopic:
+        strengthenSelectedState
+          ?.frame
+          ?.keyTopic || "",
+    },
+  });
+
   // --------------------------------------------------
   // STEP 3: Choose Build Mode
   // --------------------------------------------------
@@ -15216,11 +15280,19 @@ results.push({
     "1"
   );
 
-  const workflowPassed =
-    state?.interactionMode === "build" &&
-    state?.pending === null &&
-    getStage(state) === "keyTopic";
+    const workflowPassed =
+    state?.interactionMode ===
+      "build" &&
 
+    state?.pending ===
+      null &&
+
+    getStage(state) ===
+      "keyTopic" &&
+
+    state?.frame?.keyTopic ===
+      "";
+  
   results.push({
     name:
       "Student Simulation - Build Mode selected",
@@ -15228,10 +15300,18 @@ results.push({
     passed:
       workflowPassed,
 
-    expected: {
-      interactionMode: "build",
-      pendingType: null,
-      stage: "keyTopic",
+        expected: {
+      interactionMode:
+        "build",
+
+      pendingType:
+        null,
+
+      stage:
+        "keyTopic",
+
+      keyTopic:
+        "",
     },
 
     actual: {
@@ -15243,6 +15323,10 @@ results.push({
 
       stage:
         getStage(state),
+
+      keyTopic:
+        state?.frame
+          ?.keyTopic || "",
     },
   });
 
@@ -18767,17 +18851,19 @@ function computeNextQuestion(state) {
   );
 }
 
-  if (
-  s.pending?.type ===
-  "assignmentReasoningIntro"
-) {
-  return (
-    "✨ Great—we have a shared understanding of your assignment!\n\n" +
-    "Now let’s begin building your Frame, one thinking step at a time.\n\n" +
-    "What is the main topic you’ll be exploring?"
-  );
-}
-
+    if (
+    s.pending?.type ===
+    "assignmentReasoningIntro"
+  ) {
+    return (
+      "✨ Great—we have a shared understanding of your assignment!\n\n" +
+      "How can I support your thinking today?\n\n" +
+      "1) Build a new Frame\n" +
+      "2) Strengthen an existing Frame\n\n" +
+      "Reply with 1 or 2."
+    );
+  }
+  
   if (s.pending?.type === "confirmLanguageSwitch") {
     const candNative = s.pending?.candidateNativeName || s.pending?.candidateName || "that language";
     const candName = s.pending?.candidateName || "that language";
@@ -19609,20 +19695,56 @@ return s;
   return s;
 }
   
-if (
+  if (
   s.pending?.type ===
   "assignmentReasoningIntro"
 ) {
-  s.interactionMode =
-    "build";
-
-  s.pending =
-    null;
-
-  return await updateStateFromStudent(
-    s,
+  const choice =
     msg
-  );
+      .toLowerCase()
+      .trim();
+
+  if (
+    choice === "1" ||
+    choice === "build" ||
+    choice.includes(
+      "build a new"
+    ) ||
+    choice.includes(
+      "new frame"
+    )
+  ) {
+    s.interactionMode =
+      "build";
+
+    s.pending =
+      null;
+
+    return s;
+  }
+
+  if (
+    choice === "2" ||
+    choice === "strengthen" ||
+    choice.includes(
+      "strengthen an existing"
+    ) ||
+    choice.includes(
+      "existing frame"
+    )
+  ) {
+    s.interactionMode =
+      "strengthen";
+
+    s.pending = {
+      type:
+        "strengthenComponentSelection",
+    };
+
+    return s;
+  }
+
+  return s;
 }
   
   if (s.pending?.type === "confirmLanguageSwitch") {
