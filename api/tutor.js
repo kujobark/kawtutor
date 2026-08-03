@@ -18851,20 +18851,68 @@ function computeNextQuestion(state) {
   );
 }
 
+   if (
+    s.pending?.type ===
+    "assignmentReasoningIntro"
+  ) {
+    return (
+      "✨ Great—we have a shared understanding of your assignment!\n\n" +
+      "🎯 How can I support your thinking today?\n\n" +
+      "🛠️  1. Build a new Frame\n" +
+      "    Start a new Framing Routine one step at a time.\n\n" +
+      "🔧  2. Strengthen an existing Frame\n" +
+      "    Improve one part of a Frame you've already started.\n\n" +
+      "Reply with 1 or 2."
+    );
+  }
+
   if (
-  s.pending?.type ===
-  "assignmentReasoningIntro"
-) {
-  return (
-    "✨ Great—we have a shared understanding of your assignment!\n\n" +
-    "🎯 How can I support your thinking today?\n\n" +
-    "🛠️  1. Build a new Frame\n" +
-    "    Start a new Framing Routine one step at a time.\n\n" +
-    "🔧  2. Strengthen an existing Frame\n" +
-    "    Improve one part of a Frame you've already started.\n\n" +
-    "Reply with 1 or 2."
-  );
-}
+    s.pending?.type ===
+    "strengthenComponentSelection"
+  ) {
+    return (
+      "🔧 Which part of your Frame would you like to strengthen?\n\n" +
+      "1️⃣  Key Topic\n" +
+      "    Clearly name the main topic of your Frame.\n\n" +
+      "2️⃣  Is About\n" +
+      "    Clarify what the whole Key Topic is about.\n\n" +
+      "3️⃣  Main Idea\n" +
+      "    Strengthen one major idea that organizes your topic.\n\n" +
+      "4️⃣  Essential Detail\n" +
+      "    Strengthen one detail that supports a Main Idea.\n\n" +
+      "Reply with 1, 2, 3, or 4."
+    );
+  }
+
+  if (
+    s.pending?.type ===
+    "strengthenArtifactCollection"
+  ) {
+    const componentLabels = {
+      keyTopic:
+        "Key Topic",
+
+      isAbout:
+        "Is About statement",
+
+      mainIdeas:
+        "Main Idea",
+
+      details:
+        "Essential Detail",
+    };
+
+    const label =
+      componentLabels[
+        s.pending?.frameComponent
+      ] ||
+      "Frame component";
+
+    return (
+      `📝 Please share the ${label} you would like to strengthen.\n\n` +
+      "Paste or type your existing work exactly as it currently appears."
+    );
+  }
   
   if (s.pending?.type === "confirmLanguageSwitch") {
     const candNative = s.pending?.candidateNativeName || s.pending?.candidateName || "that language";
@@ -19748,6 +19796,82 @@ return s;
 
   return s;
 }
+
+    if (
+    s.pending?.type ===
+    "strengthenComponentSelection"
+  ) {
+    const choice =
+      msg
+        .toLowerCase()
+        .trim();
+
+    let selectedComponent =
+      null;
+
+    if (
+      choice === "1" ||
+      choice === "key topic" ||
+      choice === "keytopic" ||
+      choice.includes(
+        "key topic"
+      )
+    ) {
+      selectedComponent =
+        "keyTopic";
+    }
+
+    if (
+      choice === "2" ||
+      choice === "is about" ||
+      choice === "isabout" ||
+      choice.includes(
+        "is about"
+      )
+    ) {
+      selectedComponent =
+        "isAbout";
+    }
+
+    if (
+      choice === "3" ||
+      choice === "main idea" ||
+      choice === "mainidea" ||
+      choice.includes(
+        "main idea"
+      )
+    ) {
+      selectedComponent =
+        "mainIdeas";
+    }
+
+    if (
+      choice === "4" ||
+      choice === "essential detail" ||
+      choice === "essentialdetail" ||
+      choice.includes(
+        "essential detail"
+      ) ||
+      choice === "detail"
+    ) {
+      selectedComponent =
+        "details";
+    }
+
+    if (!selectedComponent) {
+      return s;
+    }
+
+    s.pending = {
+      type:
+        "strengthenArtifactCollection",
+
+      frameComponent:
+        selectedComponent,
+    };
+
+    return s;
+  }
   
   if (s.pending?.type === "confirmLanguageSwitch") {
     const normalized = msg.toLowerCase().trim();
