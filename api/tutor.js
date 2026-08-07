@@ -18375,11 +18375,14 @@ async function applyIsAboutCapture(
   msg,
   options = {}
 ) {
-    const captureMode =
+  const captureMode =
     options.captureMode || "build";
 
   const isStrengthen =
     captureMode === "strengthen";
+
+  const cleanedIsAbout =
+    cleanFrameText(msg);
 
   const keyTopic =
     cleanText(s.frame?.keyTopic || "");
@@ -18467,11 +18470,16 @@ async function applyIsAboutCapture(
   const activationState = {
     ...s,
 
-    pending: {
-      type: "reviseIsAbout",
+      pending: {
+  type:
+    isStrengthen
+      ? "strengthenReviseIsAbout"
+      : "reviseIsAbout",
 
-      instructionalFinding,
-    },
+  captureMode,
+
+  instructionalFinding,
+  },
   };
 
   const instructionalActivation =
@@ -18484,7 +18492,11 @@ async function applyIsAboutCapture(
 
 s.pending = {
   type:
-    "reviseIsAbout",
+    isStrengthen
+      ? "strengthenReviseIsAbout"
+      : "reviseIsAbout",
+
+  captureMode,
 
   instructionalFinding,
 
@@ -18543,7 +18555,10 @@ s.frame.isAbout =
   cleanFrameText(normalizedIsAbout);
 
 s.pending = {
-  type: "confirmIsAbout"
+  type:
+    isStrengthen
+      ? "strengthenIsAboutComplete"
+      : "confirmIsAbout",
 };
 
 return s;
@@ -20426,6 +20441,22 @@ if (s.pending?.type === "reviseBuildLane") {
   return await updateStateFromStudent(s, msg);
 }
 
+if (
+  s.pending?.type ===
+  "strengthenReviseIsAbout"
+) {
+  await applyIsAboutCapture(
+    s,
+    msg,
+    {
+      captureMode:
+        "strengthen",
+    }
+  );
+
+  return s;
+}
+  
 if (s.pending?.type === "reviseIsAbout") {
 
   // All proposed responses proceed to governed Is About
