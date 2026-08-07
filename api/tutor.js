@@ -20511,26 +20511,49 @@ return s;
   s.pending?.type ===
   "strengthenComponentComplete"
 ) {
-  const completedWork =
-    cleanText(
-      s.pending?.completedWork || ""
-    );
+  const choice =
+    cleanText(msg);
 
-  return (
-    s.pending.successMessage +
-    "\n\n" +
-    s.pending.displayIcon +
-    " " +
-    s.pending.displayLabel +
-    ":\n" +
-    completedWork +
-    "\n\n" +
-    "Would you like to:\n\n" +
-    "1️⃣ Keep it as written and end this session\n" +
-    "2️⃣ Strengthen it further\n" +
-    "3️⃣ Strengthen another part of your Frame\n\n" +
-    "Reply with 1, 2, or 3."
-  );
+  if (choice === "1") {
+    s.pending = {
+      type:
+        "strengthenSessionComplete",
+
+      component:
+        s.pending.component,
+
+      componentLabel:
+        s.pending.componentLabel,
+
+      completedWork:
+        s.pending.completedWork,
+    };
+
+    return s;
+  }
+
+  if (choice === "2") {
+    const revisePendingType =
+      s.pending.revisePendingType;
+
+    s.pending = {
+      type:
+        revisePendingType,
+    };
+
+    return s;
+  }
+
+  if (choice === "3") {
+    s.pending = {
+      type:
+        "strengthenComponentSelection",
+    };
+
+    return s;
+  }
+
+  return s;
 }
   
   if (s.pending?.type === "confirmLanguageSwitch") {
