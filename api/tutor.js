@@ -19144,68 +19144,23 @@ function computeNextQuestion(state) {
   );
   }
 
-      if (
-    s.pending?.type ===
-    "strengthenIsAboutComplete"
-  ) {
-    const strengthenedIsAbout =
-      cleanText(
-        s.frame?.isAbout || ""
-      );
-
-    return (
-      "✅ Your Is About statement is working as a clear explanation of what your Key Topic is about.\n\n" +
-      "🧩 Is About:\n" +
-      strengthenedIsAbout +
-      "\n\n" +
-      "Would you like to:\n\n" +
-      "1️⃣ Keep it as written and end this session\n" +
-      "2️⃣ Strengthen it further\n" +
-      "3️⃣ Strengthen another part of your Frame\n\n" +
-      "Reply with 1, 2, or 3."
-    );
-  }
-
-    if (
-    s.pending?.type ===
-    "strengthenMainIdeaComplete"
-  ) {
-    const strengthenedMainIdea =
-      cleanText(
-        s.strengthenContext
-          ?.currentMainIdea ||
-        s.frame
-          ?.parentItems
-          ?.[s.pending?.index] ||
-        ""
-      );
-
-   return (
-    "✅ Your Main Idea is working as a larger idea that helps organize this Frame.\n\n" +
-    "💡 Main Idea:\n" +
-    strengthenedMainIdea +
-    "\n\n" +
-    "Would you like to:\n\n" +
-    "1️⃣ Keep it as written and end this session\n" +
-    "2️⃣ Strengthen it further\n" +
-    "3️⃣ Strengthen another part of your Frame\n\n" +
-    "Reply with 1, 2, or 3."
-);
-  }
-
   if (
   s.pending?.type ===
-  "strengthenEssentialDetailComplete"
+  "strengthenComponentComplete"
 ) {
-  const detail =
-    s.strengthenContext
-      ?.currentEssentialDetail ||
-    "";
+  const completedWork =
+    cleanText(
+      s.pending?.completedWork || ""
+    );
 
   return (
-    "✅ Your Essential Detail is working as specific support for your Main Idea.\n\n" +
-    "📝 Essential Detail:\n" +
-    detail +
+    s.pending.successMessage +
+    "\n\n" +
+    s.pending.displayIcon +
+    " " +
+    s.pending.displayLabel +
+    ":\n" +
+    completedWork +
     "\n\n" +
     "Would you like to:\n\n" +
     "1️⃣ Keep it as written and end this session\n" +
