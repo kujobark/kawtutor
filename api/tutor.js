@@ -18554,12 +18554,37 @@ return s;
 s.frame.isAbout =
   cleanFrameText(normalizedIsAbout);
 
-s.pending = {
-  type:
-    isStrengthen
-      ? "strengthenIsAboutComplete"
-      : "confirmIsAbout",
-};
+s.pending =
+  isStrengthen
+    ? {
+        type:
+          "strengthenComponentComplete",
+
+        component:
+          "isAbout",
+
+        componentLabel:
+          "Is About statement",
+
+        completedWork:
+          s.frame.isAbout || "",
+
+        revisePendingType:
+          "strengthenReviseIsAbout",
+
+        successMessage:
+          "✅ Your Is About statement is working as a clear explanation of what your Key Topic is about.",
+
+        displayIcon:
+          "🧩",
+
+        displayLabel:
+          "Is About",
+      }
+    : {
+        type:
+          "confirmIsAbout",
+      };
 
 return s;
 }
@@ -18821,21 +18846,44 @@ return s;
       .currentMainIdea =
       text;
 
-    s.pending = {
-      type:
-        "strengthenMainIdeaComplete",
+  s.pending = {
+  type:
+    "strengthenComponentComplete",
 
-      index:
-        revisionIndex,
+  component:
+    "mainIdeas",
 
-      instructionalFinding:
-        structuredClone(
-          instructionalFinding
-        ),
-    };
+  componentLabel:
+    "Main Idea",
 
-    return s;
-  }
+  completedWork:
+    s.strengthenContext
+      ?.currentMainIdea ||
+    s.frame
+      ?.parentItems
+      ?.[revisionIndex] ||
+    "",
+
+  revisePendingType:
+    "strengthenCurrentMainIdea",
+
+  successMessage:
+    "✅ Your Main Idea is working as a larger idea that helps organize this Frame.",
+
+  displayIcon:
+    "💡",
+
+  displayLabel:
+    "Main Idea",
+
+  index:
+    revisionIndex,
+
+  instructionalFinding:
+    structuredClone(
+      instructionalFinding
+    ),
+};
 
   if (isRevision) {
     if (
@@ -20469,10 +20517,37 @@ return s;
     );
   }
 
-  s.pending = {
-    type:
-      "strengthenEssentialDetailComplete",
-  };
+ s.pending = {
+  type:
+    "strengthenComponentComplete",
+
+  component:
+    "details",
+
+  componentLabel:
+    "Essential Detail",
+
+  completedWork:
+    s.strengthenContext
+      ?.currentEssentialDetail ||
+    s.frame
+      ?.details
+      ?.[0]
+      ?.[0] ||
+    "",
+
+  revisePendingType:
+    "strengthenCurrentEssentialDetail",
+
+  successMessage:
+    "✅ Your Essential Detail is working as specific support for your Main Idea.",
+
+  displayIcon:
+    "📝",
+
+  displayLabel:
+    "Essential Detail",
+};
 
   return s;
 }
