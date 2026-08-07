@@ -19086,6 +19086,28 @@ function computeNextQuestion(state) {
   );
   }
 
+      if (
+    s.pending?.type ===
+    "strengthenIsAboutComplete"
+  ) {
+    const strengthenedIsAbout =
+      cleanText(
+        s.frame?.isAbout || ""
+      );
+
+    return (
+      "✅ Your Is About statement is working as a clear explanation of what your Key Topic is about.\n\n" +
+      "🧩 Is About:\n" +
+      strengthenedIsAbout +
+      "\n\n" +
+      "Would you like to:\n\n" +
+      "1️⃣ Keep it as written and end this session\n" +
+      "2️⃣ Strengthen it further\n" +
+      "3️⃣ Strengthen another part of your Frame\n\n" +
+      "Reply with 1, 2, or 3."
+    );
+  }
+
     if (
     s.pending?.type ===
     "strengthenMainIdeaComplete"
@@ -20351,6 +20373,55 @@ return s;
     };
 
         return s;
+  }
+
+      if (
+    s.pending?.type ===
+    "strengthenIsAboutComplete"
+  ) {
+    const choice =
+      cleanText(msg);
+
+    if (choice === "1") {
+      s.pending = {
+        type:
+          "strengthenSessionComplete",
+
+        component:
+          "isAbout",
+
+        componentLabel:
+          "Is About statement",
+
+        completedWork:
+          s.frame?.isAbout || "",
+      };
+
+      return s;
+    }
+
+    if (choice === "2") {
+      s.pending = {
+        type:
+          "strengthenReviseIsAbout",
+
+        captureMode:
+          "strengthen",
+      };
+
+      return s;
+    }
+
+    if (choice === "3") {
+      s.pending = {
+        type:
+          "strengthenComponentSelection",
+      };
+
+      return s;
+    }
+
+    return s;
   }
 
     if (
