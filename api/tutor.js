@@ -20527,6 +20527,58 @@ return s;
   }
 
     if (
+  s.pending?.type ===
+  "strengthenEssentialDetailComplete"
+) {
+  const choice =
+    cleanText(msg);
+
+  if (choice === "1") {
+    s.pending = {
+      type:
+        "strengthenSessionComplete",
+
+      component:
+        "details",
+
+      componentLabel:
+        "Essential Detail",
+
+      completedWork:
+        s.strengthenContext
+          ?.currentEssentialDetail ||
+        s.frame
+          ?.details
+          ?.[0]
+          ?.[0] ||
+        "",
+    };
+
+    return s;
+  }
+
+  if (choice === "2") {
+    s.pending = {
+      type:
+        "strengthenCurrentEssentialDetail",
+    };
+
+    return s;
+  }
+
+  if (choice === "3") {
+    s.pending = {
+      type:
+        "strengthenComponentSelection",
+    };
+
+    return s;
+  }
+
+  return s;
+}
+
+    if (
     s.pending?.type ===
     "strengthenMainIdeaComplete"
   ) {
