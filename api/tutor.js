@@ -20507,164 +20507,31 @@ return s;
   return s;
 }
 
-      if (
-    s.pending?.type ===
-    "strengthenIsAboutComplete"
-  ) {
-    const choice =
-      cleanText(msg);
-
-    if (choice === "1") {
-      s.pending = {
-        type:
-          "strengthenSessionComplete",
-
-        component:
-          "isAbout",
-
-        componentLabel:
-          "Is About statement",
-
-        completedWork:
-          s.frame?.isAbout || "",
-      };
-
-      return s;
-    }
-
-    if (choice === "2") {
-      s.pending = {
-        type:
-          "strengthenReviseIsAbout",
-
-        captureMode:
-          "strengthen",
-      };
-
-      return s;
-    }
-
-    if (choice === "3") {
-      s.pending = {
-        type:
-          "strengthenComponentSelection",
-      };
-
-      return s;
-    }
-
-    return s;
-  }
-
-    if (
-  s.pending?.type ===
-  "strengthenEssentialDetailComplete"
-) {
-  const choice =
-    cleanText(msg);
-
-  if (choice === "1") {
-    s.pending = {
-      type:
-        "strengthenSessionComplete",
-
-      component:
-        "details",
-
-      componentLabel:
-        "Essential Detail",
-
-      completedWork:
-        s.strengthenContext
-          ?.currentEssentialDetail ||
-        s.frame
-          ?.details
-          ?.[0]
-          ?.[0] ||
-        "",
-    };
-
-    return s;
-  }
-
-  if (choice === "2") {
-    s.pending = {
-      type:
-        "strengthenCurrentEssentialDetail",
-    };
-
-    return s;
-  }
-
-  if (choice === "3") {
-    s.pending = {
-      type:
-        "strengthenComponentSelection",
-    };
-
-    return s;
-  }
-
-  return s;
-}
-
-    if (
-    s.pending?.type ===
-    "strengthenMainIdeaComplete"
-  ) {
-    const choice =
-      cleanText(msg);
-
-    if (choice === "1") {
-      s.pending = {
-        type:
-          "strengthenSessionComplete",
-
-        component:
-          "mainIdeas",
-
-        componentLabel:
-          "Main Idea",
-
-        completedWork:
-          s.strengthenContext
-            ?.currentMainIdea ||
-          s.frame
-            ?.parentItems
-            ?.[s.pending?.index] ||
-          "",
-      };
-
-      return s;
-    }
-
-    if (choice === "2") {
-      s.pending = {
-        type:
-          "strengthenCurrentMainIdea",
-      };
-
-      return s;
-    }
-
-    if (choice === "3") {
-      s.pending = {
-        type:
-          "strengthenComponentSelection",
-      };
-
-      return s;
-    }
-
-    return s;
-  }
-
   if (
-    s.pending?.type ===
-    "strengthenReadyForGovernedConnection"
-  ) {
-    return s;
-  }
+  s.pending?.type ===
+  "strengthenComponentComplete"
+) {
+  const completedWork =
+    cleanText(
+      s.pending?.completedWork || ""
+    );
+
+  return (
+    s.pending.successMessage +
+    "\n\n" +
+    s.pending.displayIcon +
+    " " +
+    s.pending.displayLabel +
+    ":\n" +
+    completedWork +
+    "\n\n" +
+    "Would you like to:\n\n" +
+    "1️⃣ Keep it as written and end this session\n" +
+    "2️⃣ Strengthen it further\n" +
+    "3️⃣ Strengthen another part of your Frame\n\n" +
+    "Reply with 1, 2, or 3."
+  );
+}
   
   if (s.pending?.type === "confirmLanguageSwitch") {
     const normalized = msg.toLowerCase().trim();
