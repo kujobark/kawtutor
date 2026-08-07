@@ -18879,11 +18879,14 @@ return s;
   index:
     revisionIndex,
 
-  instructionalFinding:
+   instructionalFinding:
     structuredClone(
       instructionalFinding
     ),
 };
+
+    return s;
+  }
 
   if (isRevision) {
     if (
