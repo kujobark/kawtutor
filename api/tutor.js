@@ -20362,28 +20362,98 @@ return s;
     return s;
   }
 
-  if (
-    s.pending?.type ===
-    "strengthenCurrentEssentialDetail"
-  ) {
-    const currentEssentialDetail =
-      cleanText(msg);
+   if (
+  s.pending?.type ===
+  "strengthenCurrentEssentialDetail"
+) {
+  const currentEssentialDetail =
+    cleanText(msg);
 
-    if (!currentEssentialDetail) {
-      return s;
-    }
-
-    s.strengthenContext
-      .currentEssentialDetail =
-      currentEssentialDetail;
-
-    s.pending = {
-      type:
-        "strengthenReadyForGovernedConnection",
-    };
-
-        return s;
+  if (!currentEssentialDetail) {
+    return s;
   }
+
+  s.strengthenContext
+    .currentEssentialDetail =
+    currentEssentialDetail;
+
+  const supportingMainIdea =
+    cleanText(
+      s.strengthenContext
+        ?.supportingMainIdea || ""
+    );
+
+  // Hydrate the canonical Frame so the governed
+  // Essential Detail engine receives the same context
+  // shape used elsewhere in the runtime.
+  s.frame.keyTopic =
+    s.strengthenContext
+      ?.keyTopic || "";
+
+  s.frame.isAbout =
+    s.strengthenContext
+      ?.isAbout || "";
+
+  s.frame.parentItems = [
+    supportingMainIdea,
+  ];
+
+  s.frame.details = [
+    [
+      currentEssentialDetail,
+    ],
+  ];
+
+  const {
+    detailValidation,
+    instructionalFinding,
+    progressionAuthorization,
+  } =
+    await applyEssentialDetailCapture(
+      s,
+      currentEssentialDetail,
+      {
+        index:
+          0,
+
+        detailIndex:
+          0,
+
+        captureMode:
+          "strengthen",
+      }
+    );
+
+  if (
+    !detailValidation.valid ||
+    progressionAuthorization
+      ?.authorized !== true
+  ) {
+    return attachGovernedSupportToPending(
+      s,
+      currentEssentialDetail,
+      {
+        intent:
+          "stuck",
+
+        confidence:
+          1,
+
+        source:
+          `detailValidation:${detailValidation.diagnosis}`,
+
+        instructionalFinding,
+      }
+    );
+  }
+
+  s.pending = {
+    type:
+      "strengthenEssentialDetailComplete",
+  };
+
+  return s;
+}
 
       if (
     s.pending?.type ===
@@ -21065,6 +21135,116 @@ if (s.pending?.type === "confirmDetails") {
   return s;
 }
 
+  async function applyEssentialDetailCapture(
+  s,
+  msg,
+  {
+    index = 0,
+    detailIndex = 0,
+    captureMode = "revision",
+  } = {}
+) {
+  const currentMainIdea =
+    getIdeaList(s)[index] || "";
+
+  const detailValidation =
+    await validateEssentialDetailResponseGoverned(
+      msg,
+      currentMainIdea,
+      {
+        keyTopic:
+          s.frame.keyTopic || "",
+
+        isAbout:
+          s.frame.isAbout || "",
+      }
+    );
+
+  const instructionalFinding = {
+    ...buildComponentInstructionalFinding({
+      frameComponent:
+        "details",
+
+      validation:
+        detailValidation,
+
+      evidence: {
+        keyTopic:
+          s.frame.keyTopic || "",
+
+        isAbout:
+          s.frame.isAbout || "",
+
+        currentMainIdea,
+
+        currentMainIdeaIndex:
+          index,
+
+        currentDetailIndex:
+          detailIndex,
+
+        captureMode,
+
+        previousDetail:
+          s.frame.details
+            ?.[index]
+            ?.[detailIndex] || "",
+
+        attemptedDetail:
+          cleanText(msg),
+      },
+    }),
+
+    validationSource:
+      detailValidation
+        .validationSource || null,
+
+    currentMainIdea,
+
+    currentMainIdeaIndex:
+      index,
+
+    currentDetailIndex:
+      detailIndex,
+
+    captureMode,
+  };
+
+  refreshInstructionalSituationWithComponentFinding({
+    state:
+      s,
+
+    currentResponse:
+      msg,
+
+    componentFinding:
+      instructionalFinding,
+  });
+
+  const progressionAuthorization =
+    buildProgressionAuthorization(
+      s,
+      {
+        frameComponent:
+          "details",
+
+        expectedContractId:
+          "ED-RTP-001",
+      }
+    );
+
+  s.progressionAuthorization =
+    structuredClone(
+      progressionAuthorization
+    );
+
+  return {
+    detailValidation,
+    instructionalFinding,
+    progressionAuthorization,
+  };
+}
+
  if (s.pending?.type === "chooseDetailToRevise") {
   const normalized = msg.toLowerCase().trim();
   const match = normalized.match(/\d+/);
@@ -21099,100 +21279,23 @@ if (s.pending?.type === "reviseDetailAt") {
 // Conversational or no-evidence responses fail governed
 // validation and preserve the existing Essential Detail.
 
-// Validate the proposed revision before replacing the
-// previously accepted Essential Detail.
-
-const currentMainIdea =
-  getIdeaList(s)[idx] || "";
-
-const detailValidation =
-  await validateEssentialDetailResponseGoverned(
+  const {
+  detailValidation,
+  instructionalFinding,
+  progressionAuthorization,
+} =
+  await applyEssentialDetailCapture(
+    s,
     msg,
-    currentMainIdea,
     {
-      keyTopic:
-        s.frame.keyTopic || "",
-
-      isAbout:
-        s.frame.isAbout || "",
-    }
-  );
-
-const instructionalFinding = {
-  ...buildComponentInstructionalFinding({
-    frameComponent:
-      "details",
-
-    validation:
-      detailValidation,
-
-    evidence: {
-      keyTopic:
-        s.frame.keyTopic || "",
-
-      isAbout:
-        s.frame.isAbout || "",
-
-      currentMainIdea,
-
-      currentMainIdeaIndex:
+      index:
         idx,
 
-      currentDetailIndex:
-        detailIndex,
+      detailIndex,
 
       captureMode:
         "revision",
-
-      previousDetail:
-        s.frame.details?.[idx]?.[detailIndex] || "",
-
-      attemptedDetail:
-        cleanText(msg),
-    },
-  }),
-
-  validationSource:
-    detailValidation.validationSource || null,
-
-  currentMainIdea,
-
-  currentMainIdeaIndex:
-    idx,
-
-  currentDetailIndex:
-    detailIndex,
-
-  captureMode:
-    "revision",
-};
-
-refreshInstructionalSituationWithComponentFinding({
-  state:
-    s,
-
-  currentResponse:
-    msg,
-
-  componentFinding:
-    instructionalFinding,
-});
-
-const progressionAuthorization =
-  buildProgressionAuthorization(
-    s,
-    {
-      frameComponent:
-        "details",
-
-      expectedContractId:
-        "ED-RTP-001",
     }
-  );
-
-s.progressionAuthorization =
-  structuredClone(
-    progressionAuthorization
   );
 
   if (
