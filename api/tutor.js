@@ -19045,6 +19045,16 @@ function computeNextQuestion(state) {
     );
   }
 
+    if (
+    s.pending?.type ===
+    "strengthenReviseIsAbout"
+  ) {
+    return (
+      "✏️ Let's revise your Is About statement.\n\n" +
+      "What would you like it to say instead?"
+    );
+  }
+  
   if (
     s.pending?.type ===
     "strengthenCurrentMainIdea"
