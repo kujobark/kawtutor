@@ -19146,6 +19146,28 @@ function computeNextQuestion(state) {
   }
 
   if (
+  s.pending?.type ===
+  "strengthenEssentialDetailComplete"
+) {
+  const detail =
+    s.strengthenContext
+      ?.currentEssentialDetail ||
+    "";
+
+  return (
+    "✅ Your Essential Detail is working as specific support for your Main Idea.\n\n" +
+    "📝 Essential Detail:\n" +
+    detail +
+    "\n\n" +
+    "Would you like to:\n\n" +
+    "1️⃣ Keep it as written and end this session\n" +
+    "2️⃣ Strengthen it further\n" +
+    "3️⃣ Strengthen another part of your Frame\n\n" +
+    "Reply with 1, 2, or 3."
+  );
+}
+  
+  if (
     s.pending?.type ===
     "strengthenReadyForGovernedConnection"
   ) {
