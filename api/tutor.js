@@ -18370,9 +18370,16 @@ function buildExportHtml(s) {
 }
 
 
-async function applyIsAboutCapture(s, msg) {
-  const cleanedIsAbout =
-    cleanFrameText(msg);
+async function applyIsAboutCapture(
+  s,
+  msg,
+  options = {}
+) {
+    const captureMode =
+    options.captureMode || "build";
+
+  const isStrengthen =
+    captureMode === "strengthen";
 
   const keyTopic =
     cleanText(s.frame?.keyTopic || "");
@@ -20178,14 +20185,27 @@ return s;
     ?.targetComponent ||
   "";
       
-    if (
+        if (
       targetComponent ===
       "isAbout"
     ) {
-      s.pending = {
-        type:
-          "strengthenReadyForGovernedConnection",
-      };
+      // Hydrate the canonical Frame state so the existing
+      // governed Is About architecture receives the same
+      // evidence shape used by Build Mode.
+      s.frame.keyTopic =
+        currentKeyTopic;
+
+      s.frame.isAbout =
+        "";
+
+      await applyIsAboutCapture(
+        s,
+        currentIsAbout,
+        {
+          captureMode:
+            "strengthen",
+        }
+      );
 
       return s;
     }
