@@ -187,7 +187,7 @@ conversationSupport: {
   initialPrompt:
     "Let's start with your Key Topic.\n\nWhat is the main topic you'll be exploring in this Frame?",
   revisePrompt:
-    "That’s a good start, but your Key Topic should name the topic clearly.\n\nWhat is the main topic you'll be exploring in this Frame?"
+    "Let's strengthen your Key Topic so it clearly names the topic you'll be exploring in this Frame.\n\nWhat is the main topic?"
 },
 
 genericNonExamples: [
@@ -250,10 +250,10 @@ initialPrompt:
   'Now let\'s describe your Key Topic in your own words.\n\nWhat is "{keyTopic}" about?',
 
 revisePrompt:
-  '✏️ Let\'s revise your "Is About" statement.\n\nWhat would you like it to say instead?',
+  '✏️ Let\'s strengthen your Is About so it clearly explains what your whole Key Topic is about in your own words.\n\nWhat would you like it to say instead?',
 
-confirmationPrompt:
-  '💡 Great! Based on what you shared, your Frame now says:\n\n{keyTopic} is about {isAbout}.\n\nDoes this accurately capture your thinking?\n\n1) Yes — Continue building my Frame.\n2) No — Revise this part.\n\nReply with 1 or 2.'
+  confirmationPrompt:
+  '✅ Checkpoint\n\nNice work! Your Is About explains your Key Topic in your own words:\n\n{keyTopic} is about {isAbout}.\n\nDoes this accurately capture your thinking?\n\n1) Yes — Continue building my Frame.\n2) No — Revise this part.\n\nReply with 1 or 2.'
  }
 },
 
@@ -299,11 +299,11 @@ mainIdeas: {
     additionalPrompt:
     'So far your Frame says:\n\n{keyTopic} is about {isAbout}.\n\nWhat is another Main Idea that helps explain this?',
 
-   revisePrompt:
-      "You're close. Try naming a Main Idea that clearly connects to your Key Topic and can be explained with Essential Details.",
+    revisePrompt:
+      "💡 Let's strengthen your Main Idea so it clearly connects to your Key Topic and can be explained with Essential Details.",
 
-   confirmationPrompt:
-      '✅ Checkpoint\n\nYou identified these Main Ideas:\n\n{mainIdeasList}\n\nDoes this accurately capture your thinking?\n\n📋 Choose an option:\n\n1) Yes — Continue building my Frame.\n2) No — Revise one Main Idea.\n\nReply with 1 or 2.'
+    confirmationPrompt:
+      '✅ Checkpoint\n\nYou\'ve built these Main Ideas to help explain your Key Topic:\n\n{mainIdeasList}\n\nDoes this accurately capture your thinking?\n\n📋 Choose an option:\n\n1) Yes — Continue building my Frame.\n2) No — Revise one Main Idea.\n\nReply with 1 or 2.'
   }
 },
 
@@ -19590,7 +19590,7 @@ if (
     getIdeaList(s).length;
 
   return (
-    `📋 You currently have ${count} Main Idea${count > 1 ? "s" : ""}.\n\n` +
+    `✅ Nice work! You've built ${count} Main Idea${count > 1 ? "s" : ""} that help explain "${s.frame.keyTopic}".\n\n` +
     `Would you like to add another Main Idea?\n\n` +
     `1) Yes — Add another Main Idea.\n` +
     `2) No — Continue.\n\n` +
@@ -19634,8 +19634,8 @@ if (
 
   const completionMessage =
     detailCount === 2
-      ? `✅ You now have the two required Essential Details for Main Idea ${index + 1}:\n`
-      : `✅ You currently have ${detailCount} Essential Details for Main Idea ${index + 1}:\n`;
+      ? `✅ Nice work! You've added the two Essential Details needed to build out Main Idea ${index + 1}:\n`
+      : `✅ You're building this idea out! You now have ${detailCount} Essential Details for Main Idea ${index + 1}:\n`;
 
   return (
     completionMessage +
@@ -19670,13 +19670,13 @@ if (
   // The second Essential Detail is required to fully
   // support the current Main Idea.
   if (currentDetailCount === 1) {
-    return (
-      `🎉 Great! You have your first Essential Detail.\n\n` +
-      `✍️ Let's add one more required Essential Detail to fully support this Main Idea.\n\n` +
-      `Main Idea ${index + 1}: "${currentMainIdea}"\n\n` +
-      `What is Essential Detail ${nextDetailNumber}?`
-    );
-  }
+  return (
+    `🎉 Great start! You've added your first Essential Detail for "${currentMainIdea}".\n\n` +
+    `✍️ Let's add one more Essential Detail to help explain this Main Idea more fully.\n\n` +
+    `Main Idea ${index + 1}: "${currentMainIdea}"\n\n` +
+    `What is Essential Detail ${nextDetailNumber}?`
+  );
+}
 
   const mainIdeas =
     getIdeaList(s);
@@ -19722,15 +19722,15 @@ if (
     )
     .join("\n");
 
-  return (
+   return (
     `✅ Checkpoint\n\n` +
-    `For this Main Idea: "${currentMainIdea}", you identified:\n\n` +
+    `You built these Essential Details to help explain "${currentMainIdea}":\n\n` +
     `${lines}\n\n` +
     `Does this accurately capture your thinking?\n\n` +
     `1) Yes — Continue building my Frame.\n` +
     `2) No — Revise one Essential Detail.\n\n` +
     `Reply with 1 or 2.`
-  );
+);
 }
   
 if (s.pending?.type === "offerMoreSoWhat") {
@@ -19752,7 +19752,11 @@ if (s.pending?.type === "confirmSoWhat") {
     return "What would you like your revised So What to say?";
   }
 
-  return `Your So What is: "${s.frame.soWhat}". Is that correct, or would you like to revise it?`;
+  return (
+    `🎯 Here's the So What you created:\n\n` +
+    `"${s.frame.soWhat}"\n\n` +
+    `Does this capture what's important to understand from your Frame, or would you like to revise it?`
+);
 }
 
 if (s.pending?.type === "offerExport") {
@@ -19909,7 +19913,7 @@ const fallback = (
 
 if (i === 0 && detailNum === 1) {
   return (
-    "🎉 Nice work! Your Main Ideas now explain your Key Topic.\n\n" +
+    "💡 Great work! You've identified the Main Ideas that help explain your Key Topic.\n\n" +
     "➡️ Now let's support each Main Idea with Essential Details.\n\n" +
     `${miLabel} ${i + 1}\n` +
     `${mi}\n\n` +
@@ -19927,7 +19931,7 @@ if (i > 0 && detailNum === 1) {
         : "previous";
 
   return (
-    `🎉 Nice work! You've supported your ${completedLabel} Main Idea.\n\n` +
+    `🙌 Nicely done! You've added the Essential Details that help explain your ${completedLabel} Main Idea.\n\n` +
     `➡️ Now let's support ${miLabel} ${i + 1}.\n\n` +
     `${miLabel} ${i + 1}\n` +
     `${mi}\n\n` +
@@ -19957,16 +19961,28 @@ if (!s.frame.soWhat) {
     assignment.slice(1);
 
   return (
-    `${displayedAssignment}\n\n` +
-    `Key Topic: ${s.frame.keyTopic}\n` +
-    `Is About: ${s.frame.isAbout}\n\n` +
-    getComponentPrompt("soWhat", "initialPrompt", {
-      keyTopic: s.frame.keyTopic
-    })
-  );
-}
+  `🙌 Great work! You've built out your Main Ideas with Essential Details.\n\n` +
+  `Your Frame now includes:\n\n` +
+  getIdeaList(s)
+    .map(
+      (idea, index) =>
+        `• ${idea}`
+    )
+    .join("\n") +
+  `\n\n➡️ Now let's think about what's important to understand from your whole Frame.\n\n` +
+  `${displayedAssignment}\n\n` +
+  `Key Topic: ${s.frame.keyTopic}\n` +
+  `Is About: ${s.frame.isAbout}\n\n` +
+  getComponentPrompt("soWhat", "initialPrompt", {
+    keyTopic: s.frame.keyTopic
+  })
+);
 
-  return "Want to refine anything (Key Topic, Is About, Main Ideas, Details, or So What)?";
+  return (
+    "🎉 You did it! You've built a complete Frame from your Key Topic all the way through your So What.\n\n" +
+    `Your So What is: "${s.frame.soWhat}"\n\n` +
+    "Would you like to strengthen anything in your Frame before you're finished?"
+);
 }
 
 // ---------------------
