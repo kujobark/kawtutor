@@ -8039,6 +8039,10 @@ const relationshipEstablished =
           semanticEvidence
             .supportsMainIdea,
 
+        supportingRelationshipExpressed:
+          semanticEvidence
+            .supportingRelationshipExpressed,
+        
         functionsAsEssentialDetail:
           semanticEvidence
             .functionsAsEssentialDetail,
