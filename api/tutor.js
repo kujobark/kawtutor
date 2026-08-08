@@ -18230,6 +18230,24 @@ assignmentReasoning: {
         ""
       ),
 
+    mainIdeas:
+  Array.isArray(
+    strengthenContext
+      .mainIdeas
+  )
+    ? strengthenContext
+        .mainIdeas
+        .map(cleanText)
+        .filter(Boolean)
+    : [],
+
+    currentSoWhat:
+  cleanText(
+    strengthenContext
+      .currentSoWhat ||
+    ""
+  ),
+    
     completionTarget:
       cleanText(
         strengthenContext
@@ -19310,6 +19328,25 @@ if (
       "What would you like it to say instead?"
     );
   }
+
+  if (
+  s.pending?.type ===
+  "strengthenSoWhatMainIdeas"
+) {
+  return (
+    "💡 What Main Ideas are in your Frame?\n\n" +
+    "You can paste them together."
+  );
+}
+
+  if (
+  s.pending?.type ===
+  "strengthenCurrentSoWhat"
+) {
+  return (
+    "🎯 What is the So What you would like to strengthen?"
+  );
+}
   
   if (
     s.pending?.type ===
@@ -20378,6 +20415,11 @@ if (
       currentEssentialDetail:
         "",
 
+      mainIdeas: [],
+
+      currentSoWhat:
+        "",
+
       completionTarget:
         "strengthenComponentComplete",
     };
@@ -20505,14 +20547,249 @@ if (
     ) {
       s.pending = {
         type:
-          "strengthenSoWhatFrameContext",
+          "strengthenSoWhatMainIdeas",
       };
-
-  return s;
-}
+  
+    return s;
+  }
       
     return s;
   }
+
+    if (
+  s.pending?.type ===
+  "strengthenCurrentSoWhat"
+) {
+  const currentSoWhat =
+    cleanText(msg);
+
+  if (!currentSoWhat) {
+    return s;
+  }
+
+  s.strengthenContext
+    .currentSoWhat =
+    currentSoWhat;
+
+  // ----------------------------------------------
+  // Hydrate canonical Frame context so governed
+  // So What validation receives the same evidence
+  // shape used by Build Mode.
+  // ----------------------------------------------
+
+  s.frame.keyTopic =
+    cleanText(
+      s.strengthenContext
+        ?.keyTopic || ""
+    );
+
+  s.frame.isAbout =
+    cleanText(
+      s.strengthenContext
+        ?.isAbout || ""
+    );
+
+  s.frame.parentItems =
+    Array.isArray(
+      s.strengthenContext
+        ?.mainIdeas
+    )
+      ? [
+          ...s.strengthenContext
+            .mainIdeas,
+        ]
+      : [];
+
+  // Strengthen So What intentionally does not require
+  // the student to re-enter Essential Details.
+  //
+  // Preserve the canonical shape expected by the
+  // shared So What validator with empty detail buckets.
+  s.frame.details =
+    s.frame.parentItems.map(
+      () => []
+    );
+
+  // The student's existing So What is the proposed
+  // revision target. Do not save it to frame.soWhat
+  // before governed validation.
+  s.frame.soWhat =
+    "";
+
+  const soWhatValidation =
+    await validateSoWhatResponseGoverned(
+      currentSoWhat,
+      buildSoWhatValidationContext(s)
+    );
+
+  const instructionalFinding = {
+    ...buildComponentInstructionalFinding({
+      frameComponent:
+        "soWhat",
+
+      validation:
+        soWhatValidation,
+
+      evidence: {
+        keyTopic:
+          s.frame?.keyTopic || "",
+
+        isAbout:
+          s.frame?.isAbout || "",
+
+        mainIdeas:
+          getIdeaList(s)
+            .filter(Boolean),
+
+        details:
+          Array.isArray(
+            s.frame?.details
+          )
+            ? s.frame.details.map(
+                (bucket) =>
+                  Array.isArray(bucket)
+                    ? bucket.filter(Boolean)
+                    : []
+              )
+            : [],
+
+        attemptedSoWhat:
+          currentSoWhat,
+
+        captureMode:
+          "strengthen",
+      },
+    }),
+
+    synthesisState:
+      soWhatValidation
+        .synthesisState || null,
+
+    validationSource:
+      soWhatValidation
+        .validationSource || null,
+
+    captureMode:
+      "strengthen",
+  };
+
+  refreshInstructionalSituationWithComponentFinding({
+    state:
+      s,
+
+    currentResponse:
+      currentSoWhat,
+
+    componentFinding:
+      instructionalFinding,
+  });
+
+  const progressionAuthorization =
+    buildProgressionAuthorization(
+      s,
+      {
+        frameComponent:
+          "soWhat",
+
+        expectedContractId:
+          "SW-RTP-001",
+      }
+    );
+
+  s.progressionAuthorization =
+    structuredClone(
+      progressionAuthorization
+    );
+
+  if (
+    !soWhatValidation.valid ||
+    progressionAuthorization
+      ?.authorized !== true
+  ) {
+    return attachGovernedSupportToPending(
+      s,
+      msg,
+      {
+        intent:
+          "stuck",
+
+        confidence:
+          1,
+
+        source:
+          `soWhatValidation:${soWhatValidation.diagnosis}`,
+
+        instructionalFinding,
+      }
+    );
+  }
+
+  s.frame.soWhat =
+    currentSoWhat;
+
+   s.pending = {
+  type:
+    "strengthenComponentComplete",
+
+  component:
+    "soWhat",
+
+  componentLabel:
+    "So What",
+
+  completedWork:
+    currentSoWhat,
+
+  revisePendingType:
+    "strengthenCurrentSoWhat",
+
+  successMessage:
+    "✅ Your So What is working as an important takeaway from your Frame.",
+
+  displayIcon:
+    "🎯",
+
+  displayLabel:
+    "So What",
+};
+  return s;
+}
+
+    if (
+  s.pending?.type ===
+  "strengthenSoWhatMainIdeas"
+) {
+  const mainIdeasText =
+    String(msg || "").trim();
+
+  const mainIdeas =
+    mainIdeasText
+      .split(/\n+/)
+      .map((idea) =>
+        cleanText(
+          idea.replace(
+            /^(?:[-•*]|\d+[.)])\s*/,
+            ""
+          )
+        )
+      )
+      .filter(Boolean);
+
+  if (mainIdeas.length === 0) {
+    return s;
+  }
+
+  s.strengthenContext
+    .mainIdeas =
+    mainIdeas;
+
+  s.pending = {
+    type:
+      "strengthenCurrentSoWhat",
+  };
+
+  return s;
+}
 
     if (
     s.pending?.type ===
