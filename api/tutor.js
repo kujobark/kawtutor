@@ -5317,6 +5317,16 @@ if (!communicationValidation.valid) {
     communicationValidation.violations
   );
 
+  activation.communicationDebug = {
+    rawResponse:
+      cleanText(response),
+
+    validation:
+      structuredClone(
+        communicationValidation
+      ),
+  };
+
   return null;
 }
 
@@ -15139,15 +15149,24 @@ async function runAICommunicationSelfTests() {
         activation
       );
 
+    const rejectedCommunication =
+      activation?.communicationDebug || null;
+    
+    const responseForInspection =
+      response ||
+      rejectedCommunication?.rawResponse ||
+      "";
+
     const communicationLicense =
       activation?.aiPayload
         ?.communicationLicense || null;
 
-    const validation =
+     const validation =
+      rejectedCommunication?.validation ||
       validateInstructionalCommunicationResponse(
-        response || "",
+        responseForInspection,
         communicationLicense
-      );
+  );
 
     const normalizedResponse =
   cleanText(response).toLowerCase();
@@ -15203,8 +15222,9 @@ const passed =
 
   passed,
 
-  response,
-
+  response:
+    responseForInspection,
+    
   expected: {
     nonEmptyResponse:
       true,
