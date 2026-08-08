@@ -20027,13 +20027,6 @@ if (!s.frame.soWhat) {
   })
 );
 
-  return (
-    "🎉 You did it! You've built a complete Frame from your Key Topic all the way through your So What.\n\n" +
-    `Your So What is: "${s.frame.soWhat}"\n\n` +
-    "Would you like to strengthen anything in your Frame before you're finished?"
-);
-}
-
 // ---------------------
 // STATE UPDATE (SSOT)
 // ---------------------
