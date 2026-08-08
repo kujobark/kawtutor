@@ -350,7 +350,7 @@ details: {
       'What is another Essential Detail that supports this Main Idea?',
 
     revisePrompt:
-      "You're close. Try adding a specific fact, example, or explanation that supports this Main Idea."
+      "📝 Let's strengthen your Essential Detail so it adds specific information that helps explain this Main Idea."
   }
 },
 
@@ -394,7 +394,7 @@ soWhat: {
       'Now let\'s think about the So What.\n\nLooking at everything in your Frame, what is the most important thing someone should understand about "{keyTopic}"?',
 
     revisePrompt:
-      "You're close. Try explaining the bigger takeaway instead of repeating one part of the Frame."
+      "🎯 Let's strengthen your So What so it explains what's important to understand from your whole Frame, rather than repeating just one part."
   }
 }
 
@@ -19324,10 +19324,10 @@ if (
     "strengthenReviseIsAbout"
   ) {
     return (
-      "✏️ Let's revise your Is About statement.\n\n" +
+      "✏️ Let's strengthen your Is About so it clearly explains what your whole Key Topic is about in your own words.\n\n" +
       "What would you like it to say instead?"
-    );
-  }
+  );
+}
 
   if (
   s.pending?.type ===
@@ -19335,7 +19335,7 @@ if (
 ) {
   return (
     "💡 What Main Ideas are in your Frame?\n\n" +
-    "You can paste them together."
+    "Share them together so we can look across your thinking before strengthening your So What."
   );
 }
 
@@ -19344,48 +19344,48 @@ if (
   "strengthenCurrentSoWhat"
 ) {
   return (
-    "🎯 What is the So What you would like to strengthen?"
-  );
+    "🎯 What does your current So What say?"
+);
 }
   
   if (
     s.pending?.type ===
     "strengthenCurrentMainIdea"
   ) {
-    return (
-      "💡 What is the Main Idea you would like to strengthen?"
-    );
-  }
+  return (
+    "💡 What does the Main Idea you want to strengthen say?"
+);
+}
 
   if (
     s.pending?.type ===
     "strengthenSupportingMainIdea"
   ) {
     return (
-      "💡 What Main Idea does this Essential Detail support?"
-    );
-  }
+      "💡 Which Main Idea does this Essential Detail help explain?"
+);
+}
 
-  if (
+ if (
     s.pending?.type ===
     "strengthenCurrentEssentialDetail"
-  ) {
-    return (
-      "📝 What is the Essential Detail you would like to strengthen?"
-    );
-  }
+) {
+  return (
+    "📝 What does the Essential Detail you want to strengthen say?"
+  );
+}
 
 if (
   s.pending?.type ===
   "strengthenSessionComplete"
 ) {
-  return (
+   return (
     "🎉 Great work today!\n\n" +
-    "You took time to think carefully about your " +
+    "You took time to look closely at your " +
     s.pending.componentLabel +
-    " and strengthen your Frame.\n\n" +
-    "That kind of reflection helps you become more independent when using the Framing Routine."
-  );
+    " and think about its role in your Frame.\n\n" +
+    "That kind of reflection helps you get better at using Frames on your own."
+);
 }
 
   if (
@@ -19440,10 +19440,10 @@ if (
       "Frame component";
 
     return (
-      `✅ I have the context for your ${label}.\n\n` +
-      "We are ready to strengthen it together."
-    );
-  }
+      `✅ We've got what we need to work on your ${label}.\n\n` +
+      "Let's strengthen it together."
+);
+}
   
   if (s.pending?.type === "confirmLanguageSwitch") {
     const candNative = s.pending?.candidateNativeName || s.pending?.candidateName || "that language";
@@ -19527,10 +19527,10 @@ if (
     getIdeaList(s)[index] || "";
 
   return (
-    `Revise Main Idea ${index + 1}:\n\n` +
+    `💡 Let's strengthen Main Idea ${index + 1}:\n\n` +
     `"${currentMainIdea}"\n\n` +
-    `What should it say instead?`
-  );
+    `What would you change so it more clearly helps explain your Key Topic?`
+);
 }
 
 if (
@@ -19576,10 +19576,10 @@ if (
       ?.[detailIndex] || "";
 
   return (
-    `Revise Essential Detail ${detailIndex + 1}:\n\n` +
+    `📝 Let's strengthen Essential Detail ${detailIndex + 1}:\n\n` +
     `"${currentDetail}"\n\n` +
-    `What should it say instead?`
-  );
+    `What would you change so it more clearly helps explain your Main Idea?`
+);
 }
 
 if (
