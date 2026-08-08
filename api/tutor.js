@@ -7507,10 +7507,35 @@ Determine only whether the student's response functions as one valid Essential D
 
 A valid Essential Detail:
 - directly supports, explains, illustrates, demonstrates, or provides evidence for the accepted Main Idea;
-- adds information that is more specific than the Main Idea;
-- can function as a fact, example, observation, explanation, event, or piece of evidence;
-- does not merely repeat the Main Idea;
+- adds concrete information that is more specific than the Main Idea;
+- helps the reader understand how, why, when, where, what happened, what resulted, what example demonstrates the idea, or what evidence supports it;
+- can function as a fact, example, observation, explanation, event, condition, action, result, or piece of evidence;
+- does not merely repeat, shorten, or make a more general statement about the Main Idea;
 - does not function primarily as a separate major organizing Main Idea.
+
+Specificity test:
+- specificEnough must be false when the response merely states a broad condition, requirement, or related idea without adding concrete supporting information.
+- A response is not specific enough merely because it is related to the Main Idea.
+- Ask whether the response gives the reader new supporting information beyond what the Main Idea already communicates.
+- If the reader would still need to ask "How?", "Why?", "What specifically?", or "What evidence shows that?", specificEnough should be false.
+
+Example:
+
+Accepted Main Idea:
+"Plants use sunlight to produce glucose."
+
+Proposed Essential Detail:
+"Plants need sunlight."
+
+This is related to the Main Idea, but it does not add concrete supporting information about how sunlight is used, why it is needed, what happens, or what evidence supports the Main Idea.
+
+For this example:
+- supportsMainIdea may be true;
+- functionsAsEssentialDetail may be emerging or context-dependent;
+- specificEnough must be false;
+- introducesSeparateMainIdea must be false.
+
+Rules:
 
 Rules:
 - Do not rewrite the student's response.
@@ -9721,6 +9746,73 @@ async function runEssentialDetailSelfTests() {
   });
 
     // --------------------------------------------------
+  // GOVERNED ESSENTIAL DETAIL SPECIFICITY REGRESSION
+  //
+  // A response may be related to the accepted Main Idea
+  // without adding enough concrete supporting information
+  // to function as an Essential Detail.
+  // --------------------------------------------------
+
+  const specificityRegressionActual =
+    await validateEssentialDetailResponseGoverned(
+      "Plants need sunlight.",
+      "Plants use sunlight to produce glucose.",
+      {
+        keyTopic:
+          "Photosynthesis",
+
+        isAbout:
+          "How plants make food using sunlight.",
+      }
+    );
+
+  const specificityRegressionPassed =
+    specificityRegressionActual
+      ?.valid === false &&
+
+    specificityRegressionActual
+      ?.relationshipEvidence
+      ?.specificEnough === false;
+
+  results.push({
+    name:
+      "ED Governed - Related but nonspecific detail is blocked",
+
+    passed:
+      specificityRegressionPassed,
+
+    response:
+      "Plants need sunlight.",
+
+    expected: {
+      valid:
+        false,
+
+      specificEnough:
+        false,
+    },
+
+    actual: {
+      valid:
+        specificityRegressionActual
+          ?.valid === true,
+
+      diagnosis:
+        specificityRegressionActual
+          ?.diagnosis || null,
+
+      specificEnough:
+        specificityRegressionActual
+          ?.relationshipEvidence
+          ?.specificEnough ?? null,
+
+      validationSource:
+        specificityRegressionActual
+          ?.validationSource || null,
+    },
+  });
+
+  // --------------------------------------------------
   // LIVE RUNTIME TEST
   //
   // Confirms that the actual first Essential Detail
