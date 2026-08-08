@@ -8632,15 +8632,18 @@ supportedByCompletedFrame:
 
 communicatesMeaningfulUnderstanding:
 - true only when the response communicates what the student understands after considering the whole Frame;
-- the response must express an actual takeaway, relationship, implication, significance, lesson, or conclusion;
-- false when the response merely says the topic is important, has effects, matters, is interesting, is good, is bad, or affects people without explaining what is important, meaningful, or consequential;
-- false for broad statements such as "Social media has important effects on teenagers" because the reader still does not know what the important understanding is.
+- the response must express an actual takeaway, relationship, implication, significance, lesson, or conclusion that becomes clear from the ideas developed in the Frame;
+- false when the response merely says the topic is important, has effects, matters, is interesting, is good, is bad, affects people, or requires someone to "be careful" without explaining the actual understanding behind that statement;
+- a recommendation or warning is not automatically a meaningful So What; the response must communicate why that recommendation or warning follows from the completed Frame;
+- false for broad statements such as "Social media has important effects on teenagers" because the reader still does not know what the important understanding is;
+- false for broad caution statements such as "Social media has good and bad effects, so teenagers should be careful" because the reader still does not know what effects matter, what the Frame shows about them, or what understanding supports the caution.
 
 specificEnoughToUnderstand:
-- true when the reader can identify the student's actual takeaway, even when the response uses a metaphor, analogy, application, or broad life truth;
+- true when the reader can identify the student's actual takeaway, even when the response uses a metaphor, analogy, application, recommendation, warning, or broad life truth;
 - false when the wording is so general that it could apply to many topics without meaningful change;
-- false when the reader would still need to ask "What effect?", "Why does it matter?", "What does this show?", or "What is the actual takeaway?";
-- specificity does not require copying Main Ideas or Essential Details.
+- false when general words such as "good," "bad," "important," "effects," "careful," or "responsible" carry the conclusion without making the underlying understanding clear;
+- false when the reader would still need to ask "What effect?", "Why does it matter?", "Why should they be careful?", "What does this show?", or "What is the actual takeaway?";
+- specificity does not require copying Main Ideas or Essential Details, but the meaning must be grounded enough that the relationship to the completed Frame is understandable.
 
 merelyRepeatsEarlierFrameContent:
 - true when the response simply restates the Key Topic, Is About statement, one Main Idea, or one Essential Detail without creating a larger understanding;
