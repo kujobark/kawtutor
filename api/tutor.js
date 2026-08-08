@@ -7557,8 +7557,6 @@ For this example:
 - introducesSeparateMainIdea must be false.
 
 Rules:
-
-Rules:
 - Do not rewrite the student's response.
 - Do not improve the student's response.
 - Do not generate a replacement Essential Detail.
@@ -19273,7 +19271,7 @@ function computeNextQuestion(state) {
     );
   }
 
- if (
+if (
   s.pending?.type ===
   "strengthenComponentSelection"
 ) {
@@ -19285,7 +19283,9 @@ function computeNextQuestion(state) {
     "    Strengthen one Main Idea from your Frame.\n\n" +
     "3️⃣  Essential Detail\n" +
     "    Strengthen one Essential Detail that supports a Main Idea.\n\n" +
-    "Reply with 1, 2, or 3."
+    "4️⃣  So What\n" +
+    "    Strengthen the important takeaway from your completed Frame.\n\n" +
+    "Reply with 1, 2, 3, or 4."
   );
 }
 
@@ -20342,6 +20342,18 @@ if (
   selectedComponent =
     "details";
 }
+
+if (
+  choice === "4" ||
+  choice === "so what" ||
+  choice === "sowhat" ||
+  choice.includes(
+    "so what"
+  )
+) {
+  selectedComponent =
+    "soWhat";
+}
     
     if (!selectedComponent) {
       return s;
@@ -20371,21 +20383,18 @@ if (
     };
 
     if (
-      selectedComponent ===
-        "isAbout" ||
-      selectedComponent ===
-        "mainIdeas" ||
-      selectedComponent ===
-        "details"
+      selectedComponent === "isAbout" ||
+      selectedComponent === "mainIdeas" ||
+      selectedComponent === "details" ||
+      selectedComponent === "soWhat"
     ) {
-      s.pending = {
-        type:
-          "strengthenCurrentTopicContext",
+        s.pending = {
+          type:
+              "strengthenCurrentTopicContext",
 
         targetComponent:
-          selectedComponent,
-      };
-
+            selectedComponent,
+    };
       return s;
     }
 
@@ -20490,6 +20499,18 @@ if (
       return s;
     }
 
+    if (
+      targetComponent ===
+      "soWhat"
+    ) {
+      s.pending = {
+        type:
+          "strengthenSoWhatFrameContext",
+      };
+
+  return s;
+}
+      
     return s;
   }
 
