@@ -6807,24 +6807,32 @@ Do not classify a response as a Main Idea merely because several
 additional facts could be written about it. Most Essential Details
 can also be explained with more information.
 
-Use the nesting test:
-
-Use the nesting test:
+Use the nesting and hierarchical-level test:
 
 - Ask whether the response naturally belongs beneath a broader
   organizing label already implied by the Frame.
 - If it does, classify it as an Essential Detail.
-- Ask whether the response represents one important organizing idea
-  or subtopic needed to help explain the accepted Key Topic and
-  Is About—not merely something related to the topic.
+
+- Ask whether the response functions at the same hierarchical level
+  as the few major ideas needed to organize and explain the accepted
+  Key Topic and Is About statement.
+
+- A response is not a Main Idea merely because it names something
+  related to the topic, could serve as a possible category, or could
+  have several facts written beneath it.
+
 - Ask whether several parallel facts, examples, conditions, actions,
   or outcomes could sit beneath the response as one coherent section
-  that contributes meaningfully to understanding the Key Topic.
-- A response is not a Main Idea merely because it could technically
-  serve as a category or because several facts could be listed beneath
-  it.
-- Only when the response functions as a significant organizing section
-  of this specific Frame may it function as a Main Idea.
+  AND whether that section represents a significant organizing part
+  of the whole Frame.
+
+- If the response is narrower than the level at which the significant
+  organizing ideas of the Frame belong, treat it as an Essential
+  Detail rather than promoting it to Main Idea status.
+
+- Only when the response functions as one of the significant
+  organizing sections of this specific Frame may it function as a
+  Main Idea.
 
 For contributing-factor Frames, distinguish the broad factor from
 one manifestation of that factor.
