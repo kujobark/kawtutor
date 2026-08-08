@@ -252,8 +252,8 @@ initialPrompt:
 revisePrompt:
   '✏️ Let\'s strengthen your Is About so it clearly explains what your whole Key Topic is about in your own words.\n\nWhat would you like it to say instead?',
 
-  confirmationPrompt:
-  '✅ Checkpoint\n\nNice work! Your Is About explains your Key Topic in your own words:\n\n{keyTopic} is about {isAbout}.\n\nDoes this accurately capture your thinking?\n\n1) Yes — Continue building my Frame.\n2) No — Revise this part.\n\nReply with 1 or 2.'
+confirmationPrompt:
+  '✅ Checkpoint\n\nNice work! Your Is About explains your Key Topic in your own words:\n\n🧩 Key Topic: {keyTopic}\n💬 Is About: {isAbout}\n\nDoes this accurately capture your thinking?\n\n1) Yes — Continue building my Frame.\n2) No — Revise this part.\n\nReply with 1 or 2.'
  }
 },
 
@@ -294,10 +294,10 @@ mainIdeas: {
     friendlyTerm: "important idea",
 
     initialPrompt:
-      'So far your Frame says:\n\n{keyTopic} is about {isAbout}.\n\nWhat is one Main Idea that helps explain your Key Topic?',
+      'So far your Frame says:\n\n🧩 Key Topic: {keyTopic}\n💬 Is About: {isAbout}\n\nWhat is one Main Idea that helps explain your Key Topic?',
 
     additionalPrompt:
-      'So far your Frame says:\n\n{keyTopic} is about {isAbout}.\n\nWhat is another Main Idea that helps explain your Key Topic?',
+      'So far your Frame says:\n\n🧩 Key Topic: {keyTopic}\n💬 Is About: {isAbout}\n\nWhat is another Main Idea that helps explain your Key Topic?',
 
     revisePrompt:
       "💡 Let's strengthen your Main Idea so it clearly connects to your Key Topic and can be explained with Essential Details.",
@@ -19611,10 +19611,10 @@ if (s.pending?.type === "reviseBuildLane") {
 }
   
 if (s.pending?.type === "confirmIsAbout") {
-  const isAboutDisplay = (s.frame.isAbout || "")
-    .trim()
-    .replace(/\.$/, "")
-    .replace(/^[A-Z]/, c => c.toLowerCase());
+  const isAboutDisplay =
+    cleanText(
+      s.frame.isAbout
+  );
 
 if (s.pending?.type === "reviseIsAbout") {
   return getComponentPrompt(
@@ -20030,13 +20030,7 @@ const displayedAssignment =
 const isAboutDisplay =
   cleanText(
     s.frame.isAbout
-  )
-    .replace(/[.!?]+$/g, "")
-    .replace(
-      /^[A-Z]/,
-      (character) =>
-        character.toLowerCase()
-    );
+  );
 
 const fallback =
   getComponentPrompt(
