@@ -4214,43 +4214,43 @@ function buildProgressionAuthorization(
 
 const INSTRUCTIONAL_COMMUNICATION = {
 
-    universal: {
+  universal: {
 
-        preserveStudentOwnership: true,
+    preserveStudentOwnership: true,
 
-        acknowledgeAuthenticProgressOnly: true,
+    acknowledgeAuthenticProgressOnly: true,
 
-        advanceOneThinkingStep: true,
+    advanceOneThinkingStep: true,
 
-        askOneIntentionalQuestion: true,
+    askOneIntentionalQuestion: true,
 
-        useInstructionalRestraint: true,
+    useInstructionalRestraint: true,
 
-        supportiveTeachingPresence: true,
+    supportiveTeachingPresence: true,
 
-        neverGenerateStudentWork: true,
+    neverGenerateStudentWork: true,
 
-        neverChangeInstructionalDecision: true
+    neverChangeInstructionalDecision: true
 
-    },
+  },
 
-    patterns: {
+  patterns: {
 
     questionOnly: {
-        instruction:
-            "Express the predetermined Thinking Move as one concise, natural question."
+      instruction:
+        "Express the predetermined Thinking Move as one concise, natural, student-friendly question. Sound like a supportive teacher speaking directly to a student, not a rubric, system message, or instructional manual. Preserve Framing Routine vocabulary when it is relevant."
     },
 
     acknowledgeThenQuestion: {
-        instruction:
-            "Briefly acknowledge authentic progress supported by the student's existing work, then express the predetermined Thinking Move as one concise question."
+      instruction:
+        "Briefly acknowledge only the authentic progress established by the Instructional Finding. When helpful, reference the student's own accepted or observable language so the response shows that Kaw is listening to their thinking. Then express the predetermined Thinking Move as one concise, natural, student-friendly question. Sound warm and encouraging without exaggerating success, evaluating beyond the established finding, or generating student work."
     },
 
-      briefReassuranceThenQuestion: {
-        instruction:
-          "Use one brief, supportive lead-in that does not imply progress or success, then express the predetermined Thinking Move as one concise question.",
-      },
+    briefReassuranceThenQuestion: {
+      instruction:
+        "Use one brief, natural, supportive lead-in that helps the student stay engaged without implying success, failure, effort, emotion, or understanding that has not been established. Then express the predetermined Thinking Move as one concise, student-friendly question. Sound like a calm, encouraging teacher rather than a system message, rubric, or scripted tutor."
     },
+  },
 };
 
 function getInstructionalCommunicationPattern(patternName) {
@@ -4327,15 +4327,21 @@ function buildInstructionalCommunicationLicense(
       mayReferenceAssignmentContext: true,
 
       mayReferenceCurrentMainIdea: true,
-
+      
       mayReferenceExistingStudentWork: true,
+      
+      mayReferenceStudentWorkVerbatim: true,
     },
 
     prohibitions: {
       mayGenerateStudentWork: false,
-
+    
       mayCompleteStudentWork: false,
-
+    
+      mayParaphraseStudentWork: false,
+    
+      mayStrengthenStudentWork: false,
+    
       maySupplyEvidence: false,
 
       mayChangeInstructionalGoal: false,
@@ -5118,28 +5124,73 @@ async function getInstructionalResponse(activation) {
   const instructionalFinding =
     payload?.instructionalFinding || null;
   
-   const system = `You are the language contextualization layer for Kaw, a structured instructional companion.
+  const system = `You are the language contextualization layer for Kaw Companion, a structured instructional companion that supports students using the KU Framing Routine.
 
 The instructional decision and instructional findings have already been established by a deterministic Instructional Reasoning Engine.
 
-Your only job is to express the predetermined Thinking Move using natural, assignment-specific language.
+You do not decide what to teach, whether student work is successful, what support the student needs, or what should happen next.
+
+Your only job is to express the predetermined Thinking Move in natural, student-facing teacher language while preserving the exact instructional decision.
+
+TEACHER VOICE
+
+Kaw should sound like a warm, attentive, encouraging teacher speaking directly with a student.
+
+Kaw's language should be:
+- natural and conversational;
+- concise and easy for a student to understand;
+- supportive without sounding artificial, overly enthusiastic, or scripted;
+- responsive to the student's actual thinking and the work already present in the Frame;
+- appropriate for middle and high school students;
+- instructionally purposeful rather than generic;
+- consistent with KU Framing Routine vocabulary when that vocabulary is relevant.
+
+Kaw should not sound like:
+- a rubric;
+- a diagnostic report;
+- a software or system message;
+- an instructional manual;
+- a generic chatbot;
+- a scripted tutor repeating the same phrases.
+
+STUDENT THINKING
+
+The student's language and ideas belong to the student.
+
+When the Communication License permits reference to existing student work:
+- use the student's actual accepted or observable language when it helps make the response feel connected to their thinking;
+- preserve the student's wording rather than rewriting it into a stronger, clearer, or more sophisticated version;
+- reference only the amount of student work needed for the current Thinking Move;
+- never turn a reference to student work into a model answer, completion, or replacement.
+
+INSTRUCTIONAL RESTRAINT
+
+Advance only the one Thinking Move that has already been selected.
+
+Do not add a second teaching move, extra task, additional question, example answer, hint, explanation, or new instructional demand unless the predetermined Thinking Move explicitly requires it.
+
+The goal is not to say everything that might be helpful. The goal is to say the right thing for this instructional moment.
+
+COMMUNICATION GOVERNANCE
 
 You must follow these rules:
 - The Communication License is authoritative and binding.
 - Perform only actions explicitly permitted by the Communication License.
-- Never perform an action prohibited by the Communication License, even if it might produce a helpful response.
-- Do not rewrite or complete student work.
+- Never perform an action prohibited by the Communication License, even if it might seem helpful.
+- Do not rewrite, improve, complete, or generate student work.
 - Do not change the Instructional Goal, Teaching Move, or Thinking Move.
 - Do not reinterpret, expand, weaken, strengthen, or replace the established Instructional Finding.
 - Do not infer student intent, understanding, confusion, emotion, effort, motivation, or meaning.
-- Do not claim that a response supports or fails to support the Main Idea unless the established Instructional Finding explicitly says so.
-- When relationship status is undetermined, preserve that uncertainty and ask for observable information that would make the relationship clearer.
-- Preserve student ownership.
+- Do not make claims about success, progress, correctness, relationships, or quality unless the established Instructional Finding and Communication License permit that claim.
+- When relationship status is undetermined, preserve that uncertainty rather than resolving it yourself.
+- Preserve student ownership at all times.
 - Follow the Approved Communication Instruction exactly.
 - Ask exactly one concise question.
-- You may include one brief student-facing lead-in before the question only when the Approved Communication Instruction requires it.
-- Any acknowledgement must be directly supported by the established Instructional Finding.
-- Before responding, silently verify that the response remains within every permission and prohibition in the Communication License.
+- Include a brief student-facing lead-in only when the Approved Communication Instruction permits or requires it.
+- Any acknowledgement or reassurance must stay within the evidence established by the Instructional Finding.
+- Use Framing Routine terms such as Key Topic, Is About, Main Idea, Essential Detail, and So What accurately and naturally when relevant.
+- Do not expose internal terms such as Instructional Finding, Instructional Situation, Teaching Move, Thinking Move, Communication License, contract, diagnosis, evidence state, or support level to the student.
+- Before responding, silently verify that the response stays within every permission and prohibition in the Communication License.
 - Return only the complete student-facing response.`;
   
   const user = `Contract ID:
@@ -5219,9 +5270,15 @@ ${currentSoWhat || "(none yet)"}
 
 Express the predetermined Thinking Move as one natural, assignment-specific student-facing response.
 
-Use only instructional conclusions explicitly contained in the Established Instructional Finding.
+Follow the Approved Communication Instruction and Communication License exactly.
 
-Do not introduce praise, alignment claims, diagnoses, assumptions, or interpretations that were not deterministically established.
+Use the student's existing accepted or observable language when the license permits it and when doing so helps connect the response to the student's thinking.
+
+Use only instructional conclusions explicitly established by the Instructional Finding.
+
+Do not introduce unsupported praise, success claims, relationship claims, diagnoses, assumptions, interpretations, examples, hints, or student work.
+
+Do not expose internal governance or architecture language to the student.
 
 Ask exactly one question.`;
   
@@ -15092,50 +15149,105 @@ async function runAICommunicationSelfTests() {
         communicationLicense
       );
 
-    const passed =
-      !!response &&
-      validation.valid &&
-      validation.questionCount === 1;
+    const normalizedResponse =
+  cleanText(response).toLowerCase();
 
-    results.push({
-      name:
-        test.name,
+const internalArchitectureTerms = [
+  "instructional finding",
+  "instructional situation",
+  "teaching move",
+  "thinking move",
+  "communication license",
+  "evidence state",
+  "support level",
+  "contract id",
+  "diagnosis",
+];
 
-      passed,
+const exposesInternalArchitecture =
+  internalArchitectureTerms.some(
+    (term) =>
+      normalizedResponse.includes(term)
+  );
 
-      diagnosis:
-        test.diagnosis,
+const unsupportedSuccessLanguage = [
+  "great job",
+  "good job",
+  "excellent",
+  "nice work",
+  "well done",
+  "you got it",
+  "you are correct",
+  "that's correct",
+  "that is correct",
+  "strong answer",
+  "great answer",
+];
 
-      response:
-        response || null,
+const makesUnsupportedSuccessClaim =
+  unsupportedSuccessLanguage.some(
+    (phrase) =>
+      normalizedResponse.includes(phrase)
+  );
 
-      expected: {
-        nonEmptyResponse: true,
-        validLicenseResponse: true,
-        questionCount: 1,
-        relationshipStatus:
-          test.relationshipStatus,
-      },
+const passed =
+  !!response &&
+  validation.valid &&
+  validation.questionCount === 1 &&
+  !exposesInternalArchitecture &&
+  !makesUnsupportedSuccessClaim;
 
-      actual: {
-        nonEmptyResponse:
-          !!response,
+  results.push({
+  name:
+    test.name,
 
-        validLicenseResponse:
-          validation.valid,
+  passed,
 
-        questionCount:
-          validation.questionCount,
+  response,
 
-        violations:
-          validation.violations,
+  expected: {
+    nonEmptyResponse:
+      true,
 
-        relationshipStatus:
-          communicationLicense
-            ?.relationshipStatus || null,
-      },
-    });
-  }
+    validLicenseResponse:
+      true,
+
+    questionCount:
+      1,
+
+    exposesInternalArchitecture:
+      false,
+
+    makesUnsupportedSuccessClaim:
+      false,
+
+    relationshipStatus:
+      test.relationshipStatus,
+  },
+
+  actual: {
+    nonEmptyResponse:
+      !!response,
+
+    validLicenseResponse:
+      validation.valid,
+
+    questionCount:
+      validation.questionCount,
+
+    exposesInternalArchitecture,
+
+    makesUnsupportedSuccessClaim,
+
+    violations:
+      validation.violations,
+
+    relationshipStatus:
+      communicationLicense
+        ?.relationshipStatus || null,
+  },
+});
+}
 
   const passedCount =
     results.filter(
