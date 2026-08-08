@@ -19296,13 +19296,13 @@ if (
   return (
     "🔧 Which part of your Frame would you like to strengthen?\n\n" +
     "1️⃣  Is About\n" +
-    "    Clarify what your Key Topic is about.\n\n" +
+    "    Strengthen how you explain what your Key Topic is about.\n\n" +
     "2️⃣  Main Idea\n" +
-    "    Strengthen one Main Idea from your Frame.\n\n" +
+    "    Strengthen one Main Idea that helps explain your Key Topic.\n\n" +
     "3️⃣  Essential Detail\n" +
-    "    Strengthen one Essential Detail that supports a Main Idea.\n\n" +
+    "    Strengthen one Essential Detail that helps explain a Main Idea.\n\n" +
     "4️⃣  So What\n" +
-    "    Strengthen the important takeaway from your completed Frame.\n\n" +
+    "    Strengthen what is important to understand from your whole Frame.\n\n" +
     "Reply with 1, 2, 3, or 4."
   );
 }
@@ -19312,12 +19312,12 @@ if (
     "strengthenCurrentTopicContext"
   ) {
     return (
-      "🧭 Before we begin, remind me what your Frame is about.\n\n" +
+      "🧭 Before we strengthen this part, remind me what your Frame is about.\n\n" +
       "Please share both parts:\n\n" +
       "🔑 Key Topic:\n" +
       "🧩 Is About:"
-    );
-  }
+  );
+}
 
     if (
     s.pending?.type ===
@@ -19406,12 +19406,12 @@ if (
     ":\n" +
     completedWork +
     "\n\n" +
-    "Would you like to:\n\n" +
+    "What would you like to do next?\n\n" +
     "1️⃣ Keep it as written and end this session\n" +
     "2️⃣ Strengthen it further\n" +
     "3️⃣ Strengthen another part of your Frame\n\n" +
     "Reply with 1, 2, or 3."
-  );
+);
 }
   
   if (
@@ -19735,28 +19735,28 @@ if (
   
 if (s.pending?.type === "offerMoreSoWhat") {
   return (
-    "📋 You currently have a So What statement.\n\n" +
-    "Would you like to add another sentence?\n\n" +
+    "✅ You've created your So What.\n\n" +
+    "Would you like to add another sentence to strengthen it further?\n\n" +
     "1) Yes — Add another sentence.\n" +
     "2) No — Continue.\n\n" +
     "Reply with 1 or 2."
-  );
+);
 }
 
 if (s.pending?.type === "collectMoreSoWhat") {
-  return "Add one more sentence to your So What:";
+  return "🎯 What would you like to add to strengthen your So What?";
 }
 
 if (s.pending?.type === "confirmSoWhat") {
   if (s.pending?.awaitingRevision) {
-    return "What would you like your revised So What to say?";
+    return "🎯 Let's strengthen your So What. What would you like it to say instead?";
   }
 
   return (
     `🎯 Here's the So What you created:\n\n` +
     `"${s.frame.soWhat}"\n\n` +
     `Does this capture what's important to understand from your Frame, or would you like to revise it?`
-);
+  );
 }
 
 if (s.pending?.type === "offerExport") {
