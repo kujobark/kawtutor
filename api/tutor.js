@@ -12233,6 +12233,37 @@ async function runMainIdeaSelfTests() {
 
     {
       name:
+        "MI - Restates Is About without new organizing content",
+
+      response:
+        "Plants make food.",
+
+      keyTopic:
+        "Photosynthesis",
+
+      isAbout:
+        "How plants make food using sunlight.",
+
+      expected: {
+        valid:
+          false,
+
+        componentEvidenceLevel:
+          "limited",
+
+        componentCriteriaStatus:
+          "notSatisfied",
+
+        relationshipStatus:
+          "notEstablished",
+
+        diagnosis:
+          "repeatsIsAbout",
+      },
+    },
+    
+    {
+      name:
         "MI - One-word response",
 
       response:
