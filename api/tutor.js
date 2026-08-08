@@ -6444,6 +6444,76 @@ function validateMainIdeaResponse(
   }
 
   // --------------------------------------------------
+// RESTATES IS ABOUT WITHOUT NEW ORGANIZATION
+//
+// A Main Idea must add one organizing idea beyond the
+// accepted whole-topic Is About statement.
+//
+// When every meaningful content token in the proposed
+// Main Idea already appears in the accepted Is About,
+// the response has not yet established a distinct
+// organizing contribution.
+//
+// This check uses observable lexical containment only.
+// It does not infer semantic equivalence.
+// --------------------------------------------------
+
+const mainIdeaContentTokens =
+  getInstructionalContentTokens(
+    text
+  );
+
+const isAboutContentTokens =
+  getInstructionalContentTokens(
+    isAbout
+  );
+
+const isAboutTokenSet =
+  new Set(
+    isAboutContentTokens
+  );
+
+const mainIdeaAddsNoNewContent =
+  mainIdeaContentTokens.length > 0 &&
+  isAboutContentTokens.length > 0 &&
+  mainIdeaContentTokens.every(
+    (token) =>
+      isAboutTokenSet.has(token)
+  );
+
+if (mainIdeaAddsNoNewContent) {
+  return {
+    valid:
+      false,
+
+    componentEvidenceLevel:
+      "limited",
+
+    componentCriteriaStatus:
+      "notSatisfied",
+
+    relationshipStatus:
+      "notEstablished",
+
+    diagnosis:
+      "repeatsIsAbout",
+
+    relationshipEvidence: {
+      addsNewOrganizingContent:
+        false,
+
+      responseContentTokens:
+        mainIdeaContentTokens,
+
+      isAboutContentTokens,
+
+      readerInferenceRequired:
+        false,
+    },
+  };
+}
+
+  // --------------------------------------------------
   // INSUFFICIENT OBSERVABLE EVIDENCE
   //
   // One-word responses do not provide enough observable
