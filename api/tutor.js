@@ -7589,13 +7589,16 @@ const isAbout =
     return {
       supportsMainIdea:
         false,
-
+      
+      supportingRelationshipExpressed:
+        false,
+      
       functionsAsEssentialDetail:
         false,
-
+      
       specificEnough:
         false,
-
+      
       introducesSeparateMainIdea:
         false,
 
@@ -7628,6 +7631,14 @@ Relationship test:
 - Do not use the surrounding Frame context to supply a connection the student did not express.
 - If a reasonable reader must infer why the detail supports the Main Idea, supportsMainIdea must be false.
 - The student does not need to use a particular connector word such as "because," "shows," or "supports"; the relationship may be expressed naturally in any wording.
+
+supportingRelationshipExpressed test:
+- supportingRelationshipExpressed is true only when the student's own words communicate enough of the connection for a reasonable reader to understand how the proposed Essential Detail supports or explains the accepted Main Idea.
+- It must be false when the response is merely relevant to the Main Idea or contains an internal cause-and-effect relationship but still requires an additional unstated bridge to the Main Idea.
+- Do not infer or supply that missing bridge from the surrounding Frame.
+- The supporting relationship may be expressed using different vocabulary from the Main Idea; exact word overlap is not required.
+- Example: "Notifications and messages can make it hard to disconnect." contains a relationship inside the detail, but it does not yet explain how being unable to disconnect supports the Main Idea "Social media can increase anxiety and stress." Therefore supportingRelationshipExpressed must be false.
+- Example: "Feeling like they always need to check notifications can keep teenagers tense and make it harder for them to relax." communicates the consequential connection in the student's own words. Therefore supportingRelationshipExpressed may be true even though it does not repeat the exact words "anxiety" or "stress."
 
 Specificity test:
 - specificEnough must be false when the response merely states a broad condition, requirement, or related idea without adding concrete supporting information.
@@ -7718,17 +7729,22 @@ Determine whether the student's response functions as one essential detail benea
                 supportsMainIdea: {
                   type:
                     "boolean",
-                },
+              },
 
-                functionsAsEssentialDetail: {
-                  type:
-                    "boolean",
-                },
+              supportingRelationshipExpressed: {
+                type:
+                  "boolean",
+              },
 
-                specificEnough: {
-                  type:
-                    "boolean",
-                },
+              functionsAsEssentialDetail: {
+                type:
+                  "boolean",
+              },
+
+              specificEnough: {
+                type:
+                  "boolean",
+              },
 
                 introducesSeparateMainIdea: {
                   type:
@@ -7747,13 +7763,14 @@ Determine whether the student's response functions as one essential detail benea
                 },
               },
 
-              required: [
-                "supportsMainIdea",
-                "functionsAsEssentialDetail",
-                "specificEnough",
-                "introducesSeparateMainIdea",
-                "confidence",
-              ],
+             required: [
+              "supportsMainIdea",
+              "supportingRelationshipExpressed",
+              "functionsAsEssentialDetail",
+              "specificEnough",
+              "introducesSeparateMainIdea",
+              "confidence",
+            ],
             },
           },
         },
@@ -7793,6 +7810,10 @@ Determine whether the student's response functions as one essential detail benea
         parsed.supportsMainIdea ===
         true,
 
+      supportingRelationshipExpressed:
+        parsed.supportingRelationshipExpressed ===
+        true,
+
       functionsAsEssentialDetail:
         parsed.functionsAsEssentialDetail ===
         true,
@@ -7827,6 +7848,9 @@ Determine whether the student's response functions as one essential detail benea
 
     return {
       supportsMainIdea:
+        false,
+
+      supportingRelationshipExpressed:
         false,
 
       functionsAsEssentialDetail:
@@ -7966,16 +7990,12 @@ async function validateEssentialDetailResponseGoverned(
   // contract to the bounded semantic evidence.
   // --------------------------------------------------
 
-const studentExpressedRelationship =
-  deterministicResult
-    ?.relationshipEvidence
-    ?.hasRelationshipLanguage === true;
-
 const relationshipEstablished =
-  studentExpressedRelationship === true &&
-
   semanticEvidence
     .supportsMainIdea === true &&
+
+  semanticEvidence
+    .supportingRelationshipExpressed === true &&
 
   semanticEvidence
     .functionsAsEssentialDetail === true &&
@@ -8083,6 +8103,10 @@ const relationshipEstablished =
         semanticEvidence
           .supportsMainIdea,
 
+      supportingRelationshipExpressed:
+        semanticEvidence
+          .supportingRelationshipExpressed,
+      
       functionsAsEssentialDetail:
         semanticEvidence
           .functionsAsEssentialDetail,
