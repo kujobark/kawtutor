@@ -20024,9 +20024,10 @@ if (!s.frame.soWhat) {
   `Is About: ${s.frame.isAbout}\n\n` +
   getComponentPrompt("soWhat", "initialPrompt", {
     keyTopic: s.frame.keyTopic
-  })
-);
-
+ );
+}
+}
+      
 // ---------------------
 // STATE UPDATE (SSOT)
 // ---------------------
