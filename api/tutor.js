@@ -18805,7 +18805,7 @@ s.pending =
           "strengthenReviseIsAbout",
 
         successMessage:
-          "✅ Your Is About statement is working as a clear explanation of what your Key Topic is about.",
+          "🧩 Nice work! Your Is About clearly explains what your whole Key Topic is about."
 
         displayIcon:
           "🧩",
@@ -19100,7 +19100,7 @@ return s;
     "strengthenCurrentMainIdea",
 
   successMessage:
-    "✅ Your Main Idea is working as a larger idea that helps organize this Frame.",
+    "💡 You got it! Your Main Idea captures a key idea that your Essential Details can help explain.",
 
   displayIcon:
     "💡",
@@ -19375,19 +19375,18 @@ if (
     );
   }
 
-    if (
-    s.pending?.type ===
-    "strengthenSessionComplete"
-  ) {
-    return (
-      "🎉 Nice work!\n\n" +
-      "Your " +
-      s.pending.componentLabel +
-      " is stronger and better supports your Frame.\n\n" +
-      "Keep up the great thinking!\n\n" +
-      "I'll be here whenever you'd like to strengthen another part of your Frame."
+if (
+  s.pending?.type ===
+  "strengthenSessionComplete"
+) {
+  return (
+    "🎉 Great work today!\n\n" +
+    "You took time to think carefully about your " +
+    s.pending.componentLabel +
+    " and strengthen your Frame.\n\n" +
+    "That kind of reflection helps you become more independent when using the Framing Routine."
   );
-  }
+}
 
   if (
   s.pending?.type ===
@@ -20744,7 +20743,7 @@ if (
     "strengthenCurrentSoWhat",
 
   successMessage:
-    "✅ Your So What is working as an important takeaway from your Frame.",
+    "🎯 Great work! Your So What captures what is important to understand after looking across your Frame.",
 
   displayIcon:
     "🎯",
@@ -20977,7 +20976,7 @@ if (
     "strengthenCurrentEssentialDetail",
 
   successMessage:
-    "✅ Your Essential Detail is working as specific support for your Main Idea.",
+    "📝 Nice thinking! Your Essential Detail adds important information that helps explain your Main Idea.",
 
   displayIcon:
     "📝",
