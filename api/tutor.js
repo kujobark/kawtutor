@@ -19447,14 +19447,14 @@ if (
 ) {
   return (
     "🔧 Which part of your Frame would you like to strengthen?\n\n" +
-    "1️⃣  Is About\n" +
-    "    Strengthen how you explain what your Key Topic is about.\n\n" +
-    "2️⃣  Main Idea\n" +
-    "    Strengthen one Main Idea that helps explain your Key Topic.\n\n" +
-    "3️⃣  Essential Detail\n" +
-    "    Strengthen one Essential Detail that helps explain a Main Idea.\n\n" +
-    "4️⃣  So What\n" +
-    "    Strengthen what is important to understand from your whole Frame.\n\n" +
+    "1) 💬 Is About\n" +
+    "   Strengthen how you explain what your Key Topic is about.\n\n" +
+    "2) 💡 Main Idea\n" +
+    "   Strengthen one Main Idea that helps explain your Key Topic.\n\n" +
+    "3) ✍️ Essential Detail\n" +
+    "   Strengthen one Essential Detail that helps explain a Main Idea.\n\n" +
+    "4) 🎯 So What\n" +
+    "   Strengthen what is important to understand from your whole Frame.\n\n" +
     "Reply with 1, 2, 3, or 4."
   );
 }
@@ -19471,42 +19471,45 @@ if (
   );
 }
 
-    if (
-    s.pending?.type ===
-    "strengthenReviseIsAbout"
-  ) {
-    return (
-      "✏️ Let's strengthen your Is About so it clearly explains what your whole Key Topic is about in your own words.\n\n" +
-      "What would you like it to say instead?"
+  if (
+  s.pending?.type ===
+  "strengthenReviseIsAbout"
+) {
+  return (
+    "💬 Is About\n\n" +
+    "Let's strengthen your Is About so it clearly explains what your whole Key Topic is about in your own words.\n\n" +
+    "What would you like it to say instead?"
   );
 }
 
-  if (
+if (
   s.pending?.type ===
   "strengthenSoWhatMainIdeas"
 ) {
   return (
-    "💡 What Main Ideas are in your Frame?\n\n" +
-    "Share them together so we can look across your thinking before strengthening your So What."
+    "💡 Main Ideas\n\n" +
+    "Share the Main Ideas from your Frame so we can look across your thinking before strengthening your So What."
   );
 }
 
   if (
-  s.pending?.type ===
-  "strengthenCurrentSoWhat"
+    s.pending?.type ===
+    "strengthenCurrentSoWhat"
 ) {
   return (
-    "🎯 What does your current So What say?"
-);
+    "🎯 So What\n\n" +
+    "What does your current So What say?"
+  );
 }
   
   if (
-    s.pending?.type ===
-    "strengthenCurrentMainIdea"
-  ) {
+  s.pending?.type ===
+  "strengthenCurrentMainIdea"
+) {
   return (
-    "💡 What does the Main Idea you want to strengthen say?"
-);
+    "💡 Main Idea\n\n" +
+    "What does the Main Idea you want to strengthen say?"
+  );
 }
 
   if (
@@ -19514,7 +19517,8 @@ if (
     "strengthenSupportingMainIdea"
   ) {
     return (
-      "💡 Which Main Idea does this Essential Detail help explain?"
+      "💡 Main Idea\n\n" +
+      "What Main Idea does this Essential Detail help explain?"
 );
 }
 
@@ -19555,46 +19559,46 @@ if (
     s.pending.displayIcon +
     " " +
     s.pending.displayLabel +
-    ":\n" +
+    "\n\n" +
     completedWork +
     "\n\n" +
     "What would you like to do next?\n\n" +
-    "1️⃣ Keep it as written and end this session\n" +
-    "2️⃣ Strengthen it further\n" +
-    "3️⃣ Strengthen another part of your Frame\n\n" +
+    "1) Keep it as written and end this session.\n" +
+    "2) Strengthen it further.\n" +
+    "3) Strengthen another part of my Frame.\n\n" +
     "Reply with 1, 2, or 3."
-);
+  );
 }
   
   if (
-    s.pending?.type ===
-    "strengthenReadyForGovernedConnection"
-  ) {
-    const componentLabels = {
-      keyTopic:
-        "Key Topic",
+  s.pending?.type ===
+  "strengthenReadyForGovernedConnection"
+) {
+  const componentLabels = {
+    keyTopic:
+      "Key Topic",
 
-      isAbout:
-        "Is About statement",
+    isAbout:
+      "Is About",
 
-      mainIdeas:
-        "Main Idea",
+    mainIdeas:
+      "Main Idea",
 
-      details:
-        "Essential Detail",
-    };
+    details:
+      "Essential Detail",
+  };
 
-    const label =
-      componentLabels[
-        s.strengthenContext
-          ?.targetComponent
-      ] ||
-      "Frame component";
+  const label =
+    componentLabels[
+      s.strengthenContext
+        ?.targetComponent
+    ] ||
+    "Frame component";
 
-    return (
-      `✅ We've got what we need to work on your ${label}.\n\n` +
-      "Let's strengthen it together."
-);
+  return (
+    `➡️ Ready to strengthen your ${label}\n\n` +
+    "We've got the context we need. Let's work on it together."
+  );
 }
   
 if (
@@ -19694,9 +19698,10 @@ if (
     getIdeaList(s)[index] || "";
 
   return (
-    `💡 Let's strengthen Main Idea ${index + 1}:\n\n` +
+    `💡 Main Idea ${index + 1}\n\n` +
     `"${currentMainIdea}"\n\n` +
-    `What would you change so it more clearly helps explain your Key Topic?`
+    `Let's strengthen this Main Idea so it more clearly helps explain your Key Topic.\n\n` +
+    `What would you change?`
 );
 }
 
@@ -19745,9 +19750,11 @@ if (
       ?.[detailIndex] || "";
 
   return (
-    `📝 Let's strengthen Essential Detail ${detailIndex + 1}:\n\n` +
+    `✍️ Essential Detail ${detailIndex + 1}\n\n` +
     `"${currentDetail}"\n\n` +
-    `What would you change so it more clearly helps explain your Main Idea?`
+    `Let's strengthen this Essential Detail so it adds specific information that helps explain your Main Idea.\n\n` +
+    `What would you change?`
+);
 );
 }
 
