@@ -19524,8 +19524,9 @@ if (
     .join("\n");
 
   return (
-    `💡 Which Main Idea would you like to strengthen?\n\n` +
+    `💡 You've built these Main Ideas:\n\n` +
     `${lines}\n\n` +
+    `Which one would you like to strengthen?\n\n` +
     `Reply with the number.`
   );
 }
@@ -19569,12 +19570,13 @@ if (
     .join("\n");
 
   return (
-    `📝 Which Essential Detail would you like to strengthen?\n\n` +
+    `📝 You've built these Essential Details:\n\n` +
     `${lines}\n\n` +
+    `Which one would you like to strengthen?\n\n` +
     `Reply with the number.`
   );
 }
-
+  
 if (
   s.pending?.type ===
   "reviseDetailAt"
@@ -19717,10 +19719,10 @@ if (
       : "your So What statement";
 
   return (
-    `What is Essential Detail ${nextDetailNumber} for Main Idea ${index + 1}?\n` +
-    `"${currentMainIdea}"\n\n` +
-    `💡 This additional Essential Detail is optional and can help strengthen your Frame.\n\n` +
-    `Add another Essential Detail, or reply with 2 to review these Details and continue to ${nextDestination}.`
+    `📝 You can add another Essential Detail to strengthen this Main Idea further.\n\n` +
+    `Main Idea ${index + 1}: "${currentMainIdea}"\n\n` +
+    `What is Essential Detail ${nextDetailNumber}?\n\n` +
+    `Or reply with 2 to review your Essential Details and continue to ${nextDestination}.`
   );
 }
 
@@ -19762,16 +19764,21 @@ if (
   
 if (s.pending?.type === "offerMoreSoWhat") {
   return (
-    "✅ You've created your So What.\n\n" +
+    "✅ You've created your So What:\n\n" +
+    `"${s.frame.soWhat}"\n\n` +
     "Would you like to add another sentence to strengthen it further?\n\n" +
     "1) Yes — Add another sentence.\n" +
     "2) No — Continue.\n\n" +
     "Reply with 1 or 2."
-);
+  );
 }
 
 if (s.pending?.type === "collectMoreSoWhat") {
-  return "🎯 What would you like to add to strengthen your So What?";
+  return (
+    `🎯 Your So What currently says:\n\n` +
+    `"${s.frame.soWhat}"\n\n` +
+    `What would you like to add to strengthen it further?`
+  );
 }
 
 if (s.pending?.type === "confirmSoWhat") {
@@ -19791,7 +19798,9 @@ if (
   "offerExport"
 ) {
   return (
-    "📋 Your Frame is complete! What would you like to do next?\n\n" +
+    "🎉 Your Frame is complete!\n\n" +
+    "You've built your Key Topic, Is About, Main Ideas, Essential Details, and So What into one complete Frame.\n\n" +
+    "What would you like to do next?\n\n" +
     "1) Save or print my Frame.\n" +
     "2) Finish without saving.\n\n" +
     "Reply with 1 or 2."
@@ -19954,7 +19963,7 @@ const fallback = (
 if (i === 0 && detailNum === 1) {
   return (
     "💡 Great work! You've identified the Main Ideas that help explain your Key Topic.\n\n" +
-    "➡️ Now let's support each Main Idea with Essential Details.\n\n" +
+    "➡️ Now let's add Essential Details that help explain each Main Idea.\n\n" +
     `${miLabel} ${i + 1}\n` +
     `${mi}\n\n` +
     `✍️ ${dLabel} ${detailNum}\n\n` +
@@ -19972,7 +19981,7 @@ if (i > 0 && detailNum === 1) {
 
   return (
     `🙌 Nicely done! You've added the Essential Details that help explain your ${completedLabel} Main Idea.\n\n` +
-    `➡️ Now let's support ${miLabel} ${i + 1}.\n\n` +
+    `➡️ Now let's add Essential Details that help explain ${miLabel} ${i + 1}.\n\n` +
     `${miLabel} ${i + 1}\n` +
     `${mi}\n\n` +
     `✍️ ${dLabel} ${detailNum}\n\n` +
