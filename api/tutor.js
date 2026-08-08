@@ -7615,11 +7615,19 @@ Determine only whether the student's response functions as one valid Essential D
 
 A valid Essential Detail:
 - directly supports, explains, illustrates, demonstrates, or provides evidence for the accepted Main Idea;
+- makes the supporting relationship understandable from the student's response itself rather than requiring the reader to infer the connection from the surrounding Frame;
 - adds concrete information that is more specific than the Main Idea;
 - helps the reader understand how, why, when, where, what happened, what resulted, what example demonstrates the idea, or what evidence supports it;
 - can function as a fact, example, observation, explanation, event, condition, action, result, or piece of evidence;
 - does not merely repeat, shorten, or make a more general statement about the Main Idea;
 - does not function primarily as a separate major organizing Main Idea.
+
+Relationship test:
+- supportsMainIdea must be true only when the student's response itself communicates how the proposed Essential Detail supports, explains, illustrates, demonstrates, or provides evidence for the accepted Main Idea.
+- A response may be clearly related to the Main Idea while still leaving the supporting relationship unstated.
+- Do not use the surrounding Frame context to supply a connection the student did not express.
+- If a reasonable reader must infer why the detail supports the Main Idea, supportsMainIdea must be false.
+- The student does not need to use a particular connector word such as "because," "shows," or "supports"; the relationship may be expressed naturally in any wording.
 
 Specificity test:
 - specificEnough must be false when the response merely states a broad condition, requirement, or related idea without adding concrete supporting information.
@@ -7650,8 +7658,8 @@ Rules:
 - Do not teach the content.
 - Do not judge grammar, spelling, style, or factual accuracy.
 - Do not require exact words from the Main Idea.
-- Do not require explicit connector words such as "because," "shows," or "supports."
-- Evaluate the instructional relationship within the complete Frame context provided.
+- Do not require a particular connector word such as "because," "shows," or "supports."
+- Use the complete Frame context to understand what the student is discussing, but never use that context to supply an unstated supporting relationship.
 - Essential Details on a Frame may be concise words or phrases rather than complete sentences.
 - Do not reduce confidence merely because a valid Essential Detail is brief.
 - Confidence represents how clearly the response functions beneath the accepted Main Idea within the supplied Frame—not certainty about outside factual knowledge.
