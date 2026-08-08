@@ -19535,13 +19535,13 @@ if (
   s.pending?.type ===
   "strengthenSessionComplete"
 ) {
-   return (
+  return (
     "🎉 Great work today!\n\n" +
     "You took time to look closely at your " +
     s.pending.componentLabel +
-    " and think about its role in your Frame.\n\n" +
+    " and strengthen your thinking.\n\n" +
     "That kind of reflection helps you get better at using Frames on your own."
-);
+  );
 }
 
   if (
