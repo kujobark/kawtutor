@@ -20522,6 +20522,61 @@ return s;
   return s;
 }
 
+// --------------------------------------------------
+// IS ABOUT CONFIRMATION
+//
+// The accepted Is About has already passed governed
+// validation and progression authorization.
+//
+// This checkpoint allows the student to either:
+// • confirm the accepted Is About and continue; or
+// • return to the same component to revise their own work.
+//
+// Confirmation does not revalidate, rewrite, or alter
+// accepted student thinking.
+// --------------------------------------------------
+
+if (
+  s.pending?.type ===
+  "confirmIsAbout"
+) {
+  const choice =
+    msg
+      .toLowerCase()
+      .trim();
+
+  if (
+    choice === "1" ||
+    choice === "yes" ||
+    choice.includes("continue") ||
+    choice.includes("accurate") ||
+    choice.includes("correct") ||
+    choice.includes("right")
+  ) {
+    s.pending =
+      null;
+
+    return s;
+  }
+
+  if (
+    choice === "2" ||
+    choice === "no" ||
+    choice.includes("revise") ||
+    choice.includes("change") ||
+    choice.includes("not quite")
+  ) {
+    s.pending = {
+      type:
+        "reviseIsAbout",
+    };
+
+    return s;
+  }
+
+  return s;
+}
+
     if (
     s.pending?.type ===
     "strengthenComponentSelection"
