@@ -19786,7 +19786,10 @@ if (s.pending?.type === "confirmSoWhat") {
   );
 }
 
-if (s.pending?.type === "offerExport") {
+if (
+  s.pending?.type ===
+  "offerExport"
+) {
   return (
     "📋 Your Frame is complete! What would you like to do next?\n\n" +
     "1) Save or print my Frame.\n" +
@@ -19795,13 +19798,18 @@ if (s.pending?.type === "offerExport") {
   );
 }
 
-return (
-  "📄 What would you like to save or print?\n\n" +
-  "1) My Frame\n" +
-  "2) My conversation with Kaw\n" +
-  "3) Both\n\n" +
-  "Reply with frame, transcript, or both."
-);
+if (
+  s.pending?.type ===
+  "chooseExportType"
+) {
+  return (
+    "📄 What would you like to save or print?\n\n" +
+    "1) My Frame\n" +
+    "2) My conversation with Kaw\n" +
+    "3) Both\n\n" +
+    "Reply with frame, transcript, or both."
+  );
+}
 
   // Base progression
   if (!s.frameMeta?.assignmentContext?.raw) {
