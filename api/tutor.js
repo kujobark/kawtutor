@@ -18805,11 +18805,11 @@ s.pending =
           "strengthenReviseIsAbout",
 
         successMessage:
-          "🧩 Nice work! Your Is About clearly explains what your whole Key Topic is about."
+          "🧩 Nice work! Your Is About clearly explains what your whole Key Topic is about.",
 
         displayIcon:
           "🧩",
-
+      
         displayLabel:
           "Is About",
       }
