@@ -303,8 +303,8 @@ mainIdeas: {
       "💡 Let's strengthen your Main Idea so it clearly connects to your Key Topic and can be explained with Essential Details.",
 
     confirmationPrompt:
-      '✅ Checkpoint\n\nYou\'ve built these Main Ideas to help explain your Key Topic:\n\n{mainIdeasList}\n\nDoes this accurately capture your thinking?\n\n📋 Choose an option:\n\n1) Yes — Continue building my Frame.\n2) No — Revise one Main Idea.\n\nReply with 1 or 2.'
-  }
+      '✅ Checkpoint\n\n💡 Main Ideas\n\nYou\'ve built these Main Ideas to help explain your Key Topic:\n\n{mainIdeasList}\n\nDoes this accurately capture your thinking?\n\n1) Yes — Continue building my Frame.\n2) No — Revise one Main Idea.\n\nReply with 1 or 2.'
+    }
 },
 
 details: {
@@ -20056,7 +20056,7 @@ if (
       "What does your assignment ask you to think about or accomplish?"
   );
 }
-  
+
 if (!s.frame.keyTopic) {
   const assignment =
     s.frameMeta?.assignmentContext?.studentSummary ||
@@ -20069,7 +20069,7 @@ if (!s.frame.keyTopic) {
     assignment.slice(1);
 
   return (
-    "Let's start with your Key Topic.\n\n" +
+    "🧩 Key Topic\n\n" +
     `${displayedAssignment}\n\n` +
     "What is the main topic you'll be exploring in this Frame?"
   );
@@ -20087,45 +20087,44 @@ if (!s.frame.isAbout) {
     assignment.slice(1);
 
   return (
-  `${displayedAssignment}\n\n` +
-  `🧩 Your Key Topic is "${s.frame.keyTopic}".\n\n` +
-  `Now let's describe it in your own words.\n\n` +
-  `What is "${s.frame.keyTopic}" about?`
+    `➡️ Next: Is About\n\n` +
+    `${displayedAssignment}\n\n` +
+    `🧩 Key Topic: "${s.frame.keyTopic}"\n\n` +
+    `💬 Is About\n\n` +
+    `Now describe your Key Topic in your own words.\n\n` +
+    `What is "${s.frame.keyTopic}" about?`
   );
 }
   
-  const ideas = getIdeaList(s);
+const ideas = getIdeaList(s);
 
 if (paStage === "parentItems" || ideas.length < 2) {
-const c = ideas.length;
+  const c = ideas.length;
 
-const label = "💡 Main Idea";
+  const isAboutDisplay =
+    cleanText(
+      s.frame.isAbout
+    );
 
-const promptType = c === 0 ? "initialPrompt" : "additionalPrompt";
-
-const isAboutDisplay =
-  cleanText(
-    s.frame.isAbout
-  );
-
-const fallback =
-  getComponentPrompt(
-    "mainIdeas",
-    promptType,
-    {
-      keyTopic:
-        s.frame.keyTopic,
-
-      isAbout:
-        isAboutDisplay,
-    }
-  );
-
-return (
-  `${label} ${c + 1}:\n\n` +
-  `${fallback}`
-);
+  if (c === 0) {
+    return (
+      `➡️ Next: Main Ideas\n\n` +
+      `So far your Frame says:\n\n` +
+      `🧩 Key Topic: ${s.frame.keyTopic}\n` +
+      `💬 Is About: ${isAboutDisplay}\n\n` +
+      `💡 Main Idea 1\n\n` +
+      `What is one Main Idea that helps explain your Key Topic?`
+    );
   }
+
+  return (
+    `💡 Main Idea ${c + 1}\n\n` +
+    `So far your Frame says:\n\n` +
+    `🧩 Key Topic: ${s.frame.keyTopic}\n` +
+    `💬 Is About: ${isAboutDisplay}\n\n` +
+    `What is another Main Idea that helps explain your Key Topic?`
+  );
+}
 
   // DETAILS LOOP (CLEANED — no duplicate fallback / brace drift)
    for (let i = 0; i < ideas.length; i++) {
@@ -20164,8 +20163,8 @@ const fallback =
 if (i === 0 && detailNum === 1) {
   return (
     "💡 Great work! You've identified the Main Ideas that help explain your Key Topic.\n\n" +
-    "➡️ Now let's add Essential Details that help explain each Main Idea.\n\n" +
-    `${miLabel} ${i + 1}\n` +
+    "➡️ Next: Essential Details\n\n" +
+    `💡 ${miLabel} ${i + 1}\n` +
     `${mi}\n\n` +
     `✍️ ${dLabel} ${detailNum}\n\n` +
     `${fallback}`
@@ -20182,8 +20181,7 @@ if (i > 0 && detailNum === 1) {
 
   return (
     `🙌 Nicely done! You've added the Essential Details that help explain your ${completedLabel} Main Idea.\n\n` +
-    `➡️ Now let's add Essential Details that help explain ${miLabel} ${i + 1}.\n\n` +
-    `${miLabel} ${i + 1}\n` +
+    `💡 ${miLabel} ${i + 1}\n` +
     `${mi}\n\n` +
     `✍️ ${dLabel} ${detailNum}\n\n` +
     `${fallback}`
@@ -20206,7 +20204,7 @@ if (!s.frame.soWhat) {
 
   return (
     `🙌 Great work! You've built your Main Ideas and Essential Details.\n\n` +
-    `🎯 Next: So What\n\n` +
+    `➡️ Next: So What\n\n` +
     `Look across your Frame:\n\n` +
     `🧩 Key Topic: ${s.frame.keyTopic}\n\n` +
     mainIdeas
@@ -20215,7 +20213,8 @@ if (!s.frame.soWhat) {
           `💡 Main Idea ${index + 1}: ${idea}`
       )
       .join("\n") +
-    `\n\nWhat is the most important thing someone should understand from your whole Frame?`
+    `\n\n🎯 So What\n\n` +
+    `What is the most important thing someone should understand from your whole Frame?`
   );
 }
   
