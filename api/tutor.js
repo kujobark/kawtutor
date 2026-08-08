@@ -253,8 +253,8 @@ revisePrompt:
   '✏️ Let\'s strengthen your Is About so it clearly explains what your whole Key Topic is about in your own words.\n\nWhat would you like it to say instead?',
 
 confirmationPrompt:
-  '✅ Checkpoint\n\nNice work! Your Is About explains your Key Topic in your own words:\n\n🧩 Key Topic: {keyTopic}\n💬 Is About: {isAbout}\n\nDoes this accurately capture your thinking?\n\n1) Yes — Continue building my Frame.\n2) No — Revise this part.\n\nReply with 1 or 2.'
- }
+  '✅ Checkpoint\n\n💬 Is About\n\nNice work! Your Is About explains your Key Topic in your own words:\n\n🧩 Key Topic: {keyTopic}\n💬 Is About: {isAbout}\n\nDoes this accurately capture your thinking?\n\n1) Yes — Continue building my Frame.\n2) No — Revise my Is About.\n\nReply with 1 or 2.' 
+}
 },
 
 mainIdeas: {
@@ -350,7 +350,7 @@ details: {
       'What is another Essential Detail that helps explain this Main Idea?',
 
     revisePrompt:
-      "📝 Let's strengthen your Essential Detail so it adds specific information that helps explain this Main Idea."
+      "✍️ Essential Detail\n\nLet's strengthen your Essential Detail so it adds specific information that helps explain this Main Idea."
   }
 },
 
@@ -18956,11 +18956,11 @@ s.pending =
         revisePendingType:
           "strengthenReviseIsAbout",
 
-        successMessage:
-          "🧩 Nice work! Your Is About clearly explains what your whole Key Topic is about.",
-
+         successMessage:
+          "💬 Nice work! Your Is About clearly explains what your whole Key Topic is about.",
+        
         displayIcon:
-          "🧩",
+          "💬",
       
         displayLabel:
           "Is About",
@@ -19459,15 +19459,15 @@ if (
   );
 }
 
-  if (
-    s.pending?.type ===
-    "strengthenCurrentTopicContext"
-  ) {
-    return (
-      "🧭 Before we strengthen this part, remind me what your Frame is about.\n\n" +
-      "Please share both parts:\n\n" +
-      "🔑 Key Topic:\n" +
-      "🧩 Is About:"
+if (
+  s.pending?.type ===
+  "strengthenCurrentTopicContext"
+) {
+  return (
+    "🧭 Before we strengthen this part, remind me what your Frame is about.\n\n" +
+    "Please share both parts:\n\n" +
+    "🧩 Key Topic:\n" +
+    "💬 Is About:"
   );
 }
 
@@ -19523,7 +19523,7 @@ if (
     "strengthenCurrentEssentialDetail"
 ) {
   return (
-    "📝 What does the Essential Detail you want to strengthen say?"
+    "✍️ Essential Detail\n\nWhat does the Essential Detail you want to strengthen say?"
   );
 }
 
@@ -19722,11 +19722,12 @@ if (
     .join("\n");
 
   return (
-    `📝 You've built these Essential Details:\n\n` +
-    `${lines}\n\n` +
-    `Which one would you like to strengthen?\n\n` +
-    `Reply with the number.`
-  );
+  `✍️ Essential Details\n\n` +
+  `You've built:\n\n` +
+  `${lines}\n\n` +
+  `Which Essential Detail would you like to strengthen?\n\n` +
+  `Reply with the number.`
+);
 }
   
 if (
@@ -19909,13 +19910,14 @@ if (
     details
       .map(
         (detail, detailIndex) =>
-          `Essential Detail ${detailIndex + 1}: ${detail}`
+          `✍️ Essential Detail ${detailIndex + 1}: ${detail}`
       )
       .join("\n");
 
   return (
     `✅ Checkpoint\n\n` +
-    `You built these Essential Details to help explain "${currentMainIdea}":\n\n` +
+    `💡 Main Idea ${index + 1}: ${currentMainIdea}\n\n` +
+    `✍️ Essential Details\n\n` +
     `${lines}\n\n` +
     `Does this accurately capture your thinking?\n\n` +
     `1) Yes — Continue building my Frame.\n` +
@@ -19926,18 +19928,18 @@ if (
   
 if (s.pending?.type === "offerMoreSoWhat") {
   return (
-    "✅ You've created your So What:\n\n" +
+    `🎯 So What\n\n` +
     `"${s.frame.soWhat}"\n\n` +
-    "Would you like to add another sentence to strengthen it further?\n\n" +
-    "1) Yes — Add another sentence.\n" +
-    "2) No — Continue.\n\n" +
-    "Reply with 1 or 2."
+    `Would you like to add another sentence to strengthen your So What?\n\n` +
+    `1) Yes — Add another sentence.\n` +
+    `2) No — Continue.\n\n` +
+    `Reply with 1 or 2.`
   );
 }
 
 if (s.pending?.type === "collectMoreSoWhat") {
   return (
-    `🎯 Your So What currently says:\n\n` +
+    `🎯 So What\n\n` +
     `"${s.frame.soWhat}"\n\n` +
     `What would you like to add to strengthen it further?`
   );
@@ -19946,15 +19948,17 @@ if (s.pending?.type === "collectMoreSoWhat") {
 if (s.pending?.type === "confirmSoWhat") {
   if (s.pending?.awaitingRevision) {
     return (
-      "🎯 Let's strengthen your So What.\n\n" +
-      "What would you like it to say instead?"
+      `🎯 So What\n\n` +
+      `Let's strengthen your So What.\n\n` +
+      `What would you like it to say instead?`
     );
   }
 
   return (
-    `🎯 Here's the So What you created:\n\n` +
+    `✅ Checkpoint\n\n` +
+    `🎯 So What\n\n` +
     `"${s.frame.soWhat}"\n\n` +
-    `Does this capture what's important to understand from your Frame?\n\n` +
+    `Does this accurately capture what is important to understand from your Frame?\n\n` +
     `1) Yes — Keep my So What.\n` +
     `2) No — Revise my So What.\n\n` +
     `Reply with 1 or 2.`
@@ -21280,10 +21284,10 @@ if (
     "strengthenCurrentEssentialDetail",
 
   successMessage:
-    "📝 Nice thinking! Your Essential Detail adds important information that helps explain your Main Idea.",
+    "✍️ Nice thinking! Your Essential Detail adds important information that helps explain your Main Idea.",
 
-  displayIcon:
-    "📝",
+displayIcon:
+    "✍️",
 
   displayLabel:
     "Essential Detail",
@@ -22547,7 +22551,7 @@ s.progressionAuthorization =
   s.pending = {
     type: "reviseKeyTopic",
     feedback:
-      "🔑 That’s okay—let’s keep it simple. Your Key Topic is the main subject of your assignment. What main topic are you exploring?",
+      "🧩 Key Topic\n\nThat’s okay—let’s keep it simple. Your Key Topic is the main subject of your assignment.\n\nWhat main topic are you exploring?",
   };
 
   return s;
