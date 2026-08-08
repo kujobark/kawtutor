@@ -4458,31 +4458,33 @@ function validateInstructionalCommunicationResponse(
     violations.push("studentWorkSupplied");
   }
 
-  const relationshipClaims = [
-    "this supports",
-    "that supports",
-    "this proves",
-    "that proves",
-    "this does not support",
-    "that does not support",
-    "doesn't support",
-    "fails to support",
-  ];
+ const relationshipClaimPatterns = [
+  /(?:^|[.!]\s+)this supports\b/i,
+  /(?:^|[.!]\s+)that supports\b/i,
+  /(?:^|[.!]\s+)this proves\b/i,
+  /(?:^|[.!]\s+)that proves\b/i,
+  /(?:^|[.!]\s+)this does not support\b/i,
+  /(?:^|[.!]\s+)that does not support\b/i,
+  /(?:^|[.!]\s+)this doesn't support\b/i,
+  /(?:^|[.!]\s+)that doesn't support\b/i,
+  /(?:^|[.!]\s+)this fails to support\b/i,
+  /(?:^|[.!]\s+)that fails to support\b/i,
+];
 
-  const relationshipStatus =
-    communicationLicense?.relationshipStatus ||
-    "";
+const relationshipStatus =
+  communicationLicense?.relationshipStatus ||
+  "";
 
-  if (
-    relationshipStatus === "undetermined" &&
-    relationshipClaims.some(
-      (pattern) => lower.includes(pattern)
-    )
-  ) {
-    violations.push(
-      "unauthorizedRelationshipClaim"
-    );
-  }
+if (
+  relationshipStatus === "undetermined" &&
+  relationshipClaimPatterns.some(
+    (pattern) => pattern.test(text)
+  )
+) {
+  violations.push(
+    "unauthorizedRelationshipClaim"
+  );
+}
 
   return {
     valid:
