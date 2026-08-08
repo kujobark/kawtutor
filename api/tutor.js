@@ -7990,7 +7990,14 @@ async function validateEssentialDetailResponseGoverned(
   // contract to the bounded semantic evidence.
   // --------------------------------------------------
 
+const studentExpressedRelationship =
+  deterministicResult
+    ?.relationshipEvidence
+    ?.hasRelationshipLanguage === true;
+
 const relationshipEstablished =
+  studentExpressedRelationship === true &&
+
   semanticEvidence
     .supportsMainIdea === true &&
 
