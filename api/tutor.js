@@ -6809,12 +6809,22 @@ can also be explained with more information.
 
 Use the nesting test:
 
+Use the nesting test:
+
 - Ask whether the response naturally belongs beneath a broader
   organizing label already implied by the Frame.
 - If it does, classify it as an Essential Detail.
+- Ask whether the response represents one important organizing idea
+  or subtopic needed to help explain the accepted Key Topic and
+  Is About—not merely something related to the topic.
 - Ask whether several parallel facts, examples, conditions, actions,
-  or outcomes could sit beneath the response as one coherent section.
-- Only then may it function as a Main Idea.
+  or outcomes could sit beneath the response as one coherent section
+  that contributes meaningfully to understanding the Key Topic.
+- A response is not a Main Idea merely because it could technically
+  serve as a category or because several facts could be listed beneath
+  it.
+- Only when the response functions as a significant organizing section
+  of this specific Frame may it function as a Main Idea.
 
 For contributing-factor Frames, distinguish the broad factor from
 one manifestation of that factor.
@@ -19739,9 +19749,19 @@ if (
   const count =
     getIdeaList(s).length;
 
+  const ideaNoun =
+    count === 1
+      ? "Main Idea"
+      : "Main Ideas";
+
+  const helpVerb =
+    count === 1
+      ? "helps"
+      : "help";
+
   return (
-    `✅ Nice work! You've built ${count} Main Idea${count > 1 ? "s" : ""} that help explain "${s.frame.keyTopic}".\n\n` +
-    `Would you like to add another Main Idea to organize your thinking further?\n\n` +
+    `✅ Nice work! You've built ${count} ${ideaNoun} that ${helpVerb} explain "${s.frame.keyTopic}".\n\n` +
+    `Would you like to add another Main Idea?\n\n` +
     `1) Yes — Add another Main Idea.\n` +
     `2) No — Continue.\n\n` +
     `Reply with 1 or 2.`
@@ -20011,9 +20031,9 @@ if (!s.frame.isAbout) {
   const ideas = getIdeaList(s);
 
 if (paStage === "parentItems" || ideas.length < 2) {
-  const c = ideas.length;
+const c = ideas.length;
 
-const label = "Main Idea";
+const label = "💡 Main Idea";
 
 const promptType = c === 0 ? "initialPrompt" : "additionalPrompt";
 
