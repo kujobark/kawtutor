@@ -294,10 +294,10 @@ mainIdeas: {
     friendlyTerm: "important idea",
 
     initialPrompt:
-    'So far your Frame says:\n\n{keyTopic} is about {isAbout}.\n\nWhat is one Main Idea that helps explain this?',
+      'So far your Frame says:\n\n{keyTopic} is about {isAbout}.\n\nWhat is one Main Idea that helps explain your Key Topic?',
 
     additionalPrompt:
-    'So far your Frame says:\n\n{keyTopic} is about {isAbout}.\n\nWhat is another Main Idea that helps explain this?',
+      'So far your Frame says:\n\n{keyTopic} is about {isAbout}.\n\nWhat is another Main Idea that helps explain your Key Topic?',
 
     revisePrompt:
       "💡 Let's strengthen your Main Idea so it clearly connects to your Key Topic and can be explained with Essential Details.",
@@ -344,10 +344,10 @@ details: {
     friendlyTerm: "essential detail",
 
     initialPrompt:
-      'What is one Essential Detail that supports this Main Idea?',
+      'What is one Essential Detail that helps explain this Main Idea?',
 
     additionalPrompt:
-      'What is another Essential Detail that supports this Main Idea?',
+      'What is another Essential Detail that helps explain this Main Idea?',
 
     revisePrompt:
       "📝 Let's strengthen your Essential Detail so it adds specific information that helps explain this Main Idea."
@@ -19510,7 +19510,7 @@ if (
     .join("\n");
 
   return (
-    `Which Main Idea would you like to revise?\n\n` +
+    `💡 Which Main Idea would you like to strengthen?\n\n` +
     `${lines}\n\n` +
     `Reply with the number.`
   );
@@ -19761,16 +19761,20 @@ if (s.pending?.type === "confirmSoWhat") {
 
 if (s.pending?.type === "offerExport") {
   return (
-    "📋 What would you like to do next?\n\n" +
+    "📋 Your Frame is complete! What would you like to do next?\n\n" +
     "1) Save or print my Frame.\n" +
     "2) Finish without saving.\n\n" +
     "Reply with 1 or 2."
   );
 }
 
-if (s.pending?.type === "chooseExportType") {
-  return "What would you like to save/print: frame, transcript, or both? (frame/transcript/both)";
-}
+return (
+  "📄 What would you like to save or print?\n\n" +
+  "1) My Frame\n" +
+  "2) My conversation with Kaw\n" +
+  "3) Both\n\n" +
+  "Reply with frame, transcript, or both."
+);
 
   // Base progression
   if (!s.frameMeta?.assignmentContext?.raw) {
@@ -19784,7 +19788,7 @@ if (s.pending?.type === "chooseExportType") {
 
   if (!hasSufficientAssignmentUnderstanding(s)) {
     return (
-      "🔎 I need a little more information before we begin.\n\n" +
+      "🔎 I want to make sure I understand your assignment before we begin.\n\n" +
       "What does your assignment ask you to think about or accomplish?"
   );
 }
@@ -19819,12 +19823,13 @@ if (!s.frame.isAbout) {
     assignment.slice(1);
 
   return (
-    `${displayedAssignment}\n\n` +
-    `Your Key Topic is "${s.frame.keyTopic}".\n\n` +
-    `What is "${s.frame.keyTopic}" about?`
+  `${displayedAssignment}\n\n` +
+  `🧩 Your Key Topic is "${s.frame.keyTopic}".\n\n` +
+  `Now let's describe it in your own words.\n\n` +
+  `What is "${s.frame.keyTopic}" about?`
   );
 }
-
+  
   const ideas = getIdeaList(s);
 
 if (paStage === "parentItems" || ideas.length < 2) {
