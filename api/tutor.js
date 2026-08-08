@@ -19945,13 +19945,19 @@ if (s.pending?.type === "collectMoreSoWhat") {
 
 if (s.pending?.type === "confirmSoWhat") {
   if (s.pending?.awaitingRevision) {
-    return "🎯 Let's strengthen your So What. What would you like it to say instead?";
+    return (
+      "🎯 Let's strengthen your So What.\n\n" +
+      "What would you like it to say instead?"
+    );
   }
 
   return (
     `🎯 Here's the So What you created:\n\n` +
     `"${s.frame.soWhat}"\n\n` +
-    `Does this capture what's important to understand from your Frame, or would you like to revise it?`
+    `Does this capture what's important to understand from your Frame?\n\n` +
+    `1) Yes — Keep my So What.\n` +
+    `2) No — Revise my So What.\n\n` +
+    `Reply with 1 or 2.`
   );
 }
 
@@ -19959,14 +19965,66 @@ if (
   s.pending?.type ===
   "offerExport"
 ) {
-  return (
-    "🎉 Your Frame is complete!\n\n" +
-    "You've built your Key Topic, Is About, Main Ideas, Essential Details, and So What into one complete Frame.\n\n" +
-    "What would you like to do next?\n\n" +
-    "1) Save or print my Frame.\n" +
-    "2) Finish without saving.\n\n" +
+  const mainIdeas =
+    getIdeaList(s)
+      .filter(Boolean);
+
+  const frameLines = [
+    "🎉 Your Frame is complete!",
+    "",
+    "Here’s the thinking you built:",
+    "",
+    `🧩 Key Topic`,
+    `${s.frame.keyTopic}`,
+    "",
+    `💬 Is About`,
+    `${s.frame.isAbout}`,
+  ];
+
+  mainIdeas.forEach(
+    (mainIdea, index) => {
+      frameLines.push(
+        "",
+        `💡 Main Idea ${index + 1}`,
+        `${mainIdea}`
+      );
+
+      const details =
+        Array.isArray(
+          s.frame.details?.[index]
+        )
+          ? s.frame.details[index]
+              .filter(Boolean)
+          : [];
+
+      details.forEach(
+        (detail, detailIndex) => {
+          frameLines.push(
+            "",
+            `✍️ Essential Detail ${detailIndex + 1}`,
+            `${detail}`
+          );
+        }
+      );
+    }
+  );
+
+  frameLines.push(
+    "",
+    "🎯 So What",
+    `${s.frame.soWhat}`,
+    "",
+    "You built this Frame one step at a time using your own thinking.",
+    "",
+    "What would you like to do next?",
+    "",
+    "1) Save or print my Frame.",
+    "2) Finish without saving.",
+    "",
     "Reply with 1 or 2."
   );
+
+  return frameLines.join("\n");
 }
 
 if (
@@ -20045,16 +20103,6 @@ const label = "💡 Main Idea";
 
 const promptType = c === 0 ? "initialPrompt" : "additionalPrompt";
 
-const assignment =
-  s.frameMeta?.assignmentContext?.studentSummary ||
-  s.frameMeta?.assignmentContext?.understanding ||
-  s.frameMeta?.assignmentContext?.raw ||
-  "your assignment";
-
-const displayedAssignment =
-  assignment.charAt(0).toUpperCase() +
-  assignment.slice(1);
-
 const isAboutDisplay =
   cleanText(
     s.frame.isAbout
@@ -20074,9 +20122,6 @@ const fallback =
   );
 
 return (
-  `${displayedAssignment}\n\n` +
-  `Key Topic: ${s.frame.keyTopic}\n` +
-  `Is About: ${s.frame.isAbout}\n\n` +
   `${label} ${c + 1}:\n\n` +
   `${fallback}`
 );
@@ -20107,14 +20152,14 @@ const displayedAssignment =
   assignment.charAt(0).toUpperCase() +
   assignment.slice(1);
 
-const fallback = (
-  `${displayedAssignment}\n\n` +
-  `Key Topic: ${s.frame.keyTopic}\n` +
-  `Is About: ${s.frame.isAbout}\n\n` +
-  getComponentPrompt("details", promptType, {
-    mainIdea: mi
-  })
-);
+const fallback =
+  getComponentPrompt(
+    "details",
+    promptType,
+    {
+      mainIdea: mi
+    }
+  );
 
 if (i === 0 && detailNum === 1) {
   return (
@@ -20155,36 +20200,25 @@ return (
 }
 
 if (!s.frame.soWhat) {
-  const assignment =
-    s.frameMeta?.assignmentContext?.studentSummary ||
-    s.frameMeta?.assignmentContext?.understanding ||
-    s.frameMeta?.assignmentContext?.raw ||
-    "your assignment";
-
-  const displayedAssignment =
-    assignment.charAt(0).toUpperCase() +
-    assignment.slice(1);
+  const mainIdeas =
+    getIdeaList(s)
+      .filter(Boolean);
 
   return (
-  `🙌 Great work! You've built out your Main Ideas with Essential Details.\n\n` +
-  `Your Frame now includes:\n\n` +
-  getIdeaList(s)
-    .map(
-      (idea, index) =>
-        `• ${idea}`
-    )
-    .join("\n") +
-  `\n\n➡️ Now let's think about what's important to understand from your whole Frame.\n\n` +
-  `${displayedAssignment}\n\n` +
-  `Key Topic: ${s.frame.keyTopic}\n` +
-  `Is About: ${s.frame.isAbout}\n\n` +
-  getComponentPrompt("soWhat", "initialPrompt", {
-      keyTopic: s.frame.keyTopic
-  })
-);
+    `🙌 Great work! You've built your Main Ideas and Essential Details.\n\n` +
+    `🎯 Next: So What\n\n` +
+    `Look across your Frame:\n\n` +
+    `🧩 Key Topic: ${s.frame.keyTopic}\n\n` +
+    mainIdeas
+      .map(
+        (idea, index) =>
+          `💡 Main Idea ${index + 1}: ${idea}`
+      )
+      .join("\n") +
+    `\n\nWhat is the most important thing someone should understand from your whole Frame?`
+  );
 }
-}
-      
+  
 // ---------------------
 // STATE UPDATE (SSOT)
 // ---------------------
