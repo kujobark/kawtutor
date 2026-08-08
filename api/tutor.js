@@ -19445,11 +19445,25 @@ if (
 );
 }
   
-  if (s.pending?.type === "confirmLanguageSwitch") {
-    const candNative = s.pending?.candidateNativeName || s.pending?.candidateName || "that language";
-    const candName = s.pending?.candidateName || "that language";
-    return `I notice you’re writing in ${candName}. Would you like to continue in ${candNative}? (yes/no)`;
-  }
+if (
+  s.pending?.type ===
+  "confirmLanguageSwitch"
+) {
+  const candNative =
+    s.pending?.candidateNativeName ||
+    s.pending?.candidateName ||
+    "that language";
+
+  const candName =
+    s.pending?.candidateName ||
+    "that language";
+
+  return (
+    `🌐 I notice you're writing in ${candName}.\n\n` +
+    `Would you like to continue in ${candNative}?\n\n` +
+    `Reply yes or no.`
+  );
+}
 
  if (s.pending?.type === "reviseKeyTopic") {
   return s.pending.feedback;
@@ -19555,7 +19569,7 @@ if (
     .join("\n");
 
   return (
-    `Which Essential Detail would you like to revise?\n\n` +
+    `📝 Which Essential Detail would you like to strengthen?\n\n` +
     `${lines}\n\n` +
     `Reply with the number.`
   );
@@ -19591,7 +19605,7 @@ if (
 
   return (
     `✅ Nice work! You've built ${count} Main Idea${count > 1 ? "s" : ""} that help explain "${s.frame.keyTopic}".\n\n` +
-    `Would you like to add another Main Idea?\n\n` +
+    `Would you like to add another Main Idea to organize your thinking further?\n\n` +
     `1) Yes — Add another Main Idea.\n` +
     `2) No — Continue.\n\n` +
     `Reply with 1 or 2.`
@@ -19622,9 +19636,6 @@ if (
   const index =
     Number(s.pending.index);
 
-  const currentMainIdea =
-    getIdeaList(s)[index] || "";
-
   const detailCount =
     Array.isArray(
       s.frame.details?.[index]
@@ -19637,10 +19648,25 @@ if (
       ? `✅ Nice work! You've added the two Essential Details needed to build out Main Idea ${index + 1}:\n`
       : `✅ You're building this idea out! You now have ${detailCount} Essential Details for Main Idea ${index + 1}:\n`;
 
+  const details =
+    Array.isArray(
+      s.frame.details?.[index]
+    )
+      ? s.frame.details[index]
+      : [];
+
+  const lines =
+    details
+      .map(
+        (detail, detailIndex) =>
+          `• Essential Detail ${detailIndex + 1}: ${detail}`
+      )
+      .join("\n");
+
   return (
-    completionMessage +
-    `"${currentMainIdea}"\n\n` +
-    `Would you like to strengthen this Main Idea by adding another Essential Detail?\n\n` +
+    `${completionMessage}\n` +
+    `${lines}\n\n` +
+    `Would you like to add another Essential Detail to strengthen this Main Idea further?\n\n` +
     `1) Yes — Add another Essential Detail.\n` +
     `2) No — Continue.\n\n` +
     `Reply with 1 or 2.`
@@ -19715,14 +19741,15 @@ if (
       ? s.frame.details[index]
       : [];
 
-  const lines = details
-    .map(
-      (detail, detailIndex) =>
-        `Essential Detail ${detailIndex + 1}: ${detail}`
-    )
-    .join("\n");
+  const lines =
+    details
+      .map(
+        (detail, detailIndex) =>
+          `Essential Detail ${detailIndex + 1}: ${detail}`
+      )
+      .join("\n");
 
-   return (
+  return (
     `✅ Checkpoint\n\n` +
     `You built these Essential Details to help explain "${currentMainIdea}":\n\n` +
     `${lines}\n\n` +
@@ -19730,7 +19757,7 @@ if (
     `1) Yes — Continue building my Frame.\n` +
     `2) No — Revise one Essential Detail.\n\n` +
     `Reply with 1 or 2.`
-);
+  );
 }
   
 if (s.pending?.type === "offerMoreSoWhat") {
@@ -22256,7 +22283,7 @@ s.progressionAuthorization =
       return s;
     }
   
-    if (
+  if (
   isStuckMessage(cleaned) ||
   isWeakFrameResponse(cleaned) ||
   isMetaResponse(cleaned)
@@ -22264,7 +22291,7 @@ s.progressionAuthorization =
   s.pending = {
     type: "reviseKeyTopic",
     feedback:
-      "That’s okay—let’s keep it simple. Your Key Topic is the main subject of your assignment. What main topic are you explaining?",
+      "🔑 That’s okay—let’s keep it simple. Your Key Topic is the main subject of your assignment. What main topic are you exploring?",
   };
 
   return s;
@@ -23585,12 +23612,14 @@ const nextQ =
 return res.status(200).json({ reply, state });
     
   } catch (err) {
-    console.error("Tutor API error:", err);
-    return res.status(200).json({
-      reply: "Hmm — I had trouble processing that. Can you try again?",
-      state: safeState,
-    });
-  }
+  console.error("Tutor API error:", err);
+
+  return res.status(200).json({
+    reply:
+      "⚠️ Something went wrong while I was processing that. Please try your response again.",
+    state: safeState,
+  });
+}
 }
 
 // ======================================================
