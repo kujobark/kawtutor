@@ -12320,10 +12320,12 @@ async function runMainIdeaSelfTests() {
     (test) => {
       const actual =
         validateMainIdeaResponse(
-          test.response,
+        test.response,
+        test.keyTopic ??
           keyTopic,
+        test.isAbout ??
           isAbout
-        );
+  );
 
       const passed =
         actual.valid ===
