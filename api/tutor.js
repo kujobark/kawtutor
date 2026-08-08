@@ -250,7 +250,7 @@ initialPrompt:
   'Now let\'s describe your Key Topic in your own words.\n\nWhat is "{keyTopic}" about?',
 
 revisePrompt:
-  '✏️ Let\'s strengthen your Is About so it clearly explains what your whole Key Topic is about in your own words.\n\nWhat would you like it to say instead?',
+  '💬 Is About\n\nLet\'s strengthen your Is About so it clearly explains what your whole Key Topic is about in your own words.\n\nWhat would you like it to say instead?',
 
 confirmationPrompt:
   '✅ Checkpoint\n\n💬 Is About\n\nNice work! Your Is About explains your Key Topic in your own words:\n\n🧩 Key Topic: {keyTopic}\n💬 Is About: {isAbout}\n\nDoes this accurately capture your thinking?\n\n1) Yes — Continue building my Frame.\n2) No — Revise my Is About.\n\nReply with 1 or 2.' 
@@ -19749,13 +19749,12 @@ if (
     s.frame.details?.[index]
       ?.[detailIndex] || "";
 
-  return (
+    return (
     `✍️ Essential Detail ${detailIndex + 1}\n\n` +
     `"${currentDetail}"\n\n` +
     `Let's strengthen this Essential Detail so it adds specific information that helps explain your Main Idea.\n\n` +
     `What would you change?`
-);
-);
+  );
 }
 
 if (
@@ -19776,7 +19775,7 @@ if (
       : "help";
 
   return (
-    `✅ Nice work! You've built ${count} ${ideaNoun} that ${helpVerb} explain "${s.frame.keyTopic}".\n\n` +
+    `🙌 Nice work! You've built ${count} ${ideaNoun} that ${helpVerb} explain "${s.frame.keyTopic}".\n\n` +
     `Would you like to add another Main Idea?\n\n` +
     `1) Yes — Add another Main Idea.\n` +
     `2) No — Continue.\n\n` +
@@ -19817,8 +19816,8 @@ if (
 
   const completionMessage =
     detailCount === 2
-      ? `✅ Nice work! You've added the two Essential Details needed to build out Main Idea ${index + 1}:\n`
-      : `✅ You're building this idea out! You now have ${detailCount} Essential Details for Main Idea ${index + 1}:\n`;
+      ? `🙌 Nice work! You've added the two Essential Details needed to build out Main Idea ${index + 1}:\n`
+      : `🙌 You're building this idea out! You now have ${detailCount} Essential Details for Main Idea ${index + 1}:\n`;
 
   const details =
     Array.isArray(
@@ -19889,7 +19888,7 @@ if (
       : "your So What statement";
 
   return (
-    `📝 You can add another Essential Detail to strengthen this Main Idea further.\n\n` +
+    `✍️ You can add another Essential Detail to strengthen this Main Idea further.\n\n` +
     `Main Idea ${index + 1}: "${currentMainIdea}"\n\n` +
     `What is Essential Detail ${nextDetailNumber}?\n\n` +
     `Or reply with 2 to review your Essential Details and continue to ${nextDestination}.`
@@ -20152,16 +20151,6 @@ const promptType =
     ? "initialPrompt"
     : "additionalPrompt";
 
-const assignment =
-  s.frameMeta?.assignmentContext?.studentSummary ||
-  s.frameMeta?.assignmentContext?.understanding ||
-  s.frameMeta?.assignmentContext?.raw ||
-  "your assignment";
-
-const displayedAssignment =
-  assignment.charAt(0).toUpperCase() +
-  assignment.slice(1);
-
 const fallback =
   getComponentPrompt(
     "details",
@@ -20200,7 +20189,7 @@ if (i > 0 && detailNum === 1) {
 }
 
 return (
-  `${miLabel} ${i + 1}\n` +
+  `💡 ${miLabel} ${i + 1}\n` +
   `${mi}\n\n` +
   `✍️ ${dLabel} ${detailNum}\n\n` +
   `${fallback}`
