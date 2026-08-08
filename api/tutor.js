@@ -7966,22 +7966,29 @@ async function validateEssentialDetailResponseGoverned(
   // contract to the bounded semantic evidence.
   // --------------------------------------------------
 
-  const relationshipEstablished =
-    semanticEvidence
-      .supportsMainIdea === true &&
+  const deterministicRelationshipRequiresInference =
+  deterministicResult
+    ?.relationshipEvidence
+    ?.readerInferenceRequired === true;
 
-    semanticEvidence
-      .functionsAsEssentialDetail === true &&
+const relationshipEstablished =
+  deterministicRelationshipRequiresInference === false &&
 
-    semanticEvidence
-      .specificEnough === true &&
+  semanticEvidence
+    .supportsMainIdea === true &&
 
-    semanticEvidence
-      .introducesSeparateMainIdea === false &&
+  semanticEvidence
+    .functionsAsEssentialDetail === true &&
 
-    semanticEvidence
-      .confidence >= 0.9;
+  semanticEvidence
+    .specificEnough === true &&
 
+  semanticEvidence
+    .introducesSeparateMainIdea === false &&
+
+  semanticEvidence
+    .confidence >= 0.9;
+  
   // --------------------------------------------------
   // STEP 6 — GOVERNED ACCEPTANCE
   // --------------------------------------------------
