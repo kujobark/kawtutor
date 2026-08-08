@@ -7256,6 +7256,27 @@ function validateEssentialDetailResponse(
   const text = cleanText(response);
   const normalized = text.toLowerCase();
 
+  const hasObservableContent =
+  /[a-z0-9]/i.test(text);
+
+if (!hasObservableContent) {
+  return {
+    valid: false,
+
+    componentEvidenceLevel:
+      "none",
+
+    componentCriteriaStatus:
+      "notSatisfied",
+
+    relationshipStatus:
+      "undetermined",
+
+    diagnosis:
+      "emptyResponse",
+  };
+}
+
   const mainIdea =
     cleanText(currentMainIdea).toLowerCase();
 
@@ -19252,32 +19273,21 @@ function computeNextQuestion(state) {
     );
   }
 
-  if (
+ if (
   s.pending?.type ===
   "strengthenComponentSelection"
 ) {
   return (
     "🔧 Which part of your Frame would you like to strengthen?\n\n" +
-    "1️⃣  Key Topic\n" +
-    "    Clearly name the main topic of your Frame.\n\n" +
-    "2️⃣  Is About\n" +
+    "1️⃣  Is About\n" +
     "    Clarify what your Key Topic is about.\n\n" +
-    "3️⃣  Main Idea\n" +
+    "2️⃣  Main Idea\n" +
     "    Strengthen one Main Idea from your Frame.\n\n" +
-    "4️⃣  Essential Detail\n" +
+    "3️⃣  Essential Detail\n" +
     "    Strengthen one Essential Detail that supports a Main Idea.\n\n" +
-    "Reply with 1, 2, 3, or 4."
+    "Reply with 1, 2, or 3."
   );
 }
-
-    if (
-    s.pending?.type ===
-    "strengthenCurrentKeyTopic"
-  ) {
-    return (
-      "🔑 What is the current Key Topic in your Frame?"
-    );
-  }
 
   if (
     s.pending?.type ===
@@ -20295,56 +20305,44 @@ return s;
       null;
 
     if (
-      choice === "1" ||
-      choice === "key topic" ||
-      choice === "keytopic" ||
-      choice.includes(
-        "key topic"
-      )
-    ) {
-      selectedComponent =
-        "keyTopic";
-    }
+  choice === "1" ||
+  choice === "is about" ||
+  choice === "isabout" ||
+  choice.includes(
+    "is about"
+  )
+) {
+  selectedComponent =
+    "isAbout";
+}
 
-    if (
-      choice === "2" ||
-      choice === "is about" ||
-      choice === "isabout" ||
-      choice.includes(
-        "is about"
-      )
-    ) {
-      selectedComponent =
-        "isAbout";
-    }
+if (
+  choice === "2" ||
+  choice === "main idea" ||
+  choice === "mainidea" ||
+  choice.includes(
+    "main idea"
+  )
+) {
+  selectedComponent =
+    "mainIdeas";
+}
 
-    if (
-      choice === "3" ||
-      choice === "main idea" ||
-      choice === "mainidea" ||
-      choice.includes(
-        "main idea"
-      )
-    ) {
-      selectedComponent =
-        "mainIdeas";
-    }
-
-    if (
-      choice === "4" ||
-      choice ===
-        "essential detail" ||
-      choice ===
-        "essentialdetail" ||
-      choice.includes(
-        "essential detail"
-      ) ||
-      choice === "detail"
-    ) {
-      selectedComponent =
-        "details";
-    }
-
+if (
+  choice === "3" ||
+  choice ===
+    "essential detail" ||
+  choice ===
+    "essentialdetail" ||
+  choice.includes(
+    "essential detail"
+  ) ||
+  choice === "detail"
+) {
+  selectedComponent =
+    "details";
+}
+    
     if (!selectedComponent) {
       return s;
     }
@@ -20371,18 +20369,6 @@ return s;
       completionTarget:
         "strengthenComponentComplete",
     };
-
-       if (
-      selectedComponent ===
-      "keyTopic"
-    ) {
-      s.pending = {
-        type:
-          "strengthenCurrentKeyTopic",
-      };
-
-      return s;
-    }
 
     if (
       selectedComponent ===
