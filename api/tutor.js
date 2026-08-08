@@ -7646,7 +7646,7 @@ Proposed Essential Detail:
 This is related to the Main Idea, but it does not add concrete supporting information about how sunlight is used, why it is needed, what happens, or what evidence supports the Main Idea.
 
 For this example:
-- supportsMainIdea may be true;
+- supportsMainIdea must be false because the student's response does not communicate how needing sunlight supports or explains the accepted Main Idea;
 - functionsAsEssentialDetail may be emerging or context-dependent;
 - specificEnough must be false;
 - introducesSeparateMainIdea must be false.
