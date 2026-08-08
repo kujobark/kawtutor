@@ -20023,8 +20023,9 @@ if (!s.frame.soWhat) {
   `Key Topic: ${s.frame.keyTopic}\n` +
   `Is About: ${s.frame.isAbout}\n\n` +
   getComponentPrompt("soWhat", "initialPrompt", {
-    keyTopic: s.frame.keyTopic
- );
+      keyTopic: s.frame.keyTopic
+  })
+);
 }
 }
       
