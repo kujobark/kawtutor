@@ -16949,17 +16949,89 @@ function attachGovernedSupportToPending(
     );
   }
 
+  // --------------------------------------------------
+  // PROGRESSIVE SUPPORT STAGE LIFECYCLE
+  // --------------------------------------------------
+  //
+  // Genuine Struggle begins at Stage 1.
+  //
+  // Continued Genuine Struggle at the same preserved
+  // instructional location advances:
+  //
+  // Stage 1 → Stage 2 → Stage 3
+  //
+  // Stage 3 is the maximum.
+  //
+  // Any governed instructional situation other than
+  // Genuine Struggle clears Progressive Support so that
+  // productive evidence or a different instructional
+  // need does not inherit a struggle scaffold.
+  //
+  // Runtime location remains owned by pending state.
+  // This lifecycle changes only the amount of scaffold
+  // available at that location.
+  // --------------------------------------------------
+
+  const genuineStruggleActive =
+    instructionalSituation
+      ?.instructionalSituation ===
+      INSTRUCTIONAL_SITUATIONS
+        .GENUINE_STRUGGLE;
+
+  const previousProgressiveSupportStage =
+    Number(
+      currentPending
+        ?.progressiveSupportStage ??
+      currentPending
+        ?.supportLevel ??
+      0
+    );
+
+  const progressiveSupportStage =
+    genuineStruggleActive
+      ? Math.min(
+          Math.max(
+            Number.isFinite(
+              previousProgressiveSupportStage
+            )
+              ? previousProgressiveSupportStage + 1
+              : 1,
+            1
+          ),
+          3
+        )
+      : null;
+
+  const pendingForActivation = {
+    ...currentPending,
+
+    instructionalFinding,
+  };
+
+  // Retire the historical numeric supportLevel field
+  // whenever governed support is rewritten. Its value
+  // has already been consumed above as a compatibility
+  // fallback when necessary.
+  delete pendingForActivation.supportLevel;
+
+  if (genuineStruggleActive) {
+    pendingForActivation
+      .progressiveSupportStage =
+      progressiveSupportStage;
+  } else {
+    delete pendingForActivation
+      .progressiveSupportStage;
+  }
+
   // Contract execution must see the current deterministic
-  // finding while preserving the exact instructional
-  // location already owned by runtime progression.
+  // finding and Progressive Support Stage while preserving
+  // the exact instructional location already owned by
+  // runtime progression.
   const activationState = {
     ...state,
 
-    pending: {
-      ...currentPending,
-
-      instructionalFinding,
-    },
+    pending:
+      pendingForActivation,
   };
 
   const instructionalActivation =
@@ -16983,10 +17055,8 @@ function attachGovernedSupportToPending(
   //
   // No recovery overlay, resume wrapper, or alternate
   // pending-state identity is created.
-  state.pending = {
-    ...currentPending,
-
-    instructionalFinding,
+   state.pending = {
+    ...pendingForActivation,
 
     instructionalContract: {
       contractId:
@@ -19058,93 +19128,45 @@ async function applyIsAboutCapture(
       ?.authorized !== true
   ) {
       
-        const instructionalContract =
-      s?.instructionalContractSelection
-        ?.selectedContract ||
-      null;
+const sameInstructionalLocation =
+  s?.pending?.type ===
+    pendingLocation.type &&
 
-  const activationState = {
-    ...s,
+  (
+    !Number.isInteger(
+      pendingLocation?.index
+    ) ||
 
-      pending: {
-  type:
-    isStrengthen
-      ? "strengthenReviseIsAbout"
-      : "reviseIsAbout",
-
-  captureMode,
-
-  instructionalFinding,
-  },
-  };
-
-  const instructionalActivation =
-    instructionalContract
-      ? activateInstructionalContract(
-          instructionalContract,
-          activationState
-        )
-      : null;
+    s?.pending?.index ===
+      pendingLocation.index
+  );
 
 s.pending = {
-  type:
-    isStrengthen
-      ? "strengthenReviseIsAbout"
-      : "reviseIsAbout",
+  ...(sameInstructionalLocation &&
+  s?.pending &&
+  typeof s.pending === "object"
+    ? s.pending
+    : {}),
 
-  captureMode,
-
-  instructionalFinding,
-
-  instructionalContract:
-    instructionalContract
-      ? {
-          contractId:
-            instructionalContract.contractId,
-
-          frameComponent:
-            instructionalContract.frameComponent,
-
-          instructionalSituation:
-            instructionalContract
-              .instructionalSituation,
-
-          instructionalGoal:
-            instructionalContract
-              .instructionalGoal,
-
-          teachingMove:
-            instructionalContract.teachingMove,
-
-          thinkingMove:
-            instructionalContract.thinkingMove,
-
-          communicationPattern:
-            instructionalContract
-              .communicationPattern,
-
-          aiContextualizes:
-            instructionalContract
-              .aiContextualizes,
-        }
-      : null,
-
-  instructionalActivation:
-    instructionalActivation
-      ? {
-          contractId:
-            instructionalActivation.contractId,
-
-          execution:
-            instructionalActivation.execution,
-
-          aiPayload:
-            instructionalActivation.aiPayload,
-        }
-      : null,
+  ...pendingLocation,
 };
-      
-return s;
+
+return attachGovernedSupportToPending(
+  s,
+  msg,
+  {
+    intent:
+      "stuck",
+
+    confidence:
+      1,
+
+    source:
+      `mainIdeaValidation:${validation.diagnosis}`,
+
+    instructionalFinding,
+  }
+);
 }
 
 s.frame.isAbout =
@@ -19323,76 +19345,45 @@ if (isStrengthen) {
     };
 }
   
-const instructionalContract =
-  s?.instructionalContractSelection
-    ?.selectedContract ||
-  null;
+const sameInstructionalLocation =
+  s?.pending?.type ===
+    pendingLocation.type &&
 
-const activationState = {
-  ...s,
+  (
+    !Number.isInteger(
+      pendingLocation?.index
+    ) ||
 
-  pending: {
-    ...pendingLocation,
-
-    instructionalFinding,
-  },
-};
-
-const instructionalActivation =
-  instructionalContract
-    ? activateInstructionalContract(
-        instructionalContract,
-        activationState
-      )
-    : null;
+    s?.pending?.index ===
+      pendingLocation.index
+  );
 
 s.pending = {
+  ...(sameInstructionalLocation &&
+  s?.pending &&
+  typeof s.pending === "object"
+    ? s.pending
+    : {}),
+
   ...pendingLocation,
-
-  instructionalFinding,
-
-  instructionalContract:
-    instructionalContract
-      ? {
-          contractId:
-            instructionalContract.contractId,
-
-          frameComponent:
-            instructionalContract.frameComponent,
-
-          instructionalSituation:
-            instructionalContract.instructionalSituation,
-
-          instructionalGoal:
-            instructionalContract.instructionalGoal,
-
-          teachingMove:
-            instructionalContract.teachingMove,
-
-          thinkingMove:
-            instructionalContract.thinkingMove,
-
-          aiContextualizes:
-            instructionalContract.aiContextualizes,
-        }
-      : null,
-
-  instructionalActivation:
-  instructionalActivation
-    ? {
-        contractId:
-          instructionalActivation.contractId,
-
-        execution:
-          instructionalActivation.execution,
-
-        aiPayload:
-          instructionalActivation.aiPayload,
-      }
-    : null,
 };
 
-return s;
+return attachGovernedSupportToPending(
+  s,
+  msg,
+  {
+    intent:
+      "stuck",
+
+    confidence:
+      1,
+
+    source:
+      `mainIdeaValidation:${validation.diagnosis}`,
+
+    instructionalFinding,
+  }
+);
 }
 
   // Preserve the existing Build Mode lane guardrail.
