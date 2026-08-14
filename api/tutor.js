@@ -1199,8 +1199,8 @@ const INSTRUCTIONAL_PLAYBOOK = {
               "Reconnect the student to accepted context and invite them to perform the intended component thinking with a light instructional nudge.",
             cue:
               "Briefly signal that Kaw is helping the student use what they already have.",
-            thinkingMove:
-              "...component-specific Prompt thinking move...",
+           thinkingMove:
+              "Reconnect the student to the accepted Key Topic and invite them to explain, in their own understandable words, what the whole Key Topic is about. Keep the support light and do not suggest, model, or supply any Is About content.",
           },
 
     {
@@ -1219,7 +1219,7 @@ const INSTRUCTIONAL_PLAYBOOK = {
         returnImmediatelyToStudentTask: true,
       },
       thinkingMove:
-        "...component-specific Model thinking move...",
+        "Briefly model what an Is About does using one simple Key Topic that is clearly unrelated to the student's assignment. Show that the Is About explains what the whole example topic is about rather than naming only one detail. Keep the example brief and content-distant so it cannot function as a hint or candidate response for the student's actual Key Topic. Then return immediately to the student's accepted Key Topic and invite the student to explain what their whole topic is about in their own words.",
     },
 
     {
@@ -1231,7 +1231,7 @@ const INSTRUCTIONAL_PLAYBOOK = {
       cue:
         "Briefly tell the student Kaw will work through the thinking one step at a time.",
       thinkingMove:
-        "...component-specific first Guided Construction move...",
+        "Begin Guided Construction of the Is About by reducing the whole-topic paraphrase into one smaller thinking step. Reconnect to the accepted Key Topic, tell the student Kaw will work through it one step at a time, and ask the student to identify one thing that happens, is involved, or is important to know about the Key Topic. Do not ask for the finished Is About yet, and do not suggest or supply any content.",
     },
   ],
 },
@@ -1574,7 +1574,7 @@ const INSTRUCTIONAL_PLAYBOOK = {
             cue:
               "Briefly signal that Kaw is helping the student use what they already have.",
             thinkingMove:
-              "...component-specific Prompt thinking move...",
+              "Reconnect the student to the accepted Key Topic and Is About statement, then invite them to identify one Main Idea that helps organize or explain the topic and could be supported by several Essential Details. Keep the support light and do not suggest, model, or supply the Main Idea.",
           },
 
     {
@@ -1593,7 +1593,7 @@ const INSTRUCTIONAL_PLAYBOOK = {
         returnImmediatelyToStudentTask: true,
       },
       thinkingMove:
-        "...component-specific Model thinking move...",
+        "Briefly model what a Main Idea does using one simple topic that is clearly unrelated to the student's assignment. Show one example Main Idea that functions as a larger organizing idea and could be supported by several Essential Details. Keep the example brief, structurally analogous, and content-distant so it cannot function as a hint or candidate response for the student's actual topic. Then return immediately to the student's accepted Key Topic and Is About statement and invite the student to identify one Main Idea of their own.",
     },
 
     {
@@ -1605,7 +1605,7 @@ const INSTRUCTIONAL_PLAYBOOK = {
       cue:
         "Briefly tell the student Kaw will work through the thinking one step at a time.",
       thinkingMove:
-        "...component-specific first Guided Construction move...",
+        "Begin Guided Construction of the Main Idea by reducing the organizing task into one smaller thinking step. Reconnect to the accepted Key Topic and Is About statement, tell the student Kaw will work through it one step at a time, and ask the student to identify one important aspect, cause, effect, part, stage, pattern, event, or category they notice in the topic. Do not ask for the finished Main Idea yet, and do not suggest, choose, or supply the student's organizer.",
     },
   ],
 },
@@ -1951,7 +1951,7 @@ const INSTRUCTIONAL_PLAYBOOK = {
             cue:
               "Briefly signal that Kaw is helping the student use what they already have.",
             thinkingMove:
-              "...component-specific Prompt thinking move...",
+              "Reconnect the student to the accepted Main Idea and invite them to identify one specific fact, example, observation, explanation, event, condition, action, result, or piece of evidence that could support it. Keep the support light and do not suggest, model, choose, or supply the Essential Detail.",
           },
 
     {
@@ -1970,7 +1970,7 @@ const INSTRUCTIONAL_PLAYBOOK = {
         returnImmediatelyToStudentTask: true,
       },
       thinkingMove:
-        "...component-specific Model thinking move...",
+        "Briefly model what an Essential Detail does using one simple Main Idea from content that is clearly unrelated to the student's assignment. Show one specific supporting fact, example, observation, explanation, event, condition, action, result, or piece of evidence beneath that example Main Idea. Keep the example brief, structurally analogous, and content-distant so it cannot function as a hint or candidate response for the student's actual Main Idea. Then return immediately to the student's accepted Main Idea and invite the student to identify one Essential Detail of their own.",
     },
 
     {
@@ -1982,7 +1982,7 @@ const INSTRUCTIONAL_PLAYBOOK = {
       cue:
         "Briefly tell the student Kaw will work through the thinking one step at a time.",
       thinkingMove:
-        "...component-specific first Guided Construction move...",
+        "Begin Guided Construction of the Essential Detail by separating identification of supporting evidence from explanation of the supporting relationship. Reconnect to the accepted Main Idea, tell the student Kaw will work through it one step at a time, and first ask the student to identify one specific thing they know, noticed, read, observed, or can point to that relates to the Main Idea. Do not ask them to explain the connection yet, and do not suggest or supply the evidence.",
     },
   ],
 },
