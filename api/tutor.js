@@ -1186,7 +1186,7 @@ const INSTRUCTIONAL_PLAYBOOK = {
           "Return to the Is About statement where support was requested and validate the student's next response.",
       },
 
-      progressiveSupport: {
+           progressiveSupport: {
         principle:
           "If the first intervention does not restart productive thinking, provide progressively more targeted support without supplying the student's Is About statement.",
 
@@ -1200,6 +1200,9 @@ const INSTRUCTIONAL_PLAYBOOK = {
 
             purpose:
               "Reconnect the student to the accepted Key Topic.",
+
+            thinkingMove:
+              "Reconnect the student to the accepted Key Topic and ask them to explain what the whole topic is about in their own understandable words. Do not suggest or supply the student's Is About statement.",
           },
 
           {
@@ -1211,6 +1214,9 @@ const INSTRUCTIONAL_PLAYBOOK = {
 
             purpose:
               "Remind the student that Is About explains the whole Key Topic in their own words.",
+
+            thinkingMove:
+              "Remind the student that Is About explains the whole Key Topic in their own understandable words. Ask them to describe the big picture rather than give one small detail. Do not suggest or supply the student's answer.",
           },
 
           {
@@ -1222,6 +1228,9 @@ const INSTRUCTIONAL_PLAYBOOK = {
 
             purpose:
               "Ask what someone unfamiliar with the topic should understand about it.",
+
+            thinkingMove:
+              "Reconnect the student to the accepted Key Topic. Ask what one person who knows nothing about the topic should understand about it. Do not suggest, begin, or supply the student's Is About statement.",
           },
         ],
       },
@@ -1550,7 +1559,7 @@ const INSTRUCTIONAL_PLAYBOOK = {
           "Return to the exact required, optional, or revision Main Idea location where support was requested and validate the student's next response.",
       },
 
-      progressiveSupport: {
+          progressiveSupport: {
         principle:
           "If the first intervention does not restart productive thinking, provide progressively more targeted support without supplying the student's Main Idea.",
 
@@ -1564,6 +1573,9 @@ const INSTRUCTIONAL_PLAYBOOK = {
 
             purpose:
               "Reconnect the student to the accepted Key Topic and Is About statement.",
+
+            thinkingMove:
+              "Reconnect the student to the accepted Key Topic and Is About statement. Ask them to identify one larger idea that helps organize or explain the topic. Do not suggest or supply the student's Main Idea.",
           },
 
           {
@@ -1575,6 +1587,9 @@ const INSTRUCTIONAL_PLAYBOOK = {
 
             purpose:
               "Remind the student that a Main Idea is one larger organizing idea rather than the whole topic or one specific Essential Detail.",
+
+            thinkingMove:
+              "Remind the student that a Main Idea is one larger organizing idea rather than the whole topic or one specific Essential Detail. Ask them what larger idea they want this part of the Frame to explain. Do not suggest or supply the Main Idea.",
           },
 
           {
@@ -1586,6 +1601,9 @@ const INSTRUCTIONAL_PLAYBOOK = {
 
             purpose:
               "Invite the student to identify one major category, cause, effect, part, stage, pattern, or event that could organize several Essential Details.",
+
+            thinkingMove:
+              "Invite the student to identify one major category, cause, effect, part, stage, pattern, or event that could organize several Essential Details for the accepted Key Topic and Is About statement. Do not choose or supply the organizer for the student.",
           },
         ],
       },
@@ -1917,7 +1935,7 @@ const INSTRUCTIONAL_PLAYBOOK = {
           "Return to the exact required, optional, or revision Essential Detail location and Main Idea where support was requested.",
       },
 
-      progressiveSupport: {
+           progressiveSupport: {
         principle:
           "If the first intervention does not restart productive thinking, provide progressively more targeted support without supplying the student's Essential Detail.",
 
@@ -1931,6 +1949,9 @@ const INSTRUCTIONAL_PLAYBOOK = {
 
             purpose:
               "Reconnect the student to the accepted Main Idea.",
+
+            thinkingMove:
+              "Reconnect the student to the accepted Main Idea and ask for one concrete fact, example, observation, explanation, or piece of evidence that helps support it. Do not suggest or supply the Essential Detail.",
           },
 
           {
@@ -1942,6 +1963,9 @@ const INSTRUCTIONAL_PLAYBOOK = {
 
             purpose:
               "Remind the student that an Essential Detail is one specific fact, example, observation, explanation, or piece of evidence that supports the Main Idea.",
+
+            thinkingMove:
+              "Remind the student that an Essential Detail is one specific fact, example, observation, explanation, or piece of evidence that supports the accepted Main Idea. Ask what specific information they know that belongs beneath that Main Idea. Do not suggest or supply the detail.",
           },
 
           {
@@ -1953,6 +1977,9 @@ const INSTRUCTIONAL_PLAYBOOK = {
 
             purpose:
               "Invite the student to recall one concrete piece of information that helps explain, illustrate, demonstrate, or support the accepted Main Idea.",
+
+            thinkingMove:
+              "Invite the student to recall one concrete piece of information that helps explain, illustrate, demonstrate, or support the accepted Main Idea. Ask them to state that information in their own words without supplying the evidence for them.",
           },
         ],
       },
@@ -2284,7 +2311,7 @@ const INSTRUCTIONAL_PLAYBOOK = {
           "Return to the exact initial, additional-content, or revision So What location where support was requested and validate the student's next response.",
       },
 
-      progressiveSupport: {
+            progressiveSupport: {
         principle:
           "If the first intervention does not restart productive synthesis, provide progressively more targeted support without supplying the student's So What.",
 
@@ -2298,6 +2325,9 @@ const INSTRUCTIONAL_PLAYBOOK = {
 
             purpose:
               "Reconnect the student to the completed Frame and its Key Topic.",
+
+            thinkingMove:
+              "Reconnect the student to the completed Frame and its Key Topic. Ask what feels most important to understand after looking across the whole Frame. Do not suggest or supply the student's So What.",
           },
 
           {
@@ -2309,6 +2339,9 @@ const INSTRUCTIONAL_PLAYBOOK = {
 
             purpose:
               "Invite the student to identify what becomes important or clear when the Main Ideas and Essential Details are considered together.",
+
+            thinkingMove:
+              "Invite the student to consider the Main Ideas and Essential Details together and explain what becomes important or clear when those ideas are viewed as a whole. Do not suggest or supply the synthesis.",
           },
 
           {
@@ -2320,10 +2353,13 @@ const INSTRUCTIONAL_PLAYBOOK = {
 
             purpose:
               "Invite the student to explain a larger conclusion, connection, implication, application, or life truth supported by the completed Frame.",
+
+            thinkingMove:
+              "Invite the student to explain one larger conclusion, connection, implication, application, or life truth that their completed Frame supports. Do not choose or supply that conclusion for the student.",
           },
         ],
       },
-
+      
       studentWorkProtection: {
         preserveExistingWork:
           true,
