@@ -17561,10 +17561,31 @@ function attachGovernedSupportToPending(
     pendingForActivation
       .progressiveSupportStage =
       progressiveSupportStage;
-  } else {
-    delete pendingForActivation
-      .progressiveSupportStage;
+
+  if (
+    progressiveSupportStage === 3 &&
+    !Number.isInteger(
+      pendingForActivation
+        ?.guidedConstructionStep
+    )
+  ) {
+    pendingForActivation
+      .guidedConstructionStep = 1;
   }
+
+  if (
+    progressiveSupportStage < 3
+  ) {
+    delete pendingForActivation
+      .guidedConstructionStep;
+  }
+} else {
+  delete pendingForActivation
+    .progressiveSupportStage;
+
+  delete pendingForActivation
+    .guidedConstructionStep;
+}
 
   // Contract execution must see the current deterministic
   // finding and Progressive Support Stage while preserving
