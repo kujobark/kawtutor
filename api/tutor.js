@@ -4587,33 +4587,107 @@ function executeInstructionalContract(
   }
 }
 
-function selectIsAboutGenuineStruggleThinkingMove(
-  supportLevel
+// ------------------------------------------------------
+// PROGRESSIVE SUPPORT SCAFFOLD SELECTION
+// ------------------------------------------------------
+//
+// Selects the predetermined Progressive Support scaffold
+// from the already-selected Instructional Contract.
+//
+// Progressive Support Stage is distinct from the broader
+// High / Moderate / Low Communication Support Level.
+//
+// This helper does not:
+//
+// • determine Genuine Struggle;
+// • select an Instructional Contract;
+// • change instructional location;
+// • advance progression;
+// • generate student-facing communication.
+//
+// Stage lifecycle is owned separately by Runtime
+// Progression.
+//
+// During migration, the historical pending.supportLevel
+// field remains a read-only compatibility fallback for
+// existing Is About state. New runtime state will use
+// pending.progressiveSupportStage.
+//
+// ------------------------------------------------------
+
+function selectProgressiveSupportScaffold(
+  contract,
+  state
 ) {
-  if (supportLevel >= 3) {
-    return (
-      "Reconnect the student to the accepted Key Topic. " +
-      "Ask what one person who knows nothing about the topic " +
-      "should understand about it. Do not suggest, begin, or " +
-      "supply the student's Is About statement."
-    );
+  const scaffolds =
+    Array.isArray(
+      contract
+        ?.progressiveSupport
+        ?.scaffolds
+    )
+      ? contract
+          .progressiveSupport
+          .scaffolds
+      : [];
+
+  if (scaffolds.length === 0) {
+    return null;
   }
 
-  if (supportLevel === 2) {
-    return (
-      "Remind the student that Is About explains the whole " +
-      "Key Topic in their own understandable words. Ask them " +
-      "to describe the big picture rather than give one small " +
-      "detail. Do not suggest or supply the student's answer."
+  const requestedStage =
+    Number(
+      state?.pending
+        ?.progressiveSupportStage ??
+      state?.pending
+        ?.supportLevel ??
+      1
     );
+
+  const progressiveSupportStage =
+    Number.isFinite(
+      requestedStage
+    )
+      ? Math.max(
+          1,
+          Math.min(
+            requestedStage,
+            3
+          )
+        )
+      : 1;
+
+  const selectedScaffold =
+    scaffolds.find(
+      (scaffold) =>
+        Number(
+          scaffold?.level
+        ) ===
+        progressiveSupportStage
+    ) ||
+    scaffolds[0] ||
+    null;
+
+  if (!selectedScaffold) {
+    return null;
   }
 
-  return (
-    "Reconnect the student to the accepted Key Topic and ask " +
-    "them to explain what the whole topic is about in their " +
-    "own understandable words. Do not suggest or supply the " +
-    "student's Is About statement."
-  );
+  return {
+    progressiveSupportStage,
+
+    move:
+      selectedScaffold?.move ||
+      null,
+
+    purpose:
+      selectedScaffold?.purpose ||
+      null,
+
+    thinkingMove:
+      selectedScaffold
+        ?.thinkingMove ||
+      contract?.thinkingMove ||
+      null,
+  };
 }
 
 function executeIsAboutInstructionalContract(
@@ -4629,31 +4703,14 @@ function executeIsAboutInstructionalContract(
 
     null;
 
-  const requestedSupportLevel =
-    Number(
-      state?.pending?.supportLevel || 1
-    );
-
-  const supportLevel =
-    Number.isFinite(
-      requestedSupportLevel
-    )
-      ? Math.max(
-          1,
-          Math.min(
-            requestedSupportLevel,
-            3
-          )
-        )
-      : 1;
-
-  const thinkingMove =
+  const progressiveSupport =
     contract.contractId ===
       "IA-GS-001"
-      ? selectIsAboutGenuineStruggleThinkingMove(
-          supportLevel
+      ? selectProgressiveSupportScaffold(
+          contract,
+          state
         )
-      : contract.thinkingMove;
+      : null;
 
   return {
     contractId:
@@ -4665,7 +4722,10 @@ function executeIsAboutInstructionalContract(
     teachingMove:
       contract.teachingMove,
 
-    thinkingMove,
+    thinkingMove:
+      progressiveSupport
+        ?.thinkingMove ||
+      contract.thinkingMove,
 
     communicationPattern:
       contract.communicationPattern ||
@@ -4676,11 +4736,14 @@ function executeIsAboutInstructionalContract(
 
     instructionalFinding,
 
-    supportLevel:
-      contract.contractId ===
-        "IA-GS-001"
-        ? supportLevel
-        : null,
+    progressiveSupportStage:
+      progressiveSupport
+        ?.progressiveSupportStage ||
+      null,
+
+    progressiveSupportMove:
+      progressiveSupport?.move ||
+      null,
 
     context: {
       assignmentContext:
@@ -4744,7 +4807,7 @@ function executeEssentialDetailInstructionalContract(
       ? ideas[pending.index] || ""
       : "";
 
-  const instructionalFinding =
+    const instructionalFinding =
     state?.pending
       ?.instructionalFinding ||
 
@@ -4752,6 +4815,15 @@ function executeEssentialDetailInstructionalContract(
       ?.componentInstructionalFinding ||
 
     null;
+
+  const progressiveSupport =
+    contract.contractId ===
+      "ED-GS-001"
+      ? selectProgressiveSupportScaffold(
+          contract,
+          state
+        )
+      : null;
 
   return {
     contractId:
@@ -4764,6 +4836,8 @@ function executeEssentialDetailInstructionalContract(
       contract.teachingMove,
 
     thinkingMove:
+      progressiveSupport
+        ?.thinkingMove ||
       contract.thinkingMove,
 
     communicationPattern:
@@ -4775,6 +4849,15 @@ function executeEssentialDetailInstructionalContract(
 
     instructionalFinding,
 
+    progressiveSupportStage:
+      progressiveSupport
+        ?.progressiveSupportStage ||
+      null,
+
+    progressiveSupportMove:
+      progressiveSupport?.move ||
+      null,
+    
     context: {
       assignmentContext:
         state?.frameMeta
@@ -4832,14 +4915,23 @@ function executeMainIdeaInstructionalContract(
   contract,
   state
 ) {
-  const instructionalFinding =
-    state?.pending
-      ?.instructionalFinding ||
+    const instructionalFinding =
+      state?.pending
+        ?.instructionalFinding ||
 
     state
       ?.componentInstructionalFinding ||
 
     null;
+
+  const progressiveSupport =
+    contract.contractId ===
+      "MI-GS-001"
+      ? selectProgressiveSupportScaffold(
+          contract,
+          state
+        )
+      : null;
 
   return {
     contractId:
@@ -4852,6 +4944,8 @@ function executeMainIdeaInstructionalContract(
       contract.teachingMove,
 
     thinkingMove:
+      progressiveSupport
+        ?.thinkingMove ||
       contract.thinkingMove,
 
     communicationPattern:
@@ -4863,6 +4957,15 @@ function executeMainIdeaInstructionalContract(
 
     instructionalFinding,
 
+    progressiveSupportStage:
+      progressiveSupport
+        ?.progressiveSupportStage ||
+      null,
+
+    progressiveSupportMove:
+      progressiveSupport?.move ||
+      null,
+    
     context: {
       assignmentContext:
         state?.frameMeta
@@ -4914,7 +5017,7 @@ function executeSoWhatInstructionalContract(
   contract,
   state
 ) {
-  const instructionalFinding =
+   const instructionalFinding =
     state?.pending
       ?.instructionalFinding ||
 
@@ -4922,6 +5025,15 @@ function executeSoWhatInstructionalContract(
       ?.componentInstructionalFinding ||
 
     null;
+
+  const progressiveSupport =
+    contract.contractId ===
+      "SW-GS-001"
+      ? selectProgressiveSupportScaffold(
+          contract,
+          state
+        )
+      : null;
 
   return {
     contractId:
@@ -4934,6 +5046,8 @@ function executeSoWhatInstructionalContract(
       contract.teachingMove,
 
     thinkingMove:
+      progressiveSupport
+        ?.thinkingMove ||
       contract.thinkingMove,
 
     communicationPattern:
@@ -4945,6 +5059,15 @@ function executeSoWhatInstructionalContract(
 
     instructionalFinding,
 
+    progressiveSupportStage:
+      progressiveSupport
+        ?.progressiveSupportStage ||
+      null,
+
+    progressiveSupportMove:
+      progressiveSupport?.move ||
+      null,
+    
     context: {
       assignmentContext:
         state?.frameMeta
