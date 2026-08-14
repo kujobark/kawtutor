@@ -12022,6 +12022,134 @@ async function runIsAboutSelfTests() {
   });
 
   // --------------------------------------------------
+  // RUNTIME NORMALIZATION REGRESSION
+  //
+  // A student may naturally repeat the accepted Key Topic
+  // as part of a complete "X is about Y" sentence.
+  //
+  // Runtime validation must evaluate the full student
+  // response so the observable Key Topic relationship is
+  // preserved, while Frame storage normalizes the saved
+  // Is About by removing the repeated prefix.
+  // --------------------------------------------------
+
+  const prefixedIsAboutState =
+    createIsAboutRuntimeTestState();
+
+  prefixedIsAboutState.frame.keyTopic =
+    "Social media";
+
+  const prefixedIsAboutResponse =
+    "Social media is about how online platforms affect teenagers' lives and well-being.";
+
+  const expectedNormalizedIsAbout =
+    "how online platforms affect teenagers' lives and well-being.";
+
+  const prefixedIsAboutActual =
+    await updateStateFromStudent(
+      prefixedIsAboutState,
+      prefixedIsAboutResponse
+    );
+
+  const prefixedIsAboutPassed =
+    prefixedIsAboutActual
+      ?.frame
+      ?.isAbout ===
+      expectedNormalizedIsAbout &&
+
+    prefixedIsAboutActual
+      ?.pending
+      ?.type ===
+      "confirmIsAbout" &&
+
+    prefixedIsAboutActual
+      ?.componentInstructionalFinding
+      ?.componentCriteriaStatus ===
+      "satisfied" &&
+
+    prefixedIsAboutActual
+      ?.componentInstructionalFinding
+      ?.relationshipStatus ===
+      "established" &&
+
+    prefixedIsAboutActual
+      ?.instructionalSituation
+      ?.instructionalSituation ===
+      INSTRUCTIONAL_SITUATIONS
+        .READY_TO_PROGRESS &&
+
+    prefixedIsAboutActual
+      ?.progressionAuthorization
+      ?.authorized === true;
+
+  results.push({
+    name:
+      "IA Runtime - Full Key Topic prefix is validated before normalized storage",
+
+    passed:
+      prefixedIsAboutPassed,
+
+    response:
+      prefixedIsAboutResponse,
+
+    expected: {
+      savedIsAbout:
+        expectedNormalizedIsAbout,
+
+      pendingType:
+        "confirmIsAbout",
+
+      componentCriteriaStatus:
+        "satisfied",
+
+      relationshipStatus:
+        "established",
+
+      governedSituation:
+        INSTRUCTIONAL_SITUATIONS
+          .READY_TO_PROGRESS,
+
+      progressionAuthorized:
+        true,
+    },
+
+    actual: {
+      savedIsAbout:
+        prefixedIsAboutActual
+          ?.frame
+          ?.isAbout || null,
+
+      pendingType:
+        prefixedIsAboutActual
+          ?.pending
+          ?.type || null,
+
+      componentCriteriaStatus:
+        prefixedIsAboutActual
+          ?.componentInstructionalFinding
+          ?.componentCriteriaStatus ||
+        null,
+
+      relationshipStatus:
+        prefixedIsAboutActual
+          ?.componentInstructionalFinding
+          ?.relationshipStatus ||
+        null,
+
+      governedSituation:
+        prefixedIsAboutActual
+          ?.instructionalSituation
+          ?.instructionalSituation ||
+        null,
+
+      progressionAuthorized:
+        prefixedIsAboutActual
+          ?.progressionAuthorization
+          ?.authorized === true,
+    },
+  });
+  
+  // --------------------------------------------------
   // GOVERNED PERSISTENCE TEST
   //
   // Genuine struggle requires:
