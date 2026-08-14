@@ -15586,6 +15586,417 @@ function formatAICommunicationSelfTestResults(
 }
 
 // ------------------------------------------------------
+// PROGRESSIVE SUPPORT LIFECYCLE SELF-TESTS
+// ------------------------------------------------------
+//
+// Verifies the shared deterministic Stage lifecycle for
+// Is About, Main Idea, Essential Detail, and So What.
+//
+// Each component must demonstrate:
+//
+// • first Genuine Struggle -> Stage 1;
+// • continued struggle -> Stage 2;
+// • continued struggle -> Stage 3;
+// • further struggle remains capped at Stage 3;
+// • non-struggle governed support clears the stage;
+// • struggle after reset restarts at Stage 1;
+// • a new exact instructional location starts at Stage 1.
+//
+// These tests exercise the shared lifecycle and each
+// component's actual governed contract executor.
+// ------------------------------------------------------
+
+async function runProgressiveSupportSelfTests() {
+  const results = [];
+
+  const componentCases = [
+    {
+      label: "IA",
+      frameComponent: "isAbout",
+      pending: {
+        type: "reviseIsAbout",
+      },
+      nextPending: {
+        type: "strengthenReviseIsAbout",
+      },
+    },
+    {
+      label: "MI",
+      frameComponent: "mainIdeas",
+      pending: {
+        type: "reviseMainIdea",
+        index: 0,
+      },
+      nextPending: {
+        type: "reviseMainIdea",
+        index: 1,
+      },
+    },
+    {
+      label: "ED",
+      frameComponent: "details",
+      pending: {
+        type: "collectAnotherDetail",
+        index: 0,
+      },
+      nextPending: {
+        type: "collectAnotherDetail",
+        index: 1,
+      },
+    },
+    {
+      label: "SW",
+      frameComponent: "soWhat",
+      pending: {
+        type: "collectMoreSoWhat",
+      },
+      nextPending: {
+        type: "strengthenCurrentSoWhat",
+      },
+    },
+  ];
+
+  for (const componentCase of componentCases) {
+    const state = defaultState();
+
+    state.frame.keyTopic =
+      "Social Media and Teen Mental Health";
+
+    state.frame.isAbout =
+      "How social media can affect teen mental health.";
+
+    state.frame.parentItems = [
+      "Social media can increase anxiety and stress.",
+      "Social media can affect self-esteem.",
+    ];
+
+    state.frame.details = [
+      [
+        "Comparing themselves to others can increase anxiety.",
+      ],
+      [
+        "Negative feedback can affect how teens see themselves.",
+      ],
+    ];
+
+    state.pending =
+      structuredClone(
+        componentCase.pending
+      );
+
+    const genuineStruggleContract =
+      getInstructionalContract(
+        componentCase.frameComponent,
+        INSTRUCTIONAL_SITUATIONS
+          .GENUINE_STRUGGLE
+      );
+
+    const noComponentEvidenceContract =
+      getInstructionalContract(
+        componentCase.frameComponent,
+        INSTRUCTIONAL_SITUATIONS
+          .NO_COMPONENT_EVIDENCE
+      );
+
+    const setGovernedSituation = (
+      instructionalSituation,
+      contract
+    ) => {
+      state.instructionalSituation = {
+        instructionalSituation,
+        frameComponent:
+          componentCase.frameComponent,
+      };
+
+      state.instructionalContractSelection = {
+        selectionStatus:
+          "contractSelected",
+
+        selectedContractId:
+          contract?.contractId || null,
+
+        selectedContract:
+          contract,
+      };
+    };
+
+    const instructionalFinding = {
+      frameComponent:
+        componentCase.frameComponent,
+
+      componentEvidenceLevel:
+        "none",
+
+      componentCriteriaStatus:
+        "notSatisfied",
+
+      relationshipStatus:
+        "undetermined",
+
+      diagnosis:
+        "noComponentEvidence",
+    };
+
+    const observedPendingStages = [];
+    const observedExecutionStages = [];
+
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      setGovernedSituation(
+        INSTRUCTIONAL_SITUATIONS
+          .GENUINE_STRUGGLE,
+        genuineStruggleContract
+      );
+
+      attachGovernedSupportToPending(
+        state,
+        "idk",
+        {
+          intent: "stuck",
+          confidence: 1,
+          source:
+            `progressiveSupportSelfTest:${componentCase.label}`,
+          instructionalFinding,
+        }
+      );
+
+      observedPendingStages.push(
+        state?.pending
+          ?.progressiveSupportStage ??
+        null
+      );
+
+      observedExecutionStages.push(
+        state?.pending
+          ?.instructionalActivation
+          ?.execution
+          ?.progressiveSupportStage ??
+        null
+      );
+    }
+
+    setGovernedSituation(
+      INSTRUCTIONAL_SITUATIONS
+        .NO_COMPONENT_EVIDENCE,
+      noComponentEvidenceContract
+    );
+
+    attachGovernedSupportToPending(
+      state,
+      "idk",
+      {
+        intent: "stuck",
+        confidence: 1,
+        source:
+          `progressiveSupportResetSelfTest:${componentCase.label}`,
+        instructionalFinding,
+      }
+    );
+
+    const stageCleared =
+      !Object.prototype.hasOwnProperty.call(
+        state.pending,
+        "progressiveSupportStage"
+      ) &&
+      state?.pending
+        ?.instructionalActivation
+        ?.execution
+        ?.progressiveSupportStage ===
+        null;
+
+    setGovernedSituation(
+      INSTRUCTIONAL_SITUATIONS
+        .GENUINE_STRUGGLE,
+      genuineStruggleContract
+    );
+
+    attachGovernedSupportToPending(
+      state,
+      "idk",
+      {
+        intent: "stuck",
+        confidence: 1,
+        source:
+          `progressiveSupportRestartSelfTest:${componentCase.label}`,
+        instructionalFinding,
+      }
+    );
+
+    const restartStage =
+      state?.pending
+        ?.progressiveSupportStage ??
+      null;
+
+    state.pending =
+      structuredClone(
+        componentCase.nextPending
+      );
+
+    setGovernedSituation(
+      INSTRUCTIONAL_SITUATIONS
+        .GENUINE_STRUGGLE,
+      genuineStruggleContract
+    );
+
+    attachGovernedSupportToPending(
+      state,
+      "idk",
+      {
+        intent: "stuck",
+        confidence: 1,
+        source:
+          `progressiveSupportLocationSelfTest:${componentCase.label}`,
+        instructionalFinding,
+      }
+    );
+
+    const newLocationStage =
+      state?.pending
+        ?.progressiveSupportStage ??
+      null;
+
+    const expectedStages = [
+      1,
+      2,
+      3,
+      3,
+    ];
+
+    const passed =
+      JSON.stringify(
+        observedPendingStages
+      ) ===
+        JSON.stringify(
+          expectedStages
+        ) &&
+
+      JSON.stringify(
+        observedExecutionStages
+      ) ===
+        JSON.stringify(
+          expectedStages
+        ) &&
+
+      stageCleared === true &&
+      restartStage === 1 &&
+      newLocationStage === 1;
+
+    results.push({
+      name:
+        `${componentCase.label} Progressive Support - Stage 1 -> 2 -> 3 lifecycle`,
+
+      passed,
+
+      expected: {
+        pendingStages:
+          expectedStages,
+
+        executionStages:
+          expectedStages,
+
+        stageCleared:
+          true,
+
+        restartStage:
+          1,
+
+        newLocationStage:
+          1,
+      },
+
+      actual: {
+        pendingStages:
+          observedPendingStages,
+
+        executionStages:
+          observedExecutionStages,
+
+        stageCleared,
+
+        restartStage,
+
+        newLocationStage,
+      },
+    });
+  }
+
+  const passedCount =
+    results.filter(
+      (result) => result.passed
+    ).length;
+
+  const failedCount =
+    results.length - passedCount;
+
+  return {
+    passed:
+      failedCount === 0,
+
+    passedCount,
+
+    failedCount,
+
+    total:
+      results.length,
+
+    results,
+  };
+}
+
+function formatProgressiveSupportSelfTestResults(
+  testResults
+) {
+  const lines = [
+    "🪜 KAW PROGRESSIVE SUPPORT SELF-TESTS",
+    "",
+  ];
+
+  testResults.results.forEach(
+    (result) => {
+      lines.push(
+        `${result.passed ? "✅" : "❌"} ${result.name}`
+      );
+
+      if (!result.passed) {
+        lines.push(
+          `Expected: ${JSON.stringify(
+            result.expected
+          )}`
+        );
+
+        lines.push(
+          `Actual: ${JSON.stringify(
+            result.actual
+          )}`
+        );
+      }
+
+      lines.push("");
+    }
+  );
+
+  lines.push(
+    "────────────────────────"
+  );
+
+  lines.push(
+    `Passed: ${testResults.passedCount}/${testResults.total}`
+  );
+
+  lines.push(
+    `Failed: ${testResults.failedCount}`
+  );
+
+  if (testResults.passed) {
+    lines.push("");
+    lines.push(
+      "🚀 Progressive Support lifecycle is operating correctly."
+    );
+  }
+
+  return lines.join("\n");
+}
+
+// ------------------------------------------------------
 // DETERMINISTIC SELF-TEST SUITE REGISTRY
 //
 // Each instructional subsystem owns its own test suite.
@@ -23223,6 +23634,7 @@ if (
 // /run mi
 // /run ed
 // /run sw
+// /run ps
 // /run core
 //
 // These commands do not modify the student's active Frame.
@@ -23239,6 +23651,9 @@ const componentTestCommandMap = {
 
   "/run sw":
     "soWhat",
+
+  "/run ps":
+    "progressiveSupport",
 
   "/run core":
     "evidenceState",
