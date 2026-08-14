@@ -19705,16 +19705,16 @@ async function applyIsAboutCapture(
           )
         : cleanedIsAbout;
 
-    const validation =
-    await validateIsAboutResponseGoverned(
-      normalizedIsAbout,
-      keyTopic
-    );
+     const validation =
+      await validateIsAboutResponseGoverned(
+        cleanedIsAbout,
+        keyTopic
+  );
 
-  const instructionalFinding =
-    buildComponentInstructionalFinding({
-      frameComponent:
-        "isAbout",
+    const instructionalFinding =
+      buildComponentInstructionalFinding({
+        frameComponent:
+          "isAbout",
 
       validation,
 
@@ -19736,8 +19736,8 @@ async function applyIsAboutCapture(
     state:
       s,
 
-    currentResponse:
-      normalizedIsAbout,
+     currentResponse:
+      cleanedIsAbout,
 
     componentFinding:
       instructionalFinding,
