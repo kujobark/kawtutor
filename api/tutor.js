@@ -12043,7 +12043,7 @@ async function runIsAboutSelfTests() {
     "Social media is about how online platforms affect teenagers' lives and well-being.";
 
   const expectedNormalizedIsAbout =
-    "how online platforms affect teenagers' lives and well-being.";
+    "How online platforms affect teenagers' lives and well-being.";
 
   const prefixedIsAboutActual =
     await updateStateFromStudent(
