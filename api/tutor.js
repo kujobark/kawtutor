@@ -4694,6 +4694,15 @@ function selectProgressiveSupportScaffold(
   return {
     progressiveSupportStage,
 
+  guidedConstructionStep:
+  progressiveSupportStage === 3 &&
+  Number.isInteger(
+    state?.pending
+      ?.guidedConstructionStep
+  )
+    ? state.pending.guidedConstructionStep
+    : null,
+    
   move:
     selectedScaffold?.move ||
     null,
@@ -4776,6 +4785,11 @@ function executeIsAboutInstructionalContract(
         ?.progressiveSupportStage ||
       null,
 
+    guidedConstructionStep:
+      progressiveSupport
+        ?.guidedConstructionStep ||
+      null,
+    
     progressiveSupportMove:
       progressiveSupport?.move ||
       null,
@@ -4904,6 +4918,11 @@ function executeEssentialDetailInstructionalContract(
         ?.progressiveSupportStage ||
       null,
 
+    guidedConstructionStep:
+      progressiveSupport
+        ?.guidedConstructionStep ||
+      null,
+    
     progressiveSupportMove:
       progressiveSupport?.move ||
       null,
@@ -5027,6 +5046,11 @@ function executeMainIdeaInstructionalContract(
         ?.progressiveSupportStage ||
       null,
 
+    guidedConstructionStep:
+      progressiveSupport
+        ?.guidedConstructionStep ||
+      null,
+    
     progressiveSupportMove:
       progressiveSupport?.move ||
       null,
@@ -5144,6 +5168,11 @@ function executeSoWhatInstructionalContract(
         ?.progressiveSupportStage ||
       null,
 
+    guidedConstructionStep:
+      progressiveSupport
+        ?.guidedConstructionStep ||
+      null,
+    
     progressiveSupportMove:
       progressiveSupport?.move ||
       null,
