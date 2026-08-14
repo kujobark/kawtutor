@@ -21652,11 +21652,9 @@ if (
 
       await applyIsAboutCapture(
         s,
-        currentIsAbout,
-        {
-          captureMode:
-            "strengthen",
-        }
+        s.frame.keyTopic
+          ? msg
+          : parsed.isAbout
       );
 
       return s;
