@@ -1186,55 +1186,56 @@ const INSTRUCTIONAL_PLAYBOOK = {
           "Return to the Is About statement where support was requested and validate the student's next response.",
       },
 
-           progressiveSupport: {
+      progressiveSupport: {
         principle:
-          "If the first intervention does not restart productive thinking, provide progressively more targeted support without supplying the student's Is About statement.",
+          "Progressive Support increases access to the same instructional objective through Prompt, Model, and Guided Construction while preserving student ownership.",
 
         scaffolds: [
           {
-            level:
-              1,
-
-            move:
-              "refocus",
-
+            level: 1,
+            move: "prompt",
+            supportType: "prompt",
             purpose:
-              "Reconnect the student to the accepted Key Topic.",
-
+              "Reconnect the student to accepted context and invite them to perform the intended component thinking with a light instructional nudge.",
+            cue:
+              "Briefly signal that Kaw is helping the student use what they already have.",
             thinkingMove:
-              "Reconnect the student to the accepted Key Topic and ask them to explain what the whole topic is about in their own understandable words. Do not suggest or supply the student's Is About statement.",
+              "...component-specific Prompt thinking move...",
           },
 
-          {
-            level:
-              2,
-
-            move:
-              "remind",
-
-            purpose:
-              "Remind the student that Is About explains the whole Key Topic in their own words.",
-
-            thinkingMove:
-              "Remind the student that Is About explains the whole Key Topic in their own understandable words. Ask them to describe the big picture rather than give one small detail. Do not suggest or supply the student's answer.",
-          },
-
-          {
-            level:
-              3,
-
-            move:
-              "thinkingPrompt",
-
-            purpose:
-              "Ask what someone unfamiliar with the topic should understand about it.",
-
-            thinkingMove:
-              "Reconnect the student to the accepted Key Topic. Ask what one person who knows nothing about the topic should understand about it. Do not suggest, begin, or supply the student's Is About statement.",
-          },
-        ],
+    {
+      level: 2,
+      move: "model",
+      supportType: "model",
+      purpose:
+        "Make the required kind of thinking visible through one brief content-distant example, then return immediately to the student's own Frame.",
+      cue:
+        "Briefly tell the student Kaw will show the kind of thinking using a different topic.",
+      modelRules: {
+        contentDistant: true,
+        brief: true,
+        structurallyAnalogous: true,
+        mayNotFunctionAsCandidateAnswer: true,
+        returnImmediatelyToStudentTask: true,
       },
+      thinkingMove:
+        "...component-specific Model thinking move...",
+    },
 
+    {
+      level: 3,
+      move: "guidedConstruction",
+      supportType: "guidedConstruction",
+      purpose:
+        "Break the component thinking into smaller sequential operations and build only from the student's own responses.",
+      cue:
+        "Briefly tell the student Kaw will work through the thinking one step at a time.",
+      thinkingMove:
+        "...component-specific first Guided Construction move...",
+    },
+  ],
+},
+      
       studentWorkProtection: {
         preserveExistingWork:
           true,
@@ -1559,55 +1560,56 @@ const INSTRUCTIONAL_PLAYBOOK = {
           "Return to the exact required, optional, or revision Main Idea location where support was requested and validate the student's next response.",
       },
 
-          progressiveSupport: {
+           progressiveSupport: {
         principle:
-          "If the first intervention does not restart productive thinking, provide progressively more targeted support without supplying the student's Main Idea.",
+          "Progressive Support increases access to the same instructional objective through Prompt, Model, and Guided Construction while preserving student ownership.",
 
         scaffolds: [
           {
-            level:
-              1,
-
-            move:
-              "refocus",
-
+            level: 1,
+            move: "prompt",
+            supportType: "prompt",
             purpose:
-              "Reconnect the student to the accepted Key Topic and Is About statement.",
-
+              "Reconnect the student to accepted context and invite them to perform the intended component thinking with a light instructional nudge.",
+            cue:
+              "Briefly signal that Kaw is helping the student use what they already have.",
             thinkingMove:
-              "Reconnect the student to the accepted Key Topic and Is About statement. Ask them to identify one larger idea that helps organize or explain the topic. Do not suggest or supply the student's Main Idea.",
+              "...component-specific Prompt thinking move...",
           },
 
-          {
-            level:
-              2,
-
-            move:
-              "differentiate",
-
-            purpose:
-              "Remind the student that a Main Idea is one larger organizing idea rather than the whole topic or one specific Essential Detail.",
-
-            thinkingMove:
-              "Remind the student that a Main Idea is one larger organizing idea rather than the whole topic or one specific Essential Detail. Ask them what larger idea they want this part of the Frame to explain. Do not suggest or supply the Main Idea.",
-          },
-
-          {
-            level:
-              3,
-
-            move:
-              "organizingPrompt",
-
-            purpose:
-              "Invite the student to identify one major category, cause, effect, part, stage, pattern, or event that could organize several Essential Details.",
-
-            thinkingMove:
-              "Invite the student to identify one major category, cause, effect, part, stage, pattern, or event that could organize several Essential Details for the accepted Key Topic and Is About statement. Do not choose or supply the organizer for the student.",
-          },
-        ],
+    {
+      level: 2,
+      move: "model",
+      supportType: "model",
+      purpose:
+        "Make the required kind of thinking visible through one brief content-distant example, then return immediately to the student's own Frame.",
+      cue:
+        "Briefly tell the student Kaw will show the kind of thinking using a different topic.",
+      modelRules: {
+        contentDistant: true,
+        brief: true,
+        structurallyAnalogous: true,
+        mayNotFunctionAsCandidateAnswer: true,
+        returnImmediatelyToStudentTask: true,
       },
+      thinkingMove:
+        "...component-specific Model thinking move...",
+    },
 
+    {
+      level: 3,
+      move: "guidedConstruction",
+      supportType: "guidedConstruction",
+      purpose:
+        "Break the component thinking into smaller sequential operations and build only from the student's own responses.",
+      cue:
+        "Briefly tell the student Kaw will work through the thinking one step at a time.",
+      thinkingMove:
+        "...component-specific first Guided Construction move...",
+    },
+  ],
+},
+      
       studentWorkProtection: {
         preserveExistingWork:
           true,
@@ -1937,53 +1939,55 @@ const INSTRUCTIONAL_PLAYBOOK = {
 
            progressiveSupport: {
         principle:
-          "If the first intervention does not restart productive thinking, provide progressively more targeted support without supplying the student's Essential Detail.",
+          "Progressive Support increases access to the same instructional objective through Prompt, Model, and Guided Construction while preserving student ownership.",
 
         scaffolds: [
           {
-            level:
-              1,
-
-            move:
-              "refocus",
-
+            level: 1,
+            move: "prompt",
+            supportType: "prompt",
             purpose:
-              "Reconnect the student to the accepted Main Idea.",
-
+              "Reconnect the student to accepted context and invite them to perform the intended component thinking with a light instructional nudge.",
+            cue:
+              "Briefly signal that Kaw is helping the student use what they already have.",
             thinkingMove:
-              "Reconnect the student to the accepted Main Idea and ask for one concrete fact, example, observation, explanation, or piece of evidence that helps support it. Do not suggest or supply the Essential Detail.",
+              "...component-specific Prompt thinking move...",
           },
 
-          {
-            level:
-              2,
-
-            move:
-              "differentiate",
-
-            purpose:
-              "Remind the student that an Essential Detail is one specific fact, example, observation, explanation, or piece of evidence that supports the Main Idea.",
-
-            thinkingMove:
-              "Remind the student that an Essential Detail is one specific fact, example, observation, explanation, or piece of evidence that supports the accepted Main Idea. Ask what specific information they know that belongs beneath that Main Idea. Do not suggest or supply the detail.",
-          },
-
-          {
-            level:
-              3,
-
-            move:
-              "supportingEvidencePrompt",
-
-            purpose:
-              "Invite the student to recall one concrete piece of information that helps explain, illustrate, demonstrate, or support the accepted Main Idea.",
-
-            thinkingMove:
-              "Invite the student to recall one concrete piece of information that helps explain, illustrate, demonstrate, or support the accepted Main Idea. Ask them to state that information in their own words without supplying the evidence for them.",
-          },
-        ],
+    {
+      level: 2,
+      move: "model",
+      supportType: "model",
+      purpose:
+        "Make the required kind of thinking visible through one brief content-distant example, then return immediately to the student's own Frame.",
+      cue:
+        "Briefly tell the student Kaw will show the kind of thinking using a different topic.",
+      modelRules: {
+        contentDistant: true,
+        brief: true,
+        structurallyAnalogous: true,
+        mayNotFunctionAsCandidateAnswer: true,
+        returnImmediatelyToStudentTask: true,
       },
+      thinkingMove:
+        "...component-specific Model thinking move...",
+    },
 
+    {
+      level: 3,
+      move: "guidedConstruction",
+      supportType: "guidedConstruction",
+      purpose:
+        "Break the component thinking into smaller sequential operations and build only from the student's own responses.",
+      cue:
+        "Briefly tell the student Kaw will work through the thinking one step at a time.",
+      thinkingMove:
+        "...component-specific first Guided Construction move...",
+    },
+  ],
+},
+      
+      
       studentWorkProtection: {
         preserveExistingWork:
           true,
@@ -2311,54 +2315,55 @@ const INSTRUCTIONAL_PLAYBOOK = {
           "Return to the exact initial, additional-content, or revision So What location where support was requested and validate the student's next response.",
       },
 
-            progressiveSupport: {
+           progressiveSupport: {
         principle:
-          "If the first intervention does not restart productive synthesis, provide progressively more targeted support without supplying the student's So What.",
+          "Progressive Support increases access to the same instructional objective through Prompt, Model, and Guided Construction while preserving student ownership.",
 
         scaffolds: [
           {
-            level:
-              1,
-
-            move:
-              "refocus",
-
+            level: 1,
+            move: "prompt",
+            supportType: "prompt",
             purpose:
-              "Reconnect the student to the completed Frame and its Key Topic.",
-
+              "Reconnect the student to accepted context and invite them to perform the intended component thinking with a light instructional nudge.",
+            cue:
+              "Briefly signal that Kaw is helping the student use what they already have.",
             thinkingMove:
-              "Reconnect the student to the completed Frame and its Key Topic. Ask what feels most important to understand after looking across the whole Frame. Do not suggest or supply the student's So What.",
+              "...component-specific Prompt thinking move...",
           },
 
-          {
-            level:
-              2,
-
-            move:
-              "synthesize",
-
-            purpose:
-              "Invite the student to identify what becomes important or clear when the Main Ideas and Essential Details are considered together.",
-
-            thinkingMove:
-              "Invite the student to consider the Main Ideas and Essential Details together and explain what becomes important or clear when those ideas are viewed as a whole. Do not suggest or supply the synthesis.",
-          },
-
-          {
-            level:
-              3,
-
-            move:
-              "significancePrompt",
-
-            purpose:
-              "Invite the student to explain a larger conclusion, connection, implication, application, or life truth supported by the completed Frame.",
-
-            thinkingMove:
-              "Invite the student to explain one larger conclusion, connection, implication, application, or life truth that their completed Frame supports. Do not choose or supply that conclusion for the student.",
-          },
-        ],
+    {
+      level: 2,
+      move: "model",
+      supportType: "model",
+      purpose:
+        "Make the required kind of thinking visible through one brief content-distant example, then return immediately to the student's own Frame.",
+      cue:
+        "Briefly tell the student Kaw will show the kind of thinking using a different topic.",
+      modelRules: {
+        contentDistant: true,
+        brief: true,
+        structurallyAnalogous: true,
+        mayNotFunctionAsCandidateAnswer: true,
+        returnImmediatelyToStudentTask: true,
       },
+      thinkingMove:
+        "...component-specific Model thinking move...",
+    },
+
+    {
+      level: 3,
+      move: "guidedConstruction",
+      supportType: "guidedConstruction",
+      purpose:
+        "Break the component thinking into smaller sequential operations and build only from the student's own responses.",
+      cue:
+        "Briefly tell the student Kaw will work through the thinking one step at a time.",
+      thinkingMove:
+        "...component-specific first Guided Construction move...",
+    },
+  ],
+},
       
       studentWorkProtection: {
         preserveExistingWork:
@@ -4689,20 +4694,35 @@ function selectProgressiveSupportScaffold(
   return {
     progressiveSupportStage,
 
-    move:
-      selectedScaffold?.move ||
-      null,
+  move:
+    selectedScaffold?.move ||
+    null,
 
-    purpose:
-      selectedScaffold?.purpose ||
-      null,
+  supportType:
+    selectedScaffold?.supportType ||
+    null,
 
-    thinkingMove:
-      selectedScaffold
-        ?.thinkingMove ||
-      contract?.thinkingMove ||
-      null,
-  };
+  purpose:
+    selectedScaffold?.purpose ||
+    null,
+
+  cue:
+    selectedScaffold?.cue ||
+    null,
+
+  modelRules:
+    selectedScaffold?.modelRules
+      ? structuredClone(
+          selectedScaffold.modelRules
+        )
+      : null,
+
+  thinkingMove:
+    selectedScaffold
+      ?.thinkingMove ||
+    contract?.thinkingMove ||
+    null,
+};
 }
 
 function executeIsAboutInstructionalContract(
@@ -4759,6 +4779,21 @@ function executeIsAboutInstructionalContract(
     progressiveSupportMove:
       progressiveSupport?.move ||
       null,
+
+    progressiveSupportType:
+      progressiveSupport?.supportType ||
+      null,
+
+    progressiveSupportCue:
+      progressiveSupport?.cue ||
+      null,
+
+    progressiveSupportModelRules:
+      progressiveSupport?.modelRules
+        ? structuredClone(
+            progressiveSupport.modelRules
+          )
+        : null,
 
     context: {
       assignmentContext:
@@ -4872,6 +4907,21 @@ function executeEssentialDetailInstructionalContract(
     progressiveSupportMove:
       progressiveSupport?.move ||
       null,
+
+    progressiveSupportType:
+  progressiveSupport?.supportType ||
+  null,
+
+    progressiveSupportCue:
+      progressiveSupport?.cue ||
+      null,
+    
+    progressiveSupportModelRules:
+      progressiveSupport?.modelRules
+        ? structuredClone(
+            progressiveSupport.modelRules
+          )
+        : null,
     
     context: {
       assignmentContext:
@@ -4980,6 +5030,21 @@ function executeMainIdeaInstructionalContract(
     progressiveSupportMove:
       progressiveSupport?.move ||
       null,
+
+    progressiveSupportType:
+      progressiveSupport?.supportType ||
+      null,
+
+    progressiveSupportCue:
+      progressiveSupport?.cue ||
+      null,
+
+    progressiveSupportModelRules:
+      progressiveSupport?.modelRules
+        ? structuredClone(
+            progressiveSupport.modelRules
+          )
+        : null,
     
     context: {
       assignmentContext:
@@ -5082,6 +5147,21 @@ function executeSoWhatInstructionalContract(
     progressiveSupportMove:
       progressiveSupport?.move ||
       null,
+
+    progressiveSupportType:
+      progressiveSupport?.supportType ||
+      null,
+
+    progressiveSupportCue:
+      progressiveSupport?.cue ||
+      null,
+    
+    progressiveSupportModelRules:
+      progressiveSupport?.modelRules
+        ? structuredClone(
+            progressiveSupport.modelRules
+          )
+        : null,
     
     context: {
       assignmentContext:
