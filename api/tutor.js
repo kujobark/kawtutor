@@ -16010,6 +16010,12 @@ const DETERMINISTIC_SELF_TEST_SUITES = [
     run: runEvidenceStateSelfTests,
     format: formatEvidenceStateSelfTestResults,
   },
+      {
+    id: "progressiveSupport",
+    label: "Progressive Support Lifecycle",
+    run: runProgressiveSupportSelfTests,
+    format: formatProgressiveSupportSelfTestResults,
+  },
   {
     id: "essentialDetail",
     label: "Essential Detail Validation",
