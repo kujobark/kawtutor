@@ -4354,6 +4354,10 @@ function buildInstructionalCommunicationLicense(
         execution?.progressiveSupportStage ||
         null,
 
+      guidedConstructionStep:
+        execution?.guidedConstructionStep ||
+        null,
+      
       move:
         execution?.progressiveSupportMove ||
         null,
@@ -5266,6 +5270,10 @@ function buildAIContextualizationPayload(execution) {
       execution?.progressiveSupportStage ||
       null,
 
+    guidedConstructionStep:
+      execution?.guidedConstructionStep ||
+      null,
+    
     progressiveSupportMove:
       execution?.progressiveSupportMove ||
       null,
