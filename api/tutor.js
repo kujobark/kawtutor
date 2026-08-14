@@ -4339,6 +4339,21 @@ function buildInstructionalCommunicationLicense(
     requiredThinkingMove:
       execution.thinkingMove,
 
+    progressiveSupport: {
+      active:
+        Number.isInteger(
+          execution?.progressiveSupportStage
+        ),
+
+      stage:
+        execution?.progressiveSupportStage ||
+        null,
+
+      move:
+        execution?.progressiveSupportMove ||
+        null,
+    },
+
     communicationPattern,
 
     permissions: {
@@ -5138,6 +5153,14 @@ function buildAIContextualizationPayload(execution) {
     thinkingMove:
       execution.thinkingMove,
 
+    progressiveSupportStage:
+      execution?.progressiveSupportStage ||
+      null,
+
+    progressiveSupportMove:
+      execution?.progressiveSupportMove ||
+      null,
+
     communicationPattern:
       execution.communicationPattern || "questionOnly",
 
@@ -5340,6 +5363,9 @@ You must follow these rules:
 - Never perform an action prohibited by the Communication License, even if it might seem helpful.
 - Do not rewrite, improve, complete, or generate student work.
 - Do not change the Instructional Goal, Teaching Move, or Thinking Move.
+- Preserve every instructional distinction, comparison, cognitive cue, and constraint contained in the predetermined Thinking Move. Do not generalize it into a simpler or earlier-stage question.
+- When Progressive Support is active, the student-facing response must visibly enact the selected Progressive Support move. Stage 2 must preserve the selected reminder, differentiation, or synthesis move. Stage 3 must preserve the selected targeted thinking prompt. Do not collapse Stage 2 or Stage 3 into the more general Stage 1 prompt.
+- Do not mention Progressive Support, stage numbers, or internal move names to the student.
 - Do not reinterpret, expand, weaken, strengthen, or replace the established Instructional Finding.
 - Do not infer student intent, understanding, confusion, emotion, effort, motivation, or meaning.
 - Do not make claims about success, progress, correctness, relationships, or quality unless the established Instructional Finding and Communication License permit that claim.
@@ -5372,6 +5398,12 @@ ${payload.teachingMove}
 
 Predetermined Thinking Move:
 ${payload.thinkingMove}
+
+Progressive Support Stage:
+${payload.progressiveSupportStage || "(not active)"}
+
+Progressive Support Move:
+${payload.progressiveSupportMove || "(not active)"}
 
 Approved Communication Pattern:
 ${payload.communicationPattern || "questionOnly"}
@@ -5430,6 +5462,8 @@ Current Accepted So What:
 ${currentSoWhat || "(none yet)"}
 
 Express the predetermined Thinking Move as one natural, assignment-specific student-facing response.
+
+If Progressive Support is active, preserve the exact instructional difference of the selected stage and move. Do not simplify a Stage 2 or Stage 3 prompt back into the generic Stage 1 question.
 
 Follow the Approved Communication Instruction and Communication License exactly.
 
