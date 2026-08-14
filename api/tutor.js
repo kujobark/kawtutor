@@ -3335,13 +3335,23 @@ function getInstructionalSituationEvidenceHistory(
   // Prior governed support is established by Kaw 2.5's
   // actual instructional artifacts—not by a legacy
   // pending-state identity.
+  const progressiveSupportPreviouslyActive =
+    Number.isInteger(
+      pending?.progressiveSupportStage
+  );
+  
   const priorSupportActive =
     Boolean(
       priorFinding &&
-      governedContractPresent &&
-      governedActivationPresent &&
-      sameInstructionalComponent
-    );
+      sameInstructionalComponent &&
+      (
+        progressiveSupportPreviouslyActive ||
+        (
+          governedContractPresent &&
+          governedActivationPresent
+      )
+    )
+  );
 
   const priorDiagnosis =
     cleanText(
