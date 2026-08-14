@@ -3366,7 +3366,9 @@ function getInstructionalSituationEvidenceHistory(
 
   return {
     priorSupportActive,
-
+  
+    progressiveSupportPreviouslyActive,
+  
     priorDiagnosis:
       priorDiagnosis || null,
 
@@ -3556,10 +3558,19 @@ function buildInstructionalSituation({
 
   const persistentNoEvidenceAfterSupport =
     noCurrentComponentEvidence &&
-    evidenceHistory
-      .priorSupportActive === true &&
-    evidenceHistory
-      .priorNoEvidence === true;
+    (
+      evidenceHistory
+        .progressiveSupportPreviouslyActive ===
+        true ||
+  
+      (
+        evidenceHistory
+          .priorSupportActive === true &&
+  
+        evidenceHistory
+          .priorNoEvidence === true
+    )
+  );
 
   let instructionalSituation =
     INSTRUCTIONAL_SITUATIONS
