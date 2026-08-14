@@ -5493,7 +5493,7 @@ You must follow these rules:
 - Do not rewrite, improve, complete, or generate student work.
 - Do not change the Instructional Goal, Teaching Move, or Thinking Move.
 - Preserve every instructional distinction, comparison, cognitive cue, and constraint contained in the predetermined Thinking Move. Do not generalize it into a simpler or earlier-stage question.
-- When Progressive Support is active, the student-facing response must visibly enact the selected Progressive Support move. Stage 2 must preserve the selected reminder, differentiation, or synthesis move. Stage 3 must preserve the selected targeted thinking prompt. Do not collapse Stage 2 or Stage 3 into the more general Stage 1 prompt.
+- When Progressive Support is active, preserve the exact instructional architecture selected by the deterministic runtime: Stage 1 is Prompt, Stage 2 is Model, and Stage 3 is Guided Construction. Stage 1 must provide only the light Prompt defined by the predetermined Thinking Move. Stage 2 must visibly model the required kind of thinking using one brief, clearly content-distant example that follows the supplied model rules, then return immediately to the student's own Frame. Stage 3 must visibly begin or continue Guided Construction by reducing the current component thinking into the smaller step identified by the predetermined Thinking Move and Guided Construction step. Never collapse Model or Guided Construction back into a general Prompt.
 - Do not mention Progressive Support, stage numbers, or internal move names to the student.
 - Do not reinterpret, expand, weaken, strengthen, or replace the established Instructional Finding.
 - Do not infer student intent, understanding, confusion, emotion, effort, motivation, or meaning.
@@ -5530,6 +5530,22 @@ ${payload.thinkingMove}
 
 Progressive Support Stage:
 ${payload.progressiveSupportStage || "(not active)"}
+
+Progressive Support Type:
+${payload.progressiveSupportType || "(not active)"}
+
+Progressive Support Cue:
+${payload.progressiveSupportCue || "(not active)"}
+
+Guided Construction Step:
+${payload.guidedConstructionStep || "(not active)"}
+
+Progressive Support Model Rules:
+${JSON.stringify(
+  payload.progressiveSupportModelRules || {},
+  null,
+  2
+)}
 
 Progressive Support Move:
 ${payload.progressiveSupportMove || "(not active)"}
