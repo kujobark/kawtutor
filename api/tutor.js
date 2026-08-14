@@ -5241,6 +5241,18 @@ function buildAIContextualizationPayload(execution) {
       execution?.progressiveSupportMove ||
       null,
 
+    progressiveSupportType:
+      execution?.progressiveSupportType ||
+      null,
+
+    progressiveSupportCue:
+      execution?.progressiveSupportCue ||
+      null,
+
+    progressiveSupportModelRules:
+      execution?.progressiveSupportModelRules ||
+      null,
+    
     communicationPattern:
       execution.communicationPattern || "questionOnly",
 
