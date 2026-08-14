@@ -2329,7 +2329,7 @@ const INSTRUCTIONAL_PLAYBOOK = {
             cue:
               "Briefly signal that Kaw is helping the student use what they already have.",
             thinkingMove:
-              "...component-specific Prompt thinking move...",
+              "Reconnect the student to the completed Frame and invite them to identify the most important larger understanding or takeaway that becomes clear when they consider their Main Ideas and Essential Details together. Keep the support light and do not suggest, model, choose, or supply the So What.",
           },
 
     {
@@ -2348,7 +2348,7 @@ const INSTRUCTIONAL_PLAYBOOK = {
         returnImmediatelyToStudentTask: true,
       },
       thinkingMove:
-        "...component-specific Model thinking move...",
+        "Briefly model what a So What does using one simple completed Frame from content that is clearly unrelated to the student's assignment. Show how two or more ideas from that example Frame can be connected into one larger takeaway rather than simply repeated. Keep the example brief, structurally analogous, and content-distant so it cannot function as a hint or candidate response for the student's actual Frame. Then return immediately to the student's completed Frame and invite the student to identify the larger understanding that emerges from their own ideas together.",
     },
 
     {
@@ -2360,7 +2360,7 @@ const INSTRUCTIONAL_PLAYBOOK = {
       cue:
         "Briefly tell the student Kaw will work through the thinking one step at a time.",
       thinkingMove:
-        "...component-specific first Guided Construction move...",
+        "Begin Guided Construction of the So What by breaking synthesis into smaller sequential thinking steps. Reconnect to the student's completed Frame, tell the student Kaw will work through it one step at a time, and first ask the student to identify how two of their accepted Main Ideas connect, relate, contrast, or work together. Do not ask for the finished So What yet, do not interpret the relationship for the student, and do not suggest or supply the takeaway.",
     },
   ],
 },
