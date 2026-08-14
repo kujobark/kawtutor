@@ -19128,18 +19128,14 @@ async function applyIsAboutCapture(
       ?.authorized !== true
   ) {
       
+const pendingType =
+  isStrengthen
+    ? "strengthenReviseIsAbout"
+    : "reviseIsAbout";
+
 const sameInstructionalLocation =
   s?.pending?.type ===
-    pendingLocation.type &&
-
-  (
-    !Number.isInteger(
-      pendingLocation?.index
-    ) ||
-
-    s?.pending?.index ===
-      pendingLocation.index
-  );
+    pendingType;
 
 s.pending = {
   ...(sameInstructionalLocation &&
@@ -19148,7 +19144,10 @@ s.pending = {
     ? s.pending
     : {}),
 
-  ...pendingLocation,
+  type:
+    pendingType,
+
+  captureMode,
 };
 
 return attachGovernedSupportToPending(
@@ -19162,7 +19161,7 @@ return attachGovernedSupportToPending(
       1,
 
     source:
-      `mainIdeaValidation:${validation.diagnosis}`,
+      `isAboutValidation:${validation.diagnosis}`,
 
     instructionalFinding,
   }
