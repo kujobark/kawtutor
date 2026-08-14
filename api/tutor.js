@@ -15,6 +15,7 @@ const TRANSCRIPT_MAX_TURNS = 200;
 
 // Run language detection only on “real” text
 const LANG_DETECT_MIN_CHARS = 18;
+const DEBUG_PROGRESSIVE_SUPPORT = true;
 
 // ======================================================
 // KAW OPERATING SYSTEM — DRAFT 1
@@ -5670,7 +5671,14 @@ if (!communicationValidation.valid) {
   return null;
 }
 
-return cleanText(response);
+const debugPrefix =
+  DEBUG_PROGRESSIVE_SUPPORT
+    ? `[PS stage=${payload.progressiveSupportStage || "none"} type=${payload.progressiveSupportType || "none"} step=${payload.guidedConstructionStep || "none"} move=${payload.progressiveSupportMove || "none"}]\n`
+    : "";
+
+return cleanText(
+  `${debugPrefix}${response}`
+);
   } catch (error) {
     console.error(
       "Instructional contextualization error:",
