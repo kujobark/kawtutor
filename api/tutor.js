@@ -21652,10 +21652,12 @@ if (
 
       await applyIsAboutCapture(
         s,
-        s.frame.keyTopic
-          ? msg
-          : parsed.isAbout
-      );
+        currentIsAbout,
+        {
+          captureMode:
+            "strengthen",
+  }
+);
 
       return s;
     }
@@ -23361,7 +23363,12 @@ s.progressionAuthorization =
   
     if (!s.frame.isAbout) {
       // Route extracted Is About content through governed capture.
-      await applyIsAboutCapture(s, parsed.isAbout);
+    await applyIsAboutCapture(
+      s,
+      s.frame.keyTopic
+        ? msg
+        : parsed.isAbout
+);
     } else {
       s.pending = { type: "confirmIsAbout" };
     }
