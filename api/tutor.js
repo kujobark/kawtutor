@@ -21677,7 +21677,7 @@ async function runSoWhatSelfTests(
     "" &&
 
   invalidInitialActual?.pending?.type ===
-    "collectMoreSoWhat" &&
+    "continueSoWhat" &&
 
   invalidInitialActual?.pending
     ?.instructionalFinding
@@ -21704,7 +21704,7 @@ results.push({
       "",
 
     pendingType:
-      "collectMoreSoWhat",
+      "continueSoWhat",
 
     frameComponent:
       "soWhat",
@@ -22008,7 +22008,7 @@ results.push({
 
   additionalContentState.pending = {
     type:
-      "collectMoreSoWhat",
+      "continueSoWhat",
   };
 
   const additionalSentence =
@@ -22330,7 +22330,7 @@ results.push({
 
     state.pending = {
       type:
-        "collectMoreSoWhat",
+        "continueSoWhat",
 
       captureMode:
         "initial",
@@ -23354,7 +23354,7 @@ async function runProgressiveSupportSelfTests() {
       label: "SW",
       frameComponent: "soWhat",
       pending: {
-        type: "collectMoreSoWhat",
+        type: "continueSoWhat",
       },
       nextPending: {
         type: "strengthenCurrentSoWhat",
@@ -26923,8 +26923,7 @@ const PARENT_ANCHOR_BRIDGE = {
     // tutor.js currently allows optional additional So What text,
     // but the long-term Parent Anchor contract does NOT require
     // a multi-step So What expansion loop.
-    offerMoreSoWhat: "soWhatConfirm",
-    collectMoreSoWhat: "soWhatConfirm",
+    continueSoWhat: "soWhatConfirm",
     confirmSoWhat: "soWhatConfirm",
 
     offerExport: "export",
@@ -28846,18 +28845,8 @@ if (
   );
 }
   
-if (s.pending?.type === "offerMoreSoWhat") {
-  return (
-    `🎯 So What\n\n` +
-    `"${s.frame.soWhat}"\n\n` +
-    `Would you like to add another sentence to strengthen your So What?\n\n` +
-    `1) Yes — Add another sentence.\n` +
-    `2) No — Continue.\n\n` +
-    `Reply with 1 or 2.`
-  );
-}
 
-if (s.pending?.type === "collectMoreSoWhat") {
+if (s.pending?.type === "continueSoWhat") {
   return (
     `🎯 So What\n\n` +
     `"${s.frame.soWhat}"\n\n` +
@@ -31113,115 +31102,83 @@ if (
   s.pending = { type: "confirmDetails", index: idx };
   return s;
 }
-  
-  // --------------------------------------------------
-  // SO WHAT OPTIONAL EXPANSION
-  // --------------------------------------------------
 
-  if (s.pending?.type === "offerMoreSoWhat") {
-    const normalized =
-      msg.toLowerCase().trim();
-
-    if (isAffirmative(normalized)) {
-      s.pending = {
-        type: "collectMoreSoWhat",
-      };
-
-      return s;
-    }
-
-    s.pending = {
-      type: "confirmSoWhat",
-    };
-
-    return s;
-  }
-
-  // --------------------------------------------------
-  // SO WHAT ADDITIONAL CONTENT
-  //
-  // The student's existing So What and proposed additional
-  // sentence are validated together before state mutation.
-  // --------------------------------------------------
-
-  if (s.pending?.type === "collectMoreSoWhat") {
-    const normalized =
-      msg.toLowerCase().trim();
-
-    // A genuine decline preserves the existing So What.
-    if (
-      isNegative(normalized) ||
-      normalized === "2"
-    ) {
-      s.pending = {
-        type: "confirmSoWhat",
-      };
-
-      return s;
-    }
-
-// Additional proposed So What content proceeds to governed
-// validation.
+// --------------------------------------------------
+// SO WHAT GOVERNED CONTINUATION
 //
-// No-evidence and conversational responses must be handled
-// by the governed So What finding and contract pathway.
+// This pending location is used only when an initial
+// So What has not yet passed governed validation.
+//
+// The student's next response is treated as another
+// attempt at the same So What—not as additional content
+// appended to an accepted So What.
+// --------------------------------------------------
 
-    const proposedSoWhat =
-      cleanText(
-        `${s.frame.soWhat} ${msg}`
-      );
+if (s.pending?.type === "continueSoWhat") {
+  const {
+    soWhatValidation,
+    instructionalFinding,
+    progressionAuthorization,
+    capturedSoWhat,
+  } =
+    await applySoWhatCapture(
+      s,
+      msg,
+      {
+        captureMode:
+          "initial",
+      }
+    );
 
-const {
-  soWhatValidation,
-  instructionalFinding,
-  progressionAuthorization,
-} =
-  await applySoWhatCapture(
-    s,
-    proposedSoWhat,
-    {
-      captureMode:
-        "additionalContent",
-
-      previousSoWhat:
-        s.frame?.soWhat || "",
-    }
-  );
-    
-if (
-  !soWhatValidation.valid ||
-  progressionAuthorization
-    ?.authorized !== true
-) {
-      return attachGovernedSupportToPending(
+  if (
+    !soWhatValidation.valid ||
+    progressionAuthorization
+      ?.authorized !== true
+  ) {
+    s.pending =
+      buildPendingWithGuidedConstructionPreservation(
         s,
-        msg,
         {
-          intent:
-            "stuck",
+          type:
+            "continueSoWhat",
 
-          confidence:
-            1,
-
-          source:
-            `soWhatValidation:${soWhatValidation.diagnosis}`,
+          captureMode:
+            "initial",
 
           instructionalFinding,
         }
       );
-    }
 
-    // Save only after governed validation.
-    s.frame.soWhat =
-      proposedSoWhat;
+    return attachGovernedSupportToPending(
+      s,
+      msg,
+      {
+        intent:
+          "stuck",
 
-    s.pending = {
-      type: "confirmSoWhat",
-    };
+        confidence:
+          1,
 
-    return s;
+        source:
+          `soWhatValidation:${soWhatValidation.diagnosis}`,
+
+        instructionalFinding,
+      }
+    );
   }
 
+  // Save only after governed validation.
+  s.frame.soWhat =
+    capturedSoWhat;
+
+  s.pending = {
+    type:
+      "confirmSoWhat",
+  };
+
+  return s;
+}
+  
   // --------------------------------------------------
   // SO WHAT CONFIRMATION AND REVISION
   // --------------------------------------------------
@@ -31298,12 +31255,6 @@ const {
       previousSoWhat,
     }
   );
-
-  console.log(
-    "[KAW][GUIDED CONSTRUCTION][SO WHAT]",
-    guidedConstructionContinuation
-  );
-}
 
  if (
   !soWhatValidation.valid ||
@@ -31560,142 +31511,22 @@ if (
   // governed validation before it is saved.
   // --------------------------------------------------
 
-  if (!s.frame.soWhat) {
-    if (isNegative(msg)) {
-      return s;
-    }
+if (!s.frame.soWhat) {
 
-// The student's proposed So What proceeds directly to
-// governed validation.
-//
-// Conversational, meta, revision-direction, and struggle
-// language produce no component evidence and must not be
-// interpreted by a separate recovery router.
-
-   const soWhatValidation =
-  await validateSoWhatResponseGoverned(
+const {
+  soWhatValidation,
+  instructionalFinding,
+  progressionAuthorization,
+  capturedSoWhat,
+} =
+  await applySoWhatCapture(
+    s,
     msg,
-    buildSoWhatValidationContext(s)
-  );
-
-const instructionalFinding = {
-  ...buildComponentInstructionalFinding({
-    frameComponent:
-      "soWhat",
-
-    validation:
-      soWhatValidation,
-
-    evidence: {
-      keyTopic:
-        s.frame?.keyTopic || "",
-
-      isAbout:
-        s.frame?.isAbout || "",
-
-      mainIdeas:
-        getIdeaList(s)
-          .filter(Boolean),
-
-      details:
-        Array.isArray(
-          s.frame?.details
-        )
-          ? s.frame.details.map(
-              (bucket) =>
-                Array.isArray(bucket)
-                  ? bucket.filter(Boolean)
-                  : []
-            )
-          : [],
-
-      attemptedSoWhat:
-        cleanText(msg),
-
+    {
       captureMode:
         "initial",
-    },
-  }),
-
-  synthesisState:
-    soWhatValidation
-      .synthesisState || null,
-
-  validationSource:
-    soWhatValidation
-      .validationSource || null,
-
-  captureMode:
-    "initial",
-};
-
-refreshInstructionalSituationWithComponentFinding({
-  state:
-    s,
-
-  currentResponse:
-    msg,
-
-  componentFinding:
-    instructionalFinding,
-});
-
-const progressionAuthorization =
-  buildProgressionAuthorization(
-    s,
-    {
-      frameComponent:
-        "soWhat",
-
-      expectedContractId:
-        "SW-RTP-001",
     }
   );
-
-s.progressionAuthorization =
-  structuredClone(
-    progressionAuthorization
-  );
-
-// --------------------------------------------------
-// GUIDED CONSTRUCTION — SO WHAT CONTINUATION
-// --------------------------------------------------
-
-const activeGuidedConstruction =
-  getActiveGuidedConstructionContext(
-    s
-  );
-
-let guidedConstructionContinuation =
-  null;
-
-if (
-  activeGuidedConstruction?.active ===
-    true &&
-  activeGuidedConstruction
-    ?.frameComponent ===
-    "soWhat"
-) {
-  guidedConstructionContinuation =
-    await continueGuidedConstruction({
-      state:
-        s,
-
-      response:
-        msg,
-
-      componentValidation:
-        soWhatValidation,
-
-      finalRephraseUsed:
-        false,
-    });
-
-  console.log(
-    "[KAW][GUIDED CONSTRUCTION][SO WHAT]",
-    guidedConstructionContinuation
-  );
-}
     
 if (
   !soWhatValidation.valid ||
@@ -31707,7 +31538,7 @@ if (
       s,
       {
         type:
-          "collectMoreSoWhat",
+          "continueSoWhat",
       }
     );
 
@@ -31731,7 +31562,7 @@ if (
 
 // Save only after governed validation.
 s.frame.soWhat =
-  msg;
+  capturedSoWhat;
 
 s.pending = {
   type:
