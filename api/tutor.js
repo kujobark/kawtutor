@@ -9904,9 +9904,124 @@ if (!communicationValidation.valid) {
       ),
   };
 
+  // --------------------------------------------------
+  // ONE GOVERNED FORMAT-ONLY REGENERATION ATTEMPT
+  //
+  // A communication response that fails only because
+  // required student-facing formatting was not followed
+  // may be regenerated once.
+  //
+  // The retry must preserve:
+  //
+  // • the same Instructional Contract;
+  // • the same Instructional Goal;
+  // • the same Teaching Move;
+  // • the same Thinking Move;
+  // • the same Progressive Support stage;
+  // • the same Guided Construction step;
+  // • the same student-work protections.
+  //
+  // This retry corrects presentation only.
+  //
+  // --------------------------------------------------
+
+  const formattingOnlyViolation =
+    communicationValidation
+      .violations.length === 1 &&
+    communicationValidation
+      .violations.includes(
+        "verticalOptionListRequired"
+      );
+
+  if (formattingOnlyViolation) {
+    const retryInstruction = `${user}
+
+FORMAT CORRECTION REQUIRED:
+
+Your previous response preserved the instructional move but failed the required student-facing format.
+
+Regenerate the SAME predetermined Thinking Move.
+
+Do not change the instructional content, question, component, Progressive Support stage, or Guided Construction step.
+
+The parallel authorized options MUST appear as a true vertical list:
+- one option per separate line;
+- 3–5 authorized options only;
+- no inline dash series;
+- do not repeat the options in the final question;
+- ask exactly one final question.
+
+Return only the corrected student-facing response.`;
+
+    const retryResp =
+      await client.chat.completions.create({
+        model:
+          DEFAULT_MODEL,
+
+        reasoning_effort:
+          "none",
+
+        temperature:
+          0,
+
+        messages: [
+          {
+            role:
+              "system",
+
+            content:
+              system,
+          },
+
+          {
+            role:
+              "user",
+
+            content:
+              retryInstruction,
+          },
+        ],
+      });
+
+    const retryResponse =
+      retryResp?.choices?.[0]
+        ?.message?.content || "";
+
+    const retryValidation =
+      validateInstructionalCommunicationResponse(
+        retryResponse,
+        communicationLicense
+      );
+
+    console.log(
+      "COMMUNICATION RETRY VALIDATION:",
+      retryValidation
+    );
+
+    activation.communicationDebug = {
+      ...activation.communicationDebug,
+
+      retryResponse:
+        cleanText(
+          retryResponse
+        ),
+
+      retryValidation:
+        structuredClone(
+          retryValidation
+        ),
+    };
+
+    if (retryValidation.valid) {
+      return cleanText(
+        retryResponse
+      );
+    }
+  }
+
   return null;
 }
-
+    
   return cleanText(response);
   } catch (error) {
     console.error(
