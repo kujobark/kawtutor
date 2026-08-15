@@ -7272,15 +7272,25 @@ function getInstructionalSituationEvidenceHistory(
   );
 
   const priorDiagnosis =
-    cleanText(
-      priorFinding?.diagnosis || ""
-    );
+  cleanText(
+    priorFinding?.diagnosis || ""
+  );
 
-  const priorNoEvidence =
-    priorDiagnosis ===
-      "emptyResponse" ||
-    priorDiagnosis ===
-      "noComponentEvidence";
+const priorInstructionalSituation =
+  cleanText(
+    pending
+      ?.instructionalContract
+      ?.instructionalSituation || ""
+  );
+
+const priorNoEvidence =
+  priorInstructionalSituation ===
+    INSTRUCTIONAL_SITUATIONS
+      .NO_COMPONENT_EVIDENCE ||
+  priorDiagnosis ===
+    "emptyResponse" ||
+  priorDiagnosis ===
+    "noComponentEvidence";
 
   return {
     priorSupportActive,
