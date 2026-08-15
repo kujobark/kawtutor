@@ -31059,19 +31059,25 @@ if (s.pending?.type === "continueSoWhat") {
     progressionAuthorization
       ?.authorized !== true
   ) {
-    s.pending =
-      buildPendingWithGuidedConstructionPreservation(
-        s,
-        {
-          type:
-            "continueSoWhat",
+    const previousProgressiveSupportStage =
+  s?.pending?.progressiveSupportStage;
 
-          captureMode:
-            "initial",
+s.pending =
+  buildPendingWithGuidedConstructionPreservation(
+    s,
+    {
+      type:
+        "continueSoWhat",
 
-          instructionalFinding,
-        }
-      );
+      captureMode:
+        "initial",
+
+      instructionalFinding,
+
+      progressiveSupportStage:
+        previousProgressiveSupportStage,
+    }
+  );
 
     return attachGovernedSupportToPending(
       s,
