@@ -1222,7 +1222,7 @@ const INSTRUCTIONAL_PLAYBOOK = {
         "Briefly model what an Is About does using one simple Key Topic that is clearly unrelated to the student's assignment. Show that the Is About explains what the whole example topic is about rather than naming only one detail. Keep the example brief and content-distant so it cannot function as a hint or candidate response for the student's actual Key Topic. Then return immediately to the student's accepted Key Topic and invite the student to explain what their whole topic is about in their own words.",
     },
 
-    {
+        {
       level: 3,
       move: "guidedConstruction",
       supportType: "guidedConstruction",
@@ -1230,8 +1230,49 @@ const INSTRUCTIONAL_PLAYBOOK = {
         "Break the component thinking into smaller sequential operations and build only from the student's own responses.",
       cue:
         "Briefly tell the student Kaw will work through the thinking one step at a time.",
+
+      guidedConstructionRuleSource:
+        "GUIDED_CONSTRUCTION_RULES",
+
+      guidedSteps: {
+        1: {
+          ruleComponent:
+            "details",
+
+          ruleStep:
+            1,
+
+          operation:
+            "identifySpecificInformation",
+        },
+
+        2: {
+          ruleComponent:
+            "details",
+
+          ruleStep:
+            2,
+
+          operation:
+            "establishSupportAndEssentiality",
+        },
+
+        3: {
+          ruleComponent:
+            "details",
+
+          ruleStep:
+            3,
+
+          operation:
+            "formulateEssentialDetail",
+        },
+      },
+
+      // Step-1 compatibility fallback until the
+      // Progressive Support selector becomes step-aware.
       thinkingMove:
-        "Begin Guided Construction of the Is About by reducing the whole-topic paraphrase into one smaller thinking step. Reconnect to the accepted Key Topic, tell the student Kaw will work through it one step at a time, and ask the student to identify one thing that happens, is involved, or is important to know about the Key Topic. Do not ask for the finished Is About yet, and do not suggest or supply any content.",
+        "Begin Guided Construction of the Essential Detail by separating identification of supporting information from explanation of the supporting relationship. Reconnect to the accepted Main Idea, tell the student Kaw will work through it one step at a time, and first ask the student to identify one specific thing they know, noticed, read, observed, or can point to that relates to the Main Idea. Do not ask them to explain the connection yet, and do not suggest or supply the evidence.",
     },
   ],
 },
@@ -1596,7 +1637,7 @@ const INSTRUCTIONAL_PLAYBOOK = {
         "Briefly model what a Main Idea does using one simple topic that is clearly unrelated to the student's assignment. Show one example Main Idea that functions as a larger organizing idea and could be supported by several Essential Details. Keep the example brief, structurally analogous, and content-distant so it cannot function as a hint or candidate response for the student's actual topic. Then return immediately to the student's accepted Key Topic and Is About statement and invite the student to identify one Main Idea of their own.",
     },
 
-    {
+       {
       level: 3,
       move: "guidedConstruction",
       supportType: "guidedConstruction",
@@ -1604,8 +1645,49 @@ const INSTRUCTIONAL_PLAYBOOK = {
         "Break the component thinking into smaller sequential operations and build only from the student's own responses.",
       cue:
         "Briefly tell the student Kaw will work through the thinking one step at a time.",
+
+      guidedConstructionRuleSource:
+        "GUIDED_CONSTRUCTION_RULES",
+
+      guidedSteps: {
+        1: {
+          ruleComponent:
+            "mainIdeas",
+
+          ruleStep:
+            1,
+
+          operation:
+            "identifyOrganizer",
+        },
+
+        2: {
+          ruleComponent:
+            "mainIdeas",
+
+          ruleStep:
+            2,
+
+          operation:
+            "establishOrganizingPower",
+        },
+
+        3: {
+          ruleComponent:
+            "mainIdeas",
+
+          ruleStep:
+            3,
+
+          operation:
+            "formulateOrganizer",
+        },
+      },
+
+      // Step-1 compatibility fallback until the
+      // Progressive Support selector becomes step-aware.
       thinkingMove:
-        "Begin Guided Construction of the Main Idea by reducing the organizing task into one smaller thinking step. Reconnect to the accepted Key Topic and Is About statement, tell the student Kaw will work through it one step at a time, and ask the student to identify one important aspect, cause, effect, part, stage, pattern, event, or category they notice in the topic. Do not ask for the finished Main Idea yet, and do not suggest, choose, or supply the student's organizer.",
+        "Begin Guided Construction of the Main Idea by reducing the organizing task into one smaller thinking step. Reconnect to the accepted Key Topic and Is About statement, tell the student Kaw will work through it one step at a time, and ask the student to identify one important aspect, cause, effect, part, stage, pattern, event, category, or other organizing idea they notice in the topic. Do not ask for the finished Main Idea yet, and do not suggest, choose, or supply the student's organizer.",
     },
   ],
 },
@@ -1973,7 +2055,7 @@ const INSTRUCTIONAL_PLAYBOOK = {
         "Briefly model what an Essential Detail does using one simple Main Idea from content that is clearly unrelated to the student's assignment. Show one specific supporting fact, example, observation, explanation, event, condition, action, result, or piece of evidence beneath that example Main Idea. Keep the example brief, structurally analogous, and content-distant so it cannot function as a hint or candidate response for the student's actual Main Idea. Then return immediately to the student's accepted Main Idea and invite the student to identify one Essential Detail of their own.",
     },
 
-    {
+       {
       level: 3,
       move: "guidedConstruction",
       supportType: "guidedConstruction",
@@ -1981,8 +2063,49 @@ const INSTRUCTIONAL_PLAYBOOK = {
         "Break the component thinking into smaller sequential operations and build only from the student's own responses.",
       cue:
         "Briefly tell the student Kaw will work through the thinking one step at a time.",
+
+      guidedConstructionRuleSource:
+        "GUIDED_CONSTRUCTION_RULES",
+
+      guidedSteps: {
+        1: {
+          ruleComponent:
+            "isAbout",
+
+          ruleStep:
+            1,
+
+          operation:
+            "identify",
+        },
+
+        2: {
+          ruleComponent:
+            "isAbout",
+
+          ruleStep:
+            2,
+
+          operation:
+            "explainOrExtend",
+        },
+
+        3: {
+          ruleComponent:
+            "isAbout",
+
+          ruleStep:
+            3,
+
+          operation:
+            "assemble",
+        },
+      },
+
+      // Step-1 compatibility fallback until the
+      // Progressive Support selector becomes step-aware.
       thinkingMove:
-        "Begin Guided Construction of the Essential Detail by separating identification of supporting evidence from explanation of the supporting relationship. Reconnect to the accepted Main Idea, tell the student Kaw will work through it one step at a time, and first ask the student to identify one specific thing they know, noticed, read, observed, or can point to that relates to the Main Idea. Do not ask them to explain the connection yet, and do not suggest or supply the evidence.",
+        "Begin Guided Construction of the Is About by reducing the whole-topic paraphrase into one smaller thinking step. Reconnect to the accepted Key Topic, tell the student Kaw will work through it one step at a time, and ask the student to identify one thing that happens, is involved, is true, or is important to know about the Key Topic. Do not ask for the finished Is About yet, and do not suggest or supply any content.",
     },
   ],
 },
@@ -2359,8 +2482,49 @@ const INSTRUCTIONAL_PLAYBOOK = {
         "Break the component thinking into smaller sequential operations and build only from the student's own responses.",
       cue:
         "Briefly tell the student Kaw will work through the thinking one step at a time.",
+
+      guidedConstructionRuleSource:
+        "GUIDED_CONSTRUCTION_RULES",
+
+      guidedSteps: {
+        1: {
+          ruleComponent:
+            "soWhat",
+
+          ruleStep:
+            1,
+
+          operation:
+            "connectFrame",
+        },
+
+        2: {
+          ruleComponent:
+            "soWhat",
+
+          ruleStep:
+            2,
+
+          operation:
+            "determineImportance",
+        },
+
+        3: {
+          ruleComponent:
+            "soWhat",
+
+          ruleStep:
+            3,
+
+          operation:
+            "synthesize",
+        },
+      },
+
+      // Step-1 compatibility fallback until the
+      // Progressive Support selector becomes step-aware.
       thinkingMove:
-        "Begin Guided Construction of the So What by breaking synthesis into smaller sequential thinking steps. Reconnect to the student's completed Frame, tell the student Kaw will work through it one step at a time, and first ask the student to identify how two of their accepted Main Ideas connect, relate, contrast, or work together. Do not ask for the finished So What yet, do not interpret the relationship for the student, and do not suggest or supply the takeaway.",
+        "Begin Guided Construction of the So What by helping the student look across the completed Frame and identify one meaningful relationship, pattern, connection, contrast, sequence, cause-and-effect relationship, or larger idea that emerges from the accepted Main Ideas and Essential Details in relation to the Key Topic and Is About. Do not require a particular relationship structure, and do not interpret or supply the connection for the student.",
     },
   ],
 },
