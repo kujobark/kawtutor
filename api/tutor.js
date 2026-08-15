@@ -20770,6 +20770,178 @@ Rules:
   }
 }
 
+// ======================================================
+// GUIDED CONSTRUCTION ACTIVE PATHWAY AUTHORITY
+// ======================================================
+//
+// Determines whether an already-entered Guided
+// Construction pathway remains authoritative at the
+// student's exact current instructional location.
+//
+// Genuine Struggle governs entry into Progressive Support
+// Stage 3.
+//
+// Once Stage 3 Guided Construction is active at the same
+// exact instructional location, Guided Construction owns
+// continuation until:
+//
+// • the normal component validator accepts the component;
+// • runtime progression moves to a different location; or
+// • Guided Construction reaches its defined endpoint.
+//
+// A later componentNeedsRevision or
+// relationshipNeedsRepair finding may describe the
+// student's current evidence accurately, but it does not
+// replace the active Guided Construction pathway.
+//
+// This helper is read-only.
+//
+// ======================================================
+
+function buildGuidedConstructionPathwayAuthority(
+  state
+) {
+  const safeState =
+    state &&
+    typeof state === "object"
+      ? state
+      : {};
+
+  const pending =
+    safeState?.pending &&
+    typeof safeState.pending === "object"
+      ? safeState.pending
+      : null;
+
+  if (!pending) {
+    return {
+      authoritative:
+        false,
+
+      reason:
+        "pendingStateUnavailable",
+
+      context:
+        null,
+
+      storedLocation:
+        null,
+
+      currentLocation:
+        null,
+
+      instructionalContract:
+        null,
+    };
+  }
+
+  const activeContext =
+    getActiveGuidedConstructionContext(
+      safeState
+    );
+
+  if (
+    activeContext?.active !== true
+  ) {
+    return {
+      authoritative:
+        false,
+
+      reason:
+        "guidedConstructionNotActive",
+
+      context:
+        activeContext,
+
+      storedLocation:
+        null,
+
+      currentLocation:
+        null,
+
+      instructionalContract:
+        null,
+    };
+  }
+
+  const storedLocation =
+    pending
+      ?.guidedConstructionLocation &&
+    typeof pending
+      .guidedConstructionLocation ===
+      "object"
+      ? structuredClone(
+          pending.guidedConstructionLocation
+        )
+      : null;
+
+  const currentLocation =
+    buildGuidedConstructionInstructionalLocation(
+      safeState
+    );
+
+  const sameInstructionalLocation =
+    storedLocation
+      ?.locationEstablished === true &&
+    currentLocation
+      ?.locationEstablished === true &&
+    isSameGuidedConstructionInstructionalLocation(
+      storedLocation,
+      currentLocation
+    );
+
+  if (!sameInstructionalLocation) {
+    return {
+      authoritative:
+        false,
+
+      reason:
+        "guidedConstructionLocationChanged",
+
+      context:
+        activeContext,
+
+      storedLocation,
+
+      currentLocation,
+
+      instructionalContract:
+        null,
+    };
+  }
+
+  const instructionalContract =
+    getInstructionalContract(
+      activeContext.frameComponent,
+      INSTRUCTIONAL_SITUATIONS
+        .GENUINE_STRUGGLE
+    );
+
+  return {
+    authoritative:
+      instructionalContract !== null,
+
+    reason:
+      instructionalContract
+        ? "activeGuidedConstructionOwnsContinuation"
+        : "guidedConstructionContractUnavailable",
+
+    context:
+      activeContext,
+
+    storedLocation,
+
+    currentLocation,
+
+    instructionalContract:
+      instructionalContract
+        ? structuredClone(
+            instructionalContract
+          )
+        : null,
+  };
+}
+
 // ------------------------------------------------------
 // GOVERNED INSTRUCTIONAL SUPPORT ATTACHMENT
 // ------------------------------------------------------
@@ -20809,10 +20981,39 @@ function attachGovernedSupportToPending(
       ? state.instructionalSituation
       : null;
 
-  const instructionalContract =
+  const selectedInstructionalContract =
     state?.instructionalContractSelection
       ?.selectedContract ||
     null;
+
+  // --------------------------------------------------
+  // ACTIVE PATHWAY AUTHORITY
+  //
+  // Genuine Struggle determines entry into Guided
+  // Construction.
+  //
+  // Once Guided Construction is active at the same exact
+  // instructional location, the Guided Construction
+  // pathway remains authoritative even when the current
+  // component finding would ordinarily select a revision
+  // or relationship-repair contract.
+  //
+  // --------------------------------------------------
+
+  const guidedConstructionAuthority =
+    buildGuidedConstructionPathwayAuthority(
+      state
+    );
+
+  const guidedConstructionContinuationActive =
+    guidedConstructionAuthority
+      ?.authoritative === true;
+
+  const instructionalContract =
+    guidedConstructionContinuationActive
+      ? guidedConstructionAuthority
+          .instructionalContract
+      : selectedInstructionalContract;
 
   console.log(
     "[KAW][GOVERNED SUPPORT] Instructional Situation:",
@@ -20822,8 +21023,43 @@ function attachGovernedSupportToPending(
 
   console.log(
     "[KAW][GOVERNED SUPPORT] Selected Contract:",
-    instructionalContract
+    selectedInstructionalContract
       ?.contractId || null
+  );
+
+  console.log(
+    "[KAW][GOVERNED SUPPORT] Active Pathway Authority:",
+    guidedConstructionContinuationActive
+      ? {
+          pathway:
+            "guidedConstruction",
+
+          frameComponent:
+            guidedConstructionAuthority
+              ?.context
+              ?.frameComponent ||
+            null,
+
+          guidedConstructionStep:
+            guidedConstructionAuthority
+              ?.context
+              ?.guidedConstructionStep ||
+            null,
+
+          governingContract:
+            instructionalContract
+              ?.contractId ||
+            null,
+        }
+      : {
+          pathway:
+            "ordinaryGovernedSupport",
+
+          reason:
+            guidedConstructionAuthority
+              ?.reason ||
+            null,
+        }
   );
 
   if (
@@ -20831,9 +21067,299 @@ function attachGovernedSupportToPending(
     !instructionalContract
   ) {
     throw new Error(
-      "Governed support requires an established Instructional Situation and selected Instructional Contract."
+      "Governed support requires an established Instructional Situation and authoritative Instructional Contract."
     );
   }
+
+  // --------------------------------------------------
+  // PROGRESSIVE SUPPORT STAGE LIFECYCLE
+  // --------------------------------------------------
+  //
+  // BEFORE GUIDED CONSTRUCTION:
+  //
+  // Genuine Struggle advances:
+  //
+  // none → Stage 1 → Stage 2 → Stage 3
+  //
+  // AFTER GUIDED CONSTRUCTION ENTRY:
+  //
+  // Progressive Support Stage remains exactly 3.
+  //
+  // Guided Construction progression is controlled only
+  // by the Guided Construction runtime.
+  //
+  // A componentNeedsRevision or relationshipNeedsRepair
+  // finding does not reset or replace an active Guided
+  // Construction pathway at the same exact location.
+  //
+  // --------------------------------------------------
+
+  const genuineStruggleActive =
+    instructionalSituation
+      ?.instructionalSituation ===
+      INSTRUCTIONAL_SITUATIONS
+        .GENUINE_STRUGGLE;
+
+  const previousProgressiveSupportStage =
+    Number(
+      currentPending
+        ?.progressiveSupportStage ??
+      currentPending
+        ?.supportLevel ??
+      0
+    );
+
+  const progressiveSupportStage =
+    guidedConstructionContinuationActive
+      ? 3
+      : genuineStruggleActive
+        ? Math.min(
+            Math.max(
+              Number.isFinite(
+                previousProgressiveSupportStage
+              )
+                ? previousProgressiveSupportStage + 1
+                : 1,
+              1
+            ),
+            3
+          )
+        : null;
+
+  const pendingForActivation = {
+    ...currentPending,
+
+    instructionalFinding,
+  };
+
+  // Retire the historical numeric supportLevel field
+  // whenever governed support is rewritten.
+  delete pendingForActivation.supportLevel;
+
+  // --------------------------------------------------
+  // ACTIVE GUIDED CONSTRUCTION CONTINUATION
+  //
+  // Preserve the existing Stage-3 pathway exactly.
+  //
+  // Do not increment, reset, or reinterpret its current
+  // Guided Construction step here.
+  // --------------------------------------------------
+
+  if (
+    guidedConstructionContinuationActive
+  ) {
+    pendingForActivation
+      .progressiveSupportStage = 3;
+
+    if (
+      !Number.isInteger(
+        pendingForActivation
+          ?.guidedConstructionStep
+      ) ||
+      pendingForActivation
+        .guidedConstructionStep < 1 ||
+      pendingForActivation
+        .guidedConstructionStep > 3
+    ) {
+      throw new Error(
+        "Active Guided Construction requires a valid Guided Construction step."
+      );
+    }
+
+    pendingForActivation
+      .guidedConstructionLocation =
+      structuredClone(
+        guidedConstructionAuthority
+          .storedLocation
+      );
+  }
+
+  // --------------------------------------------------
+  // ORDINARY PROGRESSIVE SUPPORT ENTRY
+  //
+  // Genuine Struggle owns the pathway only until Stage 3
+  // has been entered.
+  // --------------------------------------------------
+
+  else if (genuineStruggleActive) {
+    pendingForActivation
+      .progressiveSupportStage =
+      progressiveSupportStage;
+
+    if (
+      progressiveSupportStage === 3
+    ) {
+      if (
+        !Number.isInteger(
+          pendingForActivation
+            ?.guidedConstructionStep
+        )
+      ) {
+        pendingForActivation
+          .guidedConstructionStep = 1;
+      }
+
+      // A newly entered Guided Construction pathway must
+      // begin with fresh Guided Construction-owned state.
+      delete pendingForActivation
+        .guidedConstructionEvidence;
+
+      delete pendingForActivation
+        .guidedConstructionFinalRephraseUsed;
+
+      const guidedConstructionEntryState = {
+        ...state,
+
+        pending:
+          pendingForActivation,
+      };
+
+      const guidedConstructionLocation =
+        buildGuidedConstructionInstructionalLocation(
+          guidedConstructionEntryState
+        );
+
+      if (
+        guidedConstructionLocation
+          ?.locationEstablished !== true
+      ) {
+        throw new Error(
+          "Guided Construction entry requires an established instructional location."
+        );
+      }
+
+      pendingForActivation
+        .guidedConstructionLocation =
+        structuredClone(
+          guidedConstructionLocation
+        );
+    } else {
+      delete pendingForActivation
+        .guidedConstructionStep;
+
+      delete pendingForActivation
+        .guidedConstructionEvidence;
+
+      delete pendingForActivation
+        .guidedConstructionFinalRephraseUsed;
+
+      delete pendingForActivation
+        .guidedConstructionLocation;
+    }
+  }
+
+  // --------------------------------------------------
+  // ORDINARY NON-GUIDED PATHWAY
+  //
+  // Outside active Guided Construction, a non-Genuine
+  // Struggle situation clears Progressive Support and all
+  // Guided Construction-owned metadata.
+  // --------------------------------------------------
+
+  else {
+    delete pendingForActivation
+      .progressiveSupportStage;
+
+    delete pendingForActivation
+      .guidedConstructionStep;
+
+    delete pendingForActivation
+      .guidedConstructionEvidence;
+
+    delete pendingForActivation
+      .guidedConstructionFinalRephraseUsed;
+
+    delete pendingForActivation
+      .guidedConstructionLocation;
+  }
+
+  // --------------------------------------------------
+  // CONTRACT ACTIVATION
+  //
+  // Active Guided Construction uses the component's
+  // Genuine-Struggle contract because that contract owns
+  // Progressive Support Stage 3.
+  //
+  // The current Instructional Finding remains available
+  // as evidence, but it does not replace the active
+  // pathway's instructional authority.
+  // --------------------------------------------------
+
+  const activationState = {
+    ...state,
+
+    pending:
+      pendingForActivation,
+  };
+
+  const instructionalActivation =
+    activateInstructionalContract(
+      instructionalContract,
+      activationState
+    );
+
+  console.log(
+    "ACTIVATION:",
+    instructionalActivation
+  );
+
+  if (!instructionalActivation) {
+    throw new Error(
+      "Governed support requires a valid Instructional Contract activation."
+    );
+  }
+
+  // Preserve the real instructional location directly.
+  //
+  // No recovery overlay, resume wrapper, or alternate
+  // pending-state identity is created.
+  state.pending = {
+    ...pendingForActivation,
+
+    instructionalContract: {
+      contractId:
+        instructionalContract.contractId,
+
+      frameComponent:
+        instructionalContract.frameComponent,
+
+      instructionalSituation:
+        instructionalContract
+          .instructionalSituation,
+
+      instructionalGoal:
+        instructionalContract
+          .instructionalGoal,
+
+      teachingMove:
+        instructionalContract.teachingMove,
+
+      thinkingMove:
+        instructionalContract.thinkingMove,
+
+      communicationPattern:
+        instructionalContract
+          .communicationPattern,
+
+      aiContextualizes:
+        instructionalContract
+          .aiContextualizes,
+    },
+
+    instructionalActivation: {
+      contractId:
+        instructionalActivation.contractId,
+
+      execution:
+        instructionalActivation.execution,
+
+      aiPayload:
+        instructionalActivation.aiPayload,
+    },
+  };
+
+  return state;
+}
 
   // --------------------------------------------------
   // PROGRESSIVE SUPPORT STAGE LIFECYCLE
