@@ -3611,6 +3611,430 @@ function isSameGuidedConstructionInstructionalLocation(
   );
 }
 
+// ======================================================
+// GUIDED CONSTRUCTION EVIDENCE ASSESSMENT
+// ======================================================
+//
+// Evaluates the student's response only for the currently
+// active Guided Construction micro-step.
+//
+// The normal governed component validator always receives
+// first authority.
+//
+// If the full component is already valid, Guided
+// Construction ends immediately and normal component
+// progression remains authoritative.
+//
+// This assessor may deterministically establish clear
+// no-evidence conditions.
+//
+// Meaningful micro-step sufficiency may require bounded
+// semantic evidence because Guided Construction evaluates
+// component-specific thinking operations rather than
+// surface form, length, or vocabulary.
+//
+// Semantic evidence does not determine progression.
+// It supplies bounded evidence to this deterministic
+// assessor.
+//
+// This helper does not:
+//
+// • validate a completed Frame component independently;
+// • select an Instructional Contract;
+// • advance a Guided Construction step;
+// • mutate pending state;
+// • save student work;
+// • generate student-facing communication.
+//
+// ======================================================
+
+const GUIDED_CONSTRUCTION_EVIDENCE_OUTCOMES =
+  Object.freeze({
+    COMPONENT_COMPLETE:
+      "componentComplete",
+
+    INSUFFICIENT_MICRO_STEP_EVIDENCE:
+      "insufficientMicroStepEvidence",
+
+    SUFFICIENT_MICRO_STEP_EVIDENCE:
+      "sufficientMicroStepEvidence",
+
+    USABLE_FINAL_STEP_EVIDENCE:
+      "usableFinalStepEvidence",
+
+    NO_USABLE_FINAL_STEP_EVIDENCE:
+      "noUsableFinalStepEvidence",
+  });
+
+function assessGuidedConstructionEvidence({
+  state = null,
+  response = "",
+  frameComponent = "",
+  guidedConstructionStep = null,
+  componentValidation = null,
+  microStepSemanticEvidence = null,
+} = {}) {
+  const text =
+    cleanText(response);
+
+  const component =
+    cleanText(
+      frameComponent
+    );
+
+  const step =
+    Number(
+      guidedConstructionStep
+    );
+
+  const validation =
+    componentValidation &&
+    typeof componentValidation ===
+      "object"
+      ? componentValidation
+      : {};
+
+  const semanticEvidence =
+    microStepSemanticEvidence &&
+    typeof microStepSemanticEvidence ===
+      "object"
+      ? microStepSemanticEvidence
+      : null;
+
+  const componentRules =
+    GUIDED_CONSTRUCTION_RULES
+      ?.[component] || null;
+
+  const stepRules =
+    componentRules
+      ?.steps
+      ?.[step] || null;
+
+  const validStep =
+    Number.isInteger(step) &&
+    step >= 1 &&
+    step <= 3;
+
+  // --------------------------------------------------
+  // FULL COMPONENT VALIDATION OVERRIDE
+  //
+  // Existing governed component validation always gets
+  // first say.
+  //
+  // Guided Construction may never become an additional
+  // hoop after the student has already produced a valid
+  // component.
+  // --------------------------------------------------
+
+  if (
+    validation?.valid === true
+  ) {
+    return {
+      assessmentStatus:
+        "complete",
+
+      outcome:
+        GUIDED_CONSTRUCTION_EVIDENCE_OUTCOMES
+          .COMPONENT_COMPLETE,
+
+      frameComponent:
+        component || null,
+
+      guidedConstructionStep:
+        validStep
+          ? step
+          : null,
+
+      studentEvidence:
+        text || null,
+
+      rule:
+        stepRules
+          ? structuredClone(
+              stepRules
+            )
+          : null,
+
+      evidenceBasis: [
+        "governedComponentValidationPassed",
+      ],
+    };
+  }
+
+  // --------------------------------------------------
+  // ASSESSMENT CONTEXT REQUIRED
+  //
+  // Micro-step assessment is valid only for one governed
+  // Guided Construction component and Step 1–3.
+  // --------------------------------------------------
+
+  if (
+    !componentRules ||
+    !stepRules ||
+    !validStep
+  ) {
+    return {
+      assessmentStatus:
+        "unavailable",
+
+      outcome:
+        null,
+
+      frameComponent:
+        component || null,
+
+      guidedConstructionStep:
+        validStep
+          ? step
+          : null,
+
+      studentEvidence:
+        text || null,
+
+      rule:
+        null,
+
+      evidenceBasis: [
+        "guidedConstructionAssessmentContextUnavailable",
+      ],
+    };
+  }
+
+  // --------------------------------------------------
+  // CLEAR NO-EVIDENCE CONDITIONS
+  //
+  // These conditions can be established without semantic
+  // interpretation.
+  //
+  // They do not depend on response length because short
+  // student responses may still satisfy a Guided
+  // Construction micro-step.
+  // --------------------------------------------------
+
+  const noObservableStudentEvidence =
+    !text ||
+
+    validation
+      ?.componentEvidenceLevel ===
+      "none" ||
+
+    validation?.diagnosis ===
+      "emptyResponse" ||
+
+    validation?.diagnosis ===
+      "noComponentEvidence" ||
+
+    isStuckMessage(text) ||
+
+    isWeakFrameResponse(text) ||
+
+    isMetaResponse(text);
+
+  if (
+    noObservableStudentEvidence
+  ) {
+    return {
+      assessmentStatus:
+        "established",
+
+      outcome:
+        step === 3
+          ? GUIDED_CONSTRUCTION_EVIDENCE_OUTCOMES
+              .NO_USABLE_FINAL_STEP_EVIDENCE
+          : GUIDED_CONSTRUCTION_EVIDENCE_OUTCOMES
+              .INSUFFICIENT_MICRO_STEP_EVIDENCE,
+
+      frameComponent:
+        component,
+
+      guidedConstructionStep:
+        step,
+
+      studentEvidence:
+        text || null,
+
+      rule:
+        structuredClone(
+          stepRules
+        ),
+
+      evidenceBasis: [
+        "noObservableGuidedConstructionEvidence",
+      ],
+    };
+  }
+
+  // --------------------------------------------------
+  // BOUNDED SEMANTIC EVIDENCE
+  //
+  // Component-specific micro-step meaning cannot safely
+  // be inferred from length, token overlap, or the full
+  // component validator alone.
+  //
+  // Step 5 will establish the bounded semantic-evidence
+  // provider that supplies this artifact.
+  //
+  // JavaScript retains final authority by converting the
+  // supplied evidence into one governed outcome here.
+  // --------------------------------------------------
+
+  if (!semanticEvidence) {
+    return {
+      assessmentStatus:
+        "semanticEvidenceRequired",
+
+      outcome:
+        null,
+
+      frameComponent:
+        component,
+
+      guidedConstructionStep:
+        step,
+
+      studentEvidence:
+        text,
+
+      rule:
+        structuredClone(
+          stepRules
+        ),
+
+      evidenceBasis: [
+        "observableStudentEvidencePresent",
+        "microStepMeaningRequiresBoundedSemanticEvidence",
+      ],
+    };
+  }
+
+  const semanticAssessmentEstablished =
+    semanticEvidence
+      ?.assessmentEstablished ===
+      true;
+
+  const sufficientForCurrentStep =
+    semanticEvidence
+      ?.sufficientForCurrentStep ===
+      true;
+
+  const usableForFinalStep =
+    semanticEvidence
+      ?.usableForFinalStep ===
+      true;
+
+  if (!semanticAssessmentEstablished) {
+    return {
+      assessmentStatus:
+        "semanticEvidenceUnavailable",
+
+      outcome:
+        null,
+
+      frameComponent:
+        component,
+
+      guidedConstructionStep:
+        step,
+
+      studentEvidence:
+        text,
+
+      rule:
+        structuredClone(
+          stepRules
+        ),
+
+      evidenceBasis: [
+        "boundedSemanticAssessmentNotEstablished",
+      ],
+    };
+  }
+
+  // --------------------------------------------------
+  // STEP 1 / STEP 2
+  // --------------------------------------------------
+
+  if (
+    step === 1 ||
+    step === 2
+  ) {
+    return {
+      assessmentStatus:
+        "established",
+
+      outcome:
+        sufficientForCurrentStep
+          ? GUIDED_CONSTRUCTION_EVIDENCE_OUTCOMES
+              .SUFFICIENT_MICRO_STEP_EVIDENCE
+          : GUIDED_CONSTRUCTION_EVIDENCE_OUTCOMES
+              .INSUFFICIENT_MICRO_STEP_EVIDENCE,
+
+      frameComponent:
+        component,
+
+      guidedConstructionStep:
+        step,
+
+      studentEvidence:
+        text,
+
+      rule:
+        structuredClone(
+          stepRules
+        ),
+
+      evidenceBasis: [
+        sufficientForCurrentStep
+          ? "boundedSemanticEvidenceSupportsCurrentMicroStep"
+          : "boundedSemanticEvidenceDoesNotSupportCurrentMicroStep",
+      ],
+    };
+  }
+
+  // --------------------------------------------------
+  // STEP 3
+  //
+  // Full component acceptance was already checked above.
+  //
+  // At Step 3 the remaining question is whether the
+  // student's response contains usable final-step
+  // formulation or synthesis that Kaw can continue
+  // coaching without supplying the missing thinking.
+  // --------------------------------------------------
+
+  return {
+    assessmentStatus:
+      "established",
+
+    outcome:
+      usableForFinalStep
+        ? GUIDED_CONSTRUCTION_EVIDENCE_OUTCOMES
+            .USABLE_FINAL_STEP_EVIDENCE
+        : GUIDED_CONSTRUCTION_EVIDENCE_OUTCOMES
+            .NO_USABLE_FINAL_STEP_EVIDENCE,
+
+    frameComponent:
+      component,
+
+    guidedConstructionStep:
+      step,
+
+    studentEvidence:
+      text,
+
+    rule:
+      structuredClone(
+        stepRules
+      ),
+
+    evidenceBasis: [
+      usableForFinalStep
+        ? "boundedSemanticEvidenceSupportsUsableFinalStep"
+        : "boundedSemanticEvidenceDoesNotSupportUsableFinalStep",
+    ],
+  };
+}
+
 function getInstructionalContract(
   frameComponent,
   instructionalSituation
