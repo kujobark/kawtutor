@@ -28360,6 +28360,46 @@ s.progressionAuthorization =
     progressionAuthorization
   );
 
+// --------------------------------------------------
+// GUIDED CONSTRUCTION — ESSENTIAL DETAIL CONTINUATION
+// --------------------------------------------------
+
+const activeGuidedConstruction =
+  getActiveGuidedConstructionContext(
+    s
+  );
+
+let guidedConstructionContinuation =
+  null;
+
+if (
+  activeGuidedConstruction?.active ===
+    true &&
+  activeGuidedConstruction
+    ?.frameComponent ===
+    "details"
+) {
+  guidedConstructionContinuation =
+    await continueGuidedConstruction({
+      state:
+        s,
+
+      response:
+        msg,
+
+      componentValidation:
+        detailValidation,
+
+      finalRephraseUsed:
+        false,
+    });
+
+  console.log(
+    "[KAW][GUIDED CONSTRUCTION][ESSENTIAL DETAIL]",
+    guidedConstructionContinuation
+  );
+}
+
   if (
     !detailValidation.valid ||
     progressionAuthorization
@@ -28563,6 +28603,46 @@ if (s.pending?.type === "confirmDetails") {
     structuredClone(
       progressionAuthorization
     );
+
+  // --------------------------------------------------
+// GUIDED CONSTRUCTION — ESSENTIAL DETAIL CONTINUATION
+// --------------------------------------------------
+
+const activeGuidedConstruction =
+  getActiveGuidedConstructionContext(
+    s
+  );
+
+let guidedConstructionContinuation =
+  null;
+
+if (
+  activeGuidedConstruction?.active ===
+    true &&
+  activeGuidedConstruction
+    ?.frameComponent ===
+    "details"
+) {
+  guidedConstructionContinuation =
+    await continueGuidedConstruction({
+      state:
+        s,
+
+      response:
+        msg,
+
+      componentValidation:
+        detailValidation,
+
+      finalRephraseUsed:
+        false,
+    });
+
+  console.log(
+    "[KAW][GUIDED CONSTRUCTION][ESSENTIAL DETAIL]",
+    guidedConstructionContinuation
+  );
+}
 
   return {
     detailValidation,
@@ -29237,6 +29317,46 @@ return s;
           progressionAuthorization
         );
 
+  // --------------------------------------------------
+// GUIDED CONSTRUCTION — ESSENTIAL DETAIL CONTINUATION
+// --------------------------------------------------
+
+const activeGuidedConstruction =
+  getActiveGuidedConstructionContext(
+    s
+  );
+
+let guidedConstructionContinuation =
+  null;
+
+if (
+  activeGuidedConstruction?.active ===
+    true &&
+  activeGuidedConstruction
+    ?.frameComponent ===
+    "details"
+) {
+  guidedConstructionContinuation =
+    await continueGuidedConstruction({
+      state:
+        s,
+
+      response:
+        msg,
+
+      componentValidation:
+        detailValidation,
+
+      finalRephraseUsed:
+        false,
+    });
+
+  console.log(
+    "[KAW][GUIDED CONSTRUCTION][ESSENTIAL DETAIL]",
+    guidedConstructionContinuation
+  );
+}
+        
       if (
         !detailValidation.valid ||
         progressionAuthorization
