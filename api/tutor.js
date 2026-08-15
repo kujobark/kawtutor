@@ -30635,7 +30635,7 @@ if (
         "collectAnotherDetail",
 
       index:
-        i,
+        idx,
 
       instructionalFinding,
 
@@ -30972,12 +30972,69 @@ if (s.pending?.type === "confirmDetails") {
     captureMode = "revision",
   } = {}
 ) {
+    const rawDetail =
+    cleanText(msg);
+
+  const observationReport =
+    s?.observationReport &&
+    typeof s.observationReport ===
+      "object"
+      ? s.observationReport
+      : null;
+
+  const componentContribution =
+    observationReport
+      ?.componentContribution &&
+    typeof observationReport
+      .componentContribution ===
+      "object"
+      ? observationReport
+          .componentContribution
+      : null;
+
+  const interactionOnlyCategories =
+    new Set([
+      "uncertaintyExpression",
+      "clarificationRequest",
+      "answerSeeking",
+      "frustrationExpression",
+      "refusal",
+      "offTaskShift",
+    ]);
+
+  const interactionObservationPresent =
+    Array.isArray(
+      observationReport?.observations
+    ) &&
+    observationReport.observations.some(
+      (observation) =>
+        interactionOnlyCategories.has(
+          cleanText(
+            observation?.category || ""
+          )
+        )
+    );
+
+  const observedContributionText =
+    componentContribution
+      ?.observed === true
+      ? cleanText(
+          componentContribution
+            ?.evidenceText || ""
+        )
+      : "";
+
+  const text =
+    interactionObservationPresent &&
+    observedContributionText
+      ? observedContributionText
+      : rawDetail;
   const currentMainIdea =
     getIdeaList(s)[index] || "";
 
   const detailValidation =
     await validateEssentialDetailResponseGoverned(
-      msg,
+      text,
       currentMainIdea,
       {
         keyTopic:
@@ -31019,7 +31076,7 @@ if (s.pending?.type === "confirmDetails") {
             ?.[detailIndex] || "",
 
         attemptedDetail:
-          cleanText(msg),
+          rawDetail,
       },
     }),
 
@@ -31043,7 +31100,7 @@ if (s.pending?.type === "confirmDetails") {
       s,
 
     currentResponse:
-      msg,
+      text,
 
     componentFinding:
       instructionalFinding,
@@ -31091,7 +31148,7 @@ if (
         s,
 
       response:
-        msg,
+        text,
 
       componentValidation:
         detailValidation,
