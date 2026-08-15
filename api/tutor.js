@@ -28317,6 +28317,15 @@ async function updateStateFromStudent(state, message) {
     msg
   );
 
+console.log(
+  "OBSERVATION REPORT:",
+  JSON.stringify(
+    observationReport,
+    null,
+    2
+  )
+);
+
 // Store the current governed observation artifact so it
 // remains inspectable during migration and testing.
 s.observationReport =
