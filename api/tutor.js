@@ -8020,47 +8020,201 @@ function selectProgressiveSupportScaffold(
     return null;
   }
 
-  return {
-    progressiveSupportStage,
+  // --------------------------------------------------
+  // GUIDED CONSTRUCTION STEP-AWARE THINKING MOVE
+  //
+  // Progressive Support Stage 3 is Guided Construction.
+  //
+  // Once Stage 3 is active, the current
+  // guidedConstructionStep determines the smaller
+  // teacher-authored Thinking Move.
+  //
+  // The Instructional Playbook declares which governed
+  // Guided Construction rule belongs to each step.
+  //
+  // GUIDED_CONSTRUCTION_RULES remains the single source
+  // of truth for the actual Thinking Move.
+  //
+  // Stage 1 Prompt and Stage 2 Model continue using the
+  // scaffold's existing Thinking Move unchanged.
+  //
+  // --------------------------------------------------
 
-  guidedConstructionStep:
-  progressiveSupportStage === 3 &&
-  Number.isInteger(
-    state?.pending
-      ?.guidedConstructionStep
-  )
-    ? state.pending.guidedConstructionStep
-    : null,
-    
-  move:
-    selectedScaffold?.move ||
-    null,
+  let guidedConstructionStep =
+    null;
 
-  supportType:
-    selectedScaffold?.supportType ||
-    null,
+  let guidedConstructionStepDefinition =
+    null;
 
-  purpose:
-    selectedScaffold?.purpose ||
-    null,
+  let guidedConstructionRule =
+    null;
 
-  cue:
-    selectedScaffold?.cue ||
-    null,
-
-  modelRules:
-    selectedScaffold?.modelRules
-      ? structuredClone(
-          selectedScaffold.modelRules
-        )
-      : null,
-
-  thinkingMove:
+  let thinkingMove =
     selectedScaffold
       ?.thinkingMove ||
     contract?.thinkingMove ||
-    null,
-};
+    null;
+
+  if (
+    progressiveSupportStage === 3
+  ) {
+    const requestedGuidedStep =
+      Number(
+        state?.pending
+          ?.guidedConstructionStep
+      );
+
+    const validGuidedStep =
+      Number.isInteger(
+        requestedGuidedStep
+      ) &&
+      requestedGuidedStep >= 1 &&
+      requestedGuidedStep <= 3;
+
+    if (!validGuidedStep) {
+      return null;
+    }
+
+    guidedConstructionStep =
+      requestedGuidedStep;
+
+    guidedConstructionStepDefinition =
+      selectedScaffold
+        ?.guidedSteps
+        ?.[guidedConstructionStep] ||
+      null;
+
+    if (
+      !guidedConstructionStepDefinition
+    ) {
+      return null;
+    }
+
+    const ruleComponent =
+      cleanText(
+        guidedConstructionStepDefinition
+          ?.ruleComponent || ""
+      );
+
+    const ruleStep =
+      Number(
+        guidedConstructionStepDefinition
+          ?.ruleStep
+      );
+
+    const operation =
+      cleanText(
+        guidedConstructionStepDefinition
+          ?.operation || ""
+      );
+
+    const contractFrameComponent =
+      cleanText(
+        contract
+          ?.frameComponent || ""
+      );
+
+    const ruleComponentMatchesContract =
+      Boolean(
+        ruleComponent &&
+        ruleComponent ===
+          contractFrameComponent
+      );
+
+    const ruleStepMatchesCurrentStep =
+      Number.isInteger(ruleStep) &&
+      ruleStep ===
+        guidedConstructionStep;
+
+    const componentRules =
+      GUIDED_CONSTRUCTION_RULES
+        ?.[ruleComponent] ||
+      null;
+
+    const currentRule =
+      componentRules
+        ?.steps
+        ?.[ruleStep] ||
+      null;
+
+    const operationMatchesRule =
+      Boolean(
+        operation &&
+        currentRule &&
+        cleanText(
+          currentRule
+            ?.operation || ""
+        ) === operation
+      );
+
+    if (
+      !ruleComponentMatchesContract ||
+      !ruleStepMatchesCurrentStep ||
+      !currentRule ||
+      !operationMatchesRule
+    ) {
+      return null;
+    }
+
+    guidedConstructionRule =
+      currentRule;
+
+    thinkingMove =
+      cleanText(
+        guidedConstructionRule
+          ?.thinkingMove || ""
+      ) ||
+      null;
+
+    if (!thinkingMove) {
+      return null;
+    }
+  }
+
+  return {
+    progressiveSupportStage,
+
+    guidedConstructionStep,
+
+    move:
+      selectedScaffold?.move ||
+      null,
+
+    supportType:
+      selectedScaffold?.supportType ||
+      null,
+
+    purpose:
+      selectedScaffold?.purpose ||
+      null,
+
+    cue:
+      selectedScaffold?.cue ||
+      null,
+
+    modelRules:
+      selectedScaffold?.modelRules
+        ? structuredClone(
+            selectedScaffold.modelRules
+          )
+        : null,
+
+    guidedConstructionStepDefinition:
+      guidedConstructionStepDefinition
+        ? structuredClone(
+            guidedConstructionStepDefinition
+          )
+        : null,
+
+    guidedConstructionRule:
+      guidedConstructionRule
+        ? structuredClone(
+            guidedConstructionRule
+          )
+        : null,
+
+    thinkingMove,
+  };
 }
 
 function executeIsAboutInstructionalContract(
