@@ -24157,6 +24157,61 @@ async function applyIsAboutCapture(
       progressionAuthorization
     );
 
+  // --------------------------------------------------
+// GUIDED CONSTRUCTION — IS ABOUT CONTINUATION
+// --------------------------------------------------
+//
+// Normal governed Is About validation has already
+// received first authority.
+//
+// If Guided Construction is already active at this exact
+// Is About location, allow the shared Guided Construction
+// runtime to evaluate the student's current response and
+// update only Guided Construction-owned pathway state.
+//
+// Full Is About acceptance still belongs to the normal
+// validator and normal Frame progression below.
+//
+// --------------------------------------------------
+
+const activeGuidedConstruction =
+  getActiveGuidedConstructionContext(
+    s
+  );
+
+let guidedConstructionContinuation =
+  null;
+
+if (
+  activeGuidedConstruction?.active ===
+    true &&
+  activeGuidedConstruction
+    ?.frameComponent ===
+    "isAbout"
+) {
+  guidedConstructionContinuation =
+    await continueGuidedConstruction({
+      state:
+        s,
+
+      response:
+        cleanedIsAbout,
+
+      componentValidation:
+        validation,
+
+      // Dedicated persistent final-step rephrase
+      // consumption is integrated later.
+      finalRephraseUsed:
+        false,
+    });
+
+  console.log(
+    "[KAW][GUIDED CONSTRUCTION][IS ABOUT]",
+    guidedConstructionContinuation
+  );
+}
+
     if (
     !validation.valid ||
     progressionAuthorization
