@@ -27752,6 +27752,43 @@ s.pending = {
   captureMode,
 };
 
+if (
+  !detailValidation.valid ||
+  progressionAuthorization
+    ?.authorized !== true
+) {
+  s.pending = {
+    type:
+      "collectAnotherDetail",
+
+    index:
+      i,
+
+    detailIndex:
+      arr.length,
+
+    captureMode:
+      "required",
+  };
+
+  return attachGovernedSupportToPending(
+    s,
+    msg,
+    {
+      intent:
+        "stuck",
+
+      confidence:
+        1,
+
+      source:
+        `detailValidation:${detailValidation.diagnosis}`,
+
+      instructionalFinding,
+    }
+  );
+}
+
 return attachGovernedSupportToPending(
   s,
   msg,
