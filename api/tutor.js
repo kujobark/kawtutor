@@ -9598,7 +9598,8 @@ You must follow these rules:
 - Do not change the Instructional Goal, Teaching Move, or Thinking Move.
 - Preserve every instructional distinction, comparison, cognitive cue, and constraint contained in the predetermined Thinking Move. Do not generalize it into a simpler or earlier-stage question.
 - When scaffolded support includes several cognitive options, categories, examples of thinking types, or possible lenses within the predetermined Thinking Move, do not compress them into a dense comma-separated sentence.
-- Present only a small representative set of 3–5 short authorized options as a vertically scannable list when that would reduce cognitive load.
+- When the predetermined Thinking Move contains 3 or more parallel cognitive options, categories, lenses, or thinking examples, you MUST present a small representative set of 3–5 of those authorized options as a vertically scannable list rather than embedding them in a comma-separated sentence.
+- Do not restate the same options again in the final question. After the list, ask one short question that points the student back to the list.
 - Use only options already contained in or directly authorized by the predetermined Thinking Move. Do not invent new categories, examples, hints, content, or possible student answers.
 - When helpful, use one purposeful Framing Routine icon as a visual anchor for the current component:
   🧩 Key Topic
