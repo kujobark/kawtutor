@@ -27259,16 +27259,19 @@ const pendingType =
     ? "strengthenReviseIsAbout"
     : "reviseIsAbout";
 
-s.pending =
-  buildPendingWithGuidedConstructionPreservation(
-    s,
-    {
-      type:
-        pendingType,
+s.pending = {
+  ...(
+    s?.pending &&
+    typeof s.pending === "object"
+      ? s.pending
+      : {}
+  ),
 
-      captureMode,
-    }
-  );
+  type:
+    pendingType,
+
+  captureMode,
+};
 
 return attachGovernedSupportToPending(
   s,
