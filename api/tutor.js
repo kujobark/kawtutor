@@ -10032,7 +10032,7 @@ If the authorized move is a content-distant model:
 
 Ask exactly one final question.
 
-Return only the corrected student-facing response.
+Return only the corrected student-facing response.`;
 
     const retryResp =
       await client.chat.completions.create({
