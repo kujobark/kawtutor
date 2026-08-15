@@ -471,7 +471,16 @@ function buildEmptyObservationReport(
 
     observations: [],
 
-    ambiguityPresent: false,
+    componentContribution: {
+      observed:
+        false,
+
+      evidenceText:
+        "",
+    },
+
+    ambiguityPresent:
+      false,
   };
 }
 
@@ -573,6 +582,58 @@ function sanitizeObservationReport(
         };
       });
 
+    // --------------------------------------------------
+  // OBSERVABLE COMPONENT CONTRIBUTION
+  //
+  // AI may observe whether the student's current words
+  // contain any candidate contribution to the active
+  // Frame component.
+  //
+  // This is not component validation.
+  //
+  // The evidence excerpt must appear verbatim in the
+  // student's actual interaction.
+  // --------------------------------------------------
+
+  const rawComponentContribution =
+    rawReport
+      ?.componentContribution &&
+    typeof rawReport
+      .componentContribution ===
+      "object"
+      ? rawReport
+          .componentContribution
+      : {};
+
+  const componentContributionEvidenceText =
+    cleanText(
+      rawComponentContribution
+        ?.evidenceText || ""
+    );
+
+  const componentContributionObserved =
+    rawComponentContribution
+      ?.observed === true &&
+
+    Boolean(
+      componentContributionEvidenceText
+    ) &&
+
+    normalizedText.includes(
+      componentContributionEvidenceText
+        .toLowerCase()
+    );
+
+  const componentContribution = {
+    observed:
+      componentContributionObserved,
+
+    evidenceText:
+      componentContributionObserved
+        ? componentContributionEvidenceText
+        : "",
+  };
+  
   return {
     version: "1.0",
 
@@ -583,6 +644,8 @@ function sanitizeObservationReport(
       text,
 
     observations,
+
+    componentContribution,
 
     ambiguityPresent:
       rawReport?.ambiguityPresent ===
@@ -610,9 +673,36 @@ async function buildObservationReport(
       3
     );
 
+    const rawStage =
+    cleanText(
+      getStage(state) || ""
+    );
+
+  const activeFrameComponent =
+    cleanText(
+      getBaseStage(rawStage) || ""
+    );
+
+  const activeComponentKnowledge =
+    KU_FRAME_COMPONENTS
+      ?.[activeFrameComponent] ||
+    null;
+
   const system = `You are the governed AI Observation Layer for Kaw Companion.
 
 Your only responsibility is to report directly observable evidence from the student's current interaction.
+You must also observe whether the student's current words contain any candidate contribution to the active Frame component.
+
+A component contribution means the student actually expresses content that could be evaluated as the requested Frame component, even if that content is incomplete, vague, imperfect, or ultimately invalid.
+
+Important distinctions:
+- Do not judge whether the contribution is correct, sufficient, strong, valid, or ready to progress.
+- Do not decide the instructional situation.
+- Merely naming the topic or Frame component is not automatically a contribution.
+- Talking about being unable, unsure, confused, stuck, or not knowing what to say is not itself a component contribution.
+- A response may contain both interaction language and a component contribution.
+- If a component contribution is present, copy the smallest useful exact excerpt that contains that contribution.
+- If no component contribution is present, return observed=false and evidenceText="".
 
 You may identify only these observation categories:
 - uncertaintyExpression
@@ -638,6 +728,26 @@ Rules:
 - An empty observations array is valid.
 - Return only the required JSON object.`;
 
+Active Frame component:
+${activeFrameComponent || "(none)"}
+
+Component purpose:
+${
+  cleanText(
+    activeComponentKnowledge
+      ?.purpose || ""
+  ) || "(not available)"
+}
+
+Component definition:
+${
+  cleanText(
+    activeComponentKnowledge
+      ?.definition || ""
+  ) || "(not available)"
+}
+
+  
   const user = `Current student interaction:
 "${text}"
 
@@ -744,7 +854,9 @@ Report only directly observable evidence from the current student interaction.`;
 
               required: [
                 "observations",
+                "componentContribution",
                 "ambiguityPresent",
+              ],
               ],
             },
           },
@@ -6536,6 +6648,24 @@ function buildInstructionalAssessment(
   // --------------------------------------------------
 
   const interactionAssessment = {
+      componentContribution:
+      observationReport
+        ?.componentContribution &&
+      typeof observationReport
+        .componentContribution ===
+        "object"
+        ? structuredClone(
+            observationReport
+              .componentContribution
+          )
+        : {
+            observed:
+              false,
+
+            evidenceText:
+              "",
+          },
+  
     observationSource:
       cleanText(
         observationReport?.source ||
@@ -6711,48 +6841,37 @@ function buildInteractionInstructionalFinding(
       ? interactionAssessment.observations
       : [];
 
-  const normalizedResponse =
-    currentResponse
-      .toLowerCase()
-      .replace(/[’‘]/g, "'")
-      .replace(/[.!?]+$/g, "")
-      .trim();
+   // --------------------------------------------------
+  // OBSERVABLE COMPONENT CONTRIBUTION
+  //
+  // The AI Observation Layer may report only whether the
+  // student's current words contain candidate content for
+  // the active Frame component.
+  //
+  // It does not determine validity, sufficiency,
+  // progression, or instructional situation.
+  //
+  // --------------------------------------------------
 
-  // An observation occupies the complete response only
-  // when its exact evidence excerpt matches the student's
-  // entire normalized interaction.
-  //
-  // This permits Kaw to distinguish:
-  //
-  // "idk"
-  //
-  // from:
-  //
-  // "I don't know, but I think the topic is photosynthesis."
-  //
-  // The first contains no component contribution.
-  // The second may still contain student thinking that
-  // requires component validation.
-  const observationsCoverEntireResponse =
-    Boolean(normalizedResponse) &&
-    observations.some(
-      (observation) => {
-        const normalizedEvidence =
-          cleanText(
-            observation?.evidenceText
-          )
-            .toLowerCase()
-            .replace(/[’‘]/g, "'")
-            .replace(/[.!?]+$/g, "")
-            .trim();
+  const componentContribution =
+    interactionAssessment
+      ?.componentContribution &&
+    typeof interactionAssessment
+      .componentContribution ===
+      "object"
+      ? interactionAssessment
+          .componentContribution
+      : {
+          observed:
+            false,
 
-        return (
-          normalizedEvidence &&
-          normalizedEvidence ===
-            normalizedResponse
-        );
-      }
-    );
+          evidenceText:
+            "",
+        };
+
+  const componentContributionObserved =
+    componentContribution
+      ?.observed === true;
 
   const activeFrameComponents =
     new Set([
@@ -6825,9 +6944,7 @@ function buildInteractionInstructionalFinding(
       "offTaskShift",
     ]);
 
-  const responseFunctionsOnlyAsInteraction =
-    componentCaptureActive &&
-    observationsCoverEntireResponse &&
+    const interactionOnlyObservationPresent =
     observations.some(
       (observation) =>
         interactionOnlyCategories.has(
@@ -6837,6 +6954,12 @@ function buildInteractionInstructionalFinding(
         )
     );
 
+  const responseFunctionsOnlyAsInteraction =
+    componentCaptureActive &&
+    interactionOnlyObservationPresent &&
+    componentContributionObserved !==
+      true;
+  
   const componentEvidenceFinding =
     responseFunctionsOnlyAsInteraction
       ? "noComponentEvidenceObserved"
@@ -6890,8 +7013,13 @@ function buildInteractionInstructionalFinding(
           ]
         : [],
 
-    evidence: {
-      currentResponse,
+      evidence: {
+        currentResponse,
+
+      componentContribution:
+        structuredClone(
+          componentContribution
+        ),
 
       observations:
         structuredClone(
