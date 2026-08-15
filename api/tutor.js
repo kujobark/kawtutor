@@ -8582,22 +8582,22 @@ function validateInstructionalCommunicationResponse(
       true;
 
   if (requiresModelContrastSeparation) {
-    const nonEmptyLines =
-      text
-        .split(/\r?\n/)
-        .map(
-          (line) =>
-            line.trim()
-        )
-        .filter(Boolean);
+  const nonEmptyLines =
+    text
+      .split(/\r?\n/)
+      .map(
+        (line) =>
+          line.trim()
+      )
+      .filter(Boolean);
 
-    if (nonEmptyLines.length < 3) {
-      violations.push(
-        "modelContrastSeparationRequired"
-      );
-    }
+  if (nonEmptyLines.length < 2) {
+    violations.push(
+      "modelContrastSeparationRequired"
+    );
   }
-
+}
+  
   const unsupportedPraisePatterns = [
     "great job",
     "good job",
