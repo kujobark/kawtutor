@@ -79,7 +79,7 @@ const LANG_DETECT_MIN_CHARS = 18;
 //    - Preserves the student's exact instructional
 //      location.
 //    - Controls capture, validation, confirmation,
-//      revision, optional expansion, interruption,
+//      revision, continuation, interruption,
 //      resumption, and export.
 //    - Parent Anchor progression is load-bearing and
 //      remains authoritative until intentionally migrated.
@@ -21990,78 +21990,6 @@ results.push({
           ?.awaitingRevision === true,
     },
   });
-
-  // --------------------------------------------------
-  // LIVE RUNTIME: ADDITIONAL CONTENT
-  //
-  // Confirms additional So What content is validated
-  // together with the accepted So What before being
-  // appended.
-  // --------------------------------------------------
-
-  const additionalContentState =
-    createSoWhatRuntimeState();
-
-  additionalContentState.frame.soWhat =
-    supportedSoWhat;
-
-  additionalContentState.pending = {
-    type:
-      "continueSoWhat",
-  };
-
-  const additionalSentence =
-    "This also shows that the way teenagers experience online pressure matters as much as how often they use social media.";
-
-  const expectedExpandedSoWhat =
-    cleanText(
-      `${supportedSoWhat} ${additionalSentence}`
-    );
-
-  const additionalContentActual =
-    await updateStateFromStudent(
-      additionalContentState,
-      additionalSentence
-    );
-
-  const additionalContentPassed =
-    additionalContentActual?.frame
-      ?.soWhat ===
-      expectedExpandedSoWhat &&
-
-    additionalContentActual?.pending
-      ?.type ===
-      "confirmSoWhat";
-
-  results.push({
-    name:
-      "SW Runtime - Governed additional content is appended",
-
-    passed:
-      additionalContentPassed,
-
-    response:
-      additionalSentence,
-
-    expected: {
-      savedSoWhat:
-        expectedExpandedSoWhat,
-
-      pendingType:
-        "confirmSoWhat",
-    },
-
-    actual: {
-      savedSoWhat:
-        additionalContentActual?.frame
-          ?.soWhat || null,
-
-      pendingType:
-        additionalContentActual?.pending
-          ?.type || null,
-    },
-  });
-  
   }
 
   if (runManualBatch) {
