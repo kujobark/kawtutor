@@ -3095,6 +3095,522 @@ const GUIDED_CONSTRUCTION_RULES = Object.freeze({
 
 });
 
+// ======================================================
+// GUIDED CONSTRUCTION ACTIVE CONTEXT
+// ======================================================
+//
+// Provides one read-only representation of the currently
+// active Guided Construction pathway.
+//
+// Guided Construction is active only when:
+//
+// • Progressive Support Stage is exactly 3;
+// • guidedConstructionStep is 1, 2, or 3;
+// • the current Frame component is one governed by the
+//   Guided Construction rules.
+//
+// This helper observes active pathway state only.
+//
+// It does not:
+//
+// • determine whether Guided Construction should begin;
+// • determine whether the instructional location is the
+//   same as a prior Guided Construction location;
+// • validate student evidence;
+// • advance or reset a Guided Construction step;
+// • mutate pending state;
+// • select an Instructional Contract;
+// • change runtime progression.
+//
+// Exact instructional-location identity will be governed
+// separately.
+//
+// ======================================================
+
+function getActiveGuidedConstructionContext(
+  state
+) {
+  const safeState =
+    state &&
+    typeof state === "object"
+      ? state
+      : {};
+
+  const pending =
+    safeState?.pending &&
+    typeof safeState.pending === "object"
+      ? safeState.pending
+      : null;
+
+  if (!pending) {
+    return {
+      active:
+        false,
+
+      frameComponent:
+        null,
+
+      guidedConstructionStep:
+        null,
+
+      rawStage:
+        null,
+
+      pendingType:
+        null,
+
+      pendingIndex:
+        null,
+
+      captureMode:
+        null,
+    };
+  }
+
+  const progressiveSupportStage =
+    Number(
+      pending?.progressiveSupportStage
+    );
+
+  const guidedConstructionStep =
+    Number(
+      pending?.guidedConstructionStep
+    );
+
+  const rawStage =
+    cleanText(
+      getStage(safeState) || ""
+    );
+
+  const frameComponent =
+    cleanText(
+      getBaseStage(rawStage) || ""
+    );
+
+  const componentRules =
+    GUIDED_CONSTRUCTION_RULES
+      ?.[frameComponent] || null;
+
+  const validGuidedStep =
+    Number.isInteger(
+      guidedConstructionStep
+    ) &&
+    guidedConstructionStep >= 1 &&
+    guidedConstructionStep <= 3;
+
+  const active =
+    progressiveSupportStage === 3 &&
+    validGuidedStep &&
+    componentRules !== null;
+
+  return {
+    active,
+
+    frameComponent:
+      active
+        ? frameComponent
+        : null,
+
+    guidedConstructionStep:
+      active
+        ? guidedConstructionStep
+        : null,
+
+    rawStage:
+      active
+        ? rawStage
+        : null,
+
+    pendingType:
+      active
+        ? cleanText(
+            pending?.type || ""
+          ) || null
+        : null,
+
+    pendingIndex:
+      active &&
+      Number.isInteger(
+        pending?.index
+      )
+        ? pending.index
+        : null,
+
+    captureMode:
+      active
+        ? cleanText(
+            pending?.captureMode || ""
+          ) || null
+        : null,
+  };
+}
+
+// ======================================================
+// GUIDED CONSTRUCTION INSTRUCTIONAL LOCATION
+// ======================================================
+//
+// Builds one deterministic, read-only identity for the
+// student's exact current instructional target.
+//
+// Guided Construction may continue only when the active
+// pathway remains at this same exact location.
+//
+// Location identity is intentionally narrower than the
+// broader Frame component.
+//
+// Examples:
+//
+// • Main Idea 1 is different from Main Idea 2.
+// • Main Idea revision index 0 is different from index 1.
+// • Essential Detail 1 beneath Main Idea 0 is different
+//   from Essential Detail 2 beneath Main Idea 0.
+// • Essential Details beneath different Main Ideas are
+//   different locations.
+// • Build, revision, optional, and Strengthen capture
+//   remain distinguishable when the runtime exposes that
+//   distinction.
+//
+// This helper does not:
+//
+// • determine whether Guided Construction should begin;
+// • determine Guided Construction progression;
+// • validate student evidence;
+// • mutate pending state;
+// • preserve or clear Guided Construction metadata;
+// • select an Instructional Contract;
+// • change runtime progression.
+//
+// ======================================================
+
+function buildGuidedConstructionInstructionalLocation(
+  state
+) {
+  const safeState =
+    state &&
+    typeof state === "object"
+      ? state
+      : {};
+
+  const pending =
+    safeState?.pending &&
+    typeof safeState.pending === "object"
+      ? safeState.pending
+      : null;
+
+  const instructionalFinding =
+    pending?.instructionalFinding &&
+    typeof pending
+      .instructionalFinding === "object"
+      ? pending.instructionalFinding
+      : safeState?.componentInstructionalFinding &&
+        typeof safeState
+          .componentInstructionalFinding ===
+          "object"
+        ? safeState.componentInstructionalFinding
+        : null;
+
+  const findingEvidence =
+    instructionalFinding?.evidence &&
+    typeof instructionalFinding
+      .evidence === "object"
+      ? instructionalFinding.evidence
+      : {};
+
+  const rawStage =
+    cleanText(
+      getStage(safeState) || ""
+    );
+
+  const frameComponent =
+    cleanText(
+      instructionalFinding
+        ?.frameComponent ||
+      getBaseStage(rawStage) ||
+      ""
+    );
+
+  const pendingType =
+    cleanText(
+      pending?.type || ""
+    );
+
+  const interactionMode =
+    cleanText(
+      safeState?.interactionMode ||
+      "build"
+    );
+
+  const captureMode =
+    cleanText(
+      pending?.captureMode ||
+      instructionalFinding
+        ?.captureMode ||
+      findingEvidence
+        ?.captureMode ||
+      ""
+    );
+
+  // --------------------------------------------------
+  // MAIN IDEA TARGET INDEX
+  //
+  // Revisions and Strengthen locations expose an index.
+  //
+  // Required / optional Main Idea collection may not
+  // store one directly in pending, so the next available
+  // Main Idea slot identifies the active target.
+  // --------------------------------------------------
+
+  let mainIdeaIndex =
+    null;
+
+  if (
+    frameComponent ===
+    "mainIdeas"
+  ) {
+    if (
+      Number.isInteger(
+        pending?.index
+      )
+    ) {
+      mainIdeaIndex =
+        pending.index;
+    } else if (
+      Number.isInteger(
+        findingEvidence
+          ?.revisionIndex
+      )
+    ) {
+      mainIdeaIndex =
+        findingEvidence.revisionIndex;
+    } else {
+      mainIdeaIndex =
+        getIdeaList(
+          safeState
+        ).length;
+    }
+  }
+
+  // --------------------------------------------------
+  // ESSENTIAL DETAIL LOCATION
+  //
+  // An Essential Detail requires two coordinates:
+  //
+  // • Main Idea index;
+  // • Detail index beneath that Main Idea.
+  //
+  // The pending object does not always retain both, but
+  // the governed instructional finding already records
+  // them during Essential Detail validation.
+  // --------------------------------------------------
+
+  let detailMainIdeaIndex =
+    null;
+
+  let detailIndex =
+    null;
+
+  if (
+    frameComponent ===
+    "details"
+  ) {
+    if (
+      Number.isInteger(
+        pending?.index
+      )
+    ) {
+      detailMainIdeaIndex =
+        pending.index;
+    } else if (
+      Number.isInteger(
+        instructionalFinding
+          ?.currentMainIdeaIndex
+      )
+    ) {
+      detailMainIdeaIndex =
+        instructionalFinding
+          .currentMainIdeaIndex;
+    } else if (
+      Number.isInteger(
+        findingEvidence
+          ?.currentMainIdeaIndex
+      )
+    ) {
+      detailMainIdeaIndex =
+        findingEvidence
+          .currentMainIdeaIndex;
+    }
+
+    if (
+      Number.isInteger(
+        pending?.detailIndex
+      )
+    ) {
+      detailIndex =
+        pending.detailIndex;
+    } else if (
+      Number.isInteger(
+        instructionalFinding
+          ?.currentDetailIndex
+      )
+    ) {
+      detailIndex =
+        instructionalFinding
+          .currentDetailIndex;
+    } else if (
+      Number.isInteger(
+        findingEvidence
+          ?.currentDetailIndex
+      )
+    ) {
+      detailIndex =
+        findingEvidence
+          .currentDetailIndex;
+    } else if (
+      Number.isInteger(
+        detailMainIdeaIndex
+      )
+    ) {
+      const detailBucket =
+        Array.isArray(
+          safeState?.frame
+            ?.details
+            ?.[detailMainIdeaIndex]
+        )
+          ? safeState.frame.details[
+              detailMainIdeaIndex
+            ]
+          : [];
+
+      detailIndex =
+        detailBucket.length;
+    }
+  }
+
+  const locationEstablished =
+    Boolean(
+      frameComponent &&
+      GUIDED_CONSTRUCTION_RULES
+        ?.[frameComponent]
+    );
+
+  return {
+    locationEstablished,
+
+    interactionMode:
+      locationEstablished
+        ? interactionMode
+        : null,
+
+    frameComponent:
+      locationEstablished
+        ? frameComponent
+        : null,
+
+    rawStage:
+      locationEstablished
+        ? rawStage
+        : null,
+
+    pendingType:
+      locationEstablished
+        ? pendingType || null
+        : null,
+
+    captureMode:
+      locationEstablished
+        ? captureMode || null
+        : null,
+
+    mainIdeaIndex:
+      locationEstablished &&
+      frameComponent ===
+        "mainIdeas"
+        ? mainIdeaIndex
+        : null,
+
+    detailMainIdeaIndex:
+      locationEstablished &&
+      frameComponent ===
+        "details"
+        ? detailMainIdeaIndex
+        : null,
+
+    detailIndex:
+      locationEstablished &&
+      frameComponent ===
+        "details"
+        ? detailIndex
+        : null,
+  };
+}
+
+// ------------------------------------------------------
+// GUIDED CONSTRUCTION LOCATION COMPARISON
+// ------------------------------------------------------
+//
+// Determines only whether two previously established
+// Guided Construction locations represent the same exact
+// instructional target.
+//
+// It does not decide whether Guided Construction remains
+// active or whether any state should be preserved.
+//
+// ------------------------------------------------------
+
+function isSameGuidedConstructionInstructionalLocation(
+  firstLocation,
+  secondLocation
+) {
+  const first =
+    firstLocation &&
+    typeof firstLocation === "object"
+      ? firstLocation
+      : null;
+
+  const second =
+    secondLocation &&
+    typeof secondLocation === "object"
+      ? secondLocation
+      : null;
+
+  if (
+    !first ||
+    !second ||
+    first.locationEstablished !==
+      true ||
+    second.locationEstablished !==
+      true
+  ) {
+    return false;
+  }
+
+  return (
+    first.interactionMode ===
+      second.interactionMode &&
+
+    first.frameComponent ===
+      second.frameComponent &&
+
+    first.rawStage ===
+      second.rawStage &&
+
+    first.pendingType ===
+      second.pendingType &&
+
+    first.captureMode ===
+      second.captureMode &&
+
+    first.mainIdeaIndex ===
+      second.mainIdeaIndex &&
+
+    first.detailMainIdeaIndex ===
+      second.detailMainIdeaIndex &&
+
+    first.detailIndex ===
+      second.detailIndex
+  );
+}
+
 function getInstructionalContract(
   frameComponent,
   instructionalSituation
