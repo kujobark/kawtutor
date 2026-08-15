@@ -8458,6 +8458,79 @@ function validateInstructionalCommunicationResponse(
     violations.push("questionCountViolation");
   }
 
+    // --------------------------------------------------
+  // STUDENT-FACING FORMAT VALIDATION
+  //
+  // Guided Construction may require parallel cognitive
+  // options to be rendered as a vertically scannable
+  // list rather than compressed into one dense sentence.
+  //
+  // This validation checks presentation only.
+  //
+  // It does not:
+  //
+  // • change the Thinking Move;
+  // • choose or generate instructional options;
+  // • change Progressive Support stage;
+  // • change Guided Construction step;
+  // • change progression.
+  //
+  // --------------------------------------------------
+
+  const studentFacingFormat =
+    communicationLicense
+      ?.studentFacingFormat &&
+    typeof communicationLicense
+      .studentFacingFormat ===
+      "object"
+      ? communicationLicense
+          .studentFacingFormat
+      : {};
+
+  const requiresVerticalList =
+    studentFacingFormat
+      ?.requireScannableOptionList ===
+      true &&
+    studentFacingFormat
+      ?.requireVerticalList ===
+      true;
+
+  if (requiresVerticalList) {
+    const lines =
+      text.split(/\r?\n/);
+
+    const verticalListItems =
+      lines.filter(
+        (line) =>
+          /^\s*(?:[-*•]|\d+[.)])\s+\S/.test(
+            line
+          )
+      );
+
+    const minimumListItems =
+      Number(
+        studentFacingFormat
+          ?.minimumListItems || 3
+      );
+
+    const maximumListItems =
+      Number(
+        studentFacingFormat
+          ?.maximumListItems || 5
+      );
+
+    if (
+      verticalListItems.length <
+        minimumListItems ||
+      verticalListItems.length >
+        maximumListItems
+    ) {
+      violations.push(
+        "verticalOptionListRequired"
+      );
+    }
+  }
+
   const unsupportedPraisePatterns = [
     "great job",
     "good job",
