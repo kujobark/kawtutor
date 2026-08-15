@@ -28229,6 +28229,46 @@ if (
       progressionAuthorization
     );
 
+// --------------------------------------------------
+// GUIDED CONSTRUCTION — SO WHAT CONTINUATION
+// --------------------------------------------------
+
+const activeGuidedConstruction =
+  getActiveGuidedConstructionContext(
+    s
+  );
+
+let guidedConstructionContinuation =
+  null;
+
+if (
+  activeGuidedConstruction?.active ===
+    true &&
+  activeGuidedConstruction
+    ?.frameComponent ===
+    "soWhat"
+) {
+  guidedConstructionContinuation =
+    await continueGuidedConstruction({
+      state:
+        s,
+
+      response:
+        currentSoWhat,
+
+      componentValidation:
+        soWhatValidation,
+
+      finalRephraseUsed:
+        false,
+    });
+
+  console.log(
+    "[KAW][GUIDED CONSTRUCTION][SO WHAT]",
+    guidedConstructionContinuation
+  );
+}
+      
   if (
     !soWhatValidation.valid ||
     progressionAuthorization
@@ -29611,6 +29651,46 @@ s.progressionAuthorization =
     progressionAuthorization
   );
 
+// --------------------------------------------------
+// GUIDED CONSTRUCTION — SO WHAT CONTINUATION
+// --------------------------------------------------
+
+const activeGuidedConstruction =
+  getActiveGuidedConstructionContext(
+    s
+  );
+
+let guidedConstructionContinuation =
+  null;
+
+if (
+  activeGuidedConstruction?.active ===
+    true &&
+  activeGuidedConstruction
+    ?.frameComponent ===
+    "soWhat"
+) {
+  guidedConstructionContinuation =
+    await continueGuidedConstruction({
+      state:
+        s,
+
+      response:
+        msg,
+
+      componentValidation:
+        soWhatValidation,
+
+      finalRephraseUsed:
+        false,
+    });
+
+  console.log(
+    "[KAW][GUIDED CONSTRUCTION][SO WHAT]",
+    guidedConstructionContinuation
+  );
+}
+
 if (
   !soWhatValidation.valid ||
   progressionAuthorization
@@ -29791,6 +29871,46 @@ s.progressionAuthorization =
   structuredClone(
     progressionAuthorization
   );
+
+// --------------------------------------------------
+// GUIDED CONSTRUCTION — SO WHAT CONTINUATION
+// --------------------------------------------------
+
+const activeGuidedConstruction =
+  getActiveGuidedConstructionContext(
+    s
+  );
+
+let guidedConstructionContinuation =
+  null;
+
+if (
+  activeGuidedConstruction?.active ===
+    true &&
+  activeGuidedConstruction
+    ?.frameComponent ===
+    "soWhat"
+) {
+  guidedConstructionContinuation =
+    await continueGuidedConstruction({
+      state:
+        s,
+
+      response:
+        msg,
+
+      componentValidation:
+        soWhatValidation,
+
+      finalRephraseUsed:
+        false,
+    });
+
+  console.log(
+    "[KAW][GUIDED CONSTRUCTION][SO WHAT]",
+    guidedConstructionContinuation
+  );
+}
 
  if (
   !soWhatValidation.valid ||
@@ -30284,6 +30404,46 @@ s.progressionAuthorization =
     progressionAuthorization
   );
 
+// --------------------------------------------------
+// GUIDED CONSTRUCTION — SO WHAT CONTINUATION
+// --------------------------------------------------
+
+const activeGuidedConstruction =
+  getActiveGuidedConstructionContext(
+    s
+  );
+
+let guidedConstructionContinuation =
+  null;
+
+if (
+  activeGuidedConstruction?.active ===
+    true &&
+  activeGuidedConstruction
+    ?.frameComponent ===
+    "soWhat"
+) {
+  guidedConstructionContinuation =
+    await continueGuidedConstruction({
+      state:
+        s,
+
+      response:
+        msg,
+
+      componentValidation:
+        soWhatValidation,
+
+      finalRephraseUsed:
+        false,
+    });
+
+  console.log(
+    "[KAW][GUIDED CONSTRUCTION][SO WHAT]",
+    guidedConstructionContinuation
+  );
+}
+    
 if (
   !soWhatValidation.valid ||
   progressionAuthorization
