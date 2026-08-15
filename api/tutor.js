@@ -27143,41 +27143,45 @@ return s;
             ?.selectedContract ||
           null;
 
-        s.pending = {
-          type:
-            "collectAnotherDetail",
+    s.pending =
+  buildPendingWithGuidedConstructionPreservation(
+    s,
+    {
+      type:
+        "collectAnotherDetail",
 
-          index:
-            i,
+      index:
+        i,
 
-          instructionalFinding,
+      instructionalFinding,
 
-          instructionalContract:
-            instructionalContract
-              ? {
-                  contractId:
-                    instructionalContract.contractId,
+      instructionalContract:
+        instructionalContract
+          ? {
+              contractId:
+                instructionalContract.contractId,
 
-                  frameComponent:
-                    instructionalContract.frameComponent,
+              frameComponent:
+                instructionalContract.frameComponent,
 
-                  instructionalSituation:
-                    instructionalContract.instructionalSituation,
+              instructionalSituation:
+                instructionalContract.instructionalSituation,
 
-                  instructionalGoal:
-                    instructionalContract.instructionalGoal,
+              instructionalGoal:
+                instructionalContract.instructionalGoal,
 
-                  teachingMove:
-                    instructionalContract.teachingMove,
+              teachingMove:
+                instructionalContract.teachingMove,
 
-                  thinkingMove:
-                    instructionalContract.thinkingMove,
+              thinkingMove:
+                instructionalContract.thinkingMove,
 
-                  aiContextualizes:
-                    instructionalContract.aiContextualizes,
-                }
-              : null,
-        };
+              aiContextualizes:
+                instructionalContract.aiContextualizes,
+            }
+          : null,
+    }
+  );
 
         return attachGovernedSupportToPending(
           s,
@@ -27339,14 +27343,32 @@ if (
   progressionAuthorization
     ?.authorized !== true
 ) {
-s.pending =
-  buildPendingWithGuidedConstructionPreservation(
+  s.pending =
+    buildPendingWithGuidedConstructionPreservation(
+      s,
+      {
+        type:
+          "collectMoreSoWhat",
+      }
+    );
+
+  return attachGovernedSupportToPending(
     s,
+    msg,
     {
-      type:
-        "collectMoreSoWhat",
+      intent:
+        "stuck",
+
+      confidence:
+        1,
+
+      source:
+        `soWhatValidation:${soWhatValidation.diagnosis}`,
+
+      instructionalFinding,
     }
   );
+}
 
 // Save only after governed validation.
 s.frame.soWhat =
@@ -27358,7 +27380,6 @@ s.pending = {
 };
 
 return s;
-}
 
 return s;
 }
