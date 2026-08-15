@@ -8281,6 +8281,47 @@ function buildInstructionalCommunicationLicense(
     execution?.communicationPattern ||
     "questionOnly";
 
+  // --------------------------------------------------
+  // STUDENT-FACING COMMUNICATION STRUCTURE
+  //
+  // Formatting requirements come from the structure of
+  // the already-authorized Thinking Move—not merely from
+  // Progressive Support stage.
+  //
+  // AI still does not choose the structure.
+  // --------------------------------------------------
+
+  const requiredThinkingMove =
+    cleanText(
+      execution?.thinkingMove || ""
+    );
+
+  const progressiveSupportStage =
+    Number(
+      execution?.progressiveSupportStage
+    );
+
+  const progressiveSupportType =
+    cleanText(
+      execution?.progressiveSupportType ||
+      ""
+    );
+
+  const parallelOptionSeriesPresent =
+    (
+      requiredThinkingMove.match(
+        /,\s*[^,.!?]+/g
+      ) || []
+    ).length >= 2 &&
+    /\bor\b/i.test(
+      requiredThinkingMove
+    );
+
+  const modelContrastPresent =
+    progressiveSupportStage === 2 &&
+    progressiveSupportType ===
+      "model";
+
   return {
     contractId:
       execution.contractId,
@@ -8317,9 +8358,7 @@ function buildInstructionalCommunicationLicense(
 
         studentFacingFormat: {
       requireScannableOptionList:
-        Number(
-          execution?.progressiveSupportStage
-        ) === 3,
+        parallelOptionSeriesPresent,
 
       minimumParallelOptionsForList:
         3,
@@ -8331,25 +8370,21 @@ function buildInstructionalCommunicationLicense(
         5,
 
       requireVerticalList:
-        Number(
-          execution?.progressiveSupportStage
-        ) === 3,
+        parallelOptionSeriesPresent,
 
       prohibitDenseInlineOptionSeries:
-        Number(
-          execution?.progressiveSupportStage
-        ) === 3,
+        parallelOptionSeriesPresent,
 
       prohibitOptionRepetitionInFinalQuestion:
-        Number(
-          execution?.progressiveSupportStage
-        ) === 3,
+        parallelOptionSeriesPresent,
+
+      requireModelContrastSeparation:
+        modelContrastPresent,
 
       requireSingleFinalQuestion:
         true,
     },
-
-
+    
     permissions: {
       mayAskQuestion: true,
 
@@ -8529,6 +8564,36 @@ function validateInstructionalCommunicationResponse(
     ) {
       violations.push(
         "verticalOptionListRequired"
+      );
+    }
+  }
+
+    // --------------------------------------------------
+  // MODEL / CONTRAST VISUAL SEPARATION
+  //
+  // A content-distant model should not be compressed
+  // into one dense paragraph when the license requires
+  // the example and contrast to be visually separated.
+  // --------------------------------------------------
+
+  const requiresModelContrastSeparation =
+    studentFacingFormat
+      ?.requireModelContrastSeparation ===
+      true;
+
+  if (requiresModelContrastSeparation) {
+    const nonEmptyLines =
+      text
+        .split(/\r?\n/)
+        .map(
+          (line) =>
+            line.trim()
+        )
+        .filter(Boolean);
+
+    if (nonEmptyLines.length < 3) {
+      violations.push(
+        "modelContrastSeparationRequired"
       );
     }
   }
@@ -9928,32 +9993,46 @@ if (!communicationValidation.valid) {
   // --------------------------------------------------
 
   const formattingOnlyViolation =
-    communicationValidation
-      .violations.length === 1 &&
+  communicationValidation
+    .violations.length === 1 &&
+  (
     communicationValidation
       .violations.includes(
         "verticalOptionListRequired"
-      );
+      ) ||
+    communicationValidation
+      .violations.includes(
+        "modelContrastSeparationRequired"
+      )
+  );
 
   if (formattingOnlyViolation) {
     const retryInstruction = `${user}
 
 FORMAT CORRECTION REQUIRED:
 
-Your previous response preserved the instructional move but failed the required student-facing format.
+Your previous response preserved the instructional move but failed the required student-facing presentation format.
 
 Regenerate the SAME predetermined Thinking Move.
 
 Do not change the instructional content, question, component, Progressive Support stage, or Guided Construction step.
 
-The parallel authorized options MUST appear as a true vertical list:
-- one option per separate line;
-- 3–5 authorized options only;
-- no inline dash series;
-- do not repeat the options in the final question;
-- ask exactly one final question.
+Follow the Communication License exactly.
 
-Return only the corrected student-facing response.`;
+If the authorized Thinking Move contains parallel cognitive options:
+- place 3–5 authorized options vertically;
+- use one option per separate line;
+- do not use an inline dash or comma series;
+- do not repeat the options in the final question.
+
+If the authorized move is a content-distant model:
+- visually separate the model from the contrast and the return to the student's own Frame;
+- do not compress the entire model into one paragraph;
+- do not add another example or any student-specific answer content.
+
+Ask exactly one final question.
+
+Return only the corrected student-facing response.
 
     const retryResp =
       await client.chat.completions.create({
