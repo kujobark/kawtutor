@@ -5758,6 +5758,466 @@ function buildPendingWithGuidedConstructionPreservation(
   return preservedPending;
 }
 
+// ======================================================
+// GUIDED CONSTRUCTION CONTINUATION FACADE
+// ======================================================
+//
+// Provides one shared runtime entry point for continuing
+// an already-active Guided Construction pathway.
+//
+// This façade coordinates the Guided Construction
+// subsystem in one governed sequence:
+//
+// 1. confirm active Guided Construction context;
+// 2. confirm exact instructional location;
+// 3. preserve normal component validation authority;
+// 4. establish bounded semantic evidence only when needed;
+// 5. assess current micro-step evidence;
+// 6. build the deterministic progression decision;
+// 7. apply only Guided Construction-owned state changes.
+//
+// This façade does not:
+//
+// • determine whether Guided Construction begins;
+// • perform normal component validation;
+// • save a completed Frame component;
+// • advance the larger Frame;
+// • select or change an Instructional Contract;
+// • change pending.type or captureMode;
+// • generate student-facing communication.
+//
+// Component-specific runtime branches will call this
+// shared façade later.
+//
+// ======================================================
+
+async function continueGuidedConstruction({
+  state = null,
+  response = "",
+  componentValidation = null,
+  finalRephraseUsed = false,
+} = {}) {
+  const safeState =
+    state &&
+    typeof state === "object"
+      ? state
+      : null;
+
+  const validation =
+    componentValidation &&
+    typeof componentValidation ===
+      "object"
+      ? componentValidation
+      : null;
+
+  if (!safeState) {
+    return {
+      continuationStatus:
+        "unavailable",
+
+      reason:
+        "stateUnavailable",
+
+      activeContext:
+        null,
+
+      instructionalLocation:
+        null,
+
+      semanticEvidence:
+        null,
+
+      evidenceAssessment:
+        null,
+
+      progressionDecision:
+        null,
+
+      stateUpdate:
+        null,
+    };
+  }
+
+  // --------------------------------------------------
+  // ACTIVE GUIDED CONSTRUCTION CONTEXT
+  // --------------------------------------------------
+
+  const activeContext =
+    getActiveGuidedConstructionContext(
+      safeState
+    );
+
+  if (
+    activeContext?.active !== true
+  ) {
+    return {
+      continuationStatus:
+        "inactive",
+
+      reason:
+        "guidedConstructionNotActive",
+
+      activeContext,
+
+      instructionalLocation:
+        null,
+
+      semanticEvidence:
+        null,
+
+      evidenceAssessment:
+        null,
+
+      progressionDecision:
+        null,
+
+      stateUpdate:
+        null,
+    };
+  }
+
+  // --------------------------------------------------
+  // NORMAL COMPONENT VALIDATION REQUIRED
+  //
+  // Guided Construction may never assess micro-step
+  // progression without first receiving the normal
+  // governed component validator's result.
+  //
+  // --------------------------------------------------
+
+  if (!validation) {
+    return {
+      continuationStatus:
+        "unavailable",
+
+      reason:
+        "componentValidationUnavailable",
+
+      activeContext,
+
+      instructionalLocation:
+        null,
+
+      semanticEvidence:
+        null,
+
+      evidenceAssessment:
+        null,
+
+      progressionDecision:
+        null,
+
+      stateUpdate:
+        null,
+    };
+  }
+
+  const frameComponent =
+    cleanText(
+      activeContext
+        ?.frameComponent || ""
+    );
+
+  const guidedConstructionStep =
+    Number(
+      activeContext
+        ?.guidedConstructionStep
+    );
+
+  // --------------------------------------------------
+  // EXACT INSTRUCTIONAL LOCATION
+  //
+  // Guided Construction may continue only at the exact
+  // location where the active pathway was established.
+  //
+  // --------------------------------------------------
+
+  const instructionalLocation =
+    buildGuidedConstructionInstructionalLocation(
+      safeState
+    );
+
+  const storedLocation =
+    safeState?.pending
+      ?.guidedConstructionLocation &&
+    typeof safeState.pending
+      .guidedConstructionLocation ===
+      "object"
+      ? safeState.pending
+          .guidedConstructionLocation
+      : null;
+
+  const sameInstructionalLocation =
+    storedLocation
+      ?.locationEstablished === true &&
+    instructionalLocation
+      ?.locationEstablished === true &&
+    isSameGuidedConstructionInstructionalLocation(
+      storedLocation,
+      instructionalLocation
+    );
+
+  if (!sameInstructionalLocation) {
+    return {
+      continuationStatus:
+        "unavailable",
+
+      reason:
+        "guidedConstructionLocationMismatch",
+
+      activeContext,
+
+      instructionalLocation,
+
+      semanticEvidence:
+        null,
+
+      evidenceAssessment:
+        null,
+
+      progressionDecision:
+        null,
+
+      stateUpdate:
+        null,
+    };
+  }
+
+  // --------------------------------------------------
+  // FIRST ASSESSMENT PASS
+  //
+  // Deterministic assessment gets the first opportunity
+  // to establish:
+  //
+  // • full component completion; or
+  // • clear no-evidence conditions.
+  //
+  // Semantic evidence is requested only if this assessor
+  // explicitly requires it.
+  //
+  // --------------------------------------------------
+
+  let semanticEvidence =
+    null;
+
+  let evidenceAssessment =
+    assessGuidedConstructionEvidence({
+      state:
+        safeState,
+
+      response,
+
+      frameComponent,
+
+      guidedConstructionStep,
+
+      componentValidation:
+        validation,
+
+      microStepSemanticEvidence:
+        null,
+    });
+
+  // --------------------------------------------------
+  // BOUNDED SEMANTIC EVIDENCE
+  //
+  // Only observable student evidence whose micro-step
+  // meaning cannot be established deterministically
+  // reaches the semantic evidence provider.
+  //
+  // --------------------------------------------------
+
+  if (
+    evidenceAssessment
+      ?.assessmentStatus ===
+      "semanticEvidenceRequired"
+  ) {
+    semanticEvidence =
+      await getGuidedConstructionSemanticEvidence({
+        state:
+          safeState,
+
+        response,
+
+        frameComponent,
+
+        guidedConstructionStep,
+      });
+
+    evidenceAssessment =
+      assessGuidedConstructionEvidence({
+        state:
+          safeState,
+
+        response,
+
+        frameComponent,
+
+        guidedConstructionStep,
+
+        componentValidation:
+          validation,
+
+        microStepSemanticEvidence:
+          semanticEvidence,
+      });
+  }
+
+  // --------------------------------------------------
+  // EVIDENCE ASSESSMENT MUST BE ESTABLISHED
+  // --------------------------------------------------
+
+  const evidenceAssessmentEstablished =
+    evidenceAssessment
+      ?.assessmentStatus ===
+      "established" ||
+    evidenceAssessment
+      ?.assessmentStatus ===
+      "complete";
+
+  if (!evidenceAssessmentEstablished) {
+    return {
+      continuationStatus:
+        "unavailable",
+
+      reason:
+        "guidedConstructionEvidenceAssessmentUnavailable",
+
+      activeContext,
+
+      instructionalLocation,
+
+      semanticEvidence,
+
+      evidenceAssessment,
+
+      progressionDecision:
+        null,
+
+      stateUpdate:
+        null,
+    };
+  }
+
+  // --------------------------------------------------
+  // DETERMINISTIC PROGRESSION DECISION
+  // --------------------------------------------------
+
+  const progressionDecision =
+    buildGuidedConstructionProgressionDecision({
+      evidenceAssessment,
+
+      // Persistent Step-3 rephrase tracking will receive
+      // its dedicated runtime integration later.
+      finalRephraseUsed:
+        finalRephraseUsed === true,
+    });
+
+  if (
+    progressionDecision
+      ?.decisionStatus !==
+      "established"
+  ) {
+    return {
+      continuationStatus:
+        "unavailable",
+
+      reason:
+        "guidedConstructionProgressionDecisionUnavailable",
+
+      activeContext,
+
+      instructionalLocation,
+
+      semanticEvidence,
+
+      evidenceAssessment,
+
+      progressionDecision,
+
+      stateUpdate:
+        null,
+    };
+  }
+
+  // --------------------------------------------------
+  // BOUNDED GUIDED CONSTRUCTION STATE UPDATE
+  //
+  // This may update Guided Construction-owned metadata
+  // only.
+  //
+  // It may not save or progress the completed Frame.
+  //
+  // --------------------------------------------------
+
+  const stateUpdate =
+    applyGuidedConstructionProgression({
+      state:
+        safeState,
+
+      progressionDecision,
+
+      evidenceAssessment,
+
+      instructionalLocation,
+    });
+
+  if (
+    stateUpdate?.applied !== true
+  ) {
+    return {
+      continuationStatus:
+        "unavailable",
+
+      reason:
+        stateUpdate?.reason ||
+        "guidedConstructionStateUpdateUnavailable",
+
+      activeContext,
+
+      instructionalLocation,
+
+      semanticEvidence,
+
+      evidenceAssessment,
+
+      progressionDecision,
+
+      stateUpdate,
+    };
+  }
+
+  return {
+    continuationStatus:
+      "established",
+
+    reason:
+      null,
+
+    activeContext,
+
+    instructionalLocation,
+
+    semanticEvidence,
+
+    evidenceAssessment,
+
+    progressionDecision,
+
+    stateUpdate,
+
+    yieldsToNormalComponentProgression:
+      stateUpdate
+        ?.yieldsToNormalComponentProgression ===
+        true,
+
+    endpointReached:
+      stateUpdate
+        ?.endpointReached ===
+        true,
+  };
+}
+
 function getInstructionalContract(
   frameComponent,
   instructionalSituation
