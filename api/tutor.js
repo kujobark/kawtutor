@@ -31613,6 +31613,21 @@ if (
   progressionAuthorization
     ?.authorized !== true
 ) {
+  s.pending = {
+  type:
+    "collectAnotherDetail",
+
+  index:
+    i,
+
+  detailIndex:
+    arr.length,
+
+  captureMode:
+    "required",
+
+  instructionalFinding,
+};
   return attachGovernedSupportToPending(
     s,
     msg,
