@@ -4585,6 +4585,476 @@ Report only whether the student's current words provide evidence for each predet
   }
 }
 
+// ======================================================
+// GUIDED CONSTRUCTION PROGRESSION DECISION
+// ======================================================
+//
+// Converts one established Guided Construction evidence
+// assessment into one deterministic pathway decision.
+//
+// This is the progression-decision brain for Progressive
+// Support Stage 3.
+//
+// It answers only:
+//
+// "Given the current Guided Construction step and the
+// established evidence outcome, what should happen next
+// inside Guided Construction?"
+//
+// The normal governed component validator has already
+// received first authority through
+// assessGuidedConstructionEvidence().
+//
+// This decision layer does not:
+//
+// • validate student work;
+// • request semantic evidence;
+// • determine whether Guided Construction begins;
+// • mutate pending state;
+// • save student evidence;
+// • select an Instructional Contract;
+// • advance the larger Frame;
+// • generate student-facing communication.
+//
+// Step 7 will apply these decisions to bounded Guided
+// Construction state.
+//
+// ======================================================
+
+const GUIDED_CONSTRUCTION_PROGRESSION_DECISIONS =
+  Object.freeze({
+    STAY_CURRENT_STEP:
+      "stayCurrentStep",
+
+    ADVANCE_TO_NEXT_STEP:
+      "advanceToNextStep",
+
+    COMPONENT_COMPLETE:
+      "componentComplete",
+
+    REFINE_FINAL_STEP:
+      "refineFinalStep",
+
+    REPHRASE_FINAL_STEP:
+      "rephraseFinalStep",
+
+    ADDITIONAL_SUPPORT_ENDPOINT:
+      "additionalSupportEndpoint",
+  });
+
+function buildGuidedConstructionProgressionDecision({
+  evidenceAssessment = null,
+  finalRephraseUsed = false,
+} = {}) {
+  const assessment =
+    evidenceAssessment &&
+    typeof evidenceAssessment ===
+      "object"
+      ? evidenceAssessment
+      : null;
+
+  if (!assessment) {
+    return {
+      decisionStatus:
+        "unavailable",
+
+      decision:
+        null,
+
+      currentStep:
+        null,
+
+      nextStep:
+        null,
+
+      frameComponent:
+        null,
+
+      saveCurrentEvidence:
+        false,
+
+      finalRephraseUsed:
+        finalRephraseUsed === true,
+
+      decisionBasis: [
+        "guidedConstructionEvidenceAssessmentUnavailable",
+      ],
+    };
+  }
+
+  const frameComponent =
+    cleanText(
+      assessment
+        ?.frameComponent || ""
+    );
+
+  const currentStep =
+    Number(
+      assessment
+        ?.guidedConstructionStep
+    );
+
+  const outcome =
+    cleanText(
+      assessment
+        ?.outcome || ""
+    );
+
+  const validStep =
+    Number.isInteger(
+      currentStep
+    ) &&
+    currentStep >= 1 &&
+    currentStep <= 3;
+
+  const assessmentEstablished =
+    assessment
+      ?.assessmentStatus ===
+      "established" ||
+
+    assessment
+      ?.assessmentStatus ===
+      "complete";
+
+  if (
+    !frameComponent ||
+    !GUIDED_CONSTRUCTION_RULES
+      ?.[frameComponent] ||
+    !validStep ||
+    !assessmentEstablished ||
+    !outcome
+  ) {
+    return {
+      decisionStatus:
+        "unavailable",
+
+      decision:
+        null,
+
+      currentStep:
+        validStep
+          ? currentStep
+          : null,
+
+      nextStep:
+        null,
+
+      frameComponent:
+        frameComponent || null,
+
+      saveCurrentEvidence:
+        false,
+
+      finalRephraseUsed:
+        finalRephraseUsed === true,
+
+      decisionBasis: [
+        "guidedConstructionProgressionContextUnavailable",
+      ],
+    };
+  }
+
+  // --------------------------------------------------
+  // COMPONENT COMPLETE
+  //
+  // Full governed component validation overrides the
+  // Guided Construction pathway immediately.
+  //
+  // Guided Construction does not create an additional
+  // instructional hoop after successful validation.
+  // --------------------------------------------------
+
+  if (
+    outcome ===
+    GUIDED_CONSTRUCTION_EVIDENCE_OUTCOMES
+      .COMPONENT_COMPLETE
+  ) {
+    return {
+      decisionStatus:
+        "established",
+
+      decision:
+        GUIDED_CONSTRUCTION_PROGRESSION_DECISIONS
+          .COMPONENT_COMPLETE,
+
+      currentStep,
+
+      nextStep:
+        null,
+
+      frameComponent,
+
+      saveCurrentEvidence:
+        false,
+
+      finalRephraseUsed:
+        finalRephraseUsed === true,
+
+      decisionBasis: [
+        "governedComponentValidationPassed",
+        "normalComponentProgressionAuthoritative",
+      ],
+    };
+  }
+
+  // --------------------------------------------------
+  // STEP 1 / STEP 2
+  //
+  // Insufficient micro-step evidence:
+  // remain on the same thinking operation.
+  //
+  // Sufficient micro-step evidence:
+  // preserve the student's evidence and advance exactly
+  // one Guided Construction step.
+  //
+  // --------------------------------------------------
+
+  if (
+    currentStep === 1 ||
+    currentStep === 2
+  ) {
+    if (
+      outcome ===
+      GUIDED_CONSTRUCTION_EVIDENCE_OUTCOMES
+        .INSUFFICIENT_MICRO_STEP_EVIDENCE
+    ) {
+      return {
+        decisionStatus:
+          "established",
+
+        decision:
+          GUIDED_CONSTRUCTION_PROGRESSION_DECISIONS
+            .STAY_CURRENT_STEP,
+
+        currentStep,
+
+        nextStep:
+          currentStep,
+
+        frameComponent,
+
+        saveCurrentEvidence:
+          false,
+
+        finalRephraseUsed:
+          finalRephraseUsed === true,
+
+        decisionBasis: [
+          "insufficientCurrentMicroStepEvidence",
+          "sameThinkingOperationRemainsAuthoritative",
+        ],
+      };
+    }
+
+    if (
+      outcome ===
+      GUIDED_CONSTRUCTION_EVIDENCE_OUTCOMES
+        .SUFFICIENT_MICRO_STEP_EVIDENCE
+    ) {
+      return {
+        decisionStatus:
+          "established",
+
+        decision:
+          GUIDED_CONSTRUCTION_PROGRESSION_DECISIONS
+            .ADVANCE_TO_NEXT_STEP,
+
+        currentStep,
+
+        nextStep:
+          currentStep + 1,
+
+        frameComponent,
+
+        saveCurrentEvidence:
+          true,
+
+        finalRephraseUsed:
+          finalRephraseUsed === true,
+
+        decisionBasis: [
+          "sufficientCurrentMicroStepEvidence",
+          "advanceExactlyOneGuidedConstructionStep",
+        ],
+      };
+    }
+
+    return {
+      decisionStatus:
+        "unavailable",
+
+      decision:
+        null,
+
+      currentStep,
+
+      nextStep:
+        null,
+
+      frameComponent,
+
+      saveCurrentEvidence:
+        false,
+
+      finalRephraseUsed:
+        finalRephraseUsed === true,
+
+      decisionBasis: [
+        `unexpectedEvidenceOutcome:${outcome}`,
+      ],
+    };
+  }
+
+  // --------------------------------------------------
+  // STEP 3 — FINAL GUIDED CONSTRUCTION OPERATION
+  //
+  // There is no Guided Construction Step 4.
+  //
+  // The normal component validator already received
+  // first authority above.
+  //
+  // Remaining possibilities:
+  //
+  // • usable but incomplete final-step thinking
+  //     → continue coaching Step 3;
+  //
+  // • first response with no usable final-step evidence
+  //     → rephrase the same Step-3 operation once;
+  //
+  // • persistent no usable evidence after that rephrase
+  //     → additional-support endpoint.
+  //
+  // --------------------------------------------------
+
+  if (
+    outcome ===
+    GUIDED_CONSTRUCTION_EVIDENCE_OUTCOMES
+      .USABLE_FINAL_STEP_EVIDENCE
+  ) {
+    return {
+      decisionStatus:
+        "established",
+
+      decision:
+        GUIDED_CONSTRUCTION_PROGRESSION_DECISIONS
+          .REFINE_FINAL_STEP,
+
+      currentStep:
+        3,
+
+      nextStep:
+        3,
+
+      frameComponent,
+
+      saveCurrentEvidence:
+        true,
+
+      finalRephraseUsed:
+        finalRephraseUsed === true,
+
+      decisionBasis: [
+        "usableButIncompleteFinalStepEvidence",
+        "continueSameFinalThinkingOperation",
+      ],
+    };
+  }
+
+  if (
+    outcome ===
+    GUIDED_CONSTRUCTION_EVIDENCE_OUTCOMES
+      .NO_USABLE_FINAL_STEP_EVIDENCE
+  ) {
+    if (
+      finalRephraseUsed !== true
+    ) {
+      return {
+        decisionStatus:
+          "established",
+
+        decision:
+          GUIDED_CONSTRUCTION_PROGRESSION_DECISIONS
+            .REPHRASE_FINAL_STEP,
+
+        currentStep:
+          3,
+
+        nextStep:
+          3,
+
+        frameComponent,
+
+        saveCurrentEvidence:
+          false,
+
+        finalRephraseUsed:
+          true,
+
+        decisionBasis: [
+          "noUsableFinalStepEvidence",
+          "finalStepRephraseNotYetUsed",
+          "rephraseSameThinkingOperationOnce",
+        ],
+      };
+    }
+
+    return {
+      decisionStatus:
+        "established",
+
+      decision:
+        GUIDED_CONSTRUCTION_PROGRESSION_DECISIONS
+          .ADDITIONAL_SUPPORT_ENDPOINT,
+
+      currentStep:
+        3,
+
+      nextStep:
+        3,
+
+      frameComponent,
+
+      saveCurrentEvidence:
+        false,
+
+      finalRephraseUsed:
+        true,
+
+      decisionBasis: [
+        "noUsableFinalStepEvidence",
+        "finalStepRephraseAlreadyUsed",
+        "guidedConstructionEndpointReached",
+      ],
+    };
+  }
+
+  return {
+    decisionStatus:
+      "unavailable",
+
+    decision:
+      null,
+
+    currentStep:
+      3,
+
+    nextStep:
+      null,
+
+    frameComponent,
+
+    saveCurrentEvidence:
+      false,
+
+    finalRephraseUsed:
+      finalRephraseUsed === true,
+
+    decisionBasis: [
+      `unexpectedEvidenceOutcome:${outcome}`,
+    ],
+  };
+}
+
 function getInstructionalContract(
   frameComponent,
   instructionalSituation
