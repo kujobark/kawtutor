@@ -2107,21 +2107,8 @@ const INSTRUCTIONAL_PLAYBOOK = {
       thinkingMove:
         "Begin Guided Construction of the Essential Detail by separating identification of supporting information from explanation of the supporting relationship. Reconnect to the accepted Main Idea, tell the student Kaw will work through it one step at a time, and first ask the student to identify one specific thing they know, noticed, read, observed, or can point to that relates to the Main Idea. Do not ask them to explain the connection yet, and do not suggest or supply the evidence.",
     },
-
-      // Step-1 compatibility fallback until the
-      // Progressive Support selector becomes step-aware.
-      thinkingMove:
-        "Begin Guided Construction of the Essential Detail by separating identification of supporting information from explanation of the supporting relationship. Reconnect to the accepted Main Idea, tell the student Kaw will work through it one step at a time, and first ask the student to identify one specific thing they know, noticed, read, observed, or can point to that relates to the Main Idea. Do not ask them to explain the connection yet, and do not suggest or supply the evidence.",
-    },
-
-      // Step-1 compatibility fallback until the
-      // Progressive Support selector becomes step-aware.
-      thinkingMove:
-        "Begin Guided Construction of the Is About by reducing the whole-topic paraphrase into one smaller thinking step. Reconnect to the accepted Key Topic, tell the student Kaw will work through it one step at a time, and ask the student to identify one thing that happens, is involved, is true, or is important to know about the Key Topic. Do not ask for the finished Is About yet, and do not suggest or supply any content.",
-    },
   ],
 },
-      
       
       studentWorkProtection: {
         preserveExistingWork:
