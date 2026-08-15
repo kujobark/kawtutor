@@ -4035,6 +4035,556 @@ function assessGuidedConstructionEvidence({
   };
 }
 
+// ======================================================
+// GUIDED CONSTRUCTION SEMANTIC EVIDENCE
+// ======================================================
+//
+// Provides bounded semantic evidence for one active
+// Guided Construction micro-step.
+//
+// The teacher-authored GUIDED_CONSTRUCTION_RULES remain
+// authoritative.
+//
+// AI may determine only whether observable student
+// meaning supports each predetermined criterion for the
+// current micro-step.
+//
+// AI does not:
+//
+// • determine whether Guided Construction begins;
+// • determine the active Guided Construction step;
+// • determine progression;
+// • return STAY, ADVANCE, COMPLETE, or ENDPOINT;
+// • validate the completed Frame component;
+// • rewrite or improve student work;
+// • generate missing student thinking;
+// • mutate runtime state.
+//
+// JavaScript converts the bounded criterion evidence into
+// the semantic artifact consumed by
+// assessGuidedConstructionEvidence().
+//
+// ======================================================
+
+async function getGuidedConstructionSemanticEvidence({
+  state = null,
+  response = "",
+  frameComponent = "",
+  guidedConstructionStep = null,
+} = {}) {
+  const safeState =
+    state &&
+    typeof state === "object"
+      ? state
+      : {};
+
+  const studentResponse =
+    cleanText(response);
+
+  const component =
+    cleanText(
+      frameComponent
+    );
+
+  const step =
+    Number(
+      guidedConstructionStep
+    );
+
+  const componentRules =
+    GUIDED_CONSTRUCTION_RULES
+      ?.[component] || null;
+
+  const stepRules =
+    componentRules
+      ?.steps
+      ?.[step] || null;
+
+  const sufficientCriteria =
+    Array.isArray(
+      stepRules
+        ?.sufficientMicroStepEvidence
+    )
+      ? stepRules
+          .sufficientMicroStepEvidence
+          .map(cleanText)
+          .filter(Boolean)
+      : [];
+
+  const insufficientCriteria =
+    Array.isArray(
+      stepRules
+        ?.insufficientMicroStepEvidence
+    )
+      ? stepRules
+          .insufficientMicroStepEvidence
+          .map(cleanText)
+          .filter(Boolean)
+      : [];
+
+  const validContext =
+    Boolean(
+      studentResponse &&
+      componentRules &&
+      stepRules &&
+      Number.isInteger(step) &&
+      step >= 1 &&
+      step <= 3 &&
+      sufficientCriteria.length > 0
+    );
+
+  if (!validContext) {
+    return {
+      assessmentEstablished:
+        false,
+
+      sufficientForCurrentStep:
+        false,
+
+      usableForFinalStep:
+        false,
+
+      criterionEvidence:
+        [],
+
+      confidence:
+        0,
+
+      source:
+        "notRequested",
+    };
+  }
+
+  // --------------------------------------------------
+  // INSTRUCTIONAL CONTEXT
+  //
+  // Only accepted Frame content and student-owned Guided
+  // Construction evidence may contextualize the current
+  // micro-step.
+  //
+  // --------------------------------------------------
+
+  const keyTopic =
+    cleanText(
+      safeState?.frame
+        ?.keyTopic || ""
+    );
+
+  const isAbout =
+    cleanText(
+      safeState?.frame
+        ?.isAbout || ""
+    );
+
+  const mainIdeas =
+    getIdeaList(safeState)
+      .map(cleanText)
+      .filter(Boolean);
+
+  const details =
+    Array.isArray(
+      safeState?.frame
+        ?.details
+    )
+      ? safeState.frame.details.map(
+          (bucket) =>
+            Array.isArray(bucket)
+              ? bucket
+                  .map(cleanText)
+                  .filter(Boolean)
+              : []
+        )
+      : [];
+
+  const pending =
+    safeState?.pending &&
+    typeof safeState.pending ===
+      "object"
+      ? safeState.pending
+      : {};
+
+  const currentMainIdea =
+    component === "details" &&
+    Number.isInteger(
+      pending?.index
+    )
+      ? cleanText(
+          mainIdeas[
+            pending.index
+          ] || ""
+        )
+      : "";
+
+  const priorGuidedEvidence =
+    pending
+      ?.guidedConstructionEvidence &&
+    typeof pending
+      .guidedConstructionEvidence ===
+      "object"
+      ? structuredClone(
+          pending
+            .guidedConstructionEvidence
+        )
+      : {};
+
+  const system = `You provide bounded semantic evidence for Guided Construction in Kaw Companion, which supports students using the KU Framing Routine.
+
+Your responsibility is extremely narrow.
+
+The student's current Guided Construction component, current micro-step, teacher-authored purpose, and predetermined evidence criteria will be supplied.
+
+Evaluate only whether the student's current response provides observable semantic evidence for each supplied sufficient criterion.
+
+You are an evidence observer only.
+
+You do not determine:
+- whether Guided Construction should begin;
+- whether the student should stay on or advance from a step;
+- whether the completed Frame component is valid;
+- whether instruction should progress;
+- what Kaw should ask next;
+- what support the student needs.
+
+Rules:
+- Evaluate the student's actual words.
+- Preserve imperfect grammar, spelling, fragments, words, and phrases when they communicate the required thinking.
+- Do not impose a minimum length.
+- Do not require sentence form unless the supplied criterion explicitly requires it.
+- Use accepted Frame context only to understand the student's response.
+- Use prior Guided Construction evidence only to determine whether the current response builds from, extends, relates to, or merely repeats the student's own earlier thinking.
+- Never use context to supply an idea, relationship, organizer, explanation, significance, or synthesis the student did not express.
+- Do not rewrite, improve, complete, combine, or paraphrase the student's thinking.
+- Do not generate a possible answer.
+- Do not judge factual accuracy unless factual relationship is explicitly required by the supplied criterion.
+- Do not infer hidden understanding, intent, effort, motivation, or emotion.
+- Treat each sufficient criterion independently.
+- criterionEvidence must contain exactly one item for each supplied sufficient criterion, using its supplied zero-based criterionIndex.
+- supported must be true only when the student's current response observably satisfies that criterion in the supplied context.
+- confidence represents how clearly the student's words support your criterion judgments.
+- Return semantic evidence only.
+- Return only the required JSON object.`;
+
+  const user = `Guided Construction component:
+${component}
+
+Guided Construction step:
+${step}
+
+Current thinking operation:
+${cleanText(
+  stepRules?.operation || ""
+)}
+
+Teacher-authored purpose:
+${cleanText(
+  stepRules?.purpose || ""
+)}
+
+Sufficient micro-step evidence criteria:
+${JSON.stringify(
+  sufficientCriteria.map(
+    (criterion, criterionIndex) => ({
+      criterionIndex,
+      criterion,
+    })
+  ),
+  null,
+  2
+)}
+
+Teacher-authored insufficient-evidence descriptions:
+${JSON.stringify(
+  insufficientCriteria,
+  null,
+  2
+)}
+
+Accepted Frame context:
+
+Key Topic:
+${keyTopic || "(not available)"}
+
+Is About:
+${isAbout || "(not available)"}
+
+Accepted Main Ideas:
+${JSON.stringify(
+  mainIdeas,
+  null,
+  2
+)}
+
+Accepted Essential Details:
+${JSON.stringify(
+  details,
+  null,
+  2
+)}
+
+Current accepted Main Idea for Essential Detail work:
+${currentMainIdea || "(not applicable)"}
+
+Prior student-owned Guided Construction evidence:
+${JSON.stringify(
+  priorGuidedEvidence,
+  null,
+  2
+)}
+
+Student's current response:
+"${studentResponse}"
+
+Report only whether the student's current words provide evidence for each predetermined sufficient criterion.`;
+
+  try {
+    const resp =
+      await client.chat.completions.create({
+        model:
+          DEFAULT_MODEL,
+
+        reasoning_effort:
+          "none",
+
+        temperature:
+          0,
+
+        response_format: {
+          type:
+            "json_schema",
+
+          json_schema: {
+            name:
+              "guided_construction_semantic_evidence",
+
+            strict:
+              true,
+
+            schema: {
+              type:
+                "object",
+
+              additionalProperties:
+                false,
+
+              properties: {
+                criterionEvidence: {
+                  type:
+                    "array",
+
+                  items: {
+                    type:
+                      "object",
+
+                    additionalProperties:
+                      false,
+
+                    properties: {
+                      criterionIndex: {
+                        type:
+                          "integer",
+
+                        minimum:
+                          0,
+                      },
+
+                      supported: {
+                        type:
+                          "boolean",
+                      },
+                    },
+
+                    required: [
+                      "criterionIndex",
+                      "supported",
+                    ],
+                  },
+                },
+
+                confidence: {
+                  type:
+                    "number",
+
+                  minimum:
+                    0,
+
+                  maximum:
+                    1,
+                },
+              },
+
+              required: [
+                "criterionEvidence",
+                "confidence",
+              ],
+            },
+          },
+        },
+
+        messages: [
+          {
+            role:
+              "system",
+
+            content:
+              system,
+          },
+
+          {
+            role:
+              "user",
+
+            content:
+              user,
+          },
+        ],
+      });
+
+    const parsed =
+      JSON.parse(
+        resp?.choices?.[0]
+          ?.message?.content || "{}"
+      );
+
+    const rawCriterionEvidence =
+      Array.isArray(
+        parsed?.criterionEvidence
+      )
+        ? parsed.criterionEvidence
+        : [];
+
+    // --------------------------------------------------
+    // JAVASCRIPT SANITIZATION
+    //
+    // AI may return evidence only for the criteria that
+    // actually exist in the teacher-authored current
+    // micro-step.
+    //
+    // Missing, duplicate, or out-of-range criterion
+    // judgments cannot silently establish sufficiency.
+    // --------------------------------------------------
+
+    const criterionEvidence =
+      sufficientCriteria.map(
+        (
+          criterion,
+          criterionIndex
+        ) => {
+          const matchingEvidence =
+            rawCriterionEvidence.find(
+              (item) =>
+                Number(
+                  item?.criterionIndex
+                ) ===
+                criterionIndex
+            );
+
+          return {
+            criterionIndex,
+
+            criterion,
+
+            supported:
+              matchingEvidence
+                ?.supported === true,
+          };
+        }
+      );
+
+    const confidence =
+      Number(
+        parsed?.confidence || 0
+      );
+
+    const normalizedConfidence =
+      Number.isFinite(confidence)
+        ? Math.max(
+            0,
+            Math.min(
+              confidence,
+              1
+            )
+          )
+        : 0;
+
+    // --------------------------------------------------
+    // DETERMINISTIC MICRO-STEP EVIDENCE DECISION
+    //
+    // AI supplies criterion observations.
+    //
+    // JavaScript decides whether those observations are
+    // sufficient to establish the current micro-step.
+    //
+    // Every teacher-authored sufficient criterion must
+    // be observably supported.
+    //
+    // --------------------------------------------------
+
+    const allCriteriaSupported =
+      criterionEvidence.length ===
+        sufficientCriteria.length &&
+
+      criterionEvidence.length > 0 &&
+
+      criterionEvidence.every(
+        (item) =>
+          item.supported === true
+      );
+
+    const assessmentEstablished =
+      normalizedConfidence >=
+      0.9;
+
+    const sufficientForCurrentStep =
+      assessmentEstablished &&
+      allCriteriaSupported;
+
+    const usableForFinalStep =
+      step === 3 &&
+      sufficientForCurrentStep;
+
+    return {
+      assessmentEstablished,
+
+      sufficientForCurrentStep,
+
+      usableForFinalStep,
+
+      criterionEvidence,
+
+      confidence:
+        normalizedConfidence,
+
+      source:
+        "aiBoundedGuidedConstructionSemanticEvidence",
+    };
+  } catch (error) {
+    console.error(
+      "Guided Construction semantic evidence error:",
+      error
+    );
+
+    return {
+      assessmentEstablished:
+        false,
+
+      sufficientForCurrentStep:
+        false,
+
+      usableForFinalStep:
+        false,
+
+      criterionEvidence:
+        [],
+
+      confidence:
+        0,
+
+      source:
+        "semanticEvidenceUnavailable",
+    };
+  }
+}
+
 function getInstructionalContract(
   frameComponent,
   instructionalSituation
