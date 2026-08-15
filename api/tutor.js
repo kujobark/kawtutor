@@ -5950,6 +5950,30 @@ async function continueGuidedConstruction({
       ? componentValidation
       : null;
 
+  // --------------------------------------------------
+  // PERSISTENT FINAL-STEP REPHRASE STATE
+  //
+  // The Guided Construction pathway owns whether the one
+  // permitted Step-3 rephrase has already been consumed.
+  //
+  // Persistent pending state is authoritative across
+  // runtime turns. The explicit argument remains supported
+  // for deterministic tests and bounded callers, but a
+  // caller may never reset previously consumed pathway
+  // state by supplying false.
+  //
+  // Exact-location protection is handled before this state
+  // can survive pending reconstruction by
+  // buildPendingWithGuidedConstructionPreservation().
+  // --------------------------------------------------
+
+  const effectiveFinalRephraseUsed =
+    finalRephraseUsed === true ||
+    safeState
+      ?.pending
+      ?.guidedConstructionFinalRephraseUsed ===
+      true;
+
   if (!safeState) {
     return {
       continuationStatus:
@@ -6247,10 +6271,8 @@ async function continueGuidedConstruction({
     buildGuidedConstructionProgressionDecision({
       evidenceAssessment,
 
-      // Persistent Step-3 rephrase tracking will receive
-      // its dedicated runtime integration later.
       finalRephraseUsed:
-        finalRephraseUsed === true,
+        effectiveFinalRephraseUsed,
     });
 
   if (
