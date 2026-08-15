@@ -29858,7 +29858,6 @@ if (
         "strengthen",
     }
   );
-
       
   if (
     !soWhatValidation.valid ||
@@ -31280,129 +31279,25 @@ if (
 // No-evidence responses fail validation and cannot replace
 // the accepted So What.
 
-    const previousSoWhat =
+const previousSoWhat =
   s.frame?.soWhat || "";
 
-const soWhatValidation =
-  await validateSoWhatResponseGoverned(
+const {
+  soWhatValidation,
+  instructionalFinding,
+  progressionAuthorization,
+  capturedSoWhat,
+} =
+  await applySoWhatCapture(
+    s,
     msg,
-    buildSoWhatValidationContext(s)
-  );
-
-const instructionalFinding = {
-  ...buildComponentInstructionalFinding({
-    frameComponent:
-      "soWhat",
-
-    validation:
-      soWhatValidation,
-
-    evidence: {
-      keyTopic:
-        s.frame?.keyTopic || "",
-
-      isAbout:
-        s.frame?.isAbout || "",
-
-      mainIdeas:
-        getIdeaList(s)
-          .filter(Boolean),
-
-      details:
-        Array.isArray(
-          s.frame?.details
-        )
-          ? s.frame.details.map(
-              (bucket) =>
-                Array.isArray(bucket)
-                  ? bucket.filter(Boolean)
-                  : []
-            )
-          : [],
-
-      previousSoWhat,
-
-      attemptedSoWhat:
-        cleanText(msg),
-
+    {
       captureMode:
         "revision",
-    },
-  }),
 
-  synthesisState:
-    soWhatValidation
-      .synthesisState || null,
-
-  validationSource:
-    soWhatValidation
-      .validationSource || null,
-
-  captureMode:
-    "revision",
-};
-
-refreshInstructionalSituationWithComponentFinding({
-  state:
-    s,
-
-  currentResponse:
-    msg,
-
-  componentFinding:
-    instructionalFinding,
-});
-
-const progressionAuthorization =
-  buildProgressionAuthorization(
-    s,
-    {
-      frameComponent:
-        "soWhat",
-
-      expectedContractId:
-        "SW-RTP-001",
+      previousSoWhat,
     }
   );
-
-s.progressionAuthorization =
-  structuredClone(
-    progressionAuthorization
-  );
-
-// --------------------------------------------------
-// GUIDED CONSTRUCTION — SO WHAT CONTINUATION
-// --------------------------------------------------
-
-const activeGuidedConstruction =
-  getActiveGuidedConstructionContext(
-    s
-  );
-
-let guidedConstructionContinuation =
-  null;
-
-if (
-  activeGuidedConstruction?.active ===
-    true &&
-  activeGuidedConstruction
-    ?.frameComponent ===
-    "soWhat"
-) {
-  guidedConstructionContinuation =
-    await continueGuidedConstruction({
-      state:
-        s,
-
-      response:
-        msg,
-
-      componentValidation:
-        soWhatValidation,
-
-      finalRephraseUsed:
-        false,
-    });
 
   console.log(
     "[KAW][GUIDED CONSTRUCTION][SO WHAT]",
@@ -31435,7 +31330,7 @@ if (
 
 // Replace only after governed validation.
     s.frame.soWhat =
-      msg;
+      capturedSoWhat;
     
     s.pending = {
       type: "confirmSoWhat",
