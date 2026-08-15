@@ -9724,8 +9724,21 @@ ${currentSoWhat || "(none yet)"}
 
 Express the predetermined Thinking Move as one natural, assignment-specific student-facing response.
 
-If Progressive Support is active, preserve the exact instructional difference of the selected stage and move. Do not simplify a Stage 2 or Stage 3 prompt back into the generic Stage 1 question.
+STUDENT-FACING FORMAT REQUIREMENT:
 
+If the Predetermined Thinking Move contains a series of 3 or more parallel thinking choices, categories, lenses, actions, or cognitive options separated by commas or words such as "or", do NOT reproduce that series inside a sentence.
+
+Instead:
+- choose only 3–5 of those already-authorized options;
+- place each option on its own short bullet line;
+- use the appropriate Framing Routine icon as a visual anchor when helpful;
+- do not add new options, examples, hints, or content;
+- do not repeat the options again in the final question;
+- ask one short question after the list.
+
+This formatting requirement is mandatory whenever a 3-or-more-option series appears in the Predetermined Thinking Move. Formatting the options vertically does not count as adding another instructional move or another question.
+
+If Progressive Support is active, preserve the exact instructional difference of the selected stage and move. Do not simplify a Stage 2 or Stage 3 prompt back into the generic Stage 1 question.
 Follow the Approved Communication Instruction and Communication License exactly.
 
 Use the student's existing accepted or observable language when the license permits it and when doing so helps connect the response to the student's thinking.
