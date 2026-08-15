@@ -31558,208 +31558,53 @@ return s;
 
     if (arr.length < 2) {
       if (!isNegative(msg)) {
-        const currentMainIdea =
-          getIdeaList(s)[i] || "";
-
-      const detailValidation =
-        await validateEssentialDetailResponseGoverned(
-          msg,
-          currentMainIdea,
-          {
-            keyTopic:
-              s.frame.keyTopic || "",
-
-            isAbout:
-              s.frame.isAbout || "",
-          }
-        );
-
-      const instructionalFinding = {
-        ...buildComponentInstructionalFinding({
-          frameComponent:
-            "details",
-
-          validation:
-            detailValidation,
-
-          evidence: {
-            keyTopic:
-              s.frame.keyTopic || "",
-
-            isAbout:
-              s.frame.isAbout || "",
-
-            currentMainIdea,
-
-            currentMainIdeaIndex:
-              i,
-
-            currentDetailIndex:
-              arr.length,
-
-            captureMode:
-              "required",
-
-            attemptedDetail:
-              cleanText(msg),
-          },
-        }),
-
-        validationSource:
-          detailValidation.validationSource ||
-          null,
-
-        currentMainIdea,
-
-        currentMainIdeaIndex:
-          i,
-
-        currentDetailIndex:
-          arr.length,
-
-        captureMode:
-          "required",
-      };
-
-      refreshInstructionalSituationWithComponentFinding({
-        state:
-          s,
-
-        currentResponse:
-          msg,
-
-        componentFinding:
-          instructionalFinding,
-      });
-
-      const progressionAuthorization =
-        buildProgressionAuthorization(
-          s,
-          {
-            frameComponent:
-              "details",
-
-            expectedContractId:
-              "ED-RTP-001",
-          }
-        );
-
-      s.progressionAuthorization =
-        structuredClone(
-          progressionAuthorization
-        );
-
-  // --------------------------------------------------
-// GUIDED CONSTRUCTION — ESSENTIAL DETAIL CONTINUATION
-// --------------------------------------------------
-
-const activeGuidedConstruction =
-  getActiveGuidedConstructionContext(
-    s
-  );
-
-let guidedConstructionContinuation =
-  null;
-
-if (
-  activeGuidedConstruction?.active ===
-    true &&
-  activeGuidedConstruction
-    ?.frameComponent ===
-    "details"
-) {
-  guidedConstructionContinuation =
-    await continueGuidedConstruction({
-      state:
-        s,
-
-      response:
-        msg,
-
-      componentValidation:
-        detailValidation,
-
-      finalRephraseUsed:
-        false,
-    });
-
-  console.log(
-    "[KAW][GUIDED CONSTRUCTION][ESSENTIAL DETAIL]",
-    guidedConstructionContinuation
-  );
-}
-        
-      if (
-        !detailValidation.valid ||
-        progressionAuthorization
-          ?.authorized !== true
-      ) {
-        const instructionalContract =
-          s?.instructionalContractSelection
-            ?.selectedContract ||
-          null;
-
-    s.pending =
-  buildPendingWithGuidedConstructionPreservation(
+    const {
+  detailValidation,
+  instructionalFinding,
+  progressionAuthorization,
+  capturedDetail,
+} =
+  await applyEssentialDetailCapture(
     s,
+    msg,
     {
-      type:
-        "collectAnotherDetail",
-
       index:
         i,
 
-      instructionalFinding,
+      detailIndex:
+        arr.length,
 
-      instructionalContract:
-        instructionalContract
-          ? {
-              contractId:
-                instructionalContract.contractId,
-
-              frameComponent:
-                instructionalContract.frameComponent,
-
-              instructionalSituation:
-                instructionalContract.instructionalSituation,
-
-              instructionalGoal:
-                instructionalContract.instructionalGoal,
-
-              teachingMove:
-                instructionalContract.teachingMove,
-
-              thinkingMove:
-                instructionalContract.thinkingMove,
-
-              aiContextualizes:
-                instructionalContract.aiContextualizes,
-            }
-          : null,
+      captureMode:
+        "required",
     }
   );
 
-        return attachGovernedSupportToPending(
-          s,
-          msg,
-          {
-            intent:
-              "stuck",
+if (
+  !detailValidation.valid ||
+  progressionAuthorization
+    ?.authorized !== true
+) {
+  return attachGovernedSupportToPending(
+    s,
+    msg,
+    {
+      intent:
+        "stuck",
 
-            confidence:
-              1,
+      confidence:
+        1,
 
-            source:
-              `detailValidation:${detailValidation.diagnosis}`,
+      source:
+        `detailValidation:${detailValidation.diagnosis}`,
 
-            instructionalFinding,
-          }
-        );
-      }
+      instructionalFinding,
+    }
+  );
+}
 
         s.frame.details[i] = [
           ...arr,
-          msg,
+          capturedDetail,
         ];
 
       const updatedArr =
