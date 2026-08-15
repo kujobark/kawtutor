@@ -27532,11 +27532,18 @@ if (isStrengthen) {
     };
 }
   
-s.pending =
-  buildPendingWithGuidedConstructionPreservation(
-    s,
-    pendingLocation
-  );
+s.pending = {
+  ...(
+    s?.pending &&
+    typeof s.pending === "object"
+      ? s.pending
+      : {}
+  ),
+
+  ...pendingLocation,
+
+  captureMode,
+};
 
 return attachGovernedSupportToPending(
   s,
