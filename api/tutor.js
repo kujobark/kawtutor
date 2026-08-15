@@ -26932,8 +26932,63 @@ async function applyIsAboutCapture(
   const isStrengthen =
     captureMode === "strengthen";
 
-  const cleanedIsAbout =
+    const rawCleanedIsAbout =
     cleanFrameText(msg);
+
+  const observationReport =
+    s?.observationReport &&
+    typeof s.observationReport ===
+      "object"
+      ? s.observationReport
+      : null;
+
+  const componentContribution =
+    observationReport
+      ?.componentContribution &&
+    typeof observationReport
+      .componentContribution ===
+      "object"
+      ? observationReport
+          .componentContribution
+      : null;
+
+  const interactionOnlyCategories =
+    new Set([
+      "uncertaintyExpression",
+      "clarificationRequest",
+      "answerSeeking",
+      "frustrationExpression",
+      "refusal",
+      "offTaskShift",
+    ]);
+
+  const interactionObservationPresent =
+    Array.isArray(
+      observationReport?.observations
+    ) &&
+    observationReport.observations.some(
+      (observation) =>
+        interactionOnlyCategories.has(
+          cleanText(
+            observation?.category || ""
+          )
+        )
+    );
+
+  const observedContributionText =
+    componentContribution
+      ?.observed === true
+      ? cleanFrameText(
+          componentContribution
+            ?.evidenceText || ""
+        )
+      : "";
+
+  const cleanedIsAbout =
+    interactionObservationPresent &&
+    observedContributionText
+      ? observedContributionText
+      : rawCleanedIsAbout;
 
   const keyTopic =
     cleanText(s.frame?.keyTopic || "");
