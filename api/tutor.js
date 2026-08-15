@@ -17567,6 +17567,137 @@ async function runIsAboutSelfTests() {
   });
 
   // --------------------------------------------------
+  // IA RUNTIME — MIXED INTERACTION + COMPONENT CONTENT
+  //
+  // Protects the live case where a student response
+  // contains both uncertainty language and genuine
+  // student-owned Is About content.
+  //
+  // The interaction wrapper must not be saved as part of
+  // the Frame component.
+  //
+  // Only the exact verbatim component contribution
+  // identified by the governed Observation Report may be
+  // validated and preserved.
+  // --------------------------------------------------
+
+  const mixedContributionState =
+    createIsAboutRuntimeTestState();
+
+  mixedContributionState.frame = {
+    ...mixedContributionState.frame,
+
+    keyTopic:
+      "Social media",
+
+    isAbout:
+      "",
+  };
+
+  mixedContributionState.observationReport = {
+    version:
+      "1.0",
+
+    source:
+      "aiObservation",
+
+    studentInteraction:
+      "I'm kind of stuck, but I think social media can change how teens feel about themselves.",
+
+    observations: [
+      {
+        category:
+          "uncertaintyExpression",
+
+        evidenceText:
+          "I'm kind of stuck",
+
+        confidence:
+          1,
+      },
+    ],
+
+    componentContribution: {
+      observed:
+        true,
+
+      evidenceText:
+        "social media can change how teens feel about themselves.",
+    },
+
+    ambiguityPresent:
+      false,
+  };
+
+  const mixedContributionRawResponse =
+    "I'm kind of stuck, but I think social media can change how teens feel about themselves.";
+
+  const mixedContributionExpected =
+    "Social media can change how teens feel about themselves.";
+
+  await applyIsAboutCapture(
+    mixedContributionState,
+    mixedContributionRawResponse,
+    {
+      captureMode:
+        "build",
+    }
+  );
+
+  const mixedContributionPassed =
+    mixedContributionState
+      ?.frame
+      ?.isAbout ===
+      mixedContributionExpected &&
+
+    mixedContributionState
+      ?.frame
+      ?.isAbout !==
+      mixedContributionRawResponse &&
+
+    mixedContributionState
+      ?.pending
+      ?.type ===
+      "confirmIsAbout";
+
+  results.push({
+    name:
+      "IA Runtime - Mixed uncertainty preserves only student-owned Is About contribution",
+
+    passed:
+      mixedContributionPassed,
+
+    expected: {
+      savedIsAbout:
+        mixedContributionExpected,
+
+      rawInteractionSaved:
+        false,
+
+      pendingType:
+        "confirmIsAbout",
+    },
+
+    actual: {
+      savedIsAbout:
+        mixedContributionState
+          ?.frame
+          ?.isAbout || "",
+
+      rawInteractionSaved:
+        mixedContributionState
+          ?.frame
+          ?.isAbout ===
+        mixedContributionRawResponse,
+
+      pendingType:
+        mixedContributionState
+          ?.pending
+          ?.type || null,
+    },
+  });
+
+  // --------------------------------------------------
   // GUIDED CONSTRUCTION — IS ABOUT TARGETED VERIFICATION
   // --------------------------------------------------
   //
