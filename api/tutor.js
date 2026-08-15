@@ -27521,19 +27521,29 @@ if (s.pending?.type === "confirmIsAbout") {
   const isAboutDisplay =
     cleanText(
       s.frame.isAbout
-  );
+    );
 
-if (s.pending?.type === "reviseIsAbout") {
+  return getComponentPrompt(
+    "isAbout",
+    "confirmationPrompt",
+    {
+      keyTopic:
+        s.frame.keyTopic,
+
+      isAbout:
+        isAboutDisplay,
+    }
+  );
+}
+
+if (
+  s.pending?.type ===
+  "reviseIsAbout"
+) {
   return getComponentPrompt(
     "isAbout",
     "revisePrompt"
   );
-}
-
-  return getComponentPrompt("isAbout", "confirmationPrompt", {
-    keyTopic: s.frame.keyTopic,
-    isAbout: isAboutDisplay
-  });
 }
  
   if (s.pending?.type === "confirmMainIdeas") {
