@@ -30199,29 +30199,57 @@ if (
       }
     );
 
-  if (
-    !detailValidation.valid ||
-    progressionAuthorization
-      ?.authorized !== true
-  ) {
-    return attachGovernedSupportToPending(
-      s,
-      currentEssentialDetail,
-      {
-        intent:
-          "stuck",
+if (
+  !detailValidation.valid ||
+  progressionAuthorization
+    ?.authorized !== true
+) {
+  const instructionalContract =
+    s?.instructionalContractSelection
+      ?.selectedContract ||
+    null;
 
-        confidence:
-          1,
+  s.pending = {
+    type:
+      "collectAnotherDetail",
 
-        source:
-          `detailValidation:${detailValidation.diagnosis}`,
+    index:
+      i,
 
-        instructionalFinding,
-      }
-    );
-  }
+    detailIndex:
+      arr.length,
 
+    captureMode:
+      "required",
+
+    instructionalFinding,
+
+    instructionalContract:
+      instructionalContract
+        ? structuredClone(
+            instructionalContract
+          )
+        : null,
+  };
+
+  return attachGovernedSupportToPending(
+    s,
+    msg,
+    {
+      intent:
+        "stuck",
+
+      confidence:
+        1,
+
+      source:
+        `detailValidation:${detailValidation.diagnosis}`,
+
+      instructionalFinding,
+    }
+  );
+}
+     
  s.pending = {
   type:
     "strengthenComponentComplete",
