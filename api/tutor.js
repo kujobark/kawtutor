@@ -21302,6 +21302,668 @@ results.push({
   });
   }
 
+  // --------------------------------------------------
+  // GUIDED CONSTRUCTION — SO WHAT
+  // TARGETED VERIFICATION
+  // --------------------------------------------------
+  //
+  // Confirms that So What uses the shared Guided
+  // Construction runtime while preserving:
+  //
+  // • normal governed So What validation authority;
+  // • Step 1 / Step 2 / Step 3 Thinking Moves;
+  // • deterministic stay / advance behavior;
+  // • student-owned Guided Construction evidence only;
+  // • immediate yield when the full So What is valid.
+  //
+  // --------------------------------------------------
+
+  function createSoWhatGuidedTestState() {
+    const state =
+      defaultState();
+
+    state.interactionMode =
+      "build";
+
+    state.frameMeta.assignmentContext = {
+      valid:
+        true,
+
+      raw:
+        instructionalContext
+          .assignmentContext
+          .raw,
+
+      understanding:
+        instructionalContext
+          .assignmentContext
+          .understanding,
+
+      studentSummary:
+        instructionalContext
+          .assignmentContext
+          .studentSummary,
+
+      reasoningType:
+        instructionalContext
+          .thinkingTask
+          .task,
+
+      confidence:
+        "high",
+
+      confirmed:
+        true,
+
+      assignmentEvidenceLevel:
+        "substantive",
+
+      assignmentCriteriaStatus:
+        "satisfied",
+
+      assignmentContextStatus:
+        "established",
+
+      assignmentDemandStatus:
+        "established",
+
+      summaryReadinessStatus:
+        "ready",
+
+      diagnosis:
+        null,
+
+      assignmentEvidence:
+        null,
+
+      validationSource:
+        "deterministic",
+
+      needsClarification:
+        false,
+
+      childAnchor:
+        "",
+
+      clarificationCount:
+        0,
+    };
+
+    state.assignmentReasoning = {
+      task:
+        instructionalContext
+          .thinkingTask
+          .task,
+
+      label:
+        instructionalContext
+          .thinkingTask
+          .label,
+
+      confidence:
+        1,
+
+      evidence: [
+        "assignmentTestState",
+      ],
+
+      lastUpdated:
+        null,
+    };
+
+    state.frame.keyTopic =
+      instructionalContext.keyTopic;
+
+    state.frame.isAbout =
+      instructionalContext.isAbout;
+
+    state.frame.parentItems = [
+      ...instructionalContext.mainIdeas,
+    ];
+
+    state.frame.details =
+      instructionalContext.details.map(
+        (bucket) => [...bucket]
+      );
+
+    state.frame.soWhat =
+      "";
+
+    state.pending = {
+      type:
+        "collectMoreSoWhat",
+
+      captureMode:
+        "initial",
+
+      progressiveSupportStage:
+        3,
+
+      guidedConstructionStep:
+        1,
+    };
+
+    return state;
+  }
+
+  // --------------------------------------------------
+  // SW GC TEST 1 — STEP-AWARE THINKING MOVE SELECTION
+  // --------------------------------------------------
+
+  const guidedSelectionContract =
+    INSTRUCTIONAL_PLAYBOOK
+      ?.soWhat
+      ?.genuineStruggle;
+
+  const guidedSelectionResults =
+    [1, 2, 3].map(
+      (guidedConstructionStep) => {
+        const testState =
+          createSoWhatGuidedTestState();
+
+        testState.pending
+          .guidedConstructionStep =
+          guidedConstructionStep;
+
+        const selectedScaffold =
+          selectProgressiveSupportScaffold(
+            guidedSelectionContract,
+            testState
+          );
+
+        const expectedRule =
+          GUIDED_CONSTRUCTION_RULES
+            ?.soWhat
+            ?.steps
+            ?.[guidedConstructionStep];
+
+        return {
+          guidedConstructionStep,
+
+          passed:
+            selectedScaffold
+              ?.progressiveSupportStage ===
+              3 &&
+
+            selectedScaffold
+              ?.guidedConstructionStep ===
+              guidedConstructionStep &&
+
+            selectedScaffold
+              ?.thinkingMove ===
+              expectedRule
+                ?.thinkingMove,
+
+          actualThinkingMove:
+            selectedScaffold
+              ?.thinkingMove ||
+            null,
+
+          expectedThinkingMove:
+            expectedRule
+              ?.thinkingMove ||
+            null,
+        };
+      }
+    );
+
+  const guidedSelectionPassed =
+    guidedSelectionResults.every(
+      (result) =>
+        result.passed === true
+    );
+
+  results.push({
+    name:
+      "SW Guided Construction - Stage 3 selects the correct Step 1, 2, and 3 Thinking Moves",
+
+    passed:
+      guidedSelectionPassed,
+
+    expected: {
+      progressiveSupportStage:
+        3,
+
+      guidedSteps:
+        [1, 2, 3],
+
+      allThinkingMovesMatchRules:
+        true,
+    },
+
+    actual: {
+      allThinkingMovesMatchRules:
+        guidedSelectionPassed,
+
+      stepResults:
+        guidedSelectionResults,
+    },
+  });
+
+  // --------------------------------------------------
+  // SW GC TEST 2 — INSUFFICIENT STEP-1 EVIDENCE STAYS
+  // --------------------------------------------------
+
+  const guidedStayState =
+    createSoWhatGuidedTestState();
+
+  guidedStayState
+    .pending
+    .guidedConstructionLocation =
+    buildGuidedConstructionInstructionalLocation(
+      guidedStayState
+    );
+
+  const guidedStayValidation =
+    validateSoWhatResponse(
+      "idk",
+      instructionalContext
+    );
+
+  const guidedStayActual =
+    await continueGuidedConstruction({
+      state:
+        guidedStayState,
+
+      response:
+        "idk",
+
+      componentValidation:
+        guidedStayValidation,
+
+      finalRephraseUsed:
+        false,
+    });
+
+  const guidedStayPassed =
+    guidedStayActual
+      ?.continuationStatus ===
+      "established" &&
+
+    guidedStayActual
+      ?.evidenceAssessment
+      ?.outcome ===
+      GUIDED_CONSTRUCTION_EVIDENCE_OUTCOMES
+        .INSUFFICIENT_MICRO_STEP_EVIDENCE &&
+
+    guidedStayActual
+      ?.progressionDecision
+      ?.decision ===
+      GUIDED_CONSTRUCTION_PROGRESSION_DECISIONS
+        .STAY_CURRENT_STEP &&
+
+    guidedStayState
+      ?.pending
+      ?.guidedConstructionStep ===
+      1 &&
+
+    !guidedStayState
+      ?.pending
+      ?.guidedConstructionEvidence;
+
+  results.push({
+    name:
+      "SW Guided Construction - Insufficient Step-1 evidence stays on Step 1",
+
+    passed:
+      guidedStayPassed,
+
+    expected: {
+      continuationStatus:
+        "established",
+
+      evidenceOutcome:
+        GUIDED_CONSTRUCTION_EVIDENCE_OUTCOMES
+          .INSUFFICIENT_MICRO_STEP_EVIDENCE,
+
+      decision:
+        GUIDED_CONSTRUCTION_PROGRESSION_DECISIONS
+          .STAY_CURRENT_STEP,
+
+      guidedConstructionStep:
+        1,
+
+      guidedEvidenceSaved:
+        false,
+    },
+
+    actual: {
+      continuationStatus:
+        guidedStayActual
+          ?.continuationStatus ||
+        null,
+
+      evidenceOutcome:
+        guidedStayActual
+          ?.evidenceAssessment
+          ?.outcome ||
+        null,
+
+      decision:
+        guidedStayActual
+          ?.progressionDecision
+          ?.decision ||
+        null,
+
+      guidedConstructionStep:
+        guidedStayState
+          ?.pending
+          ?.guidedConstructionStep ||
+        null,
+
+      guidedEvidenceSaved:
+        Boolean(
+          guidedStayState
+            ?.pending
+            ?.guidedConstructionEvidence
+        ),
+    },
+  });
+
+  // --------------------------------------------------
+  // SW GC TEST 3 — SUFFICIENT STEP-1 EVIDENCE ADVANCES
+  //
+  // Bounded semantic evidence is supplied directly so
+  // this test verifies the deterministic progression
+  // brain without making an additional AI call.
+  // --------------------------------------------------
+
+  const guidedAdvanceState =
+    createSoWhatGuidedTestState();
+
+  const guidedAdvanceLocation =
+    buildGuidedConstructionInstructionalLocation(
+      guidedAdvanceState
+    );
+
+  guidedAdvanceState
+    .pending
+    .guidedConstructionLocation =
+    structuredClone(
+      guidedAdvanceLocation
+    );
+
+  const guidedAdvanceResponse =
+    "Online comparison and constant notifications both create pressure for teens.";
+
+  const guidedAdvanceValidation =
+    validateSoWhatResponse(
+      guidedAdvanceResponse,
+      instructionalContext
+    );
+
+  const guidedAdvanceAssessment =
+    assessGuidedConstructionEvidence({
+      state:
+        guidedAdvanceState,
+
+      response:
+        guidedAdvanceResponse,
+
+      frameComponent:
+        "soWhat",
+
+      guidedConstructionStep:
+        1,
+
+      componentValidation:
+        guidedAdvanceValidation,
+
+      microStepSemanticEvidence: {
+        assessmentEstablished:
+          true,
+
+        sufficientForCurrentStep:
+          true,
+
+        usableForFinalStep:
+          false,
+
+        criterionEvidence:
+          [],
+
+        confidence:
+          1,
+
+        source:
+          "deterministicSelfTestSemanticEvidence",
+      },
+    });
+
+  const guidedAdvanceDecision =
+    buildGuidedConstructionProgressionDecision({
+      evidenceAssessment:
+        guidedAdvanceAssessment,
+
+      finalRephraseUsed:
+        false,
+    });
+
+  const guidedAdvanceUpdate =
+    applyGuidedConstructionProgression({
+      state:
+        guidedAdvanceState,
+
+      progressionDecision:
+        guidedAdvanceDecision,
+
+      evidenceAssessment:
+        guidedAdvanceAssessment,
+
+      instructionalLocation:
+        guidedAdvanceLocation,
+    });
+
+  const guidedAdvancePassed =
+    guidedAdvanceAssessment
+      ?.outcome ===
+      GUIDED_CONSTRUCTION_EVIDENCE_OUTCOMES
+        .SUFFICIENT_MICRO_STEP_EVIDENCE &&
+
+    guidedAdvanceDecision
+      ?.decision ===
+      GUIDED_CONSTRUCTION_PROGRESSION_DECISIONS
+        .ADVANCE_TO_NEXT_STEP &&
+
+    guidedAdvanceUpdate
+      ?.applied ===
+      true &&
+
+    guidedAdvanceState
+      ?.pending
+      ?.guidedConstructionStep ===
+      2 &&
+
+    guidedAdvanceState
+      ?.pending
+      ?.guidedConstructionEvidence
+      ?.[1]
+      ?.evidence ===
+      guidedAdvanceResponse;
+
+  results.push({
+    name:
+      "SW Guided Construction - Sufficient Step-1 evidence advances exactly to Step 2",
+
+    passed:
+      guidedAdvancePassed,
+
+    expected: {
+      evidenceOutcome:
+        GUIDED_CONSTRUCTION_EVIDENCE_OUTCOMES
+          .SUFFICIENT_MICRO_STEP_EVIDENCE,
+
+      decision:
+        GUIDED_CONSTRUCTION_PROGRESSION_DECISIONS
+          .ADVANCE_TO_NEXT_STEP,
+
+      guidedConstructionStep:
+        2,
+
+      savedEvidence:
+        guidedAdvanceResponse,
+    },
+
+    actual: {
+      evidenceOutcome:
+        guidedAdvanceAssessment
+          ?.outcome ||
+        null,
+
+      decision:
+        guidedAdvanceDecision
+          ?.decision ||
+        null,
+
+      applied:
+        guidedAdvanceUpdate
+          ?.applied ===
+        true,
+
+      guidedConstructionStep:
+        guidedAdvanceState
+          ?.pending
+          ?.guidedConstructionStep ||
+        null,
+
+      savedEvidence:
+        guidedAdvanceState
+          ?.pending
+          ?.guidedConstructionEvidence
+          ?.[1]
+          ?.evidence ||
+        null,
+    },
+  });
+
+  // --------------------------------------------------
+  // SW GC TEST 4 — FULL COMPONENT VALIDATION WINS
+  //
+  // A valid So What at any Guided Construction step must
+  // immediately yield authority back to normal component
+  // progression.
+  //
+  // Guided Construction may never become an extra hoop.
+  // --------------------------------------------------
+
+  const guidedCompleteState =
+    createSoWhatGuidedTestState();
+
+  guidedCompleteState
+    .pending
+    .guidedConstructionLocation =
+    buildGuidedConstructionInstructionalLocation(
+      guidedCompleteState
+    );
+
+  const guidedCompleteValidation =
+    await validateSoWhatResponseGoverned(
+      supportedSoWhat,
+      instructionalContext
+    );
+
+  const guidedCompleteActual =
+    await continueGuidedConstruction({
+      state:
+        guidedCompleteState,
+
+      response:
+        supportedSoWhat,
+
+      componentValidation:
+        guidedCompleteValidation,
+
+      finalRephraseUsed:
+        false,
+    });
+
+  const guidedCompletePassed =
+    guidedCompleteValidation
+      ?.valid ===
+      true &&
+
+    guidedCompleteActual
+      ?.continuationStatus ===
+      "established" &&
+
+    guidedCompleteActual
+      ?.evidenceAssessment
+      ?.outcome ===
+      GUIDED_CONSTRUCTION_EVIDENCE_OUTCOMES
+        .COMPONENT_COMPLETE &&
+
+    guidedCompleteActual
+      ?.progressionDecision
+      ?.decision ===
+      GUIDED_CONSTRUCTION_PROGRESSION_DECISIONS
+        .COMPONENT_COMPLETE &&
+
+    guidedCompleteActual
+      ?.yieldsToNormalComponentProgression ===
+      true &&
+
+    guidedCompleteState
+      ?.frame
+      ?.soWhat ===
+      "";
+
+  results.push({
+    name:
+      "SW Guided Construction - Full valid So What immediately yields to normal component progression",
+
+    passed:
+      guidedCompletePassed,
+
+    expected: {
+      governedValidationPassed:
+        true,
+
+      evidenceOutcome:
+        GUIDED_CONSTRUCTION_EVIDENCE_OUTCOMES
+          .COMPONENT_COMPLETE,
+
+      decision:
+        GUIDED_CONSTRUCTION_PROGRESSION_DECISIONS
+          .COMPONENT_COMPLETE,
+
+      yieldsToNormalComponentProgression:
+        true,
+
+      guidedConstructionDoesNotSaveComponent:
+        true,
+    },
+
+    actual: {
+      governedValidationPassed:
+        guidedCompleteValidation
+          ?.valid ===
+        true,
+
+      evidenceOutcome:
+        guidedCompleteActual
+          ?.evidenceAssessment
+          ?.outcome ||
+        null,
+
+      decision:
+        guidedCompleteActual
+          ?.progressionDecision
+          ?.decision ||
+        null,
+
+      yieldsToNormalComponentProgression:
+        guidedCompleteActual
+          ?.yieldsToNormalComponentProgression ===
+        true,
+
+      guidedConstructionDoesNotSaveComponent:
+        guidedCompleteState
+          ?.frame
+          ?.soWhat ===
+        "",
+    },
+  });
+
   const passedCount =
     results.filter(
       (result) =>
