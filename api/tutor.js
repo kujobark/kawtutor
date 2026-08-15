@@ -1237,42 +1237,42 @@ const INSTRUCTIONAL_PLAYBOOK = {
       guidedSteps: {
         1: {
           ruleComponent:
-            "details",
+            "isAbout",
 
           ruleStep:
             1,
 
           operation:
-            "identifySpecificInformation",
+            "identify",
         },
 
         2: {
           ruleComponent:
-            "details",
+            "isAbout",
 
           ruleStep:
             2,
 
           operation:
-            "establishSupportAndEssentiality",
+            "explainOrExtend",
         },
 
         3: {
           ruleComponent:
-            "details",
+            "isAbout",
 
           ruleStep:
             3,
 
           operation:
-            "formulateEssentialDetail",
+            "assemble",
         },
       },
 
       // Step-1 compatibility fallback until the
       // Progressive Support selector becomes step-aware.
       thinkingMove:
-        "Begin Guided Construction of the Essential Detail by separating identification of supporting information from explanation of the supporting relationship. Reconnect to the accepted Main Idea, tell the student Kaw will work through it one step at a time, and first ask the student to identify one specific thing they know, noticed, read, observed, or can point to that relates to the Main Idea. Do not ask them to explain the connection yet, and do not suggest or supply the evidence.",
+        "Begin Guided Construction of the Is About by reducing the whole-topic paraphrase into one smaller thinking step. Reconnect to the accepted Key Topic, tell the student Kaw will work through it one step at a time, and ask the student to identify one thing that happens, is involved, is true, or is important to know about the Key Topic. Do not ask for the finished Is About yet, and do not suggest or supply any content.",
     },
   ],
 },
@@ -2055,7 +2055,7 @@ const INSTRUCTIONAL_PLAYBOOK = {
         "Briefly model what an Essential Detail does using one simple Main Idea from content that is clearly unrelated to the student's assignment. Show one specific supporting fact, example, observation, explanation, event, condition, action, result, or piece of evidence beneath that example Main Idea. Keep the example brief, structurally analogous, and content-distant so it cannot function as a hint or candidate response for the student's actual Main Idea. Then return immediately to the student's accepted Main Idea and invite the student to identify one Essential Detail of their own.",
     },
 
-       {
+        {
       level: 3,
       move: "guidedConstruction",
       supportType: "guidedConstruction",
@@ -2070,37 +2070,43 @@ const INSTRUCTIONAL_PLAYBOOK = {
       guidedSteps: {
         1: {
           ruleComponent:
-            "isAbout",
+            "details",
 
           ruleStep:
             1,
 
           operation:
-            "identify",
+            "identifySpecificInformation",
         },
 
         2: {
           ruleComponent:
-            "isAbout",
+            "details",
 
           ruleStep:
             2,
 
           operation:
-            "explainOrExtend",
+            "establishSupportAndEssentiality",
         },
 
         3: {
           ruleComponent:
-            "isAbout",
+            "details",
 
           ruleStep:
             3,
 
           operation:
-            "assemble",
+            "formulateEssentialDetail",
         },
       },
+
+      // Step-1 compatibility fallback until the
+      // Progressive Support selector becomes step-aware.
+      thinkingMove:
+        "Begin Guided Construction of the Essential Detail by separating identification of supporting information from explanation of the supporting relationship. Reconnect to the accepted Main Idea, tell the student Kaw will work through it one step at a time, and first ask the student to identify one specific thing they know, noticed, read, observed, or can point to that relates to the Main Idea. Do not ask them to explain the connection yet, and do not suggest or supply the evidence.",
+    },
 
       // Step-1 compatibility fallback until the
       // Progressive Support selector becomes step-aware.
