@@ -21738,7 +21738,7 @@ results.push({
   // LIVE RUNTIME: VALID INITIAL CAPTURE
   //
   // Confirms a supported initial So What is saved and
-  // advances to the optional expansion offer.
+  // advances directly to So What confirmation.
   // --------------------------------------------------
 
   const validInitialState =
@@ -21755,8 +21755,8 @@ results.push({
       supportedSoWhat &&
 
     validInitialActual?.pending?.type ===
-      "offerMoreSoWhat" &&
-
+      "confirmSoWhat" &&
+    
     validInitialActual
       ?.progressionAuthorization
       ?.authorized ===
@@ -21782,8 +21782,8 @@ results.push({
         supportedSoWhat,
 
       pendingType:
-        "offerMoreSoWhat",
-
+        "confirmSoWhat",
+      
       progressionAuthorized:
         true,
 
@@ -29844,130 +29844,6 @@ if (
   s.frame.soWhat =
     "";
 
-  const soWhatValidation =
-    await validateSoWhatResponseGoverned(
-      currentSoWhat,
-      buildSoWhatValidationContext(s)
-    );
-
-  const instructionalFinding = {
-    ...buildComponentInstructionalFinding({
-      frameComponent:
-        "soWhat",
-
-      validation:
-        soWhatValidation,
-
-      evidence: {
-        keyTopic:
-          s.frame?.keyTopic || "",
-
-        isAbout:
-          s.frame?.isAbout || "",
-
-        mainIdeas:
-          getIdeaList(s)
-            .filter(Boolean),
-
-        details:
-          Array.isArray(
-            s.frame?.details
-          )
-            ? s.frame.details.map(
-                (bucket) =>
-                  Array.isArray(bucket)
-                    ? bucket.filter(Boolean)
-                    : []
-              )
-            : [],
-
-        attemptedSoWhat:
-          currentSoWhat,
-
-        captureMode:
-          "strengthen",
-      },
-    }),
-
-    synthesisState:
-      soWhatValidation
-        .synthesisState || null,
-
-    validationSource:
-      soWhatValidation
-        .validationSource || null,
-
-    captureMode:
-      "strengthen",
-  };
-
-  refreshInstructionalSituationWithComponentFinding({
-    state:
-      s,
-
-    currentResponse:
-      currentSoWhat,
-
-    componentFinding:
-      instructionalFinding,
-  });
-
-  const progressionAuthorization =
-    buildProgressionAuthorization(
-      s,
-      {
-        frameComponent:
-          "soWhat",
-
-        expectedContractId:
-          "SW-RTP-001",
-      }
-    );
-
-  s.progressionAuthorization =
-    structuredClone(
-      progressionAuthorization
-    );
-
-// --------------------------------------------------
-// GUIDED CONSTRUCTION — SO WHAT CONTINUATION
-// --------------------------------------------------
-
-const activeGuidedConstruction =
-  getActiveGuidedConstructionContext(
-    s
-  );
-
-let guidedConstructionContinuation =
-  null;
-
-if (
-  activeGuidedConstruction?.active ===
-    true &&
-  activeGuidedConstruction
-    ?.frameComponent ===
-    "soWhat"
-) {
-  guidedConstructionContinuation =
-    await continueGuidedConstruction({
-      state:
-        s,
-
-      response:
-        currentSoWhat,
-
-      componentValidation:
-        soWhatValidation,
-
-      finalRephraseUsed:
-        false,
-    });
-
-  console.log(
-    "[KAW][GUIDED CONSTRUCTION][SO WHAT]",
-    guidedConstructionContinuation
-  );
-}
       
   if (
     !soWhatValidation.valid ||
@@ -29993,7 +29869,7 @@ if (
   }
 
   s.frame.soWhat =
-    currentSoWhat;
+    capturedSoWhat;
 
    s.pending = {
   type:
@@ -30006,7 +29882,7 @@ if (
     "So What",
 
   completedWork:
-    currentSoWhat,
+    capturedSoWhat,
 
   revisePendingType:
     "strengthenCurrentSoWhat",
@@ -30928,8 +30804,209 @@ if (
     progressionAuthorization,
     capturedDetail:
       text,
+  };
 };
-};
+
+  async function applySoWhatCapture(
+  s,
+  msg,
+  {
+    captureMode = "revision",
+    previousSoWhat = "",
+  } = {}
+) {
+  const rawSoWhat =
+    cleanText(msg);
+
+  const observationReport =
+    s?.observationReport &&
+    typeof s.observationReport ===
+      "object"
+      ? s.observationReport
+      : null;
+
+  const componentContribution =
+    observationReport
+      ?.componentContribution &&
+    typeof observationReport
+      .componentContribution ===
+      "object"
+      ? observationReport
+          .componentContribution
+      : null;
+
+  const interactionOnlyCategories =
+    new Set([
+      "uncertaintyExpression",
+      "clarificationRequest",
+      "answerSeeking",
+      "frustrationExpression",
+      "refusal",
+      "offTaskShift",
+    ]);
+
+  const interactionObservationPresent =
+    Array.isArray(
+      observationReport?.observations
+    ) &&
+    observationReport.observations.some(
+      (observation) =>
+        interactionOnlyCategories.has(
+          cleanText(
+            observation?.category || ""
+          )
+        )
+    );
+
+  const observedContributionText =
+    componentContribution
+      ?.observed === true
+      ? cleanText(
+          componentContribution
+            ?.evidenceText || ""
+        )
+      : "";
+
+  const text =
+    interactionObservationPresent &&
+    observedContributionText
+      ? observedContributionText
+      : rawSoWhat;
+
+  const soWhatValidation =
+    await validateSoWhatResponseGoverned(
+      text,
+      buildSoWhatValidationContext(s)
+    );
+
+  const instructionalFinding = {
+    ...buildComponentInstructionalFinding({
+      frameComponent:
+        "soWhat",
+
+      validation:
+        soWhatValidation,
+
+      evidence: {
+        keyTopic:
+          s.frame?.keyTopic || "",
+
+        isAbout:
+          s.frame?.isAbout || "",
+
+        mainIdeas:
+          getIdeaList(s)
+            .filter(Boolean),
+
+        details:
+          Array.isArray(
+            s.frame?.details
+          )
+            ? s.frame.details.map(
+                (bucket) =>
+                  Array.isArray(bucket)
+                    ? bucket.filter(Boolean)
+                    : []
+              )
+            : [],
+
+        previousSoWhat:
+          cleanText(previousSoWhat),
+
+        attemptedSoWhat:
+          rawSoWhat,
+
+        captureMode,
+      },
+    }),
+
+    synthesisState:
+      soWhatValidation
+        .synthesisState || null,
+
+    validationSource:
+      soWhatValidation
+        .validationSource || null,
+
+    captureMode,
+  };
+
+  refreshInstructionalSituationWithComponentFinding({
+    state:
+      s,
+
+    currentResponse:
+      text,
+
+    componentFinding:
+      instructionalFinding,
+  });
+
+  const progressionAuthorization =
+    buildProgressionAuthorization(
+      s,
+      {
+        frameComponent:
+          "soWhat",
+
+        expectedContractId:
+          "SW-RTP-001",
+      }
+    );
+
+  s.progressionAuthorization =
+    structuredClone(
+      progressionAuthorization
+    );
+
+  // --------------------------------------------------
+  // GUIDED CONSTRUCTION — SO WHAT CONTINUATION
+  // --------------------------------------------------
+
+  const activeGuidedConstruction =
+    getActiveGuidedConstructionContext(
+      s
+    );
+
+  let guidedConstructionContinuation =
+    null;
+
+  if (
+    activeGuidedConstruction?.active ===
+      true &&
+    activeGuidedConstruction
+      ?.frameComponent ===
+      "soWhat"
+  ) {
+    guidedConstructionContinuation =
+      await continueGuidedConstruction({
+        state:
+          s,
+
+        response:
+          text,
+
+        componentValidation:
+          soWhatValidation,
+
+        finalRephraseUsed:
+          false,
+      });
+
+    console.log(
+      "[KAW][GUIDED CONSTRUCTION][SO WHAT]",
+      guidedConstructionContinuation
+    );
+  }
+
+  return {
+    soWhatValidation,
+    instructionalFinding,
+    progressionAuthorization,
+    capturedSoWhat:
+      text,
+  };
+}
 
  if (s.pending?.type === "chooseDetailToRevise") {
   const normalized = msg.toLowerCase().trim();
@@ -31080,135 +31157,20 @@ if (
         `${s.frame.soWhat} ${msg}`
       );
 
-   const soWhatValidation =
-  await validateSoWhatResponseGoverned(
-    proposedSoWhat,
-    buildSoWhatValidationContext(s)
-  );
-
-const instructionalFinding = {
-  ...buildComponentInstructionalFinding({
-    frameComponent:
-      "soWhat",
-
-    validation:
-      soWhatValidation,
-
-    evidence: {
-      keyTopic:
-        s.frame?.keyTopic || "",
-
-      isAbout:
-        s.frame?.isAbout || "",
-
-      mainIdeas:
-        getIdeaList(s)
-          .filter(Boolean),
-
-      details:
-        Array.isArray(
-          s.frame?.details
-        )
-          ? s.frame.details.map(
-              (bucket) =>
-                Array.isArray(bucket)
-                  ? bucket.filter(Boolean)
-                  : []
-            )
-          : [],
-
-      previousSoWhat:
-        s.frame?.soWhat || "",
-
-      additionalContent:
-        cleanText(msg),
-
-      proposedSoWhat,
-
-      captureMode:
-        "additionalContent",
-    },
-  }),
-
-  synthesisState:
-    soWhatValidation
-      .synthesisState || null,
-
-  validationSource:
-    soWhatValidation
-      .validationSource || null,
-
-  captureMode:
-    "additionalContent",
-};
-
-refreshInstructionalSituationWithComponentFinding({
-  state:
+const {
+  soWhatValidation,
+  instructionalFinding,
+  progressionAuthorization,
+  capturedSoWhat,
+} =
+  await applySoWhatCapture(
     s,
-
-  currentResponse:
-    proposedSoWhat,
-
-  componentFinding:
-    instructionalFinding,
-});
-
-const progressionAuthorization =
-  buildProgressionAuthorization(
-    s,
+    currentSoWhat,
     {
-      frameComponent:
-        "soWhat",
-
-      expectedContractId:
-        "SW-RTP-001",
+      captureMode:
+        "strengthen",
     }
   );
-
-s.progressionAuthorization =
-  structuredClone(
-    progressionAuthorization
-  );
-
-// --------------------------------------------------
-// GUIDED CONSTRUCTION — SO WHAT CONTINUATION
-// --------------------------------------------------
-
-const activeGuidedConstruction =
-  getActiveGuidedConstructionContext(
-    s
-  );
-
-let guidedConstructionContinuation =
-  null;
-
-if (
-  activeGuidedConstruction?.active ===
-    true &&
-  activeGuidedConstruction
-    ?.frameComponent ===
-    "soWhat"
-) {
-  guidedConstructionContinuation =
-    await continueGuidedConstruction({
-      state:
-        s,
-
-      response:
-        msg,
-
-      componentValidation:
-        soWhatValidation,
-
-      finalRephraseUsed:
-        false,
-    });
-
-  console.log(
-    "[KAW][GUIDED CONSTRUCTION][SO WHAT]",
-    guidedConstructionContinuation
-  );
-}
 
 if (
   !soWhatValidation.valid ||
@@ -31861,7 +31823,7 @@ s.frame.soWhat =
 
 s.pending = {
   type:
-    "offerMoreSoWhat",
+    "confirmSoWhat",
 };
 
 return s;
