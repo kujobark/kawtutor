@@ -30901,6 +30901,7 @@ if (
     capturedDetail:
       text,
 };
+};
 
  if (s.pending?.type === "chooseDetailToRevise") {
   const normalized = msg.toLowerCase().trim();
