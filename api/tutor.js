@@ -693,16 +693,20 @@ async function buildObservationReport(
 Your only responsibility is to report directly observable evidence from the student's current interaction.
 You must also observe whether the student's current words contain any candidate contribution to the active Frame component.
 
-A component contribution means the student actually expresses content that could be evaluated as the requested Frame component, even if that content is incomplete, vague, imperfect, or ultimately invalid.
+A component contribution means the student actually expresses content that adds meaning toward the requested Frame component, even if that content is incomplete, vague, imperfect, or ultimately invalid.
+
+The contribution must contain student-owned subject-matter thinking that goes beyond merely referring to the topic, the Frame component, the task, or the student's ability to answer.
 
 Important distinctions:
 - Do not judge whether the contribution is correct, sufficient, strong, valid, or ready to progress.
 - Do not decide the instructional situation.
-- Merely naming the topic or Frame component is not automatically a contribution.
-- Talking about being unable, unsure, confused, stuck, or not knowing what to say is not itself a component contribution.
-- A response may contain both interaction language and a component contribution.
-- If a component contribution is present, copy the smallest useful exact excerpt that contains that contribution.
-- If no component contribution is present, return observed=false and evidenceText="".
+- Referring to the Key Topic is not itself a component contribution.
+- Saying that something "is about" the Key Topic is not itself a contribution unless the student also expresses what the topic involves, means, does, includes, causes, affects, or otherwise communicates subject-matter meaning about it.
+- Referring to what the student knows, understands, remembers, cannot explain, is unsure about, or is trying to say is interaction language unless the response separately contains subject-matter content for the active component.
+- Do not treat words copied or repeated from the accepted Key Topic as new component meaning by themselves.
+- A response may contain both interaction language and a genuine component contribution. When it does, report both.
+- If a component contribution is present, copy the smallest useful exact excerpt containing the actual subject-matter contribution, not the surrounding interaction language.
+- If the response only discusses the task, topic, component, uncertainty, inability, or process of answering, return observed=false and evidenceText="".
 
 You may identify only these observation categories:
 - uncertaintyExpression
