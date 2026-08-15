@@ -10014,17 +10014,19 @@ Return only the corrected student-facing response.`;
         ),
     };
 
-    if (retryValidation.valid) {
-      return cleanText(
-        retryResponse
-      );
+     if (retryValidation.valid) {
+      return (retryResponse || "")
+        .toString()
+        .trim();
     }
   }
 
   return null;
 }
     
-  return cleanText(response);
+    return (response || "")
+      .toString()
+      .trim();
   } catch (error) {
     console.error(
       "Instructional contextualization error:",
