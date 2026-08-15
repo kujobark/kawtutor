@@ -18332,6 +18332,597 @@ results.push({
 },
   });
 
+  // --------------------------------------------------
+  // GUIDED CONSTRUCTION — MAIN IDEA TARGETED VERIFICATION
+  // --------------------------------------------------
+  //
+  // Confirms the Main Idea integration uses the shared
+  // Guided Construction runtime without changing normal
+  // Main Idea validation or progression authority.
+  //
+  // --------------------------------------------------
+
+  // --------------------------------------------------
+  // MI GC TEST 1 — STEP-AWARE THINKING MOVE SELECTION
+  // --------------------------------------------------
+
+  const guidedSelectionContract =
+    INSTRUCTIONAL_PLAYBOOK
+      ?.mainIdeas
+      ?.genuineStruggle;
+
+  const guidedSelectionResults =
+    [1, 2, 3].map(
+      (guidedConstructionStep) => {
+        const testState =
+          createMainIdeaTestState();
+
+        testState.pending = {
+          type:
+            "collectMainIdea",
+
+          captureMode:
+            "required",
+
+          progressiveSupportStage:
+            3,
+
+          guidedConstructionStep,
+        };
+
+        const selectedScaffold =
+          selectProgressiveSupportScaffold(
+            guidedSelectionContract,
+            testState
+          );
+
+        const expectedRule =
+          GUIDED_CONSTRUCTION_RULES
+            ?.mainIdeas
+            ?.steps
+            ?.[guidedConstructionStep];
+
+        return {
+          guidedConstructionStep,
+
+          passed:
+            selectedScaffold
+              ?.progressiveSupportStage ===
+              3 &&
+
+            selectedScaffold
+              ?.guidedConstructionStep ===
+              guidedConstructionStep &&
+
+            selectedScaffold
+              ?.thinkingMove ===
+              expectedRule
+                ?.thinkingMove,
+
+          actualThinkingMove:
+            selectedScaffold
+              ?.thinkingMove ||
+            null,
+
+          expectedThinkingMove:
+            expectedRule
+              ?.thinkingMove ||
+            null,
+        };
+      }
+    );
+
+  const guidedSelectionPassed =
+    guidedSelectionResults.every(
+      (result) =>
+        result.passed === true
+    );
+
+  results.push({
+    name:
+      "MI Guided Construction - Stage 3 selects the correct Step 1, 2, and 3 Thinking Moves",
+
+    passed:
+      guidedSelectionPassed,
+
+    expected: {
+      progressiveSupportStage:
+        3,
+
+      guidedSteps:
+        [1, 2, 3],
+
+      allThinkingMovesMatchRules:
+        true,
+    },
+
+    actual: {
+      allThinkingMovesMatchRules:
+        guidedSelectionPassed,
+
+      stepResults:
+        guidedSelectionResults,
+    },
+  });
+
+  // --------------------------------------------------
+  // MI GC TEST 2 — INSUFFICIENT STEP-1 EVIDENCE STAYS
+  // --------------------------------------------------
+
+  const guidedStayState =
+    createMainIdeaTestState();
+
+  guidedStayState.pending = {
+    type:
+      "collectMainIdea",
+
+    captureMode:
+      "required",
+
+    progressiveSupportStage:
+      3,
+
+    guidedConstructionStep:
+      1,
+
+    instructionalFinding: {
+      frameComponent:
+        "mainIdeas",
+
+      componentEvidenceLevel:
+        "none",
+
+      componentCriteriaStatus:
+        "notSatisfied",
+
+      relationshipStatus:
+        "undetermined",
+
+      diagnosis:
+        "noComponentEvidence",
+    },
+  };
+
+  guidedStayState
+    .pending
+    .guidedConstructionLocation =
+    buildGuidedConstructionInstructionalLocation(
+      guidedStayState
+    );
+
+  const guidedStayValidation =
+    validateMainIdeaResponse(
+      "idk",
+      keyTopic,
+      isAbout
+    );
+
+  const guidedStayActual =
+    await continueGuidedConstruction({
+      state:
+        guidedStayState,
+
+      response:
+        "idk",
+
+      componentValidation:
+        guidedStayValidation,
+
+      finalRephraseUsed:
+        false,
+    });
+
+  const guidedStayPassed =
+    guidedStayActual
+      ?.continuationStatus ===
+      "established" &&
+
+    guidedStayActual
+      ?.evidenceAssessment
+      ?.outcome ===
+      GUIDED_CONSTRUCTION_EVIDENCE_OUTCOMES
+        .INSUFFICIENT_MICRO_STEP_EVIDENCE &&
+
+    guidedStayActual
+      ?.progressionDecision
+      ?.decision ===
+      GUIDED_CONSTRUCTION_PROGRESSION_DECISIONS
+        .STAY_CURRENT_STEP &&
+
+    guidedStayState
+      ?.pending
+      ?.guidedConstructionStep ===
+      1 &&
+
+    !guidedStayState
+      ?.pending
+      ?.guidedConstructionEvidence;
+
+  results.push({
+    name:
+      "MI Guided Construction - Insufficient Step-1 evidence stays on Step 1",
+
+    passed:
+      guidedStayPassed,
+
+    expected: {
+      continuationStatus:
+        "established",
+
+      evidenceOutcome:
+        GUIDED_CONSTRUCTION_EVIDENCE_OUTCOMES
+          .INSUFFICIENT_MICRO_STEP_EVIDENCE,
+
+      decision:
+        GUIDED_CONSTRUCTION_PROGRESSION_DECISIONS
+          .STAY_CURRENT_STEP,
+
+      guidedConstructionStep:
+        1,
+
+      guidedEvidenceSaved:
+        false,
+    },
+
+    actual: {
+      continuationStatus:
+        guidedStayActual
+          ?.continuationStatus ||
+        null,
+
+      evidenceOutcome:
+        guidedStayActual
+          ?.evidenceAssessment
+          ?.outcome ||
+        null,
+
+      decision:
+        guidedStayActual
+          ?.progressionDecision
+          ?.decision ||
+        null,
+
+      guidedConstructionStep:
+        guidedStayState
+          ?.pending
+          ?.guidedConstructionStep ||
+        null,
+
+      guidedEvidenceSaved:
+        Boolean(
+          guidedStayState
+            ?.pending
+            ?.guidedConstructionEvidence
+        ),
+    },
+  });
+
+  // --------------------------------------------------
+  // MI GC TEST 3 — SUFFICIENT STEP-1 EVIDENCE ADVANCES
+  //
+  // Supplies bounded semantic evidence directly so this
+  // remains deterministic and does not make another AI
+  // call merely to test the progression brain.
+  // --------------------------------------------------
+
+  const guidedAdvanceState =
+    createMainIdeaTestState();
+
+  guidedAdvanceState.pending = {
+    type:
+      "collectMainIdea",
+
+    captureMode:
+      "required",
+
+    progressiveSupportStage:
+      3,
+
+    guidedConstructionStep:
+      1,
+  };
+
+  const guidedAdvanceLocation =
+    buildGuidedConstructionInstructionalLocation(
+      guidedAdvanceState
+    );
+
+  guidedAdvanceState
+    .pending
+    .guidedConstructionLocation =
+    structuredClone(
+      guidedAdvanceLocation
+    );
+
+  const guidedAdvanceResponse =
+    "Effects on mental health";
+
+  const guidedAdvanceValidation =
+    validateMainIdeaResponse(
+      guidedAdvanceResponse,
+      keyTopic,
+      isAbout
+    );
+
+  const guidedAdvanceAssessment =
+    assessGuidedConstructionEvidence({
+      state:
+        guidedAdvanceState,
+
+      response:
+        guidedAdvanceResponse,
+
+      frameComponent:
+        "mainIdeas",
+
+      guidedConstructionStep:
+        1,
+
+      componentValidation:
+        guidedAdvanceValidation,
+
+      microStepSemanticEvidence: {
+        assessmentEstablished:
+          true,
+
+        sufficientForCurrentStep:
+          true,
+
+        usableForFinalStep:
+          false,
+
+        criterionEvidence:
+          [],
+
+        confidence:
+          1,
+
+        source:
+          "deterministicSelfTestSemanticEvidence",
+      },
+    });
+
+  const guidedAdvanceDecision =
+    buildGuidedConstructionProgressionDecision({
+      evidenceAssessment:
+        guidedAdvanceAssessment,
+
+      finalRephraseUsed:
+        false,
+    });
+
+  const guidedAdvanceUpdate =
+    applyGuidedConstructionProgression({
+      state:
+        guidedAdvanceState,
+
+      progressionDecision:
+        guidedAdvanceDecision,
+
+      evidenceAssessment:
+        guidedAdvanceAssessment,
+
+      instructionalLocation:
+        guidedAdvanceLocation,
+    });
+
+  const guidedAdvancePassed =
+    guidedAdvanceAssessment
+      ?.outcome ===
+      GUIDED_CONSTRUCTION_EVIDENCE_OUTCOMES
+        .SUFFICIENT_MICRO_STEP_EVIDENCE &&
+
+    guidedAdvanceDecision
+      ?.decision ===
+      GUIDED_CONSTRUCTION_PROGRESSION_DECISIONS
+        .ADVANCE_TO_NEXT_STEP &&
+
+    guidedAdvanceUpdate
+      ?.applied ===
+      true &&
+
+    guidedAdvanceState
+      ?.pending
+      ?.guidedConstructionStep ===
+      2 &&
+
+    guidedAdvanceState
+      ?.pending
+      ?.guidedConstructionEvidence
+      ?.[1]
+      ?.evidence ===
+      guidedAdvanceResponse;
+
+  results.push({
+    name:
+      "MI Guided Construction - Sufficient Step-1 evidence advances exactly to Step 2",
+
+    passed:
+      guidedAdvancePassed,
+
+    expected: {
+      evidenceOutcome:
+        GUIDED_CONSTRUCTION_EVIDENCE_OUTCOMES
+          .SUFFICIENT_MICRO_STEP_EVIDENCE,
+
+      decision:
+        GUIDED_CONSTRUCTION_PROGRESSION_DECISIONS
+          .ADVANCE_TO_NEXT_STEP,
+
+      guidedConstructionStep:
+        2,
+
+      savedEvidence:
+        guidedAdvanceResponse,
+    },
+
+    actual: {
+      evidenceOutcome:
+        guidedAdvanceAssessment
+          ?.outcome ||
+        null,
+
+      decision:
+        guidedAdvanceDecision
+          ?.decision ||
+        null,
+
+      applied:
+        guidedAdvanceUpdate
+          ?.applied ===
+        true,
+
+      guidedConstructionStep:
+        guidedAdvanceState
+          ?.pending
+          ?.guidedConstructionStep ||
+        null,
+
+      savedEvidence:
+        guidedAdvanceState
+          ?.pending
+          ?.guidedConstructionEvidence
+          ?.[1]
+          ?.evidence ||
+        null,
+    },
+  });
+
+  // --------------------------------------------------
+  // MI GC TEST 4 — FULL COMPONENT VALIDATION WINS
+  // --------------------------------------------------
+
+  const guidedCompleteState =
+    createMainIdeaTestState();
+
+  guidedCompleteState.pending = {
+    type:
+      "collectMainIdea",
+
+    captureMode:
+      "required",
+
+    progressiveSupportStage:
+      3,
+
+    guidedConstructionStep:
+      1,
+  };
+
+  guidedCompleteState
+    .pending
+    .guidedConstructionLocation =
+    buildGuidedConstructionInstructionalLocation(
+      guidedCompleteState
+    );
+
+  // Reuse the already-established governed validation
+  // result from the existing Main Idea test above.
+  const guidedCompleteValidation =
+    governedValidActual;
+
+  const guidedCompleteActual =
+    await continueGuidedConstruction({
+      state:
+        guidedCompleteState,
+
+      response:
+        validMainIdea,
+
+      componentValidation:
+        guidedCompleteValidation,
+
+      finalRephraseUsed:
+        false,
+    });
+
+  const guidedCompletePassed =
+    guidedCompleteValidation
+      ?.valid ===
+      true &&
+
+    guidedCompleteActual
+      ?.continuationStatus ===
+      "established" &&
+
+    guidedCompleteActual
+      ?.evidenceAssessment
+      ?.outcome ===
+      GUIDED_CONSTRUCTION_EVIDENCE_OUTCOMES
+        .COMPONENT_COMPLETE &&
+
+    guidedCompleteActual
+      ?.progressionDecision
+      ?.decision ===
+      GUIDED_CONSTRUCTION_PROGRESSION_DECISIONS
+        .COMPONENT_COMPLETE &&
+
+    guidedCompleteActual
+      ?.yieldsToNormalComponentProgression ===
+      true &&
+
+    getIdeaList(
+      guidedCompleteState
+    ).length ===
+      0;
+
+  results.push({
+    name:
+      "MI Guided Construction - Full valid Main Idea immediately yields to normal component progression",
+
+    passed:
+      guidedCompletePassed,
+
+    expected: {
+      governedValidationPassed:
+        true,
+
+      evidenceOutcome:
+        GUIDED_CONSTRUCTION_EVIDENCE_OUTCOMES
+          .COMPONENT_COMPLETE,
+
+      decision:
+        GUIDED_CONSTRUCTION_PROGRESSION_DECISIONS
+          .COMPONENT_COMPLETE,
+
+      yieldsToNormalComponentProgression:
+        true,
+
+      guidedConstructionDoesNotSaveComponent:
+        true,
+    },
+
+    actual: {
+      governedValidationPassed:
+        guidedCompleteValidation
+          ?.valid ===
+        true,
+
+      evidenceOutcome:
+        guidedCompleteActual
+          ?.evidenceAssessment
+          ?.outcome ||
+        null,
+
+      decision:
+        guidedCompleteActual
+          ?.progressionDecision
+          ?.decision ||
+        null,
+
+      yieldsToNormalComponentProgression:
+        guidedCompleteActual
+          ?.yieldsToNormalComponentProgression ===
+        true,
+
+      guidedConstructionDoesNotSaveComponent:
+        getIdeaList(
+          guidedCompleteState
+        ).length ===
+        0,
+    },
+  });
+  
   const passedCount =
     results.filter(
       (result) =>
