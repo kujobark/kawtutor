@@ -5423,6 +5423,178 @@ function applyGuidedConstructionProgression({
   }
 }
 
+// ======================================================
+// GUIDED CONSTRUCTION PENDING-STATE PRESERVATION
+// ======================================================
+//
+// Rebuilds pending state while preserving Guided
+// Construction-owned metadata only when the replacement
+// pending object still represents the same exact
+// instructional location.
+//
+// This prevents ordinary component failure branches from
+// accidentally erasing an active Guided Construction
+// pathway when they reconstruct pending state.
+//
+// It also prevents Guided Construction metadata from
+// leaking into a different Main Idea, Essential Detail,
+// component, capture mode, or interaction pathway.
+//
+// This helper does not:
+//
+// • determine whether Guided Construction begins;
+// • determine Guided Construction progression;
+// • validate student evidence;
+// • advance the Frame;
+// • select an Instructional Contract;
+// • generate communication.
+//
+// ======================================================
+
+function buildPendingWithGuidedConstructionPreservation(
+  state,
+  nextPending
+) {
+  const safeState =
+    state &&
+    typeof state === "object"
+      ? state
+      : {};
+
+  const currentPending =
+    safeState?.pending &&
+    typeof safeState.pending === "object"
+      ? safeState.pending
+      : null;
+
+  const replacementPending =
+    nextPending &&
+    typeof nextPending === "object"
+      ? structuredClone(nextPending)
+      : null;
+
+  if (!replacementPending) {
+    return replacementPending;
+  }
+
+  if (!currentPending) {
+    return replacementPending;
+  }
+
+  const activeContext =
+    getActiveGuidedConstructionContext(
+      safeState
+    );
+
+  if (
+    activeContext?.active !== true
+  ) {
+    return replacementPending;
+  }
+
+  const storedLocation =
+    currentPending
+      ?.guidedConstructionLocation &&
+    typeof currentPending
+      .guidedConstructionLocation ===
+      "object"
+      ? structuredClone(
+          currentPending
+            .guidedConstructionLocation
+        )
+      : buildGuidedConstructionInstructionalLocation(
+          safeState
+        );
+
+  if (
+    storedLocation
+      ?.locationEstablished !== true
+  ) {
+    return replacementPending;
+  }
+
+  // --------------------------------------------------
+  // BUILD CANDIDATE LOCATION
+  //
+  // Evaluate the replacement pending object as if it
+  // were active, without mutating the real runtime yet.
+  // --------------------------------------------------
+
+  const candidateState = {
+    ...safeState,
+
+    pending:
+      structuredClone(
+        replacementPending
+      ),
+  };
+
+  const candidateLocation =
+    buildGuidedConstructionInstructionalLocation(
+      candidateState
+    );
+
+  const sameInstructionalLocation =
+    isSameGuidedConstructionInstructionalLocation(
+      storedLocation,
+      candidateLocation
+    );
+
+  if (!sameInstructionalLocation) {
+    return replacementPending;
+  }
+
+  // --------------------------------------------------
+  // PRESERVE ONLY GUIDED CONSTRUCTION-OWNED METADATA
+  //
+  // Do not spread the entire old pending object.
+  // --------------------------------------------------
+
+  const preservedPending = {
+    ...replacementPending,
+
+    progressiveSupportStage:
+      currentPending
+        .progressiveSupportStage,
+
+    guidedConstructionStep:
+      currentPending
+        .guidedConstructionStep,
+
+    guidedConstructionLocation:
+      structuredClone(
+        storedLocation
+      ),
+  };
+
+  if (
+    currentPending
+      ?.guidedConstructionEvidence &&
+    typeof currentPending
+      .guidedConstructionEvidence ===
+      "object"
+  ) {
+    preservedPending
+      .guidedConstructionEvidence =
+      structuredClone(
+        currentPending
+          .guidedConstructionEvidence
+      );
+  }
+
+  if (
+    currentPending
+      ?.guidedConstructionFinalRephraseUsed ===
+      true
+  ) {
+    preservedPending
+      .guidedConstructionFinalRephraseUsed =
+      true;
+  }
+
+  return preservedPending;
+}
+
 function getInstructionalContract(
   frameComponent,
   instructionalSituation
