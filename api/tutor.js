@@ -30489,184 +30489,32 @@ if (s.pending?.type === "offerAnotherDetail") {
     return s;
   }
   
-  const detailValidation =
-    await validateEssentialDetailResponseGoverned(
-      msg,
-      currentMainIdea,
-      {
-        keyTopic:
-          s.frame.keyTopic || "",
-
-        isAbout:
-          s.frame.isAbout || "",
-      }
-    );
-
-  const instructionalFinding = {
-    ...buildComponentInstructionalFinding({
-      frameComponent:
-        "details",
-
-      validation:
-        detailValidation,
-
-      evidence: {
-        keyTopic:
-          s.frame.keyTopic || "",
-
-        isAbout:
-          s.frame.isAbout || "",
-
-        currentMainIdea,
-
-        currentMainIdeaIndex:
-          idx,
-
-        currentDetailIndex:
-          detailIndex,
-
-        captureMode:
-          "optionalDirectEntry",
-
-        attemptedDetail:
-          cleanText(msg),
-      },
-    }),
-
-    validationSource:
-      detailValidation.validationSource || null,
-
-    currentMainIdea,
-
-    currentMainIdeaIndex:
-      idx,
-
-    currentDetailIndex:
-      detailIndex,
-
-    captureMode:
-      "optionalDirectEntry",
-  };
-
-  refreshInstructionalSituationWithComponentFinding({
-    state:
-      s,
-
-    currentResponse:
-      msg,
-
-    componentFinding:
-      instructionalFinding,
-  });
-
-  const progressionAuthorization =
-    buildProgressionAuthorization(
-      s,
-      {
-        frameComponent:
-          "details",
-
-        expectedContractId:
-          "ED-RTP-001",
-      }
-    );
-
-  s.progressionAuthorization =
-    structuredClone(
-      progressionAuthorization
-    );
-
-// --------------------------------------------------
-// GUIDED CONSTRUCTION — ESSENTIAL DETAIL CONTINUATION
-// --------------------------------------------------
-
-const activeGuidedConstruction =
-  getActiveGuidedConstructionContext(
-    s
-  );
-
-let guidedConstructionContinuation =
-  null;
-
-if (
-  activeGuidedConstruction?.active ===
-    true &&
-  activeGuidedConstruction
-    ?.frameComponent ===
-    "details"
-) {
-  guidedConstructionContinuation =
-    await continueGuidedConstruction({
-      state:
-        s,
-
-      response:
-        msg,
-
-      componentValidation:
-        detailValidation,
-
-      finalRephraseUsed:
-        false,
-    });
-
-  console.log(
-    "[KAW][GUIDED CONSTRUCTION][ESSENTIAL DETAIL]",
-    guidedConstructionContinuation
-  );
-}
-
-  if (
-    !detailValidation.valid ||
-    progressionAuthorization
-      ?.authorized !== true
-) {
-  
-  const instructionalContract =
-    s?.instructionalContractSelection
-      ?.selectedContract ||
-    null;
-
-  s.pending =
-  buildPendingWithGuidedConstructionPreservation(
+  const {
+  detailValidation,
+  instructionalFinding,
+  progressionAuthorization,
+  capturedDetail,
+} =
+  await applyEssentialDetailCapture(
     s,
+    msg,
     {
-      type:
-        "collectAnotherDetail",
-
       index:
         idx,
 
-      instructionalFinding,
+      detailIndex:
+        detailIndex,
 
-      instructionalContract:
-        instructionalContract
-          ? {
-              contractId:
-                instructionalContract.contractId,
-
-              frameComponent:
-                instructionalContract.frameComponent,
-
-              instructionalSituation:
-                instructionalContract.instructionalSituation,
-
-              instructionalGoal:
-                instructionalContract.instructionalGoal,
-
-              teachingMove:
-                instructionalContract.teachingMove,
-
-              thinkingMove:
-                instructionalContract.thinkingMove,
-
-              aiContextualizes:
-                instructionalContract.aiContextualizes,
-            }
-          : null,
+      captureMode:
+        "optionalDirectEntry",
     }
   );
 
+if (
+  !detailValidation.valid ||
+  progressionAuthorization
+    ?.authorized !== true
+) {
   return attachGovernedSupportToPending(
     s,
     msg,
@@ -30684,9 +30532,12 @@ if (
     }
   );
 }
-
-  s.frame.details[idx] = [...arr, msg];
-
+  
+  s.frame.details[idx] = [
+    ...arr,
+    capturedDetail,
+];
+  
   const updatedArr = Array.isArray(s.frame.details[idx]) ? s.frame.details[idx] : [];
   if (updatedArr.length >= 5) {
     s.pending = { type: "confirmDetails", index: idx };
