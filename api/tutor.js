@@ -5055,6 +5055,374 @@ function buildGuidedConstructionProgressionDecision({
   };
 }
 
+// ======================================================
+// GUIDED CONSTRUCTION STATE UPDATER
+// ======================================================
+//
+// Applies one already-established Guided Construction
+// progression decision to Guided Construction-owned
+// pending-state metadata only.
+//
+// This updater may modify only:
+//
+// • guidedConstructionStep;
+// • guidedConstructionEvidence;
+// • guidedConstructionFinalRephraseUsed;
+// • guidedConstructionLocation.
+//
+// It does not:
+//
+// • save a completed Frame component;
+// • advance the larger Frame;
+// • change pending.type;
+// • change captureMode;
+// • change interactionMode;
+// • change Instructional Contract;
+// • determine Instructional Situation;
+// • determine evidence sufficiency;
+// • generate student-facing communication.
+//
+// Full component completion remains owned by the normal
+// governed component runtime.
+//
+// ======================================================
+
+function applyGuidedConstructionProgression({
+  state = null,
+  progressionDecision = null,
+  evidenceAssessment = null,
+  instructionalLocation = null,
+} = {}) {
+  if (
+    !state ||
+    typeof state !== "object" ||
+    !state?.pending ||
+    typeof state.pending !== "object"
+  ) {
+    return {
+      applied:
+        false,
+
+      reason:
+        "pendingStateUnavailable",
+    };
+  }
+
+  const decision =
+    progressionDecision &&
+    typeof progressionDecision ===
+      "object"
+      ? progressionDecision
+      : null;
+
+  const assessment =
+    evidenceAssessment &&
+    typeof evidenceAssessment ===
+      "object"
+      ? evidenceAssessment
+      : null;
+
+  const location =
+    instructionalLocation &&
+    typeof instructionalLocation ===
+      "object"
+      ? instructionalLocation
+      : null;
+
+  if (
+    !decision ||
+    decision?.decisionStatus !==
+      "established" ||
+    !decision?.decision
+  ) {
+    return {
+      applied:
+        false,
+
+      reason:
+        "progressionDecisionUnavailable",
+    };
+  }
+
+  const pending =
+    state.pending;
+
+  const currentStep =
+    Number(
+      pending
+        ?.guidedConstructionStep
+    );
+
+  const decisionCurrentStep =
+    Number(
+      decision
+        ?.currentStep
+    );
+
+  const validCurrentStep =
+    Number.isInteger(
+      currentStep
+    ) &&
+    currentStep >= 1 &&
+    currentStep <= 3;
+
+  const validDecisionStep =
+    Number.isInteger(
+      decisionCurrentStep
+    ) &&
+    decisionCurrentStep >= 1 &&
+    decisionCurrentStep <= 3;
+
+  if (
+    !validCurrentStep ||
+    !validDecisionStep ||
+    currentStep !==
+      decisionCurrentStep
+  ) {
+    return {
+      applied:
+        false,
+
+      reason:
+        "guidedConstructionStepMismatch",
+    };
+  }
+
+  // --------------------------------------------------
+  // LOCATION PRESERVATION
+  //
+  // Store the exact Guided Construction location only
+  // when a valid location artifact has been established.
+  //
+  // Later preservation logic will compare this stored
+  // location against the student's current location.
+  // --------------------------------------------------
+
+  if (
+    location?.locationEstablished ===
+      true
+  ) {
+    pending.guidedConstructionLocation =
+      structuredClone(
+        location
+      );
+  }
+
+  // --------------------------------------------------
+  // STUDENT-OWNED GUIDED EVIDENCE
+  //
+  // Save only evidence that Step 6 explicitly authorized
+  // for preservation.
+  //
+  // Evidence remains separate by Guided Construction
+  // step so later coaching can reconnect only to actual
+  // student thinking.
+  // --------------------------------------------------
+
+  if (
+    decision
+      ?.saveCurrentEvidence ===
+      true
+  ) {
+    const studentEvidence =
+      cleanText(
+        assessment
+          ?.studentEvidence || ""
+      );
+
+    if (studentEvidence) {
+      const existingEvidence =
+        pending
+          ?.guidedConstructionEvidence &&
+        typeof pending
+          .guidedConstructionEvidence ===
+          "object"
+          ? pending
+              .guidedConstructionEvidence
+          : {};
+
+      pending.guidedConstructionEvidence = {
+        ...structuredClone(
+          existingEvidence
+        ),
+
+        [String(currentStep)]: {
+          step:
+            currentStep,
+
+          evidence:
+            studentEvidence,
+        },
+      };
+    }
+  }
+
+  // --------------------------------------------------
+  // APPLY DETERMINISTIC PATHWAY DECISION
+  // --------------------------------------------------
+
+  switch (decision.decision) {
+    case GUIDED_CONSTRUCTION_PROGRESSION_DECISIONS
+      .STAY_CURRENT_STEP: {
+      pending.guidedConstructionStep =
+        currentStep;
+
+      return {
+        applied:
+          true,
+
+        decision:
+          decision.decision,
+
+        guidedConstructionStep:
+          pending
+            .guidedConstructionStep,
+      };
+    }
+
+    case GUIDED_CONSTRUCTION_PROGRESSION_DECISIONS
+      .ADVANCE_TO_NEXT_STEP: {
+      const nextStep =
+        Number(
+          decision?.nextStep
+        );
+
+      if (
+        !Number.isInteger(
+          nextStep
+        ) ||
+        nextStep < 1 ||
+        nextStep > 3 ||
+        nextStep !==
+          currentStep + 1
+      ) {
+        return {
+          applied:
+            false,
+
+          reason:
+            "invalidGuidedConstructionAdvance",
+        };
+      }
+
+      pending.guidedConstructionStep =
+        nextStep;
+
+      return {
+        applied:
+          true,
+
+        decision:
+          decision.decision,
+
+        guidedConstructionStep:
+          nextStep,
+      };
+    }
+
+    case GUIDED_CONSTRUCTION_PROGRESSION_DECISIONS
+      .REFINE_FINAL_STEP: {
+      pending.guidedConstructionStep =
+        3;
+
+      return {
+        applied:
+          true,
+
+        decision:
+          decision.decision,
+
+        guidedConstructionStep:
+          3,
+      };
+    }
+
+    case GUIDED_CONSTRUCTION_PROGRESSION_DECISIONS
+      .REPHRASE_FINAL_STEP: {
+      pending.guidedConstructionStep =
+        3;
+
+      pending.guidedConstructionFinalRephraseUsed =
+        true;
+
+      return {
+        applied:
+          true,
+
+        decision:
+          decision.decision,
+
+        guidedConstructionStep:
+          3,
+
+        guidedConstructionFinalRephraseUsed:
+          true,
+      };
+    }
+
+    case GUIDED_CONSTRUCTION_PROGRESSION_DECISIONS
+      .ADDITIONAL_SUPPORT_ENDPOINT: {
+      pending.guidedConstructionStep =
+        3;
+
+      pending.guidedConstructionFinalRephraseUsed =
+        true;
+
+      return {
+        applied:
+          true,
+
+        decision:
+          decision.decision,
+
+        guidedConstructionStep:
+          3,
+
+        guidedConstructionFinalRephraseUsed:
+          true,
+
+        endpointReached:
+          true,
+      };
+    }
+
+    case GUIDED_CONSTRUCTION_PROGRESSION_DECISIONS
+      .COMPONENT_COMPLETE: {
+      // ------------------------------------------------
+      // NO COMPLETION MUTATION HERE
+      //
+      // The normal component runtime owns acceptance,
+      // saving, confirmation, and Frame progression.
+      //
+      // Guided Construction simply yields authority.
+      // ------------------------------------------------
+
+      return {
+        applied:
+          true,
+
+        decision:
+          decision.decision,
+
+        guidedConstructionStep:
+          currentStep,
+
+        yieldsToNormalComponentProgression:
+          true,
+      };
+    }
+
+    default:
+      return {
+        applied:
+          false,
+
+        reason:
+          "unsupportedGuidedConstructionDecision",
+      };
+  }
+}
+
 function getInstructionalContract(
   frameComponent,
   instructionalSituation
