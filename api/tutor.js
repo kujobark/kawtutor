@@ -30576,7 +30576,7 @@ if (s.pending?.type === "offerAnotherDetail") {
       progressionAuthorization
     );
 
-  // --------------------------------------------------
+// --------------------------------------------------
 // GUIDED CONSTRUCTION — ESSENTIAL DETAIL CONTINUATION
 // --------------------------------------------------
 
@@ -30721,29 +30721,6 @@ if (
   return s;
 }
 
-// All proposed responses proceed to governed Essential
-// Detail validation.
-//
-// Conversational, meta, uncertainty, and struggle language
-// are identified as no component evidence by the governed
-// validator. They must not enter a separate recovery router.
-
-const currentMainIdea =
-  getIdeaList(s)[idx] || "";
-
-const detailValidation =
-  await validateEssentialDetailResponseGoverned(
-    msg,
-    currentMainIdea,
-    {
-      keyTopic:
-        s.frame.keyTopic || "",
-
-      isAbout:
-        s.frame.isAbout || "",
-    }
-  );
-
 const currentDetailIndex =
   s.frame.details[idx].length;
 
@@ -30752,137 +30729,40 @@ const captureMode =
     ? "required"
     : "optional";
 
-const instructionalFinding = {
-  ...buildComponentInstructionalFinding({
-    frameComponent:
-      "details",
-
-    validation:
-      detailValidation,
-
-    evidence: {
-      keyTopic:
-        s.frame.keyTopic || "",
-
-      isAbout:
-        s.frame.isAbout || "",
-
-      currentMainIdea,
-
-      currentMainIdeaIndex:
+const {
+  detailValidation,
+  instructionalFinding,
+  progressionAuthorization,
+  capturedDetail,
+} =
+  await applyEssentialDetailCapture(
+    s,
+    msg,
+    {
+      index:
         idx,
 
-      currentDetailIndex,
+      detailIndex:
+        currentDetailIndex,
 
       captureMode,
-
-      attemptedDetail:
-        cleanText(msg),
-    },
-  }),
-
-  validationSource:
-    detailValidation.validationSource || null,
-
-  currentMainIdea,
-
-  currentMainIdeaIndex:
-    idx,
-
-  currentDetailIndex,
-
-  captureMode,
-};
-
-refreshInstructionalSituationWithComponentFinding({
-  state:
-    s,
-
-  currentResponse:
-    msg,
-
-  componentFinding:
-    instructionalFinding,
-});
-
-const progressionAuthorization =
-  buildProgressionAuthorization(
-    s,
-    {
-      frameComponent:
-        "details",
-
-      expectedContractId:
-        "ED-RTP-001",
     }
   );
 
-s.progressionAuthorization =
-  structuredClone(
-    progressionAuthorization
-  );
-
-// --------------------------------------------------
-// GUIDED CONSTRUCTION — ESSENTIAL DETAIL CONTINUATION
-// --------------------------------------------------
-
-const activeGuidedConstruction =
-  getActiveGuidedConstructionContext(
-    s
-  );
-
-let guidedConstructionContinuation =
-  null;
-
 if (
-  activeGuidedConstruction?.active ===
-    true &&
-  activeGuidedConstruction
-    ?.frameComponent ===
-    "details"
+  !detailValidation.valid ||
+  progressionAuthorization
+    ?.authorized !== true
 ) {
-  guidedConstructionContinuation =
-    await continueGuidedConstruction({
-      state:
-        s,
-
-      response:
-        msg,
-
-      componentValidation:
-        detailValidation,
-
-      finalRephraseUsed:
-        false,
-    });
-
-  console.log(
-    "[KAW][GUIDED CONSTRUCTION][ESSENTIAL DETAIL]",
-    guidedConstructionContinuation
-  );
-}
-
-  if (
-    !detailValidation.valid ||
-    progressionAuthorization
-      ?.authorized !== true
-) {
-    
-  // Preserve exactly what the deterministic validator
-  // established about this response.
-  //
-  // Do not infer intent, understanding, confusion, or effort.
-  // The finding describes only the observable instructional
-  // condition of the response.
-
   return attachGovernedSupportToPending(
     s,
     msg,
     {
-  
-      intent: "stuck",
+      intent:
+        "stuck",
 
-      confidence: 1,
+      confidence:
+        1,
 
       source:
         `detailValidation:${detailValidation.diagnosis}`,
@@ -30891,10 +30771,10 @@ if (
     }
   );
 }
-
+    
   s.frame.details[idx] = [
     ...s.frame.details[idx],
-    msg,
+    capturedDetail,
   ];
 
 const arr = Array.isArray(s.frame.details[idx])
@@ -31167,8 +31047,9 @@ if (
     detailValidation,
     instructionalFinding,
     progressionAuthorization,
-  };
-}
+    capturedDetail:
+      text,
+};
 
  if (s.pending?.type === "chooseDetailToRevise") {
   const normalized = msg.toLowerCase().trim();
@@ -31205,9 +31086,10 @@ if (s.pending?.type === "reviseDetailAt") {
 // validation and preserve the existing Essential Detail.
 
   const {
-  detailValidation,
-  instructionalFinding,
-  progressionAuthorization,
+    detailValidation,
+    instructionalFinding,
+    progressionAuthorization,
+    capturedDetail,
 } =
   await applyEssentialDetailCapture(
     s,
@@ -31253,7 +31135,7 @@ if (
   s.frame.details[idx][detailIndex] !== undefined
 ) {
   s.frame.details[idx][detailIndex] =
-    msg;
+    capturedDetail;
 }
 
   // Return to the Detail confirmation checkpoint.
