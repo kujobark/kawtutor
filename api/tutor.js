@@ -1358,7 +1358,7 @@ const INSTRUCTIONAL_PLAYBOOK = {
         returnImmediatelyToStudentTask: true,
       },
       thinkingMove:
-        "Briefly model what an Is About does using one simple Key Topic that is clearly unrelated to the student's assignment. Show that the Is About explains what the whole example topic is about rather than naming only one detail. Keep the example brief and content-distant so it cannot function as a hint or candidate response for the student's actual Key Topic. Then return immediately to the student's accepted Key Topic and invite the student to explain what their whole topic is about in their own words.",
+          "Briefly model what a So What does using one simple completed Frame that is clearly unrelated to the student's assignment. Name two brief Main Ideas from that example Frame, then show one concise So What that combines those ideas into one larger understanding rather than simply repeating them. Keep the model brief, structurally analogous, and content-distant so it cannot function as a hint or candidate response for the student's actual Frame. Then return immediately to the student's completed Frame and invite the student to identify the larger understanding that emerges from their own ideas together.",
     },
 
         {
@@ -2609,7 +2609,8 @@ const INSTRUCTIONAL_PLAYBOOK = {
         returnImmediatelyToStudentTask: true,
       },
       thinkingMove:
-        "Briefly model what a So What does using one simple completed Frame from content that is clearly unrelated to the student's assignment. Show how two or more ideas from that example Frame can be connected into one larger takeaway rather than simply repeated. Keep the example brief, structurally analogous, and content-distant so it cannot function as a hint or candidate response for the student's actual Frame. Then return immediately to the student's completed Frame and invite the student to identify the larger understanding that emerges from their own ideas together.",
+        thinkingMove:
+          "Briefly model what a So What does using one simple completed Frame that is clearly unrelated to the student's assignment. Name two brief Main Ideas from that example Frame, then show one concise So What that combines those ideas into a larger understanding rather than simply repeating them. Keep the example brief, structurally analogous, and content-distant so it cannot function as a hint or candidate response for the student's actual Frame. Then return immediately to the student's completed Frame and invite the student to identify the larger understanding that emerges from their own ideas together.",
     },
 
     {
