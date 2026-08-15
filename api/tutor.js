@@ -19484,6 +19484,141 @@ results.push({
 },
   });
 
+    // --------------------------------------------------
+  // MI RUNTIME — MIXED INTERACTION + COMPONENT CONTENT
+  //
+  // Protects the live case where a student response
+  // contains both uncertainty language and genuine
+  // student-owned Main Idea content.
+  //
+  // The interaction wrapper must not be saved as part of
+  // the Frame component.
+  //
+  // Only the exact verbatim component contribution
+  // identified by the governed Observation Report may be
+  // validated and preserved.
+  // --------------------------------------------------
+
+  const mixedMainIdeaContributionState =
+    createMainIdeaTestState();
+
+  mixedMainIdeaContributionState
+    .observationReport = {
+      version:
+        "1.0",
+
+      source:
+        "aiObservation",
+
+      studentInteraction:
+        "I'm kind of stuck, but social media can increase anxiety and stress.",
+
+      observations: [
+        {
+          category:
+            "uncertaintyExpression",
+
+          evidenceText:
+            "I'm kind of stuck",
+
+          confidence:
+            1,
+        },
+      ],
+
+      componentContribution: {
+        observed:
+          true,
+
+        evidenceText:
+          "social media can increase anxiety and stress.",
+      },
+
+      ambiguityPresent:
+        false,
+    };
+
+  const mixedMainIdeaRawResponse =
+    "I'm kind of stuck, but social media can increase anxiety and stress.";
+
+  const mixedMainIdeaExpected =
+    "social media can increase anxiety and stress.";
+
+  await applyMainIdeaCapture(
+    mixedMainIdeaContributionState,
+    mixedMainIdeaRawResponse,
+    {
+      captureMode:
+        "required",
+    }
+  );
+
+  const mixedMainIdeaSaved =
+    mixedMainIdeaContributionState
+      ?.frame
+      ?.parentItems
+      ?.[0] || "";
+
+  const mixedMainIdeaAttempted =
+    mixedMainIdeaContributionState
+      ?.componentInstructionalFinding
+      ?.evidence
+      ?.attemptedMainIdea || "";
+
+  const mixedMainIdeaContributionPassed =
+    mixedMainIdeaSaved ===
+      mixedMainIdeaExpected &&
+
+    mixedMainIdeaSaved !==
+      mixedMainIdeaRawResponse &&
+
+    mixedMainIdeaAttempted ===
+      mixedMainIdeaRawResponse &&
+
+    mixedMainIdeaContributionState
+      ?.pending
+      ?.type ===
+      "offerAnotherMainIdea";
+
+  results.push({
+    name:
+      "MI Runtime - Mixed uncertainty preserves only student-owned Main Idea contribution",
+
+    passed:
+      mixedMainIdeaContributionPassed,
+
+    expected: {
+      savedMainIdea:
+        mixedMainIdeaExpected,
+
+      rawInteractionSaved:
+        false,
+
+      attemptedMainIdea:
+        mixedMainIdeaRawResponse,
+
+      pendingType:
+        "offerAnotherMainIdea",
+    },
+
+    actual: {
+      savedMainIdea:
+        mixedMainIdeaSaved,
+
+      rawInteractionSaved:
+        mixedMainIdeaSaved ===
+        mixedMainIdeaRawResponse,
+
+      attemptedMainIdea:
+        mixedMainIdeaAttempted,
+
+      pendingType:
+        mixedMainIdeaContributionState
+          ?.pending
+          ?.type || null,
+    },
+  });
+
   // --------------------------------------------------
   // GUIDED CONSTRUCTION — MAIN IDEA TARGETED VERIFICATION
   // --------------------------------------------------
