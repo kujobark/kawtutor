@@ -27361,11 +27361,66 @@ async function applyMainIdeaCapture(
   msg,
   options = {}
 ) {
-  const text =
-    cleanText(msg);
+  const rawMainIdea =
+  cleanText(msg);
 
-  const captureMode =
-    options.captureMode || "required";
+const observationReport =
+  s?.observationReport &&
+  typeof s.observationReport ===
+    "object"
+    ? s.observationReport
+    : null;
+
+const componentContribution =
+  observationReport
+    ?.componentContribution &&
+  typeof observationReport
+    .componentContribution ===
+    "object"
+    ? observationReport
+        .componentContribution
+    : null;
+
+const interactionOnlyCategories =
+  new Set([
+    "uncertaintyExpression",
+    "clarificationRequest",
+    "answerSeeking",
+    "frustrationExpression",
+    "refusal",
+    "offTaskShift",
+  ]);
+
+const interactionObservationPresent =
+  Array.isArray(
+    observationReport?.observations
+  ) &&
+  observationReport.observations.some(
+    (observation) =>
+      interactionOnlyCategories.has(
+        cleanText(
+          observation?.category || ""
+        )
+      )
+  );
+
+const observedContributionText =
+  componentContribution
+    ?.observed === true
+    ? cleanText(
+        componentContribution
+          ?.evidenceText || ""
+      )
+    : "";
+
+const text =
+  interactionObservationPresent &&
+  observedContributionText
+    ? observedContributionText
+    : rawMainIdea;
+
+const captureMode =
+  options.captureMode || "required";
 
   const revisionIndex =
     Number.isInteger(options.index)
@@ -27405,7 +27460,7 @@ async function applyMainIdeaCapture(
           s.frame?.isAbout || "",
 
         attemptedMainIdea:
-          text,
+          rawMainIdea,
 
         captureMode,
 
