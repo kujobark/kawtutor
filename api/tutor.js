@@ -5664,30 +5664,36 @@ function applyGuidedConstructionProgression({
     }
 
     case GUIDED_CONSTRUCTION_PROGRESSION_DECISIONS
-      .ADDITIONAL_SUPPORT_ENDPOINT: {
-      pending.guidedConstructionStep =
-        3;
+  .ADDITIONAL_SUPPORT_ENDPOINT: {
+  pending.guidedConstructionStep =
+    3;
 
-      pending.guidedConstructionFinalRephraseUsed =
-        true;
+  pending.guidedConstructionFinalRephraseUsed =
+    true;
 
-      return {
-        applied:
-          true,
+  pending.guidedConstructionAdditionalSupportEndpoint =
+    true;
 
-        decision:
-          decision.decision,
+  return {
+    applied:
+      true,
 
-        guidedConstructionStep:
-          3,
+    decision:
+      decision.decision,
 
-        guidedConstructionFinalRephraseUsed:
-          true,
+    guidedConstructionStep:
+      3,
 
-        endpointReached:
-          true,
-      };
-    }
+    guidedConstructionFinalRephraseUsed:
+      true,
+
+    guidedConstructionAdditionalSupportEndpoint:
+      true,
+
+    endpointReached:
+      true,
+  };
+}
 
     case GUIDED_CONSTRUCTION_PROGRESSION_DECISIONS
       .COMPONENT_COMPLETE: {
