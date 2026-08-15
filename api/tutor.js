@@ -8436,7 +8436,9 @@ function validateInstructionalCommunicationResponse(
   communicationLicense
 ) {
   const text =
-    cleanText(response);
+    (response || "")
+      .toString()
+      .trim();
 
   const lower =
     text.toLowerCase();
