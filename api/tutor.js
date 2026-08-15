@@ -29844,6 +29844,21 @@ if (
   s.frame.soWhat =
     "";
 
+  const {
+  soWhatValidation,
+  instructionalFinding,
+  progressionAuthorization,
+  capturedSoWhat,
+} =
+  await applySoWhatCapture(
+    s,
+    currentSoWhat,
+    {
+      captureMode:
+        "strengthen",
+    }
+  );
+
       
   if (
     !soWhatValidation.valid ||
@@ -31161,17 +31176,19 @@ const {
   soWhatValidation,
   instructionalFinding,
   progressionAuthorization,
-  capturedSoWhat,
 } =
   await applySoWhatCapture(
     s,
-    currentSoWhat,
+    proposedSoWhat,
     {
       captureMode:
-        "strengthen",
+        "additionalContent",
+
+      previousSoWhat:
+        s.frame?.soWhat || "",
     }
   );
-
+    
 if (
   !soWhatValidation.valid ||
   progressionAuthorization
