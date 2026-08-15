@@ -24977,6 +24977,61 @@ s.progressionAuthorization =
   structuredClone(
     progressionAuthorization
   );
+
+// --------------------------------------------------
+// GUIDED CONSTRUCTION — MAIN IDEA CONTINUATION
+// --------------------------------------------------
+//
+// Normal governed Main Idea validation has already
+// received first authority.
+//
+// If Guided Construction is already active at this exact
+// Main Idea location, allow the shared Guided Construction
+// runtime to evaluate the student's current response and
+// update only Guided Construction-owned pathway state.
+//
+// Full Main Idea acceptance still belongs to the normal
+// validator and normal Frame progression below.
+//
+// --------------------------------------------------
+
+const activeGuidedConstruction =
+  getActiveGuidedConstructionContext(
+    s
+  );
+
+let guidedConstructionContinuation =
+  null;
+
+if (
+  activeGuidedConstruction?.active ===
+    true &&
+  activeGuidedConstruction
+    ?.frameComponent ===
+    "mainIdeas"
+) {
+  guidedConstructionContinuation =
+    await continueGuidedConstruction({
+      state:
+        s,
+
+      response:
+        text,
+
+      componentValidation:
+        validation,
+
+      // Dedicated persistent final-step rephrase
+      // consumption is integrated later.
+      finalRephraseUsed:
+        false,
+    });
+
+  console.log(
+    "[KAW][GUIDED CONSTRUCTION][MAIN IDEA]",
+    guidedConstructionContinuation
+  );
+}
   
 if (
   !validation.valid ||
