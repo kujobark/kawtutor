@@ -728,7 +728,7 @@ Rules:
 - An empty observations array is valid.
 - Return only the required JSON object.`;
 
-Active Frame component:
+  const user = `Active Frame component:
 ${activeFrameComponent || "(none)"}
 
 Component purpose:
@@ -747,8 +747,7 @@ ${
   ) || "(not available)"
 }
 
-  
-  const user = `Current student interaction:
+Current student interaction:
 "${text}"
 
 Recent student responses:
@@ -846,17 +845,41 @@ Report only directly observable evidence from the current student interaction.`;
                   },
                 },
 
+                        componentContribution: {
+                  type:
+                    "object",
+
+                  additionalProperties:
+                    false,
+
+                  properties: {
+                    observed: {
+                      type:
+                        "boolean",
+                    },
+
+                    evidenceText: {
+                      type:
+                        "string",
+                    },
+                  },
+
+                  required: [
+                    "observed",
+                    "evidenceText",
+                  ],
+                },
+
                 ambiguityPresent: {
                   type:
                     "boolean",
                 },
               },
 
-              required: [
+                          required: [
                 "observations",
                 "componentContribution",
                 "ambiguityPresent",
-              ],
               ],
             },
           },
