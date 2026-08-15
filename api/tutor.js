@@ -17432,6 +17432,140 @@ async function runIsAboutSelfTests() {
     },
   });
 
+    // --------------------------------------------------
+  // IA RUNTIME — INTERACTION-ONLY LANGUAGE MUST NOT
+  // BECOME IS ABOUT EVIDENCE
+  //
+  // Protects the live bug discovered during physical
+  // testing:
+  //
+  // "I understand it's about social media, but I can't
+  // explain the whole thing yet."
+  //
+  // The Observation Layer may identify uncertainty, but
+  // no actual Is About contribution is present.
+  //
+  // The deterministic Interaction Finding must therefore
+  // classify the response as interaction-only and prevent
+  // it from functioning as component evidence.
+  // --------------------------------------------------
+
+  const interactionOnlyEvidenceState =
+    buildEvidenceState(
+      {
+        ...createIsAboutRuntimeTestState(),
+
+        frame: {
+          ...createIsAboutRuntimeTestState()
+            .frame,
+
+          keyTopic:
+            "Social media",
+        },
+      },
+
+      "I understand it's about social media, but I can't explain the whole thing yet.",
+
+      {
+        version:
+          "1.0",
+
+        source:
+          "aiObservation",
+
+        studentInteraction:
+          "I understand it's about social media, but I can't explain the whole thing yet.",
+
+        observations: [
+          {
+            category:
+              "uncertaintyExpression",
+
+            evidenceText:
+              "I can't explain the whole thing yet",
+
+            confidence:
+              1,
+          },
+        ],
+
+        componentContribution: {
+          observed:
+            false,
+
+          evidenceText:
+            "",
+        },
+
+        ambiguityPresent:
+          false,
+      }
+    );
+
+  const interactionOnlyAssessment =
+    buildInstructionalAssessment(
+      interactionOnlyEvidenceState
+    );
+
+  const interactionOnlyFinding =
+    buildInteractionInstructionalFinding(
+      interactionOnlyEvidenceState,
+      interactionOnlyAssessment
+    );
+
+  const interactionOnlyPassed =
+    interactionOnlyFinding
+      ?.responseFunctionsOnlyAsInteraction ===
+      true &&
+
+    interactionOnlyFinding
+      ?.componentEvidenceFinding ===
+      "noComponentEvidenceObserved" &&
+
+    interactionOnlyFinding
+      ?.evidence
+      ?.componentContribution
+      ?.observed ===
+      false;
+
+  results.push({
+    name:
+      "IA Runtime - Topic-reference uncertainty does not become Is About evidence",
+
+    passed:
+      interactionOnlyPassed,
+
+    expected: {
+      responseFunctionsOnlyAsInteraction:
+        true,
+
+      componentEvidenceFinding:
+        "noComponentEvidenceObserved",
+
+      componentContributionObserved:
+        false,
+    },
+
+    actual: {
+      responseFunctionsOnlyAsInteraction:
+        interactionOnlyFinding
+          ?.responseFunctionsOnlyAsInteraction ??
+        null,
+
+      componentEvidenceFinding:
+        interactionOnlyFinding
+          ?.componentEvidenceFinding ||
+        null,
+
+      componentContributionObserved:
+        interactionOnlyFinding
+          ?.evidence
+          ?.componentContribution
+          ?.observed ??
+        null,
+    },
+  });
+
   // --------------------------------------------------
   // GUIDED CONSTRUCTION — IS ABOUT TARGETED VERIFICATION
   // --------------------------------------------------
