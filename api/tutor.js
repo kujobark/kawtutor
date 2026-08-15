@@ -9779,7 +9779,7 @@ You must follow these rules:
 - When the predetermined Thinking Move contains 3 or more parallel cognitive options, categories, lenses, or thinking examples, you MUST present a small representative set of 3–5 of those authorized options as a vertically scannable list rather than embedding them in a comma-separated sentence.
 - Do not restate the same options again in the final question. After the list, ask one short question that points the student back to the list.
 - Use only options already contained in or directly authorized by the predetermined Thinking Move. Do not invent new categories, examples, hints, content, or possible student answers.
-- When helpful, use one purposeful Framing Routine icon as a visual anchor for the current component:
+- When Progressive Support Stage 3 Guided Construction is active, use the appropriate Framing Routine icon and component name as a visual anchor before the guided support:
   🧩 Key Topic
   💬 Is About
   💡 Main Idea
@@ -9909,7 +9909,7 @@ If the Predetermined Thinking Move contains a series of 3 or more parallel think
 Instead:
 - choose only 3–5 of those already-authorized options;
 - place each option on its own short bullet line;
-- use the appropriate Framing Routine icon as a visual anchor when helpful;
+- when Guided Construction is active, use the appropriate Framing Routine icon and component name as a visual anchor before the guided support; when the response reconnects to a parent Frame component, place that parent component's icon immediately before its name;
 - do not add new options, examples, hints, or content;
 - do not repeat the options again in the final question;
 - ask one short question after the list.
