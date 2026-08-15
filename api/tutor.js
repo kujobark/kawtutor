@@ -8315,6 +8315,41 @@ function buildInstructionalCommunicationLicense(
 
     communicationPattern,
 
+        studentFacingFormat: {
+      requireScannableOptionList:
+        Number(
+          execution?.progressiveSupportStage
+        ) === 3,
+
+      minimumParallelOptionsForList:
+        3,
+
+      minimumListItems:
+        3,
+
+      maximumListItems:
+        5,
+
+      requireVerticalList:
+        Number(
+          execution?.progressiveSupportStage
+        ) === 3,
+
+      prohibitDenseInlineOptionSeries:
+        Number(
+          execution?.progressiveSupportStage
+        ) === 3,
+
+      prohibitOptionRepetitionInFinalQuestion:
+        Number(
+          execution?.progressiveSupportStage
+        ) === 3,
+
+      requireSingleFinalQuestion:
+        true,
+    },
+
+
     permissions: {
       mayAskQuestion: true,
 
