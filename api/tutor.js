@@ -2375,7 +2375,7 @@ const INSTRUCTIONAL_PLAYBOOK = {
           "returnToExactInstructionalLocation",
 
         description:
-          "Return to the exact initial, additional-content, or revision So What location and validate the student's next response.",
+          "Return to the exact initial, continuation, or revision So What location and validate the student's next response."
       },
 
       studentWorkProtection: {
@@ -2440,7 +2440,7 @@ const INSTRUCTIONAL_PLAYBOOK = {
           "returnToExactInstructionalLocation",
 
         description:
-          "Return to the exact initial, additional-content, or revision So What location and validate whether the required completed-Frame relationship is established.",
+          "Return to the exact initial, continuation, or revision So What location and validate the student's next response."
       },
 
       studentWorkProtection: {
@@ -2508,7 +2508,7 @@ const INSTRUCTIONAL_PLAYBOOK = {
           "returnToExactInstructionalLocation",
 
         description:
-          "Return to the exact initial, additional-content, or revision So What location and validate the student's revised response.",
+          "Return to the exact initial, continuation, or revision So What location and validate the student's next response."
       },
 
       studentWorkProtection: {
@@ -2573,7 +2573,7 @@ const INSTRUCTIONAL_PLAYBOOK = {
           "returnToExactInstructionalLocation",
 
         description:
-          "Return to the exact initial, additional-content, or revision So What location where support was requested and validate the student's next response.",
+          "Return to the exact initial, continuation, or revision So What location and validate the student's next response."
       },
 
            progressiveSupport: {
@@ -2729,7 +2729,7 @@ const INSTRUCTIONAL_PLAYBOOK = {
           "continueExistingRuntimeProgression",
 
         description:
-          "Preserve the accepted So What and continue through the existing optional expansion, confirmation, and export progression pathway.",
+          "Preserve the accepted So What and continue through the existing confirmation and export progression pathway.",
       },
 
       studentWorkProtection: {
@@ -21529,9 +21529,8 @@ async function runSoWhatSelfTests(
   // SO WHAT LIVE RUNTIME TESTS
   // ==================================================
   // These tests exercise the actual So What capture,
-  // expansion, and revision pathways through
+  // continuation, and revision pathways through
   // updateStateFromStudent().
-  //
   // They confirm that governed validation occurs before
   // student work is saved or replaced.
   // ==================================================
@@ -26919,13 +26918,11 @@ const PARENT_ANCHOR_BRIDGE = {
     collectAnotherDetail: "detailsConfirmLoop",
     confirmDetails: "detailsConfirmLoop",
 
-    // Current-behavior compatibility only:
-    // tutor.js currently allows optional additional So What text,
-    // but the long-term Parent Anchor contract does NOT require
-    // a multi-step So What expansion loop.
+    // Governed continuation of the same So What attempt
+    // before confirmation.
     continueSoWhat: "soWhatConfirm",
     confirmSoWhat: "soWhatConfirm",
-
+    
     offerExport: "export",
     chooseExportType: "export",
   },
@@ -28845,12 +28842,11 @@ if (
   );
 }
   
-
 if (s.pending?.type === "continueSoWhat") {
   return (
     `🎯 So What\n\n` +
-    `"${s.frame.soWhat}"\n\n` +
-    `What would you like to add to strengthen it further?`
+    `Let's keep working on your So What.\n\n` +
+    `Looking across your completed Frame, what is the most important thing someone should understand?`
   );
 }
 
