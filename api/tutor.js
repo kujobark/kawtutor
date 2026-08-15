@@ -8308,14 +8308,17 @@ function buildInstructionalCommunicationLicense(
     );
 
   const parallelOptionSeriesPresent =
-    (
-      requiredThinkingMove.match(
-        /,\s*[^,.!?]+/g
-      ) || []
-    ).length >= 2 &&
-    /\bor\b/i.test(
-      requiredThinkingMove
-    );
+  progressiveSupportStage === 3 &&
+  progressiveSupportType ===
+    "guidedConstruction" &&
+  (
+    requiredThinkingMove.match(
+      /,\s*[^,.!?]+/g
+    ) || []
+  ).length >= 2 &&
+  /\bor\b/i.test(
+    requiredThinkingMove
+  );
 
   const modelContrastPresent =
     progressiveSupportStage === 2 &&
