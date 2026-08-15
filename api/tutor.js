@@ -5901,6 +5901,16 @@ function buildPendingWithGuidedConstructionPreservation(
       true;
   }
 
+  if (
+  currentPending
+    ?.guidedConstructionAdditionalSupportEndpoint ===
+    true
+) {
+  preservedPending
+    .guidedConstructionAdditionalSupportEndpoint =
+    true;
+}
+
   return preservedPending;
 }
 
@@ -25400,6 +25410,9 @@ function attachGovernedSupportToPending(
       delete pendingForActivation
         .guidedConstructionFinalRephraseUsed;
 
+      delete pendingForActivation
+        .guidedConstructionAdditionalSupportEndpoint;
+      
       const guidedConstructionEntryState = {
         ...state,
 
@@ -25434,6 +25447,9 @@ function attachGovernedSupportToPending(
         .guidedConstructionEvidence;
 
       delete pendingForActivation
+        .guidedConstructionAdditionalSupportEndpoint;
+      
+      delete pendingForActivation
         .guidedConstructionFinalRephraseUsed;
 
       delete pendingForActivation
@@ -25462,6 +25478,9 @@ function attachGovernedSupportToPending(
     delete pendingForActivation
       .guidedConstructionFinalRephraseUsed;
 
+    delete pendingForActivation
+      .guidedConstructionAdditionalSupportEndpoint;
+    
     delete pendingForActivation
       .guidedConstructionLocation;
   }
