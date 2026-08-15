@@ -27662,8 +27662,6 @@ if (
       componentValidation:
         validation,
 
-      // Dedicated persistent final-step rephrase
-      // consumption is integrated later.
       finalRephraseUsed:
         false,
     });
@@ -27954,9 +27952,7 @@ if (
 
       componentValidation:
         validation,
-
-      // Dedicated persistent final-step rephrase
-      // consumption is integrated later.
+      
       finalRephraseUsed:
         false,
     });
