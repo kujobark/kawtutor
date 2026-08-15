@@ -2454,6 +2454,647 @@ const INSTRUCTIONAL_PLAYBOOK = {
   
 };
 
+// ======================================================
+// GUIDED CONSTRUCTION RULES
+// ======================================================
+//
+// Guided Construction is Progressive Support Stage 3.
+//
+// This structure defines the component-specific smaller
+// thinking operations used while Guided Construction is
+// active.
+//
+// It is declarative instructional knowledge only.
+//
+// It does not:
+//
+// • determine whether Guided Construction begins;
+// • validate a completed Frame component;
+// • advance Guided Construction steps;
+// • mutate pending state;
+// • save student work;
+// • select an Instructional Contract;
+// • determine an Instructional Situation;
+// • generate student-facing communication.
+//
+// Runtime progression will consume these rules later.
+//
+// Active Pathway Authority:
+//
+// Genuine Struggle governs entry into Guided Construction.
+// Once Guided Construction is active at the same exact
+// instructional location, Guided Construction rules govern
+// continuation until the component is completed or the
+// pathway reaches its defined endpoint.
+//
+// The existing governed component validators remain the
+// final authority for full component acceptance.
+//
+// ======================================================
+
+const GUIDED_CONSTRUCTION_RULES = Object.freeze({
+
+  isAbout: {
+    component:
+      "isAbout",
+
+    steps: {
+      1: {
+        step:
+          1,
+
+        operation:
+          "identify",
+
+        purpose:
+          "Identify one meaningful student-owned idea about the accepted Key Topic that can become part of a whole-topic Is About paraphrase.",
+
+        sufficientMicroStepEvidence:
+          [
+            "The student expresses one understandable idea about what happens, is involved, is true, or is important to know about the accepted Key Topic.",
+            "The idea contributes observable meaning beyond merely repeating the Key Topic.",
+            "The idea is coherent enough to build from without Kaw supplying the next idea.",
+          ],
+
+        insufficientMicroStepEvidence:
+          [
+            "The response contains no usable component thinking.",
+            "The response merely repeats the Key Topic.",
+            "The response is too vague or unclear to identify one meaningful idea.",
+            "The response is disconnected from the accepted Key Topic.",
+            "The response consists only of struggle, meta-commentary, or unrelated language.",
+          ],
+
+        thinkingMove:
+          "Begin Guided Construction of the Is About by reducing the whole-topic paraphrase into one smaller thinking step. Reconnect to the accepted Key Topic, tell the student Kaw will work through it one step at a time, and ask the student to identify one thing that happens, is involved, is true, or is important to know about the Key Topic. Do not ask for the finished Is About yet, and do not suggest or supply any content.",
+
+        studentWorkProtection: {
+          preserveStudentOwnership:
+            true,
+
+          mayReferencePriorStudentEvidence:
+            true,
+
+          maySupplyContent:
+            false,
+
+          mayCompleteStudentThinking:
+            false,
+
+          mayRewriteStudentThinking:
+            false,
+        },
+      },
+
+      2: {
+        step:
+          2,
+
+        operation:
+          "explainOrExtend",
+
+        purpose:
+          "Help the student explain, extend, clarify, connect, or qualify the student-owned idea identified in Step 1 so that it contributes understandable meaning about the whole Key Topic.",
+
+        sufficientMicroStepEvidence:
+          [
+            "The student adds understandable meaning to the Step-1 idea.",
+            "The response explains, extends, clarifies, connects, qualifies, or describes what the idea shows about the accepted Key Topic.",
+            "The response provides enough student-owned meaning to continue without Kaw supplying the next idea.",
+          ],
+
+        insufficientMicroStepEvidence:
+          [
+            "The response merely repeats the Step-1 idea.",
+            "The response adds no observable meaning.",
+            "The relationship to the accepted Key Topic remains unclear or disconnected.",
+            "The response contains no usable component thinking.",
+          ],
+
+        thinkingMove:
+          "Continue Guided Construction of the Is About by building only from the student-owned idea identified in the previous step. Reconnect to that idea and the accepted Key Topic, then ask the student to explain, extend, clarify, connect, or describe what that idea tells someone about the Key Topic. Do not ask Kaw to supply the explanation, and do not interpret or complete the student's meaning for them.",
+
+        studentWorkProtection: {
+          preserveStudentOwnership:
+            true,
+
+          mayReferencePriorStudentEvidence:
+            true,
+
+          maySupplyExplanation:
+            false,
+
+          mayInferMeaning:
+            false,
+
+          mayCompleteStudentThinking:
+            false,
+
+          mayRewriteStudentThinking:
+            false,
+        },
+      },
+
+      3: {
+        step:
+          3,
+
+        operation:
+          "assemble",
+
+        purpose:
+          "Help the student assemble their own accepted guided evidence into an understandable whole-topic Is About paraphrase.",
+
+        sufficientMicroStepEvidence:
+          [
+            "The student attempts to combine or formulate their own guided evidence into a whole-topic explanation.",
+            "The response remains grounded in the student-owned ideas established during Guided Construction.",
+            "The response contains usable formulation or synthesis even if the normal Is About validator has not yet accepted it.",
+          ],
+
+        insufficientMicroStepEvidence:
+          [
+            "The response contains no usable attempt to formulate the Is About.",
+            "The response abandons or contradicts the student-owned guided evidence without establishing new usable thinking.",
+            "The response consists only of struggle, meta-commentary, repetition, or unrelated language.",
+          ],
+
+        thinkingMove:
+          "Continue Guided Construction of the Is About by reconnecting to the student-owned ideas established in the earlier guided steps and inviting the student to put those ideas together into a whole-topic Is About in their own words. Kaw may remind the student of ideas they already supplied, but must not combine, complete, rewrite, interpret, or supply the Is About for them.",
+
+        studentWorkProtection: {
+          preserveStudentOwnership:
+            true,
+
+          mayReferencePriorStudentEvidence:
+            true,
+
+          mayCombineStudentEvidence:
+            false,
+
+          mayCompleteStudentThinking:
+            false,
+
+          mayRewriteStudentThinking:
+            false,
+
+          maySupplyParaphrase:
+            false,
+        },
+      },
+    },
+  },
+
+  mainIdeas: {
+    component:
+      "mainIdeas",
+
+    steps: {
+      1: {
+        step:
+          1,
+
+        operation:
+          "identifyOrganizer",
+
+        purpose:
+          "Identify one meaningful organizing idea that helps structure the accepted Key Topic and Is About and could reasonably hold multiple Essential Details.",
+
+        sufficientMicroStepEvidence:
+          [
+            "The student identifies a meaningful aspect, cause, effect, part, stage, pattern, event, category, or other organizing idea.",
+            "The proposed organizer is connected to the accepted Key Topic and Is About.",
+            "The idea is coherent enough to explore as a potential organizer.",
+            "For later Main Ideas, the proposed organizer is meaningfully distinct from already accepted Main Ideas.",
+          ],
+
+        insufficientMicroStepEvidence:
+          [
+            "The response merely repeats the Key Topic or Is About.",
+            "The response contains no meaningful organizing idea.",
+            "The response is only one isolated detail with no observable organizing potential.",
+            "The response duplicates an already accepted Main Idea without adding a distinct organizing contribution.",
+            "The response is unrelated, vague, or unusable.",
+          ],
+
+        thinkingMove:
+          "Begin Guided Construction of the Main Idea by reducing the organizing task into one smaller thinking step. Reconnect to the accepted Key Topic and Is About statement, tell the student Kaw will work through it one step at a time, and ask the student to identify one important aspect, cause, effect, part, stage, pattern, event, category, or other organizing idea they notice in the topic. Do not ask for the finished Main Idea yet, and do not suggest, choose, or supply the student's organizer.",
+
+        studentWorkProtection: {
+          preserveStudentOwnership:
+            true,
+
+          mayReferencePriorStudentEvidence:
+            true,
+
+          mayChooseOrganizer:
+            false,
+
+          maySupplyMainIdea:
+            false,
+
+          mayRewriteStudentThinking:
+            false,
+        },
+      },
+
+      2: {
+        step:
+          2,
+
+        operation:
+          "establishOrganizingPower",
+
+        purpose:
+          "Help the student establish that the proposed organizer can meaningfully hold multiple kinds of supporting information without prematurely constructing Essential Details.",
+
+        sufficientMicroStepEvidence:
+          [
+            "The student identifies more than one kind, category, example type, fact type, event, reason, condition, or other information that could reasonably fit beneath the organizer.",
+            "The response demonstrates that the organizer has enough breadth or structure to function as a Main Idea.",
+            "The student does not need to formulate finished Essential Details.",
+          ],
+
+        insufficientMicroStepEvidence:
+          [
+            "The response gives only one isolated detail without demonstrating organizing power.",
+            "The response simply repeats the proposed Main Idea.",
+            "The response shows that the proposed idea functions only as a single detail.",
+            "The response provides no usable evidence that multiple supporting details could fit beneath it.",
+          ],
+
+        thinkingMove:
+          "Continue Guided Construction of the Main Idea by building from the student-owned organizer identified in the previous step. Ask the student what kinds of facts, examples, events, reasons, conditions, observations, or other information could fit underneath that organizer. The student does not need to write finished Essential Details yet. Do not choose, invent, or supply the supporting information for the student.",
+
+        studentWorkProtection: {
+          preserveStudentOwnership:
+            true,
+
+          mayReferencePriorStudentEvidence:
+            true,
+
+          mayGenerateSupportingDetails:
+            false,
+
+          mayChooseOrganizer:
+            false,
+
+          mayCompleteStudentThinking:
+            false,
+        },
+      },
+
+      3: {
+        step:
+          3,
+
+        operation:
+          "formulateOrganizer",
+
+        purpose:
+          "Help the student state the organizing idea in whatever form best represents their thinking without imposing a sentence-length or grammatical-form requirement.",
+
+        sufficientMicroStepEvidence:
+          [
+            "The student attempts to state or formulate the organizer they established.",
+            "The formulation remains grounded in the student-owned organizer and organizing relationship.",
+            "The response may be a word, phrase, category, event title, heading, or sentence.",
+          ],
+
+        insufficientMicroStepEvidence:
+          [
+            "The response does not state a usable organizer.",
+            "The response abandons the established organizing idea without producing another coherent organizer.",
+            "The response consists only of repetition, struggle language, or unrelated content.",
+          ],
+
+        thinkingMove:
+          "Continue Guided Construction of the Main Idea by reconnecting to the student-owned organizer and the kinds of information the student said could fit beneath it. Invite the student to state that Main Idea in the form that best represents their thinking. It may be a word, phrase, category, heading, event, or sentence. Do not require a longer form merely because the response is concise, and do not rewrite or supply the Main Idea.",
+
+        studentWorkProtection: {
+          preserveStudentOwnership:
+            true,
+
+          mayReferencePriorStudentEvidence:
+            true,
+
+          mayRequireSentenceForm:
+            false,
+
+          maySupplyMainIdea:
+            false,
+
+          mayRewriteStudentThinking:
+            false,
+        },
+      },
+    },
+  },
+
+  details: {
+    component:
+      "details",
+
+    steps: {
+      1: {
+        step:
+          1,
+
+        operation:
+          "identifySpecificInformation",
+
+        purpose:
+          "Identify one concrete piece of student-owned information relevant enough to the accepted Main Idea and larger Frame that its supporting relationship can be explored.",
+
+        sufficientMicroStepEvidence:
+          [
+            "The student identifies one specific fact, example, observation, explanation, event, condition, action, result, or piece of evidence.",
+            "The information is understandable and sufficiently connected to the accepted Main Idea to explore its support relationship.",
+            "The student does not yet need to fully explain the supporting relationship.",
+          ],
+
+        insufficientMicroStepEvidence:
+          [
+            "The response contains no concrete information.",
+            "The response merely repeats the Main Idea.",
+            "The response is too vague to identify one specific piece of information.",
+            "The response is unrelated to the accepted Main Idea and larger Frame.",
+            "The response contains only struggle, meta-commentary, or unrelated language.",
+          ],
+
+        thinkingMove:
+          "Begin Guided Construction of the Essential Detail by separating identification of supporting information from explanation of the supporting relationship. Reconnect to the accepted Main Idea, tell the student Kaw will work through it one step at a time, and first ask the student to identify one specific thing they know, noticed, read, observed, or can point to that relates to the Main Idea. Do not ask them to explain the connection yet, and do not suggest or supply the evidence.",
+
+        studentWorkProtection: {
+          preserveStudentOwnership:
+            true,
+
+          mayReferencePriorStudentEvidence:
+            true,
+
+          mayChooseEvidence:
+            false,
+
+          maySupplyEssentialDetail:
+            false,
+
+          mayRewriteStudentThinking:
+            false,
+        },
+      },
+
+      2: {
+        step:
+          2,
+
+        operation:
+          "establishSupportAndEssentiality",
+
+        purpose:
+          "Help the student establish both how the identified information supports the accepted Main Idea and why it contributes important understanding rather than being merely related, interesting, incidental, or trivial.",
+
+        sufficientMicroStepEvidence:
+          [
+            "The student's response makes the supporting relationship to the accepted Main Idea understandable.",
+            "The information contributes important understanding of the Main Idea rather than functioning only as a related or interesting detail.",
+            "The relationship remains coherent with the accepted Is About and Key Topic.",
+            "Only the missing thinking must be established; redundant justification is not required.",
+          ],
+
+        insufficientMicroStepEvidence:
+          [
+            "The student merely says the information relates to the Main Idea.",
+            "The response repeats the Step-1 information without explaining its support relationship.",
+            "The response gives a vague connection that still requires Kaw to infer why it supports the Main Idea.",
+            "The information appears merely interesting or incidental rather than important to understanding the Main Idea.",
+            "The response drifts from the accepted Main Idea or larger Frame.",
+          ],
+
+        thinkingMove:
+          "Continue Guided Construction of the Essential Detail by building from the specific student-owned information identified in the previous step. Reconnect to that information and the accepted Main Idea, then help the student make clear how or why the information supports, illustrates, develops, exemplifies, or provides evidence for the Main Idea and why it contributes important understanding rather than merely being related, interesting, or incidental. The supporting relationship must remain coherent with the accepted Is About and Key Topic. Ask only for the missing thinking needed to establish these relationships; do not require redundant justification when the detail already satisfies the normal governed Essential Detail criteria, and do not interpret, complete, choose, or supply the relationship for the student.",
+
+        studentWorkProtection: {
+          preserveStudentOwnership:
+            true,
+
+          mayReferencePriorStudentEvidence:
+            true,
+
+          maySupplyRelationship:
+            false,
+
+          mayInferRelationship:
+            false,
+
+          mayChooseEvidence:
+            false,
+
+          mayRewriteStudentThinking:
+            false,
+        },
+      },
+
+      3: {
+        step:
+          3,
+
+        operation:
+          "formulateEssentialDetail",
+
+        purpose:
+          "Help the student state the student-owned information and established support relationship as one clear Essential Detail beneath the accepted Main Idea.",
+
+        sufficientMicroStepEvidence:
+          [
+            "The student attempts to state the Essential Detail using their own identified information and support relationship.",
+            "The response remains grounded in the student-owned evidence established in earlier guided steps.",
+            "The response contains usable formulation even if the normal Essential Detail validator has not yet accepted it.",
+          ],
+
+        insufficientMicroStepEvidence:
+          [
+            "The response contains no usable attempt to formulate the Essential Detail.",
+            "The response abandons the student-owned evidence or support relationship without establishing new usable thinking.",
+            "The response consists only of struggle language, repetition, or unrelated content.",
+          ],
+
+        thinkingMove:
+          "Continue Guided Construction of the Essential Detail by reconnecting to the student-owned information and supporting relationship established in the earlier guided steps. Invite the student to state the Essential Detail in their own words so that the specific information and its support for the accepted Main Idea are understandable. Kaw may remind the student of ideas they already supplied, but must not combine, complete, rewrite, interpret, or supply the Essential Detail for them.",
+
+        studentWorkProtection: {
+          preserveStudentOwnership:
+            true,
+
+          mayReferencePriorStudentEvidence:
+            true,
+
+          mayCombineStudentEvidence:
+            false,
+
+          maySupplyEssentialDetail:
+            false,
+
+          mayRewriteStudentThinking:
+            false,
+        },
+      },
+    },
+  },
+
+  soWhat: {
+    component:
+      "soWhat",
+
+    steps: {
+      1: {
+        step:
+          1,
+
+        operation:
+          "connectFrame",
+
+        purpose:
+          "Help the student look across the completed Frame and identify one meaningful relationship, pattern, connection, contrast, sequence, cause-and-effect relationship, or larger idea that emerges from the accepted Frame content.",
+
+        sufficientMicroStepEvidence:
+          [
+            "The student identifies a meaningful relationship, pattern, connection, contrast, sequence, cause-and-effect relationship, or larger idea grounded in the completed Frame.",
+            "The connection may emerge from Main Ideas, Essential Details, or relationships among accepted Frame content.",
+            "The response provides enough student-owned thinking to explore what is important to understand.",
+          ],
+
+        insufficientMicroStepEvidence:
+          [
+            "The response merely lists or repeats accepted Frame components.",
+            "The response identifies no meaningful relationship, pattern, or larger idea.",
+            "The response is disconnected from the completed Frame.",
+            "The response contains only a vague statement such as saying the topic is important without identifying what emerges from the Frame.",
+          ],
+
+        thinkingMove:
+          "Begin Guided Construction of the So What by helping the student look across the completed Frame and identify one meaningful relationship, pattern, connection, contrast, sequence, cause-and-effect relationship, or larger idea that emerges from the accepted Main Ideas and Essential Details in relation to the Key Topic and Is About. Do not require a particular relationship structure, and do not interpret or supply the connection for the student.",
+
+        studentWorkProtection: {
+          preserveStudentOwnership:
+            true,
+
+          mayReferencePriorStudentEvidence:
+            true,
+
+          mayChooseRelationship:
+            false,
+
+          mayInterpretFrameForStudent:
+            false,
+
+          maySupplyTakeaway:
+            false,
+        },
+      },
+
+      2: {
+        step:
+          2,
+
+        operation:
+          "determineImportance",
+
+        purpose:
+          "Help the student determine what is important to understand about the relationship or larger idea they identified in the completed Frame.",
+
+        sufficientMicroStepEvidence:
+          [
+            "The student identifies a meaningful significance, conclusion, implication, application, real-world connection, topic connection, broader principle, metaphorical understanding, or other larger meaning grounded in the Frame.",
+            "The importance is understandable without Kaw supplying the conclusion.",
+            "The response moves beyond merely repeating accepted Frame content.",
+          ],
+
+        insufficientMicroStepEvidence:
+          [
+            "The student gives only a generic statement that the topic is important.",
+            "The response simply repeats the Step-1 relationship without interpreting its importance.",
+            "The proposed importance is unsupported by the completed Frame.",
+            "The response provides no usable larger meaning.",
+          ],
+
+        thinkingMove:
+          "Continue Guided Construction of the So What by building from the student-owned relationship or pattern identified in the previous step. Ask the student to determine what is important to understand about that relationship or what larger significance, conclusion, implication, application, real-world connection, connection to another topic, broader principle, metaphorical understanding, or other meaningful synthesis emerges from it. Use the student's own Frame as the evidence base, and do not choose or supply the significance for the student.",
+
+        studentWorkProtection: {
+          preserveStudentOwnership:
+            true,
+
+          mayReferencePriorStudentEvidence:
+            true,
+
+          mayChooseSignificance:
+            false,
+
+          maySupplyConclusion:
+            false,
+
+          mayInterpretFrameForStudent:
+            false,
+
+          mayRewriteStudentThinking:
+            false,
+        },
+      },
+
+      3: {
+        step:
+          3,
+
+        operation:
+          "synthesize",
+
+        purpose:
+          "Help the student express the larger understanding established through the previous guided steps in a form appropriate to the completed Frame.",
+
+        sufficientMicroStepEvidence:
+          [
+            "The student attempts to express a larger understanding grounded in the completed Frame.",
+            "The response uses the student-owned relationship and significance established in earlier guided steps.",
+            "The synthesis may take a legitimate form such as a conclusion, broader understanding, implication, application, real-world connection, connection to another topic, metaphor or simile, basic life truth, or other meaningful synthesis.",
+            "The response contains usable final-step thinking even if the normal So What validator has not yet accepted it.",
+          ],
+
+        insufficientMicroStepEvidence:
+          [
+            "The response merely repeats the Key Topic, Is About, one Main Idea, or one Essential Detail.",
+            "The response only lists Frame content without larger understanding.",
+            "The response makes an unsupported leap not grounded in the completed Frame.",
+            "The response contains no usable attempt at synthesis.",
+          ],
+
+        thinkingMove:
+          "Continue Guided Construction of the So What by helping the student express the larger understanding established through the previous guided steps. Reconnect to the student-owned relationship and significance, then invite the student to state the So What in their own words and in a form appropriate to the completed Frame. The response may take the form of a conclusion, broader understanding, implication, application, real-world connection, connection to another topic, metaphor or simile, basic life truth, or another meaningful synthesis grounded in the Frame. Kaw may remind the student of ideas the student has already supplied, but must not interpret, combine, rewrite, complete, or supply the So What for them.",
+
+        studentWorkProtection: {
+          preserveStudentOwnership:
+            true,
+
+          mayReferencePriorStudentEvidence:
+            true,
+
+          mayCombineStudentEvidence:
+            false,
+
+          maySupplyTakeaway:
+            false,
+
+          mayInterpretFrameForStudent:
+            false,
+
+          mayRewriteStudentThinking:
+            false,
+        },
+      },
+    },
+  },
+
+});
+
 function getInstructionalContract(
   frameComponent,
   instructionalSituation
