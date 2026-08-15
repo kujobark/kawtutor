@@ -14985,6 +14985,728 @@ results.push({
         ?.diagnosis || null,
   },
 });
+
+  // --------------------------------------------------
+  // GUIDED CONSTRUCTION — ESSENTIAL DETAIL
+  // TARGETED VERIFICATION
+  // --------------------------------------------------
+  //
+  // Confirms that Essential Detail uses the shared
+  // Guided Construction runtime while preserving:
+  //
+  // • normal Essential Detail validation authority;
+  // • exact Main Idea + Detail location identity;
+  // • deterministic stay / advance behavior;
+  // • student-owned guided evidence only;
+  // • immediate yield when the full component is valid.
+  //
+  // --------------------------------------------------
+
+  function createEssentialDetailGuidedTestState() {
+    const state =
+      defaultState();
+
+    state.interactionMode =
+      "build";
+
+    state.frameMeta.assignmentContext = {
+      valid:
+        true,
+
+      raw:
+        "Explain how social media can affect teen mental health.",
+
+      understanding:
+        "Explain how social media can affect teen mental health.",
+
+      studentSummary:
+        "you're explaining how social media can affect teen mental health.",
+
+      reasoningType:
+        "explain",
+
+      confidence:
+        "high",
+
+      confirmed:
+        true,
+
+      assignmentEvidenceLevel:
+        "substantive",
+
+      assignmentCriteriaStatus:
+        "satisfied",
+
+      assignmentContextStatus:
+        "established",
+
+      assignmentDemandStatus:
+        "established",
+
+      summaryReadinessStatus:
+        "ready",
+
+      diagnosis:
+        null,
+
+      assignmentEvidence:
+        null,
+
+      validationSource:
+        "deterministic",
+
+      needsClarification:
+        false,
+
+      childAnchor:
+        "",
+
+      clarificationCount:
+        0,
+    };
+
+    state.assignmentReasoning = {
+      task:
+        "explain",
+
+      label:
+        "Explain",
+
+      confidence:
+        1,
+
+      evidence: [
+        "assignmentTestState",
+      ],
+
+      lastUpdated:
+        null,
+    };
+
+    state.frame.keyTopic =
+      "Social Media and Teen Mental Health";
+
+    state.frame.isAbout =
+      "How social media can affect teen mental health.";
+
+    state.frame.parentItems = [
+      currentMainIdea,
+      "Social media can affect self-esteem.",
+    ];
+
+    state.frame.details = [
+      [],
+      [],
+    ];
+
+    state.pending = {
+      type:
+        "collectAnotherDetail",
+
+      index:
+        0,
+
+      captureMode:
+        "required",
+
+      progressiveSupportStage:
+        3,
+
+      guidedConstructionStep:
+        1,
+    };
+
+    return state;
+  }
+
+  // --------------------------------------------------
+  // ED GC TEST 1 — STEP-AWARE THINKING MOVE SELECTION
+  // --------------------------------------------------
+
+  const guidedSelectionContract =
+    INSTRUCTIONAL_PLAYBOOK
+      ?.details
+      ?.genuineStruggle;
+
+  const guidedSelectionResults =
+    [1, 2, 3].map(
+      (guidedConstructionStep) => {
+        const testState =
+          createEssentialDetailGuidedTestState();
+
+        testState.pending
+          .guidedConstructionStep =
+          guidedConstructionStep;
+
+        const selectedScaffold =
+          selectProgressiveSupportScaffold(
+            guidedSelectionContract,
+            testState
+          );
+
+        const expectedRule =
+          GUIDED_CONSTRUCTION_RULES
+            ?.details
+            ?.steps
+            ?.[guidedConstructionStep];
+
+        return {
+          guidedConstructionStep,
+
+          passed:
+            selectedScaffold
+              ?.progressiveSupportStage ===
+              3 &&
+
+            selectedScaffold
+              ?.guidedConstructionStep ===
+              guidedConstructionStep &&
+
+            selectedScaffold
+              ?.thinkingMove ===
+              expectedRule
+                ?.thinkingMove,
+
+          actualThinkingMove:
+            selectedScaffold
+              ?.thinkingMove ||
+            null,
+
+          expectedThinkingMove:
+            expectedRule
+              ?.thinkingMove ||
+            null,
+        };
+      }
+    );
+
+  const guidedSelectionPassed =
+    guidedSelectionResults.every(
+      (result) =>
+        result.passed === true
+    );
+
+  results.push({
+    name:
+      "ED Guided Construction - Stage 3 selects the correct Step 1, 2, and 3 Thinking Moves",
+
+    passed:
+      guidedSelectionPassed,
+
+    expected: {
+      progressiveSupportStage:
+        3,
+
+      guidedSteps:
+        [1, 2, 3],
+
+      allThinkingMovesMatchRules:
+        true,
+    },
+
+    actual: {
+      allThinkingMovesMatchRules:
+        guidedSelectionPassed,
+
+      stepResults:
+        guidedSelectionResults,
+    },
+  });
+
+  // --------------------------------------------------
+  // ED GC TEST 2 — EXACT TWO-COORDINATE LOCATION
+  // --------------------------------------------------
+
+  const guidedLocationState =
+    createEssentialDetailGuidedTestState();
+
+  const guidedLocationActual =
+    buildGuidedConstructionInstructionalLocation(
+      guidedLocationState
+    );
+
+  const guidedLocationPassed =
+    guidedLocationActual
+      ?.locationEstablished ===
+      true &&
+
+    guidedLocationActual
+      ?.frameComponent ===
+      "details" &&
+
+    guidedLocationActual
+      ?.detailMainIdeaIndex ===
+      0 &&
+
+    guidedLocationActual
+      ?.detailIndex ===
+      0;
+
+  results.push({
+    name:
+      "ED Guided Construction - Exact location preserves Main Idea index and Detail index",
+
+    passed:
+      guidedLocationPassed,
+
+    expected: {
+      frameComponent:
+        "details",
+
+      detailMainIdeaIndex:
+        0,
+
+      detailIndex:
+        0,
+    },
+
+    actual: {
+      frameComponent:
+        guidedLocationActual
+          ?.frameComponent ||
+        null,
+
+      detailMainIdeaIndex:
+        guidedLocationActual
+          ?.detailMainIdeaIndex ??
+        null,
+
+      detailIndex:
+        guidedLocationActual
+          ?.detailIndex ??
+        null,
+
+      locationEstablished:
+        guidedLocationActual
+          ?.locationEstablished ===
+        true,
+    },
+  });
+
+  // --------------------------------------------------
+  // ED GC TEST 3 — INSUFFICIENT STEP-1 EVIDENCE STAYS
+  // --------------------------------------------------
+
+  const guidedStayState =
+    createEssentialDetailGuidedTestState();
+
+  guidedStayState
+    .pending
+    .guidedConstructionLocation =
+    buildGuidedConstructionInstructionalLocation(
+      guidedStayState
+    );
+
+  const guidedStayValidation =
+    validateEssentialDetailResponse(
+      "idk",
+      currentMainIdea
+    );
+
+  const guidedStayActual =
+    await continueGuidedConstruction({
+      state:
+        guidedStayState,
+
+      response:
+        "idk",
+
+      componentValidation:
+        guidedStayValidation,
+
+      finalRephraseUsed:
+        false,
+    });
+
+  const guidedStayPassed =
+    guidedStayActual
+      ?.continuationStatus ===
+      "established" &&
+
+    guidedStayActual
+      ?.evidenceAssessment
+      ?.outcome ===
+      GUIDED_CONSTRUCTION_EVIDENCE_OUTCOMES
+        .INSUFFICIENT_MICRO_STEP_EVIDENCE &&
+
+    guidedStayActual
+      ?.progressionDecision
+      ?.decision ===
+      GUIDED_CONSTRUCTION_PROGRESSION_DECISIONS
+        .STAY_CURRENT_STEP &&
+
+    guidedStayState
+      ?.pending
+      ?.guidedConstructionStep ===
+      1 &&
+
+    !guidedStayState
+      ?.pending
+      ?.guidedConstructionEvidence;
+
+  results.push({
+    name:
+      "ED Guided Construction - Insufficient Step-1 evidence stays on Step 1",
+
+    passed:
+      guidedStayPassed,
+
+    expected: {
+      continuationStatus:
+        "established",
+
+      evidenceOutcome:
+        GUIDED_CONSTRUCTION_EVIDENCE_OUTCOMES
+          .INSUFFICIENT_MICRO_STEP_EVIDENCE,
+
+      decision:
+        GUIDED_CONSTRUCTION_PROGRESSION_DECISIONS
+          .STAY_CURRENT_STEP,
+
+      guidedConstructionStep:
+        1,
+
+      guidedEvidenceSaved:
+        false,
+    },
+
+    actual: {
+      continuationStatus:
+        guidedStayActual
+          ?.continuationStatus ||
+        null,
+
+      evidenceOutcome:
+        guidedStayActual
+          ?.evidenceAssessment
+          ?.outcome ||
+        null,
+
+      decision:
+        guidedStayActual
+          ?.progressionDecision
+          ?.decision ||
+        null,
+
+      guidedConstructionStep:
+        guidedStayState
+          ?.pending
+          ?.guidedConstructionStep ||
+        null,
+
+      guidedEvidenceSaved:
+        Boolean(
+          guidedStayState
+            ?.pending
+            ?.guidedConstructionEvidence
+        ),
+    },
+  });
+
+  // --------------------------------------------------
+  // ED GC TEST 4 — SUFFICIENT STEP-1 EVIDENCE ADVANCES
+  //
+  // Bounded semantic evidence is supplied directly so
+  // this test verifies the deterministic progression
+  // brain without making an additional AI call.
+  // --------------------------------------------------
+
+  const guidedAdvanceState =
+    createEssentialDetailGuidedTestState();
+
+  const guidedAdvanceLocation =
+    buildGuidedConstructionInstructionalLocation(
+      guidedAdvanceState
+    );
+
+  guidedAdvanceState
+    .pending
+    .guidedConstructionLocation =
+    structuredClone(
+      guidedAdvanceLocation
+    );
+
+  const guidedAdvanceResponse =
+    "Teens compare themselves to influencers.";
+
+  const guidedAdvanceValidation =
+    validateEssentialDetailResponse(
+      guidedAdvanceResponse,
+      currentMainIdea
+    );
+
+  const guidedAdvanceAssessment =
+    assessGuidedConstructionEvidence({
+      state:
+        guidedAdvanceState,
+
+      response:
+        guidedAdvanceResponse,
+
+      frameComponent:
+        "details",
+
+      guidedConstructionStep:
+        1,
+
+      componentValidation:
+        guidedAdvanceValidation,
+
+      microStepSemanticEvidence: {
+        assessmentEstablished:
+          true,
+
+        sufficientForCurrentStep:
+          true,
+
+        usableForFinalStep:
+          false,
+
+        criterionEvidence:
+          [],
+
+        confidence:
+          1,
+
+        source:
+          "deterministicSelfTestSemanticEvidence",
+      },
+    });
+
+  const guidedAdvanceDecision =
+    buildGuidedConstructionProgressionDecision({
+      evidenceAssessment:
+        guidedAdvanceAssessment,
+
+      finalRephraseUsed:
+        false,
+    });
+
+  const guidedAdvanceUpdate =
+    applyGuidedConstructionProgression({
+      state:
+        guidedAdvanceState,
+
+      progressionDecision:
+        guidedAdvanceDecision,
+
+      evidenceAssessment:
+        guidedAdvanceAssessment,
+
+      instructionalLocation:
+        guidedAdvanceLocation,
+    });
+
+  const guidedAdvancePassed =
+    guidedAdvanceAssessment
+      ?.outcome ===
+      GUIDED_CONSTRUCTION_EVIDENCE_OUTCOMES
+        .SUFFICIENT_MICRO_STEP_EVIDENCE &&
+
+    guidedAdvanceDecision
+      ?.decision ===
+      GUIDED_CONSTRUCTION_PROGRESSION_DECISIONS
+        .ADVANCE_TO_NEXT_STEP &&
+
+    guidedAdvanceUpdate
+      ?.applied ===
+      true &&
+
+    guidedAdvanceState
+      ?.pending
+      ?.guidedConstructionStep ===
+      2 &&
+
+    guidedAdvanceState
+      ?.pending
+      ?.guidedConstructionEvidence
+      ?.[1]
+      ?.evidence ===
+      guidedAdvanceResponse;
+
+  results.push({
+    name:
+      "ED Guided Construction - Sufficient Step-1 evidence advances exactly to Step 2",
+
+    passed:
+      guidedAdvancePassed,
+
+    expected: {
+      evidenceOutcome:
+        GUIDED_CONSTRUCTION_EVIDENCE_OUTCOMES
+          .SUFFICIENT_MICRO_STEP_EVIDENCE,
+
+      decision:
+        GUIDED_CONSTRUCTION_PROGRESSION_DECISIONS
+          .ADVANCE_TO_NEXT_STEP,
+
+      guidedConstructionStep:
+        2,
+
+      savedEvidence:
+        guidedAdvanceResponse,
+    },
+
+    actual: {
+      evidenceOutcome:
+        guidedAdvanceAssessment
+          ?.outcome ||
+        null,
+
+      decision:
+        guidedAdvanceDecision
+          ?.decision ||
+        null,
+
+      applied:
+        guidedAdvanceUpdate
+          ?.applied ===
+        true,
+
+      guidedConstructionStep:
+        guidedAdvanceState
+          ?.pending
+          ?.guidedConstructionStep ||
+        null,
+
+      savedEvidence:
+        guidedAdvanceState
+          ?.pending
+          ?.guidedConstructionEvidence
+          ?.[1]
+          ?.evidence ||
+        null,
+    },
+  });
+
+  // --------------------------------------------------
+  // ED GC TEST 5 — FULL COMPONENT VALIDATION WINS
+  // --------------------------------------------------
+
+  const guidedCompleteState =
+    createEssentialDetailGuidedTestState();
+
+  guidedCompleteState
+    .pending
+    .guidedConstructionLocation =
+    buildGuidedConstructionInstructionalLocation(
+      guidedCompleteState
+    );
+
+  const guidedCompleteResponse =
+    "Teens compare themselves to influencers, which can make them feel inadequate and increase anxiety.";
+
+  const guidedCompleteValidation =
+    validateEssentialDetailResponse(
+      guidedCompleteResponse,
+      currentMainIdea
+    );
+
+  const guidedCompleteActual =
+    await continueGuidedConstruction({
+      state:
+        guidedCompleteState,
+
+      response:
+        guidedCompleteResponse,
+
+      componentValidation:
+        guidedCompleteValidation,
+
+      finalRephraseUsed:
+        false,
+    });
+
+  const guidedCompletePassed =
+    guidedCompleteValidation
+      ?.valid ===
+      true &&
+
+    guidedCompleteActual
+      ?.continuationStatus ===
+      "established" &&
+
+    guidedCompleteActual
+      ?.evidenceAssessment
+      ?.outcome ===
+      GUIDED_CONSTRUCTION_EVIDENCE_OUTCOMES
+        .COMPONENT_COMPLETE &&
+
+    guidedCompleteActual
+      ?.progressionDecision
+      ?.decision ===
+      GUIDED_CONSTRUCTION_PROGRESSION_DECISIONS
+        .COMPONENT_COMPLETE &&
+
+    guidedCompleteActual
+      ?.yieldsToNormalComponentProgression ===
+      true &&
+
+    guidedCompleteState
+      ?.frame
+      ?.details
+      ?.[0]
+      ?.length ===
+      0;
+
+  results.push({
+    name:
+      "ED Guided Construction - Full valid Essential Detail immediately yields to normal component progression",
+
+    passed:
+      guidedCompletePassed,
+
+    expected: {
+      governedValidationPassed:
+        true,
+
+      evidenceOutcome:
+        GUIDED_CONSTRUCTION_EVIDENCE_OUTCOMES
+          .COMPONENT_COMPLETE,
+
+      decision:
+        GUIDED_CONSTRUCTION_PROGRESSION_DECISIONS
+          .COMPONENT_COMPLETE,
+
+      yieldsToNormalComponentProgression:
+        true,
+
+      guidedConstructionDoesNotSaveComponent:
+        true,
+    },
+
+    actual: {
+      governedValidationPassed:
+        guidedCompleteValidation
+          ?.valid ===
+        true,
+
+      evidenceOutcome:
+        guidedCompleteActual
+          ?.evidenceAssessment
+          ?.outcome ||
+        null,
+
+      decision:
+        guidedCompleteActual
+          ?.progressionDecision
+          ?.decision ||
+        null,
+
+      yieldsToNormalComponentProgression:
+        guidedCompleteActual
+          ?.yieldsToNormalComponentProgression ===
+        true,
+
+      guidedConstructionDoesNotSaveComponent:
+        guidedCompleteState
+          ?.frame
+          ?.details
+          ?.[0]
+          ?.length ===
+        0,
+    },
+  });
   
   const passedCount =
     results.filter((result) => result.passed).length;
