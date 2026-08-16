@@ -1755,8 +1755,8 @@ const INSTRUCTIONAL_PLAYBOOK = {
             cue:
               "Briefly signal that Kaw is helping the student use what they already have.",
             thinkingMove:
-              "Reconnect the student to the accepted Key Topic and Is About statement, then invite them to identify one Main Idea that helps organize or explain the topic and could be supported by several Essential Details. Keep the support light and do not suggest, model, or supply the Main Idea.",
-          },
+                 "Reconnect the student to the accepted Key Topic and Is About statement, then invite them to identify one important part of the topic that could become a Main Idea. Use only the authorized Stage 1 thinking lenses supplied in the Communication License to make the choices concrete. Keep the support light and do not suggest, model, choose, or supply the Main Idea.",
+              },
 
     {
       level: 2,
@@ -8908,7 +8908,9 @@ const guidedConstructionActive =
 // the authorized lenses.
 //
 // Current scope:
+// Main Idea — Stage 1 Prompt.
 // Essential Detail — Stage 1 Prompt.
+//
 //
 // --------------------------------------------------
 
@@ -8916,75 +8918,158 @@ const stage1PromptVisualActive =
   progressiveSupportStage === 1 &&
   progressiveSupportType ===
     "prompt" &&
-  frameComponent ===
-    "details";
+  (
+    frameComponent ===
+      "mainIdeas" ||
+    frameComponent ===
+      "details"
+  );
 
 const stage1PromptVisualArchitecture =
-  stage1PromptVisualActive
-    ? {
-        required:
-          true,
+  !stage1PromptVisualActive
+    ? null
 
-        componentIcon:
-          "✍️",
+    : frameComponent ===
+        "mainIdeas"
+      ? {
+          required:
+            true,
 
-        componentLabel:
-          "Essential Detail",
+          componentIcon:
+            "💡",
 
-        parentContextIcon:
-          "💡",
+          componentLabel:
+            "Main Idea",
 
-        parentContextLabel:
-          "Main Idea",
+          parentContexts: [
+            {
+              icon:
+                "🧩",
 
-        requireComponentInLeadIn:
-          true,
+              label:
+                "Key Topic",
+            },
 
-        requireParentContext:
-          true,
+            {
+              icon:
+                "💬",
 
-        requireBridgeLine:
-          true,
+              label:
+                "Is About",
+            },
+          ],
 
-        bridgeLine:
-          "Think about one of these:",
+          requireComponentInLeadIn:
+            true,
 
-        requireVisualSeparation:
-          true,
+          requireParentContext:
+            true,
 
-        indentThinkingLenses:
-          true,
+          requireBridgeLine:
+            true,
 
-        thinkingLenses: [
-          {
-            icon:
-              "📌",
+          bridgeLine:
+            "Think about one of these:",
 
-            label:
-              "a fact",
-          },
+          requireVisualSeparation:
+            true,
 
-          {
-            icon:
-              "💬",
+          indentThinkingLenses:
+            true,
 
-            label:
-              "an example",
-          },
+          thinkingLenses: [
+            {
+              icon:
+                "🧩",
 
-          {
-            icon:
-              "👀",
+              label:
+                "an important category or part",
+            },
 
-            label:
-              "something you noticed or learned",
-          },
-        ],
+            {
+              icon:
+                "🔄",
 
-        requireSingleFinalQuestion:
-          true,
-      }
-    : null;
+              label:
+                "an important event or process",
+            },
+
+            {
+              icon:
+                "💭",
+
+              label:
+                "an important concept or idea",
+            },
+          ],
+
+          requireSingleFinalQuestion:
+            true,
+        }
+
+      : {
+          required:
+            true,
+
+          componentIcon:
+            "✍️",
+
+          componentLabel:
+            "Essential Detail",
+
+          parentContextIcon:
+            "💡",
+
+          parentContextLabel:
+            "Main Idea",
+
+          requireComponentInLeadIn:
+            true,
+
+          requireParentContext:
+            true,
+
+          requireBridgeLine:
+            true,
+
+          bridgeLine:
+            "Think about one of these:",
+
+          requireVisualSeparation:
+            true,
+
+          indentThinkingLenses:
+            true,
+
+          thinkingLenses: [
+            {
+              icon:
+                "📌",
+
+              label:
+                "a fact",
+            },
+
+            {
+              icon:
+                "💬",
+
+              label:
+                "an example",
+            },
+
+            {
+              icon:
+                "👀",
+
+              label:
+                "something you noticed or learned",
+            },
+          ],
+
+          requireSingleFinalQuestion:
+            true,
+        };
 
 // --------------------------------------------------
 // GUIDED CONSTRUCTION VISUAL ARCHITECTURE
@@ -9396,16 +9481,25 @@ if (
     );
 
   const parentContextIcon =
-    cleanText(
-      stage1PromptVisualArchitecture
-        ?.parentContextIcon || ""
-    );
+  cleanText(
+    stage1PromptVisualArchitecture
+      ?.parentContextIcon || ""
+  );
 
-  const parentContextLabel =
-    cleanText(
-      stage1PromptVisualArchitecture
-        ?.parentContextLabel || ""
-    );
+const parentContextLabel =
+  cleanText(
+    stage1PromptVisualArchitecture
+      ?.parentContextLabel || ""
+  );
+
+const parentContexts =
+  Array.isArray(
+    stage1PromptVisualArchitecture
+      ?.parentContexts
+  )
+    ? stage1PromptVisualArchitecture
+        .parentContexts
+    : [];
 
   const thinkingLenses =
     Array.isArray(
@@ -9426,18 +9520,46 @@ if (
       .filter(Boolean);
 
   if (
-    stage1PromptVisualArchitecture
-      ?.requireComponentInLeadIn === true &&
-    (
-      !componentIcon ||
-      !componentLabel ||
-      !text.includes(componentIcon) ||
-      !text.includes(componentLabel)
-    )
-  ) {
+  stage1PromptVisualArchitecture
+    ?.requireParentContext === true
+) {
+  const multipleParentContextsRequired =
+    parentContexts.length > 0;
+
+  const parentContextMissing =
+    multipleParentContextsRequired
+      ? parentContexts.some(
+          (context) => {
+            const icon =
+              cleanText(
+                context?.icon || ""
+              );
+
+            const label =
+              cleanText(
+                context?.label || ""
+              );
+
+            return (
+              !icon ||
+              !label ||
+              !text.includes(icon) ||
+              !text.includes(label)
+            );
+          }
+        )
+      : (
+          !parentContextIcon ||
+          !parentContextLabel ||
+          !text.includes(parentContextIcon) ||
+          !text.includes(parentContextLabel)
+        );
+
+  if (parentContextMissing) {
     violations.push(
-      "stage1PromptComponentLeadInRequired"
-  );
+      "stage1PromptParentContextRequired"
+    );
+  }
 }
 
   if (
