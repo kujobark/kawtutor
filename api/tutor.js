@@ -6396,6 +6396,143 @@ async function continueGuidedConstruction({
   };
 }
 
+// ======================================================
+// GUIDED CONSTRUCTION ADDITIONAL-SUPPORT ENDPOINT
+// ======================================================
+//
+// Builds the deterministic instructional endpoint used
+// when Guided Construction Step 3 has been exhausted.
+//
+// This endpoint does not create Stage 4 or Step 4.
+//
+// It preserves the student's current instructional
+// location and directs the student toward external
+// instructional resources without supplying the missing
+// Frame thinking.
+//
+// JavaScript establishes this endpoint.
+// AI does not decide whether teacher or resource support
+// is needed.
+//
+// Endpoint resumption is governed separately.
+//
+// ======================================================
+
+function buildGuidedConstructionAdditionalSupportEndpoint(
+  state
+) {
+  const safeState =
+    state &&
+    typeof state === "object"
+      ? state
+      : {};
+
+  const pending =
+    safeState?.pending &&
+    typeof safeState.pending === "object"
+      ? safeState.pending
+      : null;
+
+  if (
+    !pending ||
+    pending
+      ?.guidedConstructionAdditionalSupportEndpoint !==
+      true
+  ) {
+    return null;
+  }
+
+  const activeContext =
+    getActiveGuidedConstructionContext(
+      safeState
+    );
+
+  const instructionalLocation =
+    buildGuidedConstructionInstructionalLocation(
+      safeState
+    );
+
+  const storedLocation =
+    pending
+      ?.guidedConstructionLocation &&
+    typeof pending
+      .guidedConstructionLocation ===
+      "object"
+      ? pending.guidedConstructionLocation
+      : null;
+
+  const sameInstructionalLocation =
+    activeContext?.active === true &&
+    storedLocation
+      ?.locationEstablished === true &&
+    instructionalLocation
+      ?.locationEstablished === true &&
+    isSameGuidedConstructionInstructionalLocation(
+      storedLocation,
+      instructionalLocation
+    );
+
+  if (!sameInstructionalLocation) {
+    return null;
+  }
+
+  return {
+    artifactType:
+      "guidedConstructionAdditionalSupportEndpoint",
+
+    endpointStatus:
+      "established",
+
+    frameComponent:
+      activeContext
+        ?.frameComponent ||
+      null,
+
+    guidedConstructionStep:
+      activeContext
+        ?.guidedConstructionStep ||
+      null,
+
+    instructionalLocation:
+      structuredClone(
+        instructionalLocation
+      ),
+
+    supportOptions: [
+      "notes",
+      "sourceMaterials",
+      "assignmentMaterials",
+      "teacherSupport",
+    ],
+
+    governance: {
+      deterministicEndpoint:
+        true,
+
+      preserveExactInstructionalLocation:
+        true,
+
+      preserveAcceptedFrameContent:
+        true,
+
+      preserveGuidedConstructionEvidence:
+        true,
+
+      maySupplyStudentThinking:
+        false,
+
+      mayCreateAdditionalGuidedConstructionStep:
+        false,
+
+      mayCreateAdditionalProgressiveSupportStage:
+        false,
+
+      aiChoosesReferral:
+        false,
+    },
+  };
+}
+
 function getInstructionalContract(
   frameComponent,
   instructionalSituation
