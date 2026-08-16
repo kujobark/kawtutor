@@ -2609,7 +2609,6 @@ const INSTRUCTIONAL_PLAYBOOK = {
         returnImmediatelyToStudentTask: true,
       },
       thinkingMove:
-        thinkingMove:
           "Briefly model what a So What does using one simple completed Frame that is clearly unrelated to the student's assignment. Name two brief Main Ideas from that example Frame, then show one concise So What that combines those ideas into a larger understanding rather than simply repeating them. Keep the example brief, structurally analogous, and content-distant so it cannot function as a hint or candidate response for the student's actual Frame. Then return immediately to the student's completed Frame and invite the student to identify the larger understanding that emerges from their own ideas together.",
     },
 
