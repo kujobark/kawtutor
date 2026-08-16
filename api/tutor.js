@@ -6558,6 +6558,309 @@ function getInstructionalContract(
   );
 }
 
+async function getGuidedConstructionEndpointResumeObservation({
+  state = null,
+  message = "",
+} = {}) {
+  const safeState =
+    state &&
+    typeof state === "object"
+      ? state
+      : {};
+
+  const studentMessage =
+    cleanText(message);
+
+  const endpoint =
+    buildGuidedConstructionAdditionalSupportEndpoint(
+      safeState
+    );
+
+  if (
+    !studentMessage ||
+    endpoint?.endpointStatus !==
+      "established"
+  ) {
+    return {
+      observationEstablished:
+        false,
+
+      resumeAcknowledgmentObserved:
+        false,
+
+      confidence:
+        0,
+
+      source:
+        "notRequested",
+    };
+  }
+
+  const system = `You are a bounded observation layer for Kaw Companion.
+
+The student has reached a governed Guided Construction additional-support endpoint.
+
+Kaw previously directed the student to consult one of these external supports:
+- notes
+- source materials
+- assignment materials
+- teacher support
+
+Your only task is to determine whether the student's current message communicates that they are ready to return to the same instructional location after that support opportunity.
+
+A resume acknowledgment may be expressed in many natural ways.
+
+Examples of meaning that may count:
+- the student says they are ready to continue;
+- the student says they checked or reviewed a support;
+- the student says they received help;
+- the student otherwise clearly indicates they want to return to the work.
+
+Do not require exact wording.
+
+Do not determine:
+- whether Guided Construction should resume;
+- whether the instructional location is still valid;
+- whether the student completed the support successfully;
+- whether the student now understands the content;
+- whether their Frame thinking is correct or sufficient;
+- what Kaw should teach next;
+- whether progression should occur.
+
+If the student's message instead contains substantive Frame content rather than a resume acknowledgment, return resumeAcknowledgmentObserved=false.
+
+Return only the required JSON object.`;
+
+  const user = `Student message:
+"${studentMessage}"
+
+Determine only whether this message functions as an acknowledgment that the student is ready to return from the additional-support endpoint to the same Guided Construction location.`;
+
+  try {
+    const response =
+      await client.chat.completions.create({
+        model:
+          DEFAULT_MODEL,
+
+        reasoning_effort:
+          "none",
+
+        temperature:
+          0,
+
+        response_format: {
+          type:
+            "json_schema",
+
+          json_schema: {
+            name:
+              "guided_construction_endpoint_resume_observation",
+
+            strict:
+              true,
+
+            schema: {
+              type:
+                "object",
+
+              additionalProperties:
+                false,
+
+              properties: {
+                resumeAcknowledgmentObserved: {
+                  type:
+                    "boolean",
+                },
+
+                confidence: {
+                  type:
+                    "number",
+
+                  minimum:
+                    0,
+
+                  maximum:
+                    1,
+                },
+              },
+
+              required: [
+                "resumeAcknowledgmentObserved",
+                "confidence",
+              ],
+            },
+          },
+        },
+
+        messages: [
+          {
+            role:
+              "system",
+
+            content:
+              system,
+          },
+
+          {
+            role:
+              "user",
+
+            content:
+              user,
+          },
+        ],
+      });
+
+    const parsed =
+      JSON.parse(
+        response?.choices?.[0]
+          ?.message?.content || "{}"
+      );
+
+    const confidence =
+      Number(
+        parsed?.confidence || 0
+      );
+
+    const normalizedConfidence =
+      Number.isFinite(confidence)
+        ? Math.max(
+            0,
+            Math.min(
+              confidence,
+              1
+            )
+          )
+        : 0;
+
+    const observationEstablished =
+      normalizedConfidence >=
+      0.9;
+
+    return {
+      observationEstablished,
+
+      resumeAcknowledgmentObserved:
+        observationEstablished &&
+        parsed
+          ?.resumeAcknowledgmentObserved ===
+          true,
+
+      confidence:
+        normalizedConfidence,
+
+      source:
+        "aiBoundedEndpointResumeObservation",
+    };
+  } catch (error) {
+    console.error(
+      "Guided Construction endpoint resume observation error:",
+      error
+    );
+
+    return {
+      observationEstablished:
+        false,
+
+      resumeAcknowledgmentObserved:
+        false,
+
+      confidence:
+        0,
+
+      source:
+        "endpointResumeObservationUnavailable",
+    };
+  }
+}
+
+function resumeGuidedConstructionAdditionalSupportEndpoint(
+  state,
+  resumeObservation
+) {
+  if (
+    !state ||
+    typeof state !== "object" ||
+    !state?.pending ||
+    typeof state.pending !== "object"
+  ) {
+    return {
+      resumed:
+        false,
+
+      reason:
+        "pendingStateUnavailable",
+    };
+  }
+
+  const observation =
+    resumeObservation &&
+    typeof resumeObservation === "object"
+      ? resumeObservation
+      : null;
+
+  if (
+    !observation ||
+    observation
+      ?.observationEstablished !==
+      true ||
+    observation
+      ?.resumeAcknowledgmentObserved !==
+      true
+  ) {
+    return {
+      resumed:
+        false,
+
+      reason:
+        "resumeAcknowledgmentNotEstablished",
+    };
+  }
+
+  const endpoint =
+    buildGuidedConstructionAdditionalSupportEndpoint(
+      state
+    );
+
+  if (
+    endpoint?.endpointStatus !==
+    "established"
+  ) {
+    return {
+      resumed:
+        false,
+
+      reason:
+        "additionalSupportEndpointNotEstablished",
+    };
+  }
+
+  delete state.pending
+    .guidedConstructionAdditionalSupportEndpoint;
+
+  delete state.pending
+    .guidedConstructionAdditionalSupportEndpointArtifact;
+
+  return {
+    resumed:
+      true,
+
+    reason:
+      null,
+
+    frameComponent:
+      endpoint.frameComponent,
+
+    guidedConstructionStep:
+      endpoint.guidedConstructionStep,
+
+    instructionalLocation:
+      structuredClone(
+        endpoint.instructionalLocation
+      ),
+  };
+}
+
 // ------------------------------------------------------
 // INSTRUCTIONAL CONTRACT SELECTION
 // ------------------------------------------------------
@@ -29294,6 +29597,27 @@ async function updateStateFromStudent(state, message) {
     };
   }
 
+const endpointResumeObservation =
+  await getGuidedConstructionEndpointResumeObservation({
+    state:
+      s,
+
+    message:
+      msg,
+  });
+
+const endpointResumption =
+  resumeGuidedConstructionAdditionalSupportEndpoint(
+    s,
+    endpointResumeObservation
+  );
+
+if (
+  endpointResumption?.resumed === true
+) {
+  return s;
+}
+  
   // --------------------------------------------------
   // EVIDENCE STATE
   // --------------------------------------------------
