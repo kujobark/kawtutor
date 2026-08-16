@@ -29412,25 +29412,33 @@ return attachGovernedSupportToPending(
   }
   
   const count =
-    getIdeaList(s).length;
+  getIdeaList(s).length;
 
-  if (count >= 5) {
-    s.pending = {
-      type:
-        "confirmMainIdeas",
-    };
-
-    return s;
-  }
-
+if (count >= 5) {
   s.pending = {
     type:
-      "offerAnotherMainIdea",
+      "confirmMainIdeas",
   };
 
   return s;
 }
 
+if (count === 1) {
+  s.pending = {
+    type:
+      "collectAnotherMainIdea",
+  };
+
+  return s;
+}
+
+s.pending = {
+  type:
+    "offerAnotherMainIdea",
+};
+
+return s;
+  
 // ---------------------
 // PROGRESSION
 // ---------------------
