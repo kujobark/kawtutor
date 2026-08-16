@@ -1115,8 +1115,8 @@ const INSTRUCTIONAL_PLAYBOOK = {
         "reduceCognitiveLoad",
 
       thinkingMove:
-        "Reconnect the student to the accepted Key Topic and invite them to explain what the whole topic is about in their own understandable words without suggesting or supplying the Is About statement.",
-
+          "Reconnect the student to the accepted Key Topic and invite them to explain, in their own words, what the topic is about without suggesting or supplying the Is About statement.",
+      
       communicationPattern:
         "briefReassuranceThenQuestion",
 
@@ -1516,8 +1516,8 @@ const INSTRUCTIONAL_PLAYBOOK = {
         "reduceCognitiveLoad",
 
       thinkingMove:
-        "Reconnect the student to the accepted Key Topic and Is About statement, then invite them to identify one larger idea, category, cause, effect, part, stage, pattern, or major event that helps organize the topic. Do not suggest or generate the Main Idea.",
-
+          "Reconnect the student to the accepted Key Topic and Is About statement, then invite them to identify one larger idea or important part that could help explain the topic. Do not suggest or generate the Main Idea.",
+        
       communicationPattern:
         "briefReassuranceThenQuestion",
 
