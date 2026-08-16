@@ -9004,7 +9004,7 @@ const stage1PromptVisualArchitecture =
           ],
 
           finalQuestionTemplate:
-            "What is one important part of {assignmentSummary} that could become your Main Idea?",
+            "Looking at your Key Topic and Is About, what is one important part that could become your Main Idea?",
 
           requireSingleFinalQuestion:
             true,
@@ -10910,13 +10910,6 @@ async function getInstructionalResponse(activation) {
     assignmentContext.raw ||
     "";
 
-  const assignmentUnderstanding =
-  cleanText(
-    assignmentContext.understanding ||
-    assignmentContext.raw ||
-    ""
-  );
-
   const thinkingTask =
     payload?.context?.thinkingTask?.label ||
     payload?.context?.thinkingTask?.task ||
@@ -10976,12 +10969,8 @@ const stage1FinalQuestion =
     ? cleanText(
         stage1PromptVisualArchitecture
           .finalQuestionTemplate
-      ).replace(
-        "{assignmentSummary}",
-        assignmentUnderstanding
       )
     : "";
-
 
 const guidedConstructionVisualArchitecture =
   communicationLicense
