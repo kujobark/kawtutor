@@ -6872,6 +6872,20 @@ function resumeGuidedConstructionAdditionalSupportEndpoint(
     };
   }
 
+if (
+  observation
+    ?.substantiveFrameContentObserved !==
+    false
+) {
+  return {
+    resumed:
+      false,
+
+    reason:
+      "substantiveFrameContentObserved",
+  };
+}
+  
   const endpoint =
     buildGuidedConstructionAdditionalSupportEndpoint(
       state
