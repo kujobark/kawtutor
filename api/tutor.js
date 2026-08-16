@@ -8937,13 +8937,22 @@ const stage1PromptVisualArchitecture =
         parentContextLabel:
           "Main Idea",
 
-        requireComponentHeader:
+        requireComponentInLeadIn:
           true,
 
         requireParentContext:
           true,
 
+        requireBridgeLine:
+          true,
+
+        bridgeLine:
+          "Think about one of these:",
+
         requireVisualSeparation:
+          true,
+
+        indentThinkingLenses:
           true,
 
         thinkingLenses: [
@@ -9418,7 +9427,7 @@ if (
 
   if (
     stage1PromptVisualArchitecture
-      ?.requireComponentHeader === true &&
+      ?.requireComponentInLeadIn === true &&
     (
       !componentIcon ||
       !componentLabel ||
@@ -9427,9 +9436,9 @@ if (
     )
   ) {
     violations.push(
-      "stage1PromptComponentHeaderRequired"
-    );
-  }
+      "stage1PromptComponentLeadInRequired"
+  );
+}
 
   if (
     stage1PromptVisualArchitecture
@@ -9445,6 +9454,26 @@ if (
       "stage1PromptParentContextRequired"
     );
   }
+
+  
+const bridgeLine =
+  cleanText(
+    stage1PromptVisualArchitecture
+      ?.bridgeLine || ""
+  );
+
+if (
+  stage1PromptVisualArchitecture
+    ?.requireBridgeLine === true &&
+  (
+    !bridgeLine ||
+    !text.includes(bridgeLine)
+  )
+) {
+  violations.push(
+    "stage1PromptBridgeLineRequired"
+  );
+}
 
   if (
     thinkingLenses.some(
@@ -10885,8 +10914,11 @@ You must follow these rules:
 - Do not change the Instructional Goal, Teaching Move, or Thinking Move.
 - Preserve every instructional distinction, comparison, cognitive cue, and constraint contained in the predetermined Thinking Move. Do not generalize it into a simpler or earlier-stage question.
 - When a Stage 1 Prompt Visual Architecture is supplied in the Communication License, it is mandatory.
-- Use the supplied component header, accepted parent context, visual separation, and authorized thinking lenses exactly as structural guidance.
-- Render the authorized thinking lenses as separate, scannable lines using their supplied icons and labels.
+- Use a brief teacher-like lead-in that explains how Kaw is helping the student and includes the supplied component icon and component label naturally in the sentence.
+- Show the accepted parent context on its own visually separated line using the supplied parent-context icon and label.
+- When a bridge line is supplied, render it exactly as provided before the thinking lenses.
+- Render the authorized thinking lenses as separate, scannable lines beneath the bridge line using their supplied icons and labels.
+- When indentation is required, visually indent the thinking lenses beneath the bridge line so they read as related thinking options.
 - Do not add, remove, rename, combine, or replace the supplied thinking lenses.
 - Do not turn the lenses into suggested student answers; they are categories that help the student think.
 - End with exactly one concise question that performs the predetermined Thinking Move.
