@@ -9561,22 +9561,6 @@ const parentContexts =
     );
   }
 }
-
-  if (
-    stage1PromptVisualArchitecture
-      ?.requireParentContext === true &&
-    (
-      !parentContextIcon ||
-      !parentContextLabel ||
-      !text.includes(parentContextIcon) ||
-      !text.includes(parentContextLabel)
-    )
-  ) {
-    violations.push(
-      "stage1PromptParentContextRequired"
-    );
-  }
-
   
 const bridgeLine =
   cleanText(
@@ -11037,7 +11021,7 @@ You must follow these rules:
 - Preserve every instructional distinction, comparison, cognitive cue, and constraint contained in the predetermined Thinking Move. Do not generalize it into a simpler or earlier-stage question.
 - When a Stage 1 Prompt Visual Architecture is supplied in the Communication License, it is mandatory.
 - Use a brief teacher-like lead-in that explains how Kaw is helping the student and includes the supplied component icon and component label naturally in the sentence.
-- Show the accepted parent context on its own visually separated line using the supplied parent-context icon and label.
+- Show every supplied accepted parent context on its own visually separated line using its supplied icon and label. When multiple parent contexts are supplied, display each one separately and preserve their supplied order.
 - When a bridge line is supplied, render it exactly as provided before the thinking lenses.
 - Render the authorized thinking lenses as separate, scannable lines beneath the bridge line using their supplied icons and labels.
 - When indentation is required, visually indent the thinking lenses beneath the bridge line so they read as related thinking options.
