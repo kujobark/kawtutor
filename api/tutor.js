@@ -29438,6 +29438,7 @@ s.pending = {
 };
 
 return s;
+}
   
 // ---------------------
 // PROGRESSION
