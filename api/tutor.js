@@ -2174,8 +2174,8 @@ const INSTRUCTIONAL_PLAYBOOK = {
             cue:
               "Briefly signal that Kaw is helping the student use what they already have.",
             thinkingMove:
-              "Reconnect the student to the accepted Main Idea and invite them to identify one specific fact, example, observation, explanation, event, condition, action, result, or piece of evidence that could support it. Keep the support light and do not suggest, model, choose, or supply the Essential Detail.",
-          },
+              "Reconnect the student to the accepted Main Idea and invite them to identify one specific thing that could help explain or support it. Use only the authorized Stage 1 thinking lenses supplied in the Communication License to make the choices concrete. Keep the support light and do not suggest, model, choose, or supply the Essential Detail.",
+            },
 
     {
       level: 2,
@@ -8893,6 +8893,90 @@ const guidedConstructionActive =
     guidedConstructionStep
   );
 
+  // --------------------------------------------------
+// STAGE 1 PROMPT VISUAL ARCHITECTURE
+//
+// Some Progressive Support Stage 1 prompts benefit from
+// a small deterministic set of visually separated
+// thinking lenses.
+//
+// These lenses reduce reading load without changing the
+// instructional objective or supplying student thinking.
+//
+// AI may contextualize the prompt around accepted Frame
+// content, but it may not choose, add, remove, or rewrite
+// the authorized lenses.
+//
+// Current scope:
+// Essential Detail — Stage 1 Prompt.
+//
+// --------------------------------------------------
+
+const stage1PromptVisualActive =
+  progressiveSupportStage === 1 &&
+  progressiveSupportType ===
+    "prompt" &&
+  frameComponent ===
+    "details";
+
+const stage1PromptVisualArchitecture =
+  stage1PromptVisualActive
+    ? {
+        required:
+          true,
+
+        componentIcon:
+          "✍️",
+
+        componentLabel:
+          "Essential Detail",
+
+        parentContextIcon:
+          "💡",
+
+        parentContextLabel:
+          "Main Idea",
+
+        requireComponentHeader:
+          true,
+
+        requireParentContext:
+          true,
+
+        requireVisualSeparation:
+          true,
+
+        thinkingLenses: [
+          {
+            icon:
+              "📌",
+
+            label:
+              "a fact",
+          },
+
+          {
+            icon:
+              "💬",
+
+            label:
+              "an example",
+          },
+
+          {
+            icon:
+              "👀",
+
+            label:
+              "something you noticed or learned",
+          },
+        ],
+
+        requireSingleFinalQuestion:
+          true,
+      }
+    : null;
+
 // --------------------------------------------------
 // GUIDED CONSTRUCTION VISUAL ARCHITECTURE
 //
@@ -9106,12 +9190,19 @@ const guidedConstructionVisualArchitecture =
     communicationPattern,
 
     studentFacingFormat: {
-      guidedConstructionVisualArchitecture:
-        guidedConstructionVisualArchitecture
-          ? structuredClone(
-              guidedConstructionVisualArchitecture
-            )
-          : null,
+  stage1PromptVisualArchitecture:
+    stage1PromptVisualArchitecture
+      ? structuredClone(
+          stage1PromptVisualArchitecture
+        )
+      : null,
+
+  guidedConstructionVisualArchitecture:
+    guidedConstructionVisualArchitecture
+      ? structuredClone(
+          guidedConstructionVisualArchitecture
+        )
+      : null,
 
   requireModelContrastSeparation:
     modelContrastPresent,
@@ -9259,6 +9350,16 @@ function validateInstructionalCommunicationResponse(
           .studentFacingFormat
       : {};
 
+  const stage1PromptVisualArchitecture =
+  studentFacingFormat
+    ?.stage1PromptVisualArchitecture &&
+  typeof studentFacingFormat
+    .stage1PromptVisualArchitecture ===
+    "object"
+    ? studentFacingFormat
+        .stage1PromptVisualArchitecture
+    : null;
+  
   const guidedConstructionVisualArchitecture =
   studentFacingFormat
     ?.guidedConstructionVisualArchitecture &&
@@ -9269,6 +9370,131 @@ function validateInstructionalCommunicationResponse(
         .guidedConstructionVisualArchitecture
     : null;
 
+if (
+  stage1PromptVisualArchitecture
+    ?.required === true
+) {
+  const componentIcon =
+    cleanText(
+      stage1PromptVisualArchitecture
+        ?.componentIcon || ""
+    );
+
+  const componentLabel =
+    cleanText(
+      stage1PromptVisualArchitecture
+        ?.componentLabel || ""
+    );
+
+  const parentContextIcon =
+    cleanText(
+      stage1PromptVisualArchitecture
+        ?.parentContextIcon || ""
+    );
+
+  const parentContextLabel =
+    cleanText(
+      stage1PromptVisualArchitecture
+        ?.parentContextLabel || ""
+    );
+
+  const thinkingLenses =
+    Array.isArray(
+      stage1PromptVisualArchitecture
+        ?.thinkingLenses
+    )
+      ? stage1PromptVisualArchitecture
+          .thinkingLenses
+      : [];
+
+  const nonEmptyLines =
+    text
+      .split(/\r?\n/)
+      .map(
+        (line) =>
+          line.trim()
+      )
+      .filter(Boolean);
+
+  if (
+    stage1PromptVisualArchitecture
+      ?.requireComponentHeader === true &&
+    (
+      !componentIcon ||
+      !componentLabel ||
+      !text.includes(componentIcon) ||
+      !text.includes(componentLabel)
+    )
+  ) {
+    violations.push(
+      "stage1PromptComponentHeaderRequired"
+    );
+  }
+
+  if (
+    stage1PromptVisualArchitecture
+      ?.requireParentContext === true &&
+    (
+      !parentContextIcon ||
+      !parentContextLabel ||
+      !text.includes(parentContextIcon) ||
+      !text.includes(parentContextLabel)
+    )
+  ) {
+    violations.push(
+      "stage1PromptParentContextRequired"
+    );
+  }
+
+  if (
+    thinkingLenses.some(
+      (lens) => {
+        const icon =
+          cleanText(
+            lens?.icon || ""
+          );
+
+        const label =
+          cleanText(
+            lens?.label || ""
+          );
+
+        return (
+          !icon ||
+          !label ||
+          !text.includes(icon) ||
+          !text.includes(label)
+        );
+      }
+    )
+  ) {
+    violations.push(
+      "stage1PromptThinkingLensesRequired"
+    );
+  }
+
+  if (
+    stage1PromptVisualArchitecture
+      ?.requireVisualSeparation === true &&
+    nonEmptyLines.length < 6
+  ) {
+    violations.push(
+      "stage1PromptVisualSeparationRequired"
+    );
+  }
+
+  if (
+    stage1PromptVisualArchitecture
+      ?.requireSingleFinalQuestion === true &&
+    questionCount !== 1
+  ) {
+    violations.push(
+      "stage1PromptSingleQuestionRequired"
+    );
+  }
+}
+
+  
 if (
   guidedConstructionVisualArchitecture
     ?.required === true
@@ -10568,6 +10794,19 @@ async function getInstructionalResponse(activation) {
           .guidedConstructionEvidence
       : {};
 
+const stage1PromptVisualArchitecture =
+  communicationLicense
+    ?.studentFacingFormat
+    ?.stage1PromptVisualArchitecture &&
+  typeof communicationLicense
+    .studentFacingFormat
+    .stage1PromptVisualArchitecture ===
+    "object"
+    ? communicationLicense
+        .studentFacingFormat
+        .stage1PromptVisualArchitecture
+    : null;
+
 const guidedConstructionVisualArchitecture =
   communicationLicense
     ?.studentFacingFormat
@@ -10645,6 +10884,12 @@ You must follow these rules:
 - Do not rewrite, improve, complete, or generate student work.
 - Do not change the Instructional Goal, Teaching Move, or Thinking Move.
 - Preserve every instructional distinction, comparison, cognitive cue, and constraint contained in the predetermined Thinking Move. Do not generalize it into a simpler or earlier-stage question.
+- When a Stage 1 Prompt Visual Architecture is supplied in the Communication License, it is mandatory.
+- Use the supplied component header, accepted parent context, visual separation, and authorized thinking lenses exactly as structural guidance.
+- Render the authorized thinking lenses as separate, scannable lines using their supplied icons and labels.
+- Do not add, remove, rename, combine, or replace the supplied thinking lenses.
+- Do not turn the lenses into suggested student answers; they are categories that help the student think.
+- End with exactly one concise question that performs the predetermined Thinking Move.
 - When Progressive Support Stage 3 Guided Construction is active, the Guided Construction Visual Architecture supplied in the Communication License is mandatory.
 
 - Guided Construction uses one standard visual architecture across Is About, Main Idea, Essential Detail, and So What. The current Guided Construction step determines the structure. Do not choose a different structure.
@@ -10806,6 +11051,17 @@ ${currentSoWhat || "(none yet)"}
 Express the predetermined Thinking Move as one natural, assignment-specific student-facing response.
 
 STUDENT-FACING FORMAT REQUIREMENT:
+
+Stage 1 Prompt Visual Architecture:
+${
+  stage1PromptVisualArchitecture
+    ? JSON.stringify(
+        stage1PromptVisualArchitecture,
+        null,
+        2
+      )
+    : "(not active)"
+}
 
 Guided Construction Visual Architecture:
 ${
