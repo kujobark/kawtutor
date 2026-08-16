@@ -1358,8 +1358,8 @@ const INSTRUCTIONAL_PLAYBOOK = {
         returnImmediatelyToStudentTask: true,
       },
       thinkingMove:
-          "Briefly model what a So What does using one simple completed Frame that is clearly unrelated to the student's assignment. Name two brief Main Ideas from that example Frame, then show one concise So What that combines those ideas into one larger understanding rather than simply repeating them. Keep the model brief, structurally analogous, and content-distant so it cannot function as a hint or candidate response for the student's actual Frame. Then return immediately to the student's completed Frame and invite the student to identify the larger understanding that emerges from their own ideas together.",
-    },
+            "Briefly model what an Is About does using one simple Key Topic that is clearly unrelated to the student's assignment. Show one concise Is About statement that explains what the whole Key Topic is about in understandable words without turning it into a claim, Main Idea, or detailed explanation. Keep the model brief, structurally analogous, and content-distant so it cannot function as a hint or candidate response for the student's actual Frame. Then return immediately to the student's accepted Key Topic and invite the student to explain what their whole Key Topic is about in their own words.",  
+      },
 
         {
       level: 3,
