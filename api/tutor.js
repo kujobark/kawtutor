@@ -8973,6 +8973,40 @@ const guidedConstructionStepVisuals = {
   },
 };
 
+const guidedConstructionEvidence =
+  execution?.context
+    ?.guidedConstructionEvidence &&
+  typeof execution.context
+    .guidedConstructionEvidence ===
+    "object"
+    ? execution.context
+        .guidedConstructionEvidence
+    : {};
+
+const requiredGuidedConstructionEvidence =
+  guidedConstructionStep === 2
+    ? [
+        cleanText(
+          guidedConstructionEvidence
+            ?.[1]
+            ?.evidence || ""
+        ),
+      ].filter(Boolean)
+    : guidedConstructionStep === 3
+      ? [
+          cleanText(
+            guidedConstructionEvidence
+              ?.[1]
+              ?.evidence || ""
+          ),
+          cleanText(
+            guidedConstructionEvidence
+              ?.[2]
+              ?.evidence || ""
+          ),
+        ].filter(Boolean)
+      : [];
+  
 const guidedConstructionVisualArchitecture =
   guidedConstructionActive
     ? {
@@ -9026,6 +9060,9 @@ const guidedConstructionVisualArchitecture =
 
         preserveStudentWording:
           true,
+        
+        requiredStudentEvidence:
+          requiredGuidedConstructionEvidence,
       }
     : null;
 
@@ -9068,34 +9105,20 @@ const guidedConstructionVisualArchitecture =
 
     communicationPattern,
 
-        studentFacingFormat: {
-      requireScannableOptionList:
-        parallelOptionSeriesPresent,
+    studentFacingFormat: {
+      guidedConstructionVisualArchitecture:
+        guidedConstructionVisualArchitecture
+          ? structuredClone(
+              guidedConstructionVisualArchitecture
+            )
+          : null,
 
-      minimumParallelOptionsForList:
-        3,
+  requireModelContrastSeparation:
+    modelContrastPresent,
 
-      minimumListItems:
-        3,
-
-      maximumListItems:
-        5,
-
-      requireVerticalList:
-        parallelOptionSeriesPresent,
-
-      prohibitDenseInlineOptionSeries:
-        parallelOptionSeriesPresent,
-
-      prohibitOptionRepetitionInFinalQuestion:
-        parallelOptionSeriesPresent,
-
-      requireModelContrastSeparation:
-        modelContrastPresent,
-
-      requireSingleFinalQuestion:
-        true,
-    },
+  requireSingleFinalQuestion:
+    true,
+},
     
     permissions: {
       mayAskQuestion: true,
@@ -9236,49 +9259,104 @@ function validateInstructionalCommunicationResponse(
           .studentFacingFormat
       : {};
 
-  const requiresVerticalList =
-    studentFacingFormat
-      ?.requireScannableOptionList ===
-      true &&
-    studentFacingFormat
-      ?.requireVerticalList ===
-      true;
+  const guidedConstructionVisualArchitecture =
+  studentFacingFormat
+    ?.guidedConstructionVisualArchitecture &&
+  typeof studentFacingFormat
+    .guidedConstructionVisualArchitecture ===
+    "object"
+    ? studentFacingFormat
+        .guidedConstructionVisualArchitecture
+    : null;
 
-  if (requiresVerticalList) {
-    const lines =
-      text.split(/\r?\n/);
+if (
+  guidedConstructionVisualArchitecture
+    ?.required === true
+) {
+  const componentIcon =
+    cleanText(
+      guidedConstructionVisualArchitecture
+        ?.componentIcon || ""
+    );
 
-    const verticalListItems =
-      lines.filter(
+  const componentLabel =
+    cleanText(
+      guidedConstructionVisualArchitecture
+        ?.componentLabel || ""
+    );
+
+  const nonEmptyLines =
+    text
+      .split(/\r?\n/)
+      .map(
         (line) =>
-          /^\s*(?:[-*•]|\d+[.)])\s+\S/.test(
-            line
-          )
-      );
+          line.trim()
+      )
+      .filter(Boolean);
 
-    const minimumListItems =
-      Number(
-        studentFacingFormat
-          ?.minimumListItems || 3
-      );
-
-    const maximumListItems =
-      Number(
-        studentFacingFormat
-          ?.maximumListItems || 5
-      );
-
-    if (
-      verticalListItems.length <
-        minimumListItems ||
-      verticalListItems.length >
-        maximumListItems
-    ) {
-      violations.push(
-        "verticalOptionListRequired"
-      );
-    }
+  if (
+    guidedConstructionVisualArchitecture
+      ?.requireComponentHeader === true &&
+    (
+      !componentIcon ||
+      !componentLabel ||
+      !text.includes(componentIcon) ||
+      !text.includes(componentLabel)
+    )
+  ) {
+    violations.push(
+      "guidedConstructionComponentHeaderRequired"
+    );
   }
+
+  if (
+    guidedConstructionVisualArchitecture
+      ?.requireVisualSeparation === true &&
+    nonEmptyLines.length < 3
+  ) {
+    violations.push(
+      "guidedConstructionVisualSeparationRequired"
+    );
+  }
+
+  const requiredStudentEvidence =
+  Array.isArray(
+    guidedConstructionVisualArchitecture
+      ?.requiredStudentEvidence
+  )
+    ? guidedConstructionVisualArchitecture
+        .requiredStudentEvidence
+        .map(cleanText)
+        .filter(Boolean)
+    : [];
+
+if (
+  guidedConstructionVisualArchitecture
+    ?.requirePriorStudentEvidence ===
+    true &&
+  (
+    requiredStudentEvidence.length === 0 ||
+    requiredStudentEvidence.some(
+      (evidence) =>
+        !text.includes(evidence)
+    )
+  )
+) {
+  violations.push(
+    "guidedConstructionStudentEvidenceRequired"
+  );
+}
+
+  if (
+    guidedConstructionVisualArchitecture
+      ?.requireSingleFinalQuestion === true &&
+    questionCount !== 1
+  ) {
+    violations.push(
+      "guidedConstructionSingleQuestionRequired"
+    );
+  }
+}
 
     // --------------------------------------------------
   // MODEL / CONTRAST VISUAL SEPARATION
@@ -9815,6 +9893,18 @@ function executeIsAboutInstructionalContract(
       frameComponent:
         contract.frameComponent,
 
+      guidedConstructionEvidence:
+      state?.pending
+        ?.guidedConstructionEvidence &&
+      typeof state.pending
+        .guidedConstructionEvidence ===
+        "object"
+        ? structuredClone(
+            state.pending
+              .guidedConstructionEvidence
+      )
+    : {},
+
       keyTopic:
         state?.frame
           ?.keyTopic || "",
@@ -9948,6 +10038,18 @@ function executeEssentialDetailInstructionalContract(
       frameComponent:
         contract.frameComponent,
 
+      guidedConstructionEvidence:
+        state?.pending
+          ?.guidedConstructionEvidence &&
+        typeof state.pending
+          .guidedConstructionEvidence ===
+          "object"
+          ? structuredClone(
+              state.pending
+                .guidedConstructionEvidence
+      )
+    : {},
+
       keyTopic:
         state?.frame
           ?.keyTopic || "",
@@ -10076,6 +10178,18 @@ function executeMainIdeaInstructionalContract(
       frameComponent:
         contract.frameComponent,
 
+      guidedConstructionEvidence:
+        state?.pending
+          ?.guidedConstructionEvidence &&
+        typeof state.pending
+          .guidedConstructionEvidence ===
+          "object"
+          ? structuredClone(
+              state.pending
+                .guidedConstructionEvidence
+      )
+    : {},
+
       keyTopic:
         state?.frame
           ?.keyTopic || "",
@@ -10198,6 +10312,18 @@ function executeSoWhatInstructionalContract(
       frameComponent:
         contract.frameComponent,
 
+      guidedConstructionEvidence:
+        state?.pending
+          ?.guidedConstructionEvidence &&
+        typeof state.pending
+          .guidedConstructionEvidence ===
+          "object"
+          ? structuredClone(
+              state.pending
+                .guidedConstructionEvidence
+      )
+    : {},
+
       keyTopic:
         state?.frame
           ?.keyTopic || "",
@@ -10300,6 +10426,18 @@ function buildAIContextualizationPayload(execution) {
 
       frameComponent:
         execution?.context?.frameComponent || "",
+
+      guidedConstructionEvidence:
+        execution?.context
+          ?.guidedConstructionEvidence &&
+        typeof execution.context
+          .guidedConstructionEvidence ===
+          "object"
+          ? structuredClone(
+              execution.context
+                .guidedConstructionEvidence
+      )
+    : {},
 
       keyTopic:
         execution?.context?.keyTopic || "",
@@ -10419,6 +10557,29 @@ async function getInstructionalResponse(activation) {
 
   const currentSoWhat =
     payload?.context?.currentSoWhat || "";
+
+  const guidedConstructionEvidence =
+    payload?.context
+      ?.guidedConstructionEvidence &&
+    typeof payload.context
+      .guidedConstructionEvidence ===
+      "object"
+      ? payload.context
+          .guidedConstructionEvidence
+      : {};
+
+const guidedConstructionVisualArchitecture =
+  communicationLicense
+    ?.studentFacingFormat
+    ?.guidedConstructionVisualArchitecture &&
+  typeof communicationLicense
+    .studentFacingFormat
+    .guidedConstructionVisualArchitecture ===
+    "object"
+    ? communicationLicense
+        .studentFacingFormat
+        .guidedConstructionVisualArchitecture
+    : null;
   
   // Deterministic instructional conclusions established
   // before AI contextualization.
@@ -10484,18 +10645,51 @@ You must follow these rules:
 - Do not rewrite, improve, complete, or generate student work.
 - Do not change the Instructional Goal, Teaching Move, or Thinking Move.
 - Preserve every instructional distinction, comparison, cognitive cue, and constraint contained in the predetermined Thinking Move. Do not generalize it into a simpler or earlier-stage question.
-- When scaffolded support includes several cognitive options, categories, examples of thinking types, or possible lenses within the predetermined Thinking Move, do not compress them into a dense comma-separated sentence.
-- When the predetermined Thinking Move contains 3 or more parallel cognitive options, categories, lenses, or thinking examples, you MUST present a small representative set of 3–5 of those authorized options as a vertically scannable list rather than embedding them in a comma-separated sentence.
-- Do not restate the same options again in the final question. After the list, ask one short question that points the student back to the list.
-- Use only options already contained in or directly authorized by the predetermined Thinking Move. Do not invent new categories, examples, hints, content, or possible student answers.
-- When Progressive Support Stage 3 Guided Construction is active, use the appropriate Framing Routine icon and component name as a visual anchor before the guided support:
+- When Progressive Support Stage 3 Guided Construction is active, the Guided Construction Visual Architecture supplied in the Communication License is mandatory.
+
+- Guided Construction uses one standard visual architecture across Is About, Main Idea, Essential Detail, and So What. The current Guided Construction step determines the structure. Do not choose a different structure.
+
+- Every Guided Construction response must:
+  - begin with the supplied Framing Routine component icon and component name as the visual header;
+  - use whitespace and short visually separated chunks rather than dense paragraphs;
+  - preserve the student's wording exactly when displaying student-owned Guided Construction evidence;
+  - display only accepted Frame context and student-owned evidence that are relevant to the current thinking operation;
+  - end with exactly one concise student-facing question.
+
+- Guided Construction Step 1 is a SINGLE-STEP SCAFFOLD:
+  - show the active component header;
+  - reconnect visually to the accepted Frame context needed for this step;
+  - present only the one smaller thinking operation authorized by the Predetermined Thinking Move;
+  - if the Predetermined Thinking Move contains several authorized thinking lenses or categories that genuinely help the student perform that operation, separate those choices vertically so they are easy to scan;
+  - do not require a fixed number of choices and do not invent additional choices merely to create a list.
+
+- Guided Construction Step 2 is an EVIDENCE-BUILDING SCAFFOLD:
+  - show the active component header;
+  - visibly reconnect to the relevant student-owned evidence established in Guided Construction Step 1;
+  - label that evidence in natural student-facing language rather than internal architecture terminology;
+  - reconnect to accepted Frame context when the Predetermined Thinking Move requires it;
+  - visually separate the student's existing thinking from the next thinking operation;
+  - ask only for the next thinking operation authorized for Step 2.
+
+- Guided Construction Step 3 is an EVIDENCE-ASSEMBLY SCAFFOLD:
+  - show the active component header;
+  - visibly stack the relevant student-owned evidence established in the earlier Guided Construction steps;
+  - use short, natural student-facing labels that explain what each displayed piece represents;
+  - preserve each piece of student evidence without rewriting, combining, improving, interpreting, or completing it;
+  - invite the student to formulate, assemble, or synthesize the component in their own words according to the Predetermined Thinking Move.
+
+- Visual separation does not require generic bullet syntax. Use the supplied Framing Routine icons, short labels, line breaks, and whitespace to make the thinking structure easy to scan.
+
+- When reconnecting to an accepted parent Frame component, use its established Framing Routine icon immediately before its name when appropriate:
   🧩 Key Topic
   💬 Is About
   💡 Main Idea
   ✍️ Essential Detail
   🎯 So What
-- The icon and list are presentation only. They may not change the instructional goal, add another teaching move, create another question, or supply student thinking.
-- Keep scaffolded communication visually light: one brief lead-in when permitted, one short list only when useful, and exactly one final question.
+
+- The visual architecture is presentation only. It may not change the Instructional Goal, Teaching Move, Thinking Move, Guided Construction step, or progression; add another teaching move; supply student thinking; or create another question.
+
+- Keep Guided Construction communication visually light, concrete, and easy to scan for a student who is already experiencing struggle.
 - When Progressive Support is active, preserve the exact instructional architecture selected by the deterministic runtime: Stage 1 is Prompt, Stage 2 is Model, and Stage 3 is Guided Construction. Stage 1 must provide only the light Prompt defined by the predetermined Thinking Move. Stage 2 must visibly model the required kind of thinking using one brief, clearly content-distant example that follows the supplied model rules, then return immediately to the student's own Frame. Stage 3 must visibly begin or continue Guided Construction by reducing the current component thinking into the smaller step identified by the predetermined Thinking Move and Guided Construction step. Never collapse Model or Guided Construction back into a general Prompt.
 - Do not mention Progressive Support, stage numbers, or internal move names to the student.
 - Do not reinterpret, expand, weaken, strengthen, or replace the established Instructional Finding.
@@ -10613,18 +10807,59 @@ Express the predetermined Thinking Move as one natural, assignment-specific stud
 
 STUDENT-FACING FORMAT REQUIREMENT:
 
-If the Predetermined Thinking Move contains a series of 3 or more parallel thinking choices, categories, lenses, actions, or cognitive options separated by commas or words such as "or", do NOT reproduce that series inside a sentence.
+Guided Construction Visual Architecture:
+${
+  guidedConstructionVisualArchitecture
+    ? JSON.stringify(
+        guidedConstructionVisualArchitecture,
+        null,
+        2
+      )
+    : "(not active)"
+}
 
-Instead:
-- choose only 3–5 of those already-authorized options;
-- place each option on its own short bullet line;
-- when Guided Construction is active, use the appropriate Framing Routine icon and component name as a visual anchor before the guided support; when the response reconnects to a parent Frame component, place that parent component's icon immediately before its name;
-- do not add new options, examples, hints, or content;
-- do not repeat the options again in the final question;
-- ask one short question after the list.
+Student-Owned Guided Construction Evidence:
+${
+  Object.keys(
+    guidedConstructionEvidence || {}
+  ).length
+    ? JSON.stringify(
+        guidedConstructionEvidence,
+        null,
+        2
+      )
+    : "(none established yet)"
+}
 
-This formatting requirement is mandatory whenever a 3-or-more-option series appears in the Predetermined Thinking Move. Formatting the options vertically does not count as adding another instructional move or another question.
+When Guided Construction Visual Architecture is active, follow it exactly.
 
+- Use the supplied component icon and component label as the visual header.
+- Use short, visually separated chunks with whitespace rather than a dense paragraph.
+- Preserve displayed student-owned evidence exactly as the student expressed it.
+- Do not rewrite, improve, combine, interpret, or complete that evidence.
+- Show only the prior student evidence relevant to the current Guided Construction step.
+- Use natural student-facing labels rather than internal architecture terms.
+- End with exactly one concise question.
+
+For Guided Construction Step 1:
+- use the required single-step scaffold;
+- reconnect to only the accepted Frame context needed for the current smaller thinking operation;
+- do not display student-owned Guided Construction evidence unless the Predetermined Thinking Move specifically requires prior student evidence.
+
+For Guided Construction Step 2:
+- use the required evidence-building scaffold;
+- visibly display the relevant student-owned evidence established in Step 1;
+- visually separate that evidence from the next thinking operation.
+
+For Guided Construction Step 3:
+- use the required evidence-assembly scaffold;
+- visibly stack the relevant student-owned evidence established in the earlier Guided Construction steps;
+- keep each student-owned piece separate;
+- invite the student to formulate, assemble, or synthesize the component in their own words.
+
+Do not create a generic bullet list merely because the Predetermined Thinking Move contains commas or the word "or".
+
+When authorized thinking choices or lenses genuinely need to be shown, separate them visually for readability, but do not invent extra choices or require an arbitrary number of items.
 If Progressive Support is active, preserve the exact instructional difference of the selected stage and move. Do not simplify a Stage 2 or Stage 3 prompt back into the generic Stage 1 question.
 Follow the Approved Communication Instruction and Communication License exactly.
 
@@ -10710,7 +10945,19 @@ if (!communicationValidation.valid) {
   (
     communicationValidation
       .violations.includes(
-        "verticalOptionListRequired"
+        "guidedConstructionComponentHeaderRequired"
+      ) ||
+    communicationValidation
+      .violations.includes(
+        "guidedConstructionVisualSeparationRequired"
+      ) ||
+    communicationValidation
+      .violations.includes(
+        "guidedConstructionStudentEvidenceRequired"
+      ) ||
+    communicationValidation
+      .violations.includes(
+        "guidedConstructionSingleQuestionRequired"
       ) ||
     communicationValidation
       .violations.includes(
@@ -10730,17 +10977,6 @@ Regenerate the SAME predetermined Thinking Move.
 Do not change the instructional content, question, component, Progressive Support stage, or Guided Construction step.
 
 Follow the Communication License exactly.
-
-If the authorized Thinking Move contains parallel cognitive options:
-- place 3–5 authorized options vertically;
-- use one option per separate line;
-- do not use an inline dash or comma series;
-- do not repeat the options in the final question.
-
-If the authorized move is a content-distant model:
-- visually separate the model from the contrast and the return to the student's own Frame;
-- do not compress the entire model into one paragraph;
-- do not add another example or any student-specific answer content.
 
 Ask exactly one final question.
 
