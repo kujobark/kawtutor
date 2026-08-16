@@ -1408,8 +1408,9 @@ const INSTRUCTIONAL_PLAYBOOK = {
         },
       },
 
-      // Step-1 compatibility fallback until the
-      // Progressive Support selector becomes step-aware.
+      // Stage 3 compatibility fallback.
+      // The step-aware selector replaces this with the
+      // current GUIDED_CONSTRUCTION_RULES thinking move.
       thinkingMove:
         "Begin Guided Construction of the Is About by reducing the whole-topic paraphrase into one smaller thinking step. Reconnect to the accepted Key Topic, tell the student Kaw will work through it one step at a time, and ask the student to identify one thing that happens, is involved, is true, or is important to know about the Key Topic. Do not ask for the finished Is About yet, and do not suggest or supply any content.",
     },
@@ -1823,8 +1824,9 @@ const INSTRUCTIONAL_PLAYBOOK = {
         },
       },
 
-      // Step-1 compatibility fallback until the
-      // Progressive Support selector becomes step-aware.
+       // Stage 3 compatibility fallback.
+      // The step-aware selector replaces this with the
+      // current GUIDED_CONSTRUCTION_RULES thinking move.
       thinkingMove:
         "Begin Guided Construction of the Main Idea by reducing the organizing task into one smaller thinking step. Reconnect to the accepted Key Topic and Is About statement, tell the student Kaw will work through it one step at a time, and ask the student to identify one important aspect, cause, effect, part, stage, pattern, event, category, or other organizing idea they notice in the topic. Do not ask for the finished Main Idea yet, and do not suggest, choose, or supply the student's organizer.",
     },
@@ -2241,8 +2243,9 @@ const INSTRUCTIONAL_PLAYBOOK = {
         },
       },
 
-      // Step-1 compatibility fallback until the
-      // Progressive Support selector becomes step-aware.
+      // Stage 3 compatibility fallback.
+      // The step-aware selector replaces this with the
+      // current GUIDED_CONSTRUCTION_RULES thinking move.
       thinkingMove:
         "Begin Guided Construction of the Essential Detail by separating identification of supporting information from explanation of the supporting relationship. Reconnect to the accepted Main Idea, tell the student Kaw will work through it one step at a time, and first ask the student to identify one specific thing they know, noticed, read, observed, or can point to that relates to the Main Idea. Do not ask them to explain the connection yet, and do not suggest or supply the evidence.",
     },
@@ -2659,8 +2662,9 @@ const INSTRUCTIONAL_PLAYBOOK = {
         },
       },
 
-      // Step-1 compatibility fallback until the
-      // Progressive Support selector becomes step-aware.
+      // Stage 3 compatibility fallback.
+      // The step-aware selector replaces this with the
+      // current GUIDED_CONSTRUCTION_RULES thinking move.
       thinkingMove:
         "Begin Guided Construction of the So What by helping the student look across the completed Frame and identify one meaningful relationship, pattern, connection, contrast, sequence, cause-and-effect relationship, or larger idea that emerges from the accepted Main Ideas and Essential Details in relation to the Key Topic and Is About. Do not require a particular relationship structure, and do not interpret or supply the connection for the student.",
     },
@@ -5365,12 +5369,14 @@ function buildGuidedConstructionProgressionDecision({
 // progression decision to Guided Construction-owned
 // pending-state metadata only.
 //
-// This updater may modify only:
+// This updater may modify only Guided Construction-owned
+// pending-state metadata:
 //
 // • guidedConstructionStep;
 // • guidedConstructionEvidence;
 // • guidedConstructionFinalRephraseUsed;
-// • guidedConstructionLocation.
+// • guidedConstructionLocation;
+// • guidedConstructionAdditionalSupportEndpoint.
 //
 // It does not:
 //
@@ -9320,8 +9326,8 @@ function executeInstructionalContract(
 //
 // During migration, the historical pending.supportLevel
 // field remains a read-only compatibility fallback for
-// existing Is About state. New runtime state will use
-// pending.progressiveSupportStage.
+// existing Progressive Support state. New runtime state
+// uses pending.progressiveSupportStage.
 //
 // ------------------------------------------------------
 
