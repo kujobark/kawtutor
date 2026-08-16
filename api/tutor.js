@@ -6365,35 +6365,46 @@ async function continueGuidedConstruction({
     };
   }
 
-  return {
-    continuationStatus:
-      "established",
+ const endpointReached =
+  stateUpdate
+    ?.endpointReached ===
+    true;
 
-    reason:
-      null,
+const additionalSupportEndpoint =
+  endpointReached
+    ? buildGuidedConstructionAdditionalSupportEndpoint(
+        safeState
+      )
+    : null;
 
-    activeContext,
+return {
+  continuationStatus:
+    "established",
 
-    instructionalLocation,
+  reason:
+    null,
 
-    semanticEvidence,
+  activeContext,
 
-    evidenceAssessment,
+  instructionalLocation,
 
-    progressionDecision,
+  semanticEvidence,
 
-    stateUpdate,
+  evidenceAssessment,
 
-    yieldsToNormalComponentProgression:
-      stateUpdate
-        ?.yieldsToNormalComponentProgression ===
-        true,
+  progressionDecision,
 
-    endpointReached:
-      stateUpdate
-        ?.endpointReached ===
-        true,
-  };
+  stateUpdate,
+
+  yieldsToNormalComponentProgression:
+    stateUpdate
+      ?.yieldsToNormalComponentProgression ===
+      true,
+
+  endpointReached,
+
+  additionalSupportEndpoint,
+};
 }
 
 // ======================================================
