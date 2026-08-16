@@ -25483,6 +25483,16 @@ function attachGovernedSupportToPending(
     instructionalFinding,
   };
 
+  const additionalSupportEndpoint =
+  buildGuidedConstructionAdditionalSupportEndpoint(
+    {
+      ...state,
+
+      pending:
+        pendingForActivation,
+    }
+  );
+
   // Retire the historical numeric supportLevel field
   // whenever governed support is rewritten.
   delete pendingForActivation.supportLevel;
@@ -25633,6 +25643,21 @@ function attachGovernedSupportToPending(
       .guidedConstructionLocation;
   }
 
+if (
+  additionalSupportEndpoint
+    ?.endpointStatus ===
+    "established"
+) {
+  pendingForActivation
+    .guidedConstructionAdditionalSupportEndpointArtifact =
+    structuredClone(
+      additionalSupportEndpoint
+    );
+} else {
+  delete pendingForActivation
+    .guidedConstructionAdditionalSupportEndpointArtifact;
+}
+  
   // --------------------------------------------------
   // CONTRACT ACTIVATION
   //
