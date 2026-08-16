@@ -220,9 +220,9 @@ genericNonExamples: [
     "Prepares the reader for the main ideas"
   ],
     successIndicators: [
-    "Clearly names the central topic.",
-    "Matches the assignment or source.",
-    "Can be explored through Main Ideas and Essential Details."
+      "Briefly explains what the whole Key Topic is about.",
+      "Paraphrases or summarizes the Key Topic rather than simply repeating it.",
+      "Uses words that are understandable to the student."
 ],
   commonBreakdowns: [
     "Repeats the Key Topic only",
