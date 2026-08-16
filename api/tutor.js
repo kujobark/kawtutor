@@ -32609,10 +32609,34 @@ let state =
     }
   }
 
-    const instructionalActivation =
+const instructionalActivation =
   state?.pending?.instructionalActivation || null;
 
+const additionalSupportEndpoint =
+  state?.pending
+    ?.guidedConstructionAdditionalSupportEndpointArtifact ||
+  null;
+
+const additionalSupportResponse =
+  additionalSupportEndpoint
+    ?.endpointStatus ===
+    "established"
+      ? `🧭 You've reached the point where another Kaw scaffold could start supplying the thinking for you.
+
+Use one of the supports already available to you:
+
+- your notes
+- your source materials
+- your assignment materials
+- your teacher
+
+When you're ready, we'll return to this same spot.
+
+Are you ready to check one of those supports before we continue?`
+      : null;
+
 const instructionalResponse =
+  !additionalSupportResponse &&
   instructionalActivation
     ? await getInstructionalResponse(
         instructionalActivation
@@ -32624,14 +32648,13 @@ console.log(
   instructionalResponse
 );
 
-// A selected Kaw 2.5 Instructional Contract is the sole
-// instructional authority for this support response.
-//
-// Do not silently switch to the legacy pending-state
-// communication engine when governed contextualization or
-// Communication Validation fails.
+// A selected Kaw 2.5 Instructional Contract remains the
+// instructional authority unless Guided Construction has
+// deterministically reached its governed additional-
+// support endpoint.
 if (
   instructionalActivation &&
+  !additionalSupportResponse &&
   !instructionalResponse
 ) {
   throw new Error(
@@ -32640,10 +32663,13 @@ if (
 }
 
 const nextQ =
-  instructionalActivation
-    ? instructionalResponse
-    : computeNextQuestion(state);
-      
+  additionalSupportResponse ||
+  (
+    instructionalActivation
+      ? instructionalResponse
+      : computeNextQuestion(state)
+  );
+    
       let reply =
         enforceSingleQuestion(nextQ);
 
