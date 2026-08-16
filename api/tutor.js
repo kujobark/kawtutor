@@ -6588,6 +6588,9 @@ async function getGuidedConstructionEndpointResumeObservation({
       resumeAcknowledgmentObserved:
         false,
 
+      substantiveFrameContentObserved:
+        false,
+
       confidence:
         0,
 
@@ -6606,7 +6609,11 @@ Kaw previously directed the student to consult one of these external supports:
 - assignment materials
 - teacher support
 
-Your only task is to determine whether the student's current message communicates that they are ready to return to the same instructional location after that support opportunity.
+Your task is limited to making two independent observations about the student's current message.
+
+OBSERVATION 1 — RESUME ACKNOWLEDGMENT
+
+Determine whether the message communicates that the student is ready to return to the same instructional location after the support opportunity.
 
 A resume acknowledgment may be expressed in many natural ways.
 
@@ -6618,6 +6625,37 @@ Examples of meaning that may count:
 
 Do not require exact wording.
 
+OBSERVATION 2 — SUBSTANTIVE FRAME CONTENT
+
+Determine whether the message also contains an attempted contribution to the student's actual Frame content.
+
+This is only a presence-or-absence observation.
+
+Substantive Frame content means the student expresses subject-matter thinking that could be part of the Frame component they are currently working on.
+
+Do not judge whether that thinking is:
+- correct;
+- sufficient;
+- strong;
+- relevant enough;
+- complete;
+- ready to progress;
+- valid as a finished Frame component.
+
+Statements such as:
+- "I checked my notes";
+- "I talked to my teacher";
+- "I'm ready";
+- "okay, let's continue"
+
+are support acknowledgments by themselves and are not substantive Frame content.
+
+A message may contain both observations at the same time.
+
+For example, a student may say they checked their notes and then immediately offer their own Frame thinking. In that case:
+- resumeAcknowledgmentObserved=true
+- substantiveFrameContentObserved=true
+
 Do not determine:
 - whether Guided Construction should resume;
 - whether the instructional location is still valid;
@@ -6627,14 +6665,17 @@ Do not determine:
 - what Kaw should teach next;
 - whether progression should occur.
 
-If the student's message instead contains substantive Frame content rather than a resume acknowledgment, return resumeAcknowledgmentObserved=false.
-
 Return only the required JSON object.`;
 
   const user = `Student message:
 "${studentMessage}"
 
-Determine only whether this message functions as an acknowledgment that the student is ready to return from the additional-support endpoint to the same Guided Construction location.`;
+Report only:
+
+1. whether the message communicates readiness to return from the additional-support endpoint; and
+2. whether the same message contains any attempted substantive Frame content.
+
+Treat these as independent observations.`;
 
   try {
     const response =
@@ -6672,6 +6713,11 @@ Determine only whether this message functions as an acknowledgment that the stud
                     "boolean",
                 },
 
+                substantiveFrameContentObserved: {
+                  type:
+                    "boolean",
+                },
+
                 confidence: {
                   type:
                     "number",
@@ -6686,6 +6732,7 @@ Determine only whether this message functions as an acknowledgment that the stud
 
               required: [
                 "resumeAcknowledgmentObserved",
+                "substantiveFrameContentObserved",
                 "confidence",
               ],
             },
@@ -6700,7 +6747,6 @@ Determine only whether this message functions as an acknowledgment that the stud
             content:
               system,
           },
-
           {
             role:
               "user",
@@ -6746,6 +6792,12 @@ Determine only whether this message functions as an acknowledgment that the stud
           ?.resumeAcknowledgmentObserved ===
           true,
 
+      substantiveFrameContentObserved:
+        observationEstablished &&
+        parsed
+          ?.substantiveFrameContentObserved ===
+          true,
+
       confidence:
         normalizedConfidence,
 
@@ -6763,6 +6815,9 @@ Determine only whether this message functions as an acknowledgment that the stud
         false,
 
       resumeAcknowledgmentObserved:
+        false,
+
+      substantiveFrameContentObserved:
         false,
 
       confidence:
