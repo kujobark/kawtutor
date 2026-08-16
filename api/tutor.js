@@ -8856,33 +8856,178 @@ function buildInstructionalCommunicationLicense(
   // --------------------------------------------------
 
   const requiredThinkingMove =
-    cleanText(
-      execution?.thinkingMove || ""
-    );
+  cleanText(
+    execution?.thinkingMove || ""
+  );
 
-  const progressiveSupportStage =
-    Number(
-      execution?.progressiveSupportStage
-    );
+const progressiveSupportStage =
+  Number(
+    execution?.progressiveSupportStage
+  );
 
-  const progressiveSupportType =
-    cleanText(
-      execution?.progressiveSupportType ||
-      ""
-    );
+const progressiveSupportType =
+  cleanText(
+    execution?.progressiveSupportType ||
+    ""
+  );
 
-  const parallelOptionSeriesPresent =
+const guidedConstructionStep =
+  Number(
+    execution?.guidedConstructionStep
+  );
+
+const frameComponent =
+  cleanText(
+    instructionalFinding
+      ?.frameComponent ||
+    execution?.context
+      ?.frameComponent ||
+    ""
+  );
+
+const guidedConstructionActive =
   progressiveSupportStage === 3 &&
   progressiveSupportType ===
     "guidedConstruction" &&
-  (
-    requiredThinkingMove.match(
-      /,\s*[^,.!?]+/g
-    ) || []
-  ).length >= 2 &&
-  /\bor\b/i.test(
-    requiredThinkingMove
+  [1, 2, 3].includes(
+    guidedConstructionStep
   );
+
+// --------------------------------------------------
+// GUIDED CONSTRUCTION VISUAL ARCHITECTURE
+//
+// Stage 3 uses one deterministic visual architecture
+// across Is About, Main Idea, Essential Detail, and
+// So What.
+//
+// The Guided Construction step determines the visual
+// structure. AI does not choose the structure.
+//
+// Step 1 = single-step scaffold
+// Step 2 = evidence-building scaffold
+// Step 3 = evidence-assembly scaffold
+//
+// Icons and visual separation are instructional
+// supports that reduce reading load for a student who
+// is already experiencing struggle.
+//
+// --------------------------------------------------
+
+const guidedConstructionComponentVisuals = {
+  isAbout: {
+    icon:
+      "💬",
+
+    label:
+      "Is About",
+  },
+
+  mainIdeas: {
+    icon:
+      "💡",
+
+    label:
+      "Main Idea",
+  },
+
+  details: {
+    icon:
+      "✍️",
+
+    label:
+      "Essential Detail",
+  },
+
+  soWhat: {
+    icon:
+      "🎯",
+
+    label:
+      "So What",
+  },
+};
+
+const guidedConstructionStepVisuals = {
+  1: {
+    mode:
+      "singleStep",
+
+    purpose:
+      "Present one smaller thinking operation with clear visual anchors and one concise question.",
+  },
+
+  2: {
+    mode:
+      "evidenceBuilding",
+
+    purpose:
+      "Reconnect visually to the student-owned thinking from the previous guided step before asking for the next thinking operation.",
+  },
+
+  3: {
+    mode:
+      "evidenceAssembly",
+
+    purpose:
+      "Visually stack the student-owned pieces established in Guided Construction before inviting the student to formulate the Frame component in their own words.",
+  },
+};
+
+const guidedConstructionVisualArchitecture =
+  guidedConstructionActive
+    ? {
+        required:
+          true,
+
+        step:
+          guidedConstructionStep,
+
+        mode:
+          guidedConstructionStepVisuals
+            ?.[guidedConstructionStep]
+            ?.mode ||
+          null,
+
+        purpose:
+          guidedConstructionStepVisuals
+            ?.[guidedConstructionStep]
+            ?.purpose ||
+          "",
+
+        componentIcon:
+          guidedConstructionComponentVisuals
+            ?.[frameComponent]
+            ?.icon ||
+          "",
+
+        componentLabel:
+          guidedConstructionComponentVisuals
+            ?.[frameComponent]
+            ?.label ||
+          "",
+
+        requireComponentHeader:
+          true,
+
+        requireIcons:
+          true,
+
+        requireVisualSeparation:
+          true,
+
+        requirePriorStudentEvidence:
+          guidedConstructionStep >= 2,
+
+        requireEvidenceStack:
+          guidedConstructionStep === 3,
+
+        requireSingleFinalQuestion:
+          true,
+
+        preserveStudentWording:
+          true,
+      }
+    : null;
 
   const modelContrastPresent =
     progressiveSupportStage === 2 &&
