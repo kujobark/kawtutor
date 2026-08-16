@@ -9017,6 +9017,9 @@ const stage1PromptVisualArchitecture =
           componentLabel:
             "Essential Detail",
 
+          leadIn:
+            "I’ll help you build an ✍️ Essential Detail by connecting back to what you already have.",
+
           parentContextIcon:
             "💡",
 
@@ -9480,6 +9483,12 @@ if (
         ?.componentLabel || ""
     );
 
+  const leadIn =
+  cleanText(
+    stage1PromptVisualArchitecture
+      ?.leadIn || ""
+  );
+  
   const parentContextIcon =
   cleanText(
     stage1PromptVisualArchitecture
@@ -9519,6 +9528,15 @@ const parentContexts =
       )
       .filter(Boolean);
 
+    if (
+      leadIn &&
+      !text.includes(leadIn)
+  ) {
+    violations.push(
+      "stage1PromptLeadInRequired"
+    );
+  }
+  
   if (
   stage1PromptVisualArchitecture
     ?.requireParentContext === true
@@ -11020,7 +11038,7 @@ You must follow these rules:
 - Do not change the Instructional Goal, Teaching Move, or Thinking Move.
 - Preserve every instructional distinction, comparison, cognitive cue, and constraint contained in the predetermined Thinking Move. Do not generalize it into a simpler or earlier-stage question.
 - When a Stage 1 Prompt Visual Architecture is supplied in the Communication License, it is mandatory.
-- Use a brief teacher-like lead-in that explains how Kaw is helping the student and includes the supplied component icon and component label naturally in the sentence.
+- If an exact lead-in is supplied in the Stage 1 Prompt Visual Architecture, render that lead-in exactly as provided. Otherwise, use a brief teacher-like lead-in that explains how Kaw is helping the student and includes the supplied component icon and component label naturally in the sentence.
 - Show every supplied accepted parent context on its own visually separated line using its supplied icon and label. When multiple parent contexts are supplied, display each one separately and preserve their supplied order.
 - When a bridge line is supplied, render it exactly as provided before the thinking lenses.
 - Render the authorized thinking lenses as separate, scannable lines beneath the bridge line using their supplied icons and labels.
