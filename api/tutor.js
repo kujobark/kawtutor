@@ -10917,18 +10917,6 @@ async function getInstructionalResponse(activation) {
     ""
   );
 
-  const stage1FinalQuestion =
-  stage1PromptVisualArchitecture
-    ?.finalQuestionTemplate
-    ? cleanText(
-        stage1PromptVisualArchitecture
-          .finalQuestionTemplate
-      ).replace(
-        "{assignmentSummary}",
-        assignmentUnderstanding
-      )
-    : "";
-
   const thinkingTask =
     payload?.context?.thinkingTask?.label ||
     payload?.context?.thinkingTask?.task ||
@@ -10981,6 +10969,19 @@ const stage1PromptVisualArchitecture =
         .studentFacingFormat
         .stage1PromptVisualArchitecture
     : null;
+
+const stage1FinalQuestion =
+  stage1PromptVisualArchitecture
+    ?.finalQuestionTemplate
+    ? cleanText(
+        stage1PromptVisualArchitecture
+          .finalQuestionTemplate
+      ).replace(
+        "{assignmentSummary}",
+        assignmentUnderstanding
+      )
+    : "";
+
 
 const guidedConstructionVisualArchitecture =
   communicationLicense
@@ -11067,6 +11068,7 @@ You must follow these rules:
 - When indentation is required, visually indent the thinking lenses beneath the bridge line so they read as related thinking options.
 - Do not add, remove, rename, combine, or replace the supplied thinking lenses.
 - Do not turn the lenses into suggested student answers; they are categories that help the student think.
+- If a final Stage 1 question is supplied, render it exactly as provided.
 - End with exactly one concise question that performs the predetermined Thinking Move.
 - When Progressive Support Stage 3 Guided Construction is active, the Guided Construction Visual Architecture supplied in the Communication License is mandatory.
 
@@ -11240,6 +11242,9 @@ ${
       )
     : "(not active)"
 }
+
+Stage 1 Final Question:
+${stage1FinalQuestion || "(not supplied)"}
 
 Guided Construction Visual Architecture:
 ${
