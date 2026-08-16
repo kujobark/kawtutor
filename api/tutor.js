@@ -9003,6 +9003,9 @@ const stage1PromptVisualArchitecture =
             },
           ],
 
+          finalQuestionTemplate:
+            "What is one important part of {assignmentSummary} that could become your Main Idea?",
+
           requireSingleFinalQuestion:
             true,
         }
@@ -10906,6 +10909,25 @@ async function getInstructionalResponse(activation) {
     assignmentContext.understanding ||
     assignmentContext.raw ||
     "";
+
+  const assignmentUnderstanding =
+  cleanText(
+    assignmentContext.understanding ||
+    assignmentContext.raw ||
+    ""
+  );
+
+  const stage1FinalQuestion =
+  stage1PromptVisualArchitecture
+    ?.finalQuestionTemplate
+    ? cleanText(
+        stage1PromptVisualArchitecture
+          .finalQuestionTemplate
+      ).replace(
+        "{assignmentSummary}",
+        assignmentUnderstanding
+      )
+    : "";
 
   const thinkingTask =
     payload?.context?.thinkingTask?.label ||
