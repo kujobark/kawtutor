@@ -10978,9 +10978,24 @@ Do not change the instructional content, question, component, Progressive Suppor
 
 Follow the Communication License exactly.
 
+If Guided Construction Visual Architecture is active:
+- preserve the SAME Guided Construction step and Thinking Move;
+- use the required Framing Routine component icon and component name as the header;
+- use short, visually separated chunks with whitespace;
+- preserve any displayed student-owned Guided Construction evidence exactly;
+- do not rewrite, combine, interpret, improve, or complete student evidence;
+- follow the required Step 1 single-step, Step 2 evidence-building, or Step 3 evidence-assembly structure supplied in the Communication License;
+- do not create a generic 3–5 item list merely to satisfy formatting;
+- if genuine authorized thinking choices need to be shown, separate only those choices visually.
+
+If the authorized move is a content-distant model:
+- visually separate the model from the contrast and the return to the student's own Frame;
+- do not compress the entire model into one paragraph;
+- do not add another example or any student-specific answer content.
+
 Ask exactly one final question.
 
-Return only the corrected student-facing response.`;
+Return only the corrected student-facing response.
 
     const retryResp =
       await client.chat.completions.create({
