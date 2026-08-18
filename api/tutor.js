@@ -9557,6 +9557,94 @@ function validateInstructionalCommunicationResponse(
           .studentFacingFormat
       : {};
 
+  const noComponentEvidenceVisualArchitecture =
+  studentFacingFormat
+    ?.noComponentEvidenceVisualArchitecture &&
+  typeof studentFacingFormat
+    .noComponentEvidenceVisualArchitecture ===
+      "object"
+    ? studentFacingFormat
+        .noComponentEvidenceVisualArchitecture
+    : null;
+
+  if (
+  noComponentEvidenceVisualArchitecture
+    ?.required === true
+) {
+  const parentContexts =
+    Array.isArray(
+      noComponentEvidenceVisualArchitecture
+        ?.parentContexts
+    )
+      ? noComponentEvidenceVisualArchitecture
+          .parentContexts
+      : [];
+
+  const nonEmptyLines =
+    text
+      .split(/\r?\n/)
+      .map(
+        (line) =>
+          line.trim()
+      )
+      .filter(Boolean);
+
+  const parentContextMissing =
+    parentContexts.some(
+      (context) => {
+        const icon =
+          cleanText(
+            context?.icon || ""
+          );
+
+        const label =
+          cleanText(
+            context?.label || ""
+          );
+
+        const value =
+          cleanText(
+            context?.value || ""
+          );
+
+        return (
+          !icon ||
+          !label ||
+          !value ||
+          !text.includes(icon) ||
+          !text.includes(label) ||
+          !text.includes(value)
+        );
+      }
+    );
+
+  if (parentContextMissing) {
+    violations.push(
+      "noComponentEvidenceParentContextRequired"
+    );
+  }
+
+  if (
+    noComponentEvidenceVisualArchitecture
+      ?.requireVisualSeparation === true &&
+    nonEmptyLines.length < 3
+  ) {
+    violations.push(
+      "noComponentEvidenceVisualSeparationRequired"
+    );
+  }
+
+  if (
+    noComponentEvidenceVisualArchitecture
+      ?.requireSingleFinalQuestion === true &&
+    questionCount !== 1
+  ) {
+    violations.push(
+      "noComponentEvidenceSingleQuestionRequired"
+    );
+  }
+}
+  
   const stage1PromptVisualArchitecture =
   studentFacingFormat
     ?.stage1PromptVisualArchitecture &&
