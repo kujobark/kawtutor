@@ -1938,8 +1938,8 @@ const INSTRUCTIONAL_PLAYBOOK = {
         "reduceCognitiveLoad",
 
       thinkingMove:
-        "Reconnect the student to the accepted Main Idea and invite them to identify one concrete fact, example, observation, explanation, or piece of evidence that could support it. Do not suggest or generate the Essential Detail.",
-
+          "Reconnect the student to the accepted Main Idea and invite them to identify one specific thing that could help explain or support it. Do not suggest or generate the Essential Detail.",
+        
       communicationPattern:
         "briefReassuranceThenQuestion",
 
@@ -8917,7 +8917,9 @@ const noComponentEvidenceVisualActive =
   execution?.contractId ===
     "IA-NCE-001" ||
   execution?.contractId ===
-    "MI-NCE-001";
+    "MI-NCE-001" ||
+  execution?.contractId ===
+    "ED-NCE-001";
 
 const noComponentEvidenceVisualArchitecture =
   !noComponentEvidenceVisualActive
@@ -8952,46 +8954,75 @@ const noComponentEvidenceVisualArchitecture =
             true,
         }
 
-      : {
-          required:
-            true,
+      : execution?.contractId ===
+          "MI-NCE-001"
+        ? {
+            required:
+              true,
 
-          parentContexts: [
-            {
-              icon:
-                "🧩",
+            parentContexts: [
+              {
+                icon:
+                  "🧩",
 
-              label:
-                "Key Topic",
+                label:
+                  "Key Topic",
 
-              value:
-                cleanText(
-                  execution?.context
-                    ?.keyTopic || ""
-                ),
-            },
+                value:
+                  cleanText(
+                    execution?.context
+                      ?.keyTopic || ""
+                  ),
+              },
 
-            {
-              icon:
-                "💬",
+              {
+                icon:
+                  "💬",
 
-              label:
-                "Is About",
+                label:
+                  "Is About",
 
-              value:
-                cleanText(
-                  execution?.context
-                    ?.isAbout || ""
-                ),
-            },
-          ],
+                value:
+                  cleanText(
+                    execution?.context
+                      ?.isAbout || ""
+                  ),
+              },
+            ],
 
-          requireVisualSeparation:
-            true,
+            requireVisualSeparation:
+              true,
 
-          requireSingleFinalQuestion:
-            true,
-        };
+            requireSingleFinalQuestion:
+              true,
+          }
+
+        : {
+            required:
+              true,
+
+            parentContexts: [
+              {
+                icon:
+                  "💡",
+
+                label:
+                  "Main Idea",
+
+                value:
+                  cleanText(
+                    execution?.context
+                      ?.currentMainIdea || ""
+                  ),
+              },
+            ],
+
+            requireVisualSeparation:
+              true,
+
+            requireSingleFinalQuestion:
+              true,
+          };
   
 // --------------------------------------------------
 // STAGE 1 PROMPT VISUAL ARCHITECTURE
