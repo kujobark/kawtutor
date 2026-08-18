@@ -8893,7 +8893,107 @@ const guidedConstructionActive =
     guidedConstructionStep
   );
 
-  // --------------------------------------------------
+// --------------------------------------------------
+// NO-COMPONENT-EVIDENCE VISUAL ARCHITECTURE
+//
+// A first no-evidence response remains a light,
+// conversational nudge.
+//
+// When Kaw reconnects the student to accepted Frame
+// context, that context is displayed visually using the
+// established Framing Routine icons rather than being
+// buried inside a dense sentence.
+//
+// This is not a thinking-options list and does not change
+// the instructional move.
+//
+// Current scope:
+// Is About — Key Topic.
+// Main Idea — Key Topic + Is About.
+//
+// --------------------------------------------------
+
+const noComponentEvidenceVisualActive =
+  execution?.contractId ===
+    "IA-NCE-001" ||
+  execution?.contractId ===
+    "MI-NCE-001";
+
+const noComponentEvidenceVisualArchitecture =
+  !noComponentEvidenceVisualActive
+    ? null
+
+    : execution?.contractId ===
+        "IA-NCE-001"
+      ? {
+          required:
+            true,
+
+          parentContexts: [
+            {
+              icon:
+                "🧩",
+
+              label:
+                "Key Topic",
+
+              value:
+                cleanText(
+                  execution?.context
+                    ?.keyTopic || ""
+                ),
+            },
+          ],
+
+          requireVisualSeparation:
+            true,
+
+          requireSingleFinalQuestion:
+            true,
+        }
+
+      : {
+          required:
+            true,
+
+          parentContexts: [
+            {
+              icon:
+                "🧩",
+
+              label:
+                "Key Topic",
+
+              value:
+                cleanText(
+                  execution?.context
+                    ?.keyTopic || ""
+                ),
+            },
+
+            {
+              icon:
+                "💬",
+
+              label:
+                "Is About",
+
+              value:
+                cleanText(
+                  execution?.context
+                    ?.isAbout || ""
+                ),
+            },
+          ],
+
+          requireVisualSeparation:
+            true,
+
+          requireSingleFinalQuestion:
+            true,
+        };
+  
+// --------------------------------------------------
 // STAGE 1 PROMPT VISUAL ARCHITECTURE
 //
 // Some Progressive Support Stage 1 prompts benefit from
@@ -9290,6 +9390,13 @@ const guidedConstructionVisualArchitecture =
     communicationPattern,
 
     studentFacingFormat: {
+  noComponentEvidenceVisualArchitecture:
+    noComponentEvidenceVisualArchitecture
+      ? structuredClone(
+          noComponentEvidenceVisualArchitecture
+        )
+      : null,
+
   stage1PromptVisualArchitecture:
     stage1PromptVisualArchitecture
       ? structuredClone(
