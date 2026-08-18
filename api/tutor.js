@@ -11145,6 +11145,19 @@ async function getInstructionalResponse(activation) {
           .guidedConstructionEvidence
       : {};
 
+const noComponentEvidenceVisualArchitecture =
+  communicationLicense
+    ?.studentFacingFormat
+    ?.noComponentEvidenceVisualArchitecture &&
+  typeof communicationLicense
+    .studentFacingFormat
+    .noComponentEvidenceVisualArchitecture ===
+    "object"
+    ? communicationLicense
+        .studentFacingFormat
+        .noComponentEvidenceVisualArchitecture
+    : null;
+  
 const stage1PromptVisualArchitecture =
   communicationLicense
     ?.studentFacingFormat
