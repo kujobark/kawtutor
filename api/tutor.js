@@ -32281,6 +32281,22 @@ if (s.pending?.type === "confirmDetails") {
     const rawDetail =
     cleanText(msg);
 
+  const priorRelationshipRepairActive =
+  s?.pending
+    ?.instructionalContract
+    ?.contractId ===
+    "ED-RNR-001";
+
+const originalAttemptedDetail =
+  priorRelationshipRepairActive
+    ? cleanText(
+        s?.pending
+          ?.instructionalFinding
+          ?.evidence
+          ?.attemptedDetail || ""
+      )
+    : "";
+    
   const observationReport =
     s?.observationReport &&
     typeof s.observationReport ===
@@ -32469,13 +32485,18 @@ if (
   );
 }
 
-  return {
+   return {
     detailValidation,
     instructionalFinding,
     progressionAuthorization,
-    capturedDetail:
-      text,
-  };
+
+  capturedDetail:
+    priorRelationshipRepairActive &&
+    detailValidation.valid &&
+    originalAttemptedDetail
+      ? originalAttemptedDetail
+      : text,
+};
 };
 
   async function applySoWhatCapture(
