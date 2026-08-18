@@ -11244,6 +11244,10 @@ You must follow these rules:
 - Do not rewrite, improve, complete, or generate student work.
 - Do not change the Instructional Goal, Teaching Move, or Thinking Move.
 - Preserve every instructional distinction, comparison, cognitive cue, and constraint contained in the predetermined Thinking Move. Do not generalize it into a simpler or earlier-stage question.
+- When a No-Component-Evidence Visual Architecture is supplied in the Communication License, it is mandatory.
+- Render each supplied accepted parent context on its own visually separated line using the supplied icon, label, and exact value.
+- Keep the parent-context lines visually separate from the brief lead-in and the final question.
+- Do not turn these parent contexts into thinking options, examples, or suggested answers.
 - When a Stage 1 Prompt Visual Architecture is supplied in the Communication License, it is mandatory.
 - If an exact lead-in is supplied in the Stage 1 Prompt Visual Architecture, render that lead-in exactly as provided. Otherwise, use a brief teacher-like lead-in that explains how Kaw is helping the student and includes the supplied component icon and component label naturally in the sentence.
 - Show every supplied accepted parent context on its own visually separated line using its supplied icon and label. When multiple parent contexts are supplied, display each one separately and preserve their supplied order.
@@ -11415,6 +11419,17 @@ ${currentSoWhat || "(none yet)"}
 Express the predetermined Thinking Move as one natural, assignment-specific student-facing response.
 
 STUDENT-FACING FORMAT REQUIREMENT:
+
+No-Component-Evidence Visual Architecture:
+${
+  noComponentEvidenceVisualArchitecture
+    ? JSON.stringify(
+        noComponentEvidenceVisualArchitecture,
+        null,
+        2
+      )
+    : "(not active)"
+}
 
 Stage 1 Prompt Visual Architecture:
 ${
