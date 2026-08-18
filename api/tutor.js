@@ -2357,8 +2357,8 @@ const INSTRUCTIONAL_PLAYBOOK = {
         "reduceCognitiveLoad",
 
       thinkingMove:
-        "Reconnect the student to the completed Frame and invite them to identify one larger understanding, conclusion, connection, implication, or takeaway that becomes clear when the Main Ideas and Essential Details are considered together. Do not suggest or generate the So What.",
-
+          "Reconnect the student to the completed Frame and invite them to identify the larger understanding or takeaway that becomes clear when they consider their Main Ideas and Essential Details together. Do not suggest or generate the So What.",
+        
       communicationPattern:
         "briefReassuranceThenQuestion",
 
@@ -8919,7 +8919,9 @@ const noComponentEvidenceVisualActive =
   execution?.contractId ===
     "MI-NCE-001" ||
   execution?.contractId ===
-    "ED-NCE-001";
+    "ED-NCE-001" ||
+  execution?.contractId ===
+    "SW-NCE-001";
 
 const noComponentEvidenceVisualArchitecture =
   !noComponentEvidenceVisualActive
@@ -8997,32 +8999,71 @@ const noComponentEvidenceVisualArchitecture =
               true,
           }
 
-        : {
-            required:
-              true,
+        : execution?.contractId ===
+            "ED-NCE-001"
+          ? {
+              required:
+                true,
 
-            parentContexts: [
-              {
-                icon:
-                  "💡",
+              parentContexts: [
+                {
+                  icon:
+                    "💡",
 
-                label:
-                  "Main Idea",
+                  label:
+                    "Main Idea",
 
-                value:
-                  cleanText(
-                    execution?.context
-                      ?.currentMainIdea || ""
-                  ),
-              },
-            ],
+                  value:
+                    cleanText(
+                      execution?.context
+                        ?.currentMainIdea || ""
+                    ),
+                },
+              ],
 
-            requireVisualSeparation:
-              true,
+              requireVisualSeparation:
+                true,
 
-            requireSingleFinalQuestion:
-              true,
-          };
+              requireSingleFinalQuestion:
+                true,
+            }
+
+          : {
+              required:
+                true,
+
+              parentContexts:
+                Array.isArray(
+                  execution?.context
+                    ?.mainIdeas
+                )
+                  ? execution.context.mainIdeas
+                      .map(
+                        (idea, index) => ({
+                          icon:
+                            "💡",
+
+                          label:
+                            `Main Idea ${index + 1}`,
+
+                          value:
+                            cleanText(
+                              idea || ""
+                            ),
+                        })
+                      )
+                      .filter(
+                        (context) =>
+                          context.value
+                      )
+                  : [],
+
+              requireVisualSeparation:
+                true,
+
+              requireSingleFinalQuestion:
+                true,
+            };
   
 // --------------------------------------------------
 // STAGE 1 PROMPT VISUAL ARCHITECTURE
