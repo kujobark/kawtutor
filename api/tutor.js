@@ -18257,7 +18257,7 @@ async function runIsAboutSelfTests() {
       };
     });
 
-// LIVE RUNTIME + SHADOW SITUATION TEST
+// LIVE RUNTIME + GOVERNED SITUATION TEST
 //
 // Repeating the accepted Key Topic fails the required
 // Is About relationship.
@@ -18393,7 +18393,7 @@ async function runIsAboutSelfTests() {
     },
   });
 
-// LIVE RUNTIME + SHADOW SITUATION TEST
+// LIVE RUNTIME + GOVERNED SITUATION TEST
 //
 // Limited Is About evidence requires component
 // revision but does not establish relationship failure.
@@ -18516,7 +18516,7 @@ async function runIsAboutSelfTests() {
     },
   });
 
- // LIVE RUNTIME + SHADOW SITUATION TEST
+ // LIVE RUNTIME + GOVERNED SITUATION TEST 
 //
 // A first no-evidence response does not establish
 // genuine struggle.
@@ -18625,7 +18625,7 @@ async function runIsAboutSelfTests() {
     },
   });
 
-// LIVE RUNTIME + SHADOW SITUATION TEST
+// LIVE RUNTIME + GOVERNED SITUATION TEST
 //
 // A valid Is About is saved by the authoritative runtime,
 // and the governed engine establishes readyToProgress.
@@ -18683,7 +18683,7 @@ async function runIsAboutSelfTests() {
 
   results.push({
     name:
-      "IA Runtime - Valid paraphrase produces ready-to-progress shadow situation",
+      "IA Runtime - Valid paraphrase produces ready-to-progress situation",
 
     passed:
       validIsAboutPassed,
@@ -18903,7 +18903,7 @@ async function runIsAboutSelfTests() {
   // • prior no-component evidence;
   // • the same active instructional location.
   //
-  // This test exercises the shadow refresh directly so
+  // This test exercises the governed refresh directly so
   // contract activation and communication do not influence
   // the Instructional Situation result.
   // --------------------------------------------------
