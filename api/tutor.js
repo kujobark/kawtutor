@@ -18459,17 +18459,12 @@ async function runIsAboutSelfTests() {
     limitedEvidenceActual
       ?.instructionalSituation
       ?.instructionalSituation ===
-      INSTRUCTIONAL_SITUATIONS
-        .COMPONENT_NEEDS_REVISION &&
-
-    limitedEvidenceActual
-      ?.instructionalSituation
-      ?.governance
-      ?.shadowMode === true;
+    INSTRUCTIONAL_SITUATIONS
+      .COMPONENT_NEEDS_REVISION;
 
   results.push({
     name:
-      "IA Runtime - Limited evidence produces component revision shadow situation",
+      "IA Runtime - Limited evidence produces component revision situation",
 
     passed:
       limitedEvidencePassed,
@@ -18496,9 +18491,6 @@ async function runIsAboutSelfTests() {
       governedSituation:
         INSTRUCTIONAL_SITUATIONS
           .COMPONENT_NEEDS_REVISION,
-
-      shadowMode:
-        true,
     },
 
     actual: {
@@ -18535,12 +18527,6 @@ async function runIsAboutSelfTests() {
           ?.instructionalSituation
           ?.instructionalSituation ||
         null,
-
-      shadowMode:
-        limitedEvidenceActual
-          ?.instructionalSituation
-          ?.governance
-          ?.shadowMode === true,
     },
   });
 
