@@ -29843,6 +29843,12 @@ return s;
   const s = state;
   ensureBuckets(s); //
 
+  const paContext =
+  getParentAnchorContext(s);
+
+  const paStage =
+    paContext.ownerStructuralStage;
+    
   if (
     s.pending?.type ===
     "confirmAssignmentUnderstanding"
