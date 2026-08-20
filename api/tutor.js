@@ -111,11 +111,6 @@ const LANG_DETECT_MIN_CHARS = 18;
 // ======================================================
 // REFACTOR SAFETY RULE
 // ======================================================
-//
-// Parent Anchor, Child Anchor, pending-state progression,
-// accepted student work, and validated runtime behavior are
-// load-bearing.
-//
 // Do not rewrite load-bearing behavior merely to improve
 // organization.
 //
@@ -123,7 +118,7 @@ const LANG_DETECT_MIN_CHARS = 18;
 // Then migrate responsibility.
 // Then verify behavior.
 // Only then remove the superseded pathway.
-
+//
 // ======================================================
 // HIGH-IMPACT LEARNING STRATEGY — KU FRAMING ROUTINE
 // ======================================================
