@@ -28630,15 +28630,6 @@ const PARENT_ANCHOR_BRIDGE = {
  * It must not become a new progression controller in this phase.
  */
 
-
-// ---------------------
-// CHILD ANCHOR ADAPTERS
-// ---------------------
-// In the sandbox phase, child anchors are a thin structural seam only.
-// They do not own progression, pending-state routing, or loop control.
-// The runtime engine remains owned by getStage(), computeNextQuestion(),
-// and await updateStateFromStudent().
-
 // ---------------------
 // STATE
 // ---------------------
@@ -28667,12 +28658,10 @@ strengthenContext: {
   
   frameMeta: {
     assignmentContext: {
-        raw: "",
-        understanding: "",
-        confidence: "low",
-        childAnchor: "",
-        clarificationCount: 0,
-    },
+    raw: "",
+    understanding: "",
+    confidence: "low",
+    clarificationCount: 0,
 },
 
     frame: {
@@ -28983,11 +28972,6 @@ base.frameMeta.assignmentContext = {
       assignmentContext.validationSource ||
       "deterministic"
     ) || "deterministic",
-
-  childAnchor:
-    cleanText(
-      assignmentContext.childAnchor || ""
-    ),
 
   clarificationCount:
     Number.isFinite(
@@ -30695,14 +30679,12 @@ async function updateStateFromStudent(state, message) {
   ensureBuckets(s);
 
   if (!s.frameMeta) {
-    s.frameMeta = {
-      assignmentContext: {
-        raw: "",
-        understanding: "",
-        confidence: "low",
-        childAnchor: "",
-        clarificationCount: 0,
-      },
+    assignmentContext: {
+    raw: "",
+    understanding: "",
+    confidence: "low",
+    clarificationCount: 0,
+  },
     };
   }
 
@@ -30711,7 +30693,6 @@ async function updateStateFromStudent(state, message) {
       raw: "",
       understanding: "",
       confidence: "low",
-      childAnchor: "",
       clarificationCount: 0,
     };
   }
