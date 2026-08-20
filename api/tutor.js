@@ -16491,10 +16491,7 @@ async function runEssentialDetailSelfTests() {
 
     needsClarification:
       false,
-
-    childAnchor:
-      "",
-
+    
     clarificationCount:
       0,
   };
@@ -16663,9 +16660,6 @@ async function runEssentialDetailSelfTests() {
     needsClarification:
       false,
 
-    childAnchor:
-      "",
-
     clarificationCount:
       0,
   };
@@ -16833,9 +16827,6 @@ results.push({
 
     needsClarification:
       false,
-
-    childAnchor:
-      "",
 
     clarificationCount:
       0,
@@ -17053,9 +17044,6 @@ results.push({
       needsClarification:
         false,
 
-      childAnchor:
-        "",
-
       clarificationCount:
         0,
     };
@@ -17240,9 +17228,6 @@ results.push({
 
       needsClarification:
         false,
-
-      childAnchor:
-        "",
 
       clarificationCount:
         0,
@@ -18066,9 +18051,6 @@ async function runIsAboutSelfTests() {
 
       needsClarification:
         false,
-
-      childAnchor:
-        "",
 
       clarificationCount:
         0,
@@ -20495,9 +20477,6 @@ async function runMainIdeaSelfTests() {
 
       needsClarification:
         false,
-
-      childAnchor:
-        "",
 
       clarificationCount:
         0,
@@ -23283,9 +23262,6 @@ async function runSoWhatSelfTests(
       needsClarification:
         false,
 
-      childAnchor:
-        "",
-
       clarificationCount:
         0,
     };
@@ -23891,9 +23867,6 @@ results.push({
 
       needsClarification:
         false,
-
-      childAnchor:
-        "",
 
       clarificationCount:
         0,
@@ -24627,7 +24600,6 @@ async function runAICommunicationSelfTests() {
 
       confidence: "high",
       needsClarification: false,
-      childAnchor: "",
       clarificationCount: 0,
     };
 
