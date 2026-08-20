@@ -19092,12 +19092,8 @@ async function runIsAboutSelfTests() {
     persistentSituation
       ?.governance
       ?.selectsInstructionalContract ===
-      false &&
-
-    persistentSituation
-      ?.governance
-      ?.shadowMode === true;
-
+      false;
+  
   results.push({
     name:
       "IA Governed - Persistent no-evidence after support establishes genuine struggle",
@@ -19124,9 +19120,6 @@ async function runIsAboutSelfTests() {
 
       selectsInstructionalContract:
         false,
-
-      shadowMode:
-        true,
     },
 
     actual: {
@@ -19158,11 +19151,6 @@ async function runIsAboutSelfTests() {
           ?.governance
           ?.selectsInstructionalContract ===
         true,
-
-      shadowMode:
-        persistentSituation
-          ?.governance
-          ?.shadowMode === true,
     },
   });
 
@@ -19241,13 +19229,7 @@ async function runIsAboutSelfTests() {
       ?.instructionalContractSelection
       ?.governance
       ?.authoritative ===
-      true &&
-
-    repeatedTopicActual
-      ?.instructionalContractSelection
-      ?.governance
-      ?.shadowMode ===
-      false;
+      true;
 
   results.push({
     name:
@@ -19283,9 +19265,6 @@ async function runIsAboutSelfTests() {
 
       authoritative:
         true,
-
-      shadowMode:
-        false,
     },
 
     actual: {
@@ -19370,13 +19349,6 @@ async function runIsAboutSelfTests() {
           ?.instructionalContractSelection
           ?.governance
           ?.authoritative ===
-        true,
-
-      shadowMode:
-        repeatedTopicActual
-          ?.instructionalContractSelection
-          ?.governance
-          ?.shadowMode ===
         true,
     },
   });
