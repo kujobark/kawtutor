@@ -7051,9 +7051,6 @@ function buildInstructionalContractSelection(
 
       authoritative:
         true,
-
-      shadowMode:
-        false,
     },
   };
 }
@@ -7629,9 +7626,6 @@ function buildInteractionInstructionalFinding(
 
       progressionAuthority:
         false,
-
-      shadowMode:
-        true,
     },
   };
 }
@@ -8379,9 +8373,6 @@ function buildInstructionalSituation({
 
       controlsCommunication:
         false,
-
-      shadowMode:
-        true,
     },
   };
 }
