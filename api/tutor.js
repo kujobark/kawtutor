@@ -28661,7 +28661,6 @@ strengthenContext: {
       raw: "",
       understanding: "",
       confidence: "low",
-      childAnchor: "",
       clarificationCount: 0,
 },
 },
@@ -28975,11 +28974,6 @@ base.frameMeta.assignmentContext = {
       "deterministic"
     ) || "deterministic",
 
-  childAnchor:
-    cleanText(
-      assignmentContext.childAnchor || ""
-  ),
-  
   clarificationCount:
     Number.isFinite(
       Number(
@@ -30697,7 +30691,6 @@ async function updateStateFromStudent(state, message) {
         raw: "",
         understanding: "",
         confidence: "low",
-        childAnchor: "",
         clarificationCount: 0,
     },
   };
@@ -30708,7 +30701,6 @@ async function updateStateFromStudent(state, message) {
       raw: "",
       understanding: "",
       confidence: "low",
-      childAnchor: "",
       clarificationCount: 0,
     };
   }
