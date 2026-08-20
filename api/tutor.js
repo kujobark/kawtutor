@@ -30679,14 +30679,15 @@ async function updateStateFromStudent(state, message) {
   ensureBuckets(s);
 
   if (!s.frameMeta) {
-    assignmentContext: {
-    raw: "",
-    understanding: "",
-    confidence: "low",
-    clarificationCount: 0,
-  },
-    };
-  }
+    s.frameMeta = {
+      assignmentContext: {
+        raw: "",
+        understanding: "",
+        confidence: "low",
+        clarificationCount: 0,
+    },
+  };
+}
 
   if (!s.frameMeta.assignmentContext) {
     s.frameMeta.assignmentContext = {
