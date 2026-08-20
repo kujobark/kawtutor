@@ -28640,35 +28640,6 @@ const PARENT_ANCHOR_BRIDGE = {
 // and await updateStateFromStudent().
 
 // ---------------------
-// PARENT ANCHOR OBSERVATION HELPERS
-// ---------------------
-// These helpers are read-only and sandbox-only in purpose.
-// They exist to make the engine easier to inspect structurally.
-// They must not be used to alter routing or progression behavior.
-
-function getParentAnchorObservation(state) {
-  const context =
-    getParentAnchorContext(state);
-
-  const ownerLabel =
-    context.ownerStructuralStage;
-
-  const stageLabel =
-    context.structuralStage;
-
-  return {
-    ...context,
-
-    ownerLabel,
-
-    stageLabel,
-
-    summary:
-      `${context.ownerStructuralStage} | ${context.loopType} | ${ownerLabel}`,
-  };
-}
-
-// ---------------------
 // STATE
 // ---------------------
 function defaultState() {
@@ -29878,71 +29849,15 @@ return s;
 // ---------------------
 // PROGRESSION
 // ---------------------
-function computeNextQuestion(state) {
+  function computeNextQuestion(state) {
   const s = state;
   ensureBuckets(s); //
 
-  const paContext =
-    getParentAnchorContext(s);
-
-  // Parent Anchor stage is part of normal runtime
-  // progression and must remain available throughout
-  // computeNextQuestion().
-  //
-  // The observation hook below may inspect this value,
-  // but it does not own or create it.
-  const paStage =
-    paContext.ownerStructuralStage;
-  
-  // ---------------------
-  // PARENT ANCHOR OBSERVATION HOOK (SANDBOX ONLY)
-  // ---------------------
-  // Leave this disabled until you are intentionally
-  // validating sandbox flows.
-  //
-  // This hook exists so Parent Anchor can explain the
-  // engine in motion without becoming part of the engine.
-  //
-  // Gated sandbox-only observation:
   if (
-    s?.settings?.debugParentAnchor
+    s.pending?.type ===
+    "confirmAssignmentUnderstanding"
   ) {
-    const paObs =
-      getParentAnchorObservation(s);
 
-    const isInDetails =
-      paStage === "detailsLoop";
-
-    const stage =
-      s.pending?.stage ||
-      getStage(s);
-
-    const baseStage =
-      getBaseStage(stage);
-
-    const engineIsDetails =
-      baseStage === "details";
-
-    const isAligned =
-      isInDetails ===
-      engineIsDetails;
-
-    console.log(
-      "[PA OBS]",
-      paObs.summary,
-      {
-        isInDetails,
-        engineIsDetails,
-        isAligned,
-        ...paObs,
-      }
-    );
-  }
-
-  if (
-  s.pending?.type ===
-  "confirmAssignmentUnderstanding"
-) {
   const assignment =
     s.frameMeta
       ?.assignmentContext
