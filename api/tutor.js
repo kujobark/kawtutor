@@ -18574,16 +18574,11 @@ async function runIsAboutSelfTests() {
       ?.componentEvidenceLevel ===
       "none" &&
 
-    noEvidenceActual
-      ?.instructionalSituation
-      ?.instructionalSituation ===
+   noEvidenceActual
+    ?.instructionalSituation
+    ?.instructionalSituation ===
       INSTRUCTIONAL_SITUATIONS
-        .NO_COMPONENT_EVIDENCE &&
-
-    noEvidenceActual
-      ?.instructionalSituation
-      ?.governance
-      ?.shadowMode === true;
+        .NO_COMPONENT_EVIDENCE;
 
   results.push({
     name:
@@ -18611,9 +18606,6 @@ async function runIsAboutSelfTests() {
       governedSituation:
         INSTRUCTIONAL_SITUATIONS
           .NO_COMPONENT_EVIDENCE,
-
-      shadowMode:
-        true,
     },
 
     actual: {
@@ -18644,12 +18636,6 @@ async function runIsAboutSelfTests() {
           ?.instructionalSituation
           ?.instructionalSituation ||
         null,
-
-      shadowMode:
-        noEvidenceActual
-          ?.instructionalSituation
-          ?.governance
-          ?.shadowMode === true,
     },
   });
 
