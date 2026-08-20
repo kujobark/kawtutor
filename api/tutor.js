@@ -18687,11 +18687,6 @@ async function runIsAboutSelfTests() {
       false &&
 
     validIsAboutActual
-      ?.instructionalSituation
-      ?.governance
-      ?.shadowMode === true &&
-
-    validIsAboutActual
       ?.progressionAuthorization
       ?.authorized === true &&
 
@@ -18729,9 +18724,6 @@ async function runIsAboutSelfTests() {
 
       controlsProgression:
         false,
-
-      shadowMode:
-        true,
 
       progressionAuthorized:
         true,
@@ -18774,12 +18766,6 @@ async function runIsAboutSelfTests() {
           ?.instructionalSituation
           ?.governance
           ?.controlsProgression === true,
-
-      shadowMode:
-        validIsAboutActual
-          ?.instructionalSituation
-          ?.governance
-          ?.shadowMode === true,
 
       progressionAuthorized:
         validIsAboutActual
