@@ -18313,11 +18313,6 @@ async function runIsAboutSelfTests() {
       INSTRUCTIONAL_SITUATIONS
         .RELATIONSHIP_NEEDS_REPAIR &&
 
-   repeatedTopicActual
-    ?.instructionalSituation
-    ?.governance
-    ?.shadowMode === true &&
-
   repeatedTopicActual
     ?.progressionAuthorization
     ?.authorized === false &&
@@ -18329,7 +18324,7 @@ async function runIsAboutSelfTests() {
 
   results.push({
     name:
-      "IA Runtime - Repeated Key Topic produces relationship repair shadow situation",
+      "IA Runtime - Repeated Key Topic produces relationship repair situation",
 
     passed:
       repeatedTopicPassed,
@@ -18350,9 +18345,6 @@ async function runIsAboutSelfTests() {
       governedSituation:
         INSTRUCTIONAL_SITUATIONS
           .RELATIONSHIP_NEEDS_REPAIR,
-
-      shadowMode:
-        true,
 
       progressionAuthorized:
         false,
@@ -18388,12 +18380,6 @@ async function runIsAboutSelfTests() {
           ?.instructionalSituation
           ?.instructionalSituation ||
         null,
-
-    shadowMode:
-        repeatedTopicActual
-          ?.instructionalSituation
-          ?.governance
-          ?.shadowMode === true,
 
       progressionAuthorized:
         repeatedTopicActual
