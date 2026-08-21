@@ -8613,7 +8613,7 @@ function refreshInstructionalSituationWithComponentFinding({
 // • execute progression.
 //
 // It creates the governed authorization that the Runtime
-// Progression Layer will later be required to obey.
+// Progression Layer obeys before progression may occur.
 //
 // ------------------------------------------------------
 
