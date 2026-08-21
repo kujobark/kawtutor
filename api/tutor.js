@@ -8733,9 +8733,6 @@ function buildProgressionAuthorization(
 
       authorizationEstablished:
         authorized,
-
-      migrationStage:
-        "authorizationOnly",
     },
   };
 }
