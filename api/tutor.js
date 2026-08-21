@@ -17,7 +17,7 @@ const TRANSCRIPT_MAX_TURNS = 200;
 const LANG_DETECT_MIN_CHARS = 18;
 
 // ======================================================
-// KAW OPERATING SYSTEM — DRAFT 1
+// KAW OPERATING SYSTEM
 // ======================================================
 //
 // Kaw is governed by one coherent instructional operating
@@ -62,8 +62,8 @@ const LANG_DETECT_MIN_CHARS = 18;
 //    - Applies predetermined instructional contracts to
 //      the established instructional findings.
 //    - Selects the instructional objective, Teaching Move,
-//      Thinking Move, support level, progression behavior,
-//      and student-work protections.
+//      Thinking Move, Progressive Support stage, progression
+//      behavior, and student-work protections.
 //    - Strategy is deterministic and teacher-authored.
 //    - AI does not select pedagogy.
 //
@@ -81,8 +81,8 @@ const LANG_DETECT_MIN_CHARS = 18;
 //    - Controls capture, validation, confirmation,
 //      revision, continuation, interruption,
 //      resumption, and export.
-//    - Parent Anchor progression is load-bearing and
-//      remains authoritative until intentionally migrated.
+//    - Deterministic Frame progression remains authoritative,
+//      while Parent Anchor provides read-only structural interpretation.
 //
 // 8. DEVELOPMENT VERIFICATION
 //    - Deterministic self-tests, governed validation tests,
@@ -8899,7 +8899,8 @@ const guidedConstructionActive =
 // Current scope:
 // Is About — Key Topic.
 // Main Idea — Key Topic + Is About.
-//
+// Essential Detail — current Main Idea.
+// So What — accepted Frame context.
 // --------------------------------------------------
 
 const noComponentEvidenceVisualActive =
@@ -26047,9 +26048,9 @@ function getParentAnchorLoopType(state) {
 /**
  * Returns a consolidated read-only Parent Anchor structural snapshot.
  *
- * This helper exists for observability, logging, debugging, and later
- * architectural extraction. It must not be used to change runtime behavior
- * in the sandbox phase.
+ * This helper provides normalized Parent Anchor context for
+ * downstream evidence, observability, logging, and debugging.
+ * It does not change runtime behavior or progression.
  */
 
 function getParentAnchorContext(state) {
@@ -28336,9 +28337,9 @@ async function updateAssignmentUnderstanding(
 // 7. refine
 //
 // NOTE:
-// Parent Anchor stages map onto these later via the
-// Parent Anchor Bridge, but this engine remains the
-// single source of truth for frame progression.
+// Parent Anchor stages map onto these through the
+// Parent Anchor Bridge, while this engine remains the
+// deterministic source of truth for Frame progression.
 
 function getStage(state) {
   const f = state.frame;
@@ -28375,26 +28376,23 @@ function getIdeaList(state) {
 // PARENT ANCHOR BRIDGE
 // ---------------------
 
-// PARENT ANCHOR SANDBOX GUARDRAIL
-// -------------------------------
-// The Parent Anchor should first become the system's best explanation
-// of the engine before it becomes the system's new engine.
+// PARENT ANCHOR ARCHITECTURAL BOUNDARY
+// ------------------------------------
+// Parent Anchor provides the structural interpretation of
+// the Framing Routine without becoming a competing runtime
+// progression controller.
 //
-// In this sandbox phase, Parent Anchor improves observability,
-// interpretation, and structural clarity — not runtime authority.
-// This layer is strictly read-only in this phase.
+// This layer is read-only.
 //
-// That means this layer must:
+// It must:
 // - not change progression logic
 // - not replace getStage()
 // - not alter pending-state semantics
 // - not become a competing controller
 //
-// Runtime control and state mutation remain with:
-// - getStage(state)
-// - computeNextQuestion(state)
-// - await updateStateFromStudent(state)
-
+// Runtime control and state mutation remain with the
+// governed runtime progression pathway.
+//
 // This bridge does NOT change progression logic.
 // It interprets the current tutor.js workflow through the
 // Parent Anchor structural stage model.
