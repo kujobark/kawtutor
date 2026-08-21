@@ -11609,11 +11609,6 @@ const communicationValidation =
     communicationLicense
   );
 
-console.log(
-  "COMMUNICATION VALIDATION:",
-  communicationValidation
-);
-
 if (!communicationValidation.valid) {
   console.warn(
     "AI communication rejected by license:",
@@ -26646,10 +26641,6 @@ function attachGovernedSupportToPending(
   message,
   intentResult = {}
 ) {
-  console.log(
-    "[KAW][GOVERNED SUPPORT] Student Response:",
-    message
-  );
 
   const currentPending =
     state?.pending &&
@@ -26710,53 +26701,6 @@ function attachGovernedSupportToPending(
       ? guidedConstructionAuthority
           .instructionalContract
       : selectedInstructionalContract;
-
-  console.log(
-    "[KAW][GOVERNED SUPPORT] Instructional Situation:",
-    instructionalSituation
-      ?.instructionalSituation || null
-  );
-
-  console.log(
-    "[KAW][GOVERNED SUPPORT] Selected Contract:",
-    selectedInstructionalContract
-      ?.contractId || null
-  );
-
-  console.log(
-    "[KAW][GOVERNED SUPPORT] Active Pathway Authority:",
-    guidedConstructionContinuationActive
-      ? {
-          pathway:
-            "guidedConstruction",
-
-          frameComponent:
-            guidedConstructionAuthority
-              ?.context
-              ?.frameComponent ||
-            null,
-
-          guidedConstructionStep:
-            guidedConstructionAuthority
-              ?.context
-              ?.guidedConstructionStep ||
-            null,
-
-          governingContract:
-            instructionalContract
-              ?.contractId ||
-            null,
-        }
-      : {
-          pathway:
-            "ordinaryGovernedSupport",
-
-          reason:
-            guidedConstructionAuthority
-              ?.reason ||
-            null,
-        }
-  );
 
   if (
     !instructionalSituation ||
@@ -27027,11 +26971,6 @@ if (
       instructionalContract,
       activationState
     );
-
-  console.log(
-    "ACTIVATION:",
-    instructionalActivation
-  );
 
   if (!instructionalActivation) {
     throw new Error(
