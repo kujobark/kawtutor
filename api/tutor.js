@@ -10172,8 +10172,8 @@ function executeInstructionalContract(
 // Selects the predetermined Progressive Support scaffold
 // from the already-selected Instructional Contract.
 //
-// Progressive Support Stage is distinct from the broader
-// High / Moderate / Low Communication Support Level.
+// Progressive Support uses three governed stages:
+// Prompt, Model, and Guided Construction.
 //
 // This helper does not:
 //
@@ -10186,10 +10186,10 @@ function executeInstructionalContract(
 // Stage lifecycle is owned separately by Runtime
 // Progression.
 //
-// During migration, the historical pending.supportLevel
-// field remains a read-only compatibility fallback for
-// existing Progressive Support state. New runtime state
-// uses pending.progressiveSupportStage.
+// The historical pending.supportLevel field remains a
+// read-only compatibility fallback for previously stored
+// Progressive Support state. Current runtime state uses
+// pending.progressiveSupportStage.
 //
 // ------------------------------------------------------
 
@@ -22183,8 +22183,8 @@ function formatMainIdeaSelfTestResults(
 // - unsupported conclusions do not pass merely because
 //   they sound meaningful.
 //
-// Runtime save-path tests will be added after governed
-// validation is connected to So What capture and revision.
+// Dedicated runtime save-path coverage remains separate
+// from this governed So What validation suite.
 // ------------------------------------------------------
 
 async function runSoWhatSelfTests(
@@ -27931,8 +27931,8 @@ async function validateAssignmentUnderstandingGoverned(
   //
   // JavaScript identifies the first unestablished gate.
   //
-  // This diagnosis will later support increasingly
-  // targeted clarification contracts.
+  // This diagnosis records the first unestablished
+  // Assignment Understanding gate.
   // --------------------------------------------------
 
   let diagnosis =
