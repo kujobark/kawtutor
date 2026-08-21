@@ -429,14 +429,13 @@ soWhat: {
 // The Observation Report is evidence.
 // It is not an instructional decision.
 //
-// Current migration status:
+// Current authoritative role:
 //
-// Shadow mode.
+// The Observation Report contributes governed evidence to
+// Evidence State and downstream Instructional Assessment.
 //
-// The Observation Report is included in Evidence State but
-// does not yet control Instructional Assessment, Strategy,
+// It does not itself determine instructional strategy,
 // progression, pending state, or communication.
-//
 // ======================================================
 
 const OBSERVATION_CATEGORIES = new Set([
@@ -7360,10 +7359,15 @@ function buildInstructionalAssessment(
 // • change pending state;
 // • generate communication.
 //
-// Current status:
+// Current authoritative role:
 //
-// Shadow mode only.
+// This finding deterministically interprets governed
+// interaction evidence for downstream Instructional
+// Situation reasoning.
 //
+// It does not itself select the Instructional Contract,
+// determine support, progression, pending state, or
+// generate communication.
 // ------------------------------------------------------
 
 function buildInteractionInstructionalFinding(
@@ -7665,13 +7669,14 @@ function buildInteractionInstructionalFinding(
 // • generate communication;
 // • change progression or pending state.
 //
-// Current migration status:
+// Current authoritative role:
 //
-// Shadow mode.
+// The engine deterministically establishes and stores one
+// governed Instructional Situation for downstream contract
+// selection and progression authorization.
 //
-// The engine produces and stores one governed situation,
-// but it does not yet control the authoritative runtime.
-//
+// It does not itself execute progression, mutate pending
+// state, or generate communication.
 // ======================================================
 
 const INSTRUCTIONAL_SITUATIONS =
