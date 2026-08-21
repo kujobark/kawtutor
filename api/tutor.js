@@ -12605,10 +12605,6 @@ Rules:
       resp?.choices?.[0]?.message
         ?.content || "{}"
     );
-  
-  console.log(
-    "IS ABOUT SEMANTIC EVIDENCE:",
-    parsed
 );
 
 const confidence =
@@ -12676,11 +12672,6 @@ async function validateIsAboutResponseGoverned(
       response,
       keyTopic
     );
-
-  console.log(
-    "IS ABOUT VALIDATION:",
-    deterministicResult
-  );
 
   // --------------------------------------------------
   // STEP 2 — SEMANTIC EVIDENCE GATE
@@ -13551,11 +13542,6 @@ async function validateMainIdeaResponseGoverned(
       isAbout
     );
 
-  console.log(
-    "MAIN IDEA VALIDATION:",
-    deterministicResult
-  );
-
   // --------------------------------------------------
   // STEP 2 — SEMANTIC EVIDENCE GATE
   //
@@ -14346,11 +14332,6 @@ async function validateEssentialDetailResponseGoverned(
       response,
       currentMainIdea
     );
-
-  console.log(
-    "ESSENTIAL DETAIL VALIDATION:",
-    deterministicResult
-  );
 
   // --------------------------------------------------
   // STEP 2 — SEMANTIC EVIDENCE GATE
@@ -15421,11 +15402,6 @@ async function validateSoWhatResponseGoverned(
       response,
       instructionalContext
     );
-
-  console.log(
-    "SO WHAT VALIDATION:",
-    deterministicResult
-  );
 
   // --------------------------------------------------
   // STEP 2 — SEMANTIC EVIDENCE GATE
