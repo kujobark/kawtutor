@@ -2777,7 +2777,8 @@ const INSTRUCTIONAL_PLAYBOOK = {
 // • determine an Instructional Situation;
 // • generate student-facing communication.
 //
-// Runtime progression will consume these rules later.
+// Runtime Guided Construction consumes these rules to
+// govern step-aware instructional continuation.
 //
 // Active Pathway Authority:
 //
@@ -3422,8 +3423,8 @@ const GUIDED_CONSTRUCTION_RULES = Object.freeze({
 // • select an Instructional Contract;
 // • change runtime progression.
 //
-// Exact instructional-location identity will be governed
-// separately.
+// Exact instructional-location identity is governed
+// separately by the Guided Construction location helper.
 //
 // ======================================================
 
@@ -4171,8 +4172,8 @@ function assessGuidedConstructionEvidence({
   // be inferred from length, token overlap, or the full
   // component validator alone.
   //
-  // Step 5 will establish the bounded semantic-evidence
-  // provider that supplies this artifact.
+  // The bounded semantic-evidence provider supplies the
+  // governed micro-step evidence consumed by this assessment.
   //
   // JavaScript retains final authority by converting the
   // supplied evidence into one governed outcome here.
@@ -4916,8 +4917,8 @@ Report only whether the student's current words provide evidence for each predet
 // • advance the larger Frame;
 // • generate student-facing communication.
 //
-// Step 7 will apply these decisions to bounded Guided
-// Construction state.
+// These decisions are applied to bounded Guided
+// Construction state by applyGuidedConstructionProgression().
 //
 // ======================================================
 
@@ -5941,8 +5942,8 @@ function buildPendingWithGuidedConstructionPreservation(
 // • change pending.type or captureMode;
 // • generate student-facing communication.
 //
-// Component-specific runtime branches will call this
-// shared façade later.
+// Component-specific runtime branches call this
+// shared façade for active Guided Construction continuation.
 //
 // ======================================================
 
