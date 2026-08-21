@@ -27770,12 +27770,7 @@ async function validateAssignmentUnderstandingGoverned(
     validateAssignmentUnderstanding(
       rawAssignment
     );
-
-  console.log(
-    "ASSIGNMENT UNDERSTANDING VALIDATION:",
-    deterministicResult
-  );
-
+  
   // --------------------------------------------------
   // STEP 2 — SEMANTIC EVIDENCE GATE
   // --------------------------------------------------
@@ -28144,81 +28139,6 @@ async function updateAssignmentUnderstanding(
 
   state.assignmentReasoning.lastUpdated =
     Date.now();
-
-  console.log(
-    "🧠 ASSIGNMENT UNDERSTANDING"
-  );
-
-  console.log(
-    "--------------------------"
-  );
-
-  console.log(
-    "Valid:",
-    understanding.valid
-  );
-
-  console.log(
-    "Context:",
-    understanding
-      .assignmentContextStatus
-  );
-
-  console.log(
-    "Demand:",
-    understanding
-      .assignmentDemandStatus
-  );
-
-  console.log(
-    "Summary:",
-    understanding
-      .summaryReadinessStatus
-  );
-
-  console.log(
-    "Diagnosis:",
-    understanding.diagnosis ||
-      "None"
-  );
-
-  console.log(
-    "Validation Source:",
-    understanding.validationSource
-  );
-
-  console.log("");
-  console.log(
-    "🧠 Assignment Reasoning"
-  );
-
-  console.log(
-    "----------------------"
-  );
-
-  console.log(
-    "Task:",
-    state.assignmentReasoning
-      ?.task || "None"
-  );
-
-  console.log(
-    "Label:",
-    state.assignmentReasoning
-      ?.label || "None"
-  );
-
-  console.log(
-    "Confidence:",
-    state.assignmentReasoning
-      ?.confidence ?? 0
-  );
-
-  console.log(
-    "Evidence:",
-    state.assignmentReasoning
-      ?.evidence || []
-  );
 
   return understanding;
 }
