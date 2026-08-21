@@ -6952,7 +6952,7 @@ if (
 // • So What
 // The selected contract controls authoritative
 // instructional activation and communication for the
-// currently migrated Frame components.
+// governed Frame components in the current scope.
 //
 // This selector does not:
 //
@@ -8472,7 +8472,7 @@ function buildComponentInstructionalFinding({
 // • attaches the current Component Instructional Finding;
 // • rebuilds the governed Instructional Situation;
 // • selects the corresponding Instructional Contract for
-//   migrated Frame components;
+//   governed Frame components in the current scope;
 // • stores the refreshed governed artifacts.
 //
 // This function does not:
@@ -30532,9 +30532,9 @@ const instructionalSituation =
 // with the current Component Instructional Finding.
 //
 // The situation does not directly save student work or
-// control progression. For migrated Frame components, its
-// refreshed result supports deterministic contract
-// selection and governed communication.
+// control progression. For governed Frame components in the
+// current scope, its refreshed result supports deterministic
+// contract selection and governed communication.
 
 instructionalAssessment
   .instructionalSituation =
