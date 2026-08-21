@@ -25204,8 +25204,8 @@ const DETERMINISTIC_SELF_TEST_SUITES = [
 // Runs one registered deterministic or governed suite by
 // component ID.
 //
-// This exists so cleanup work can be verified without
-// executing the full monolithic /run tests command.
+// Allows one registered suite to run independently
+// without executing the full /run tests command.
 //
 // It does not modify student state.
 // ------------------------------------------------------
@@ -30282,7 +30282,7 @@ if (paStage === "parentItems" || ideas.length < 2) {
   );
 }
 
-  // DETAILS LOOP (CLEANED — no duplicate fallback / brace drift)
+// DETAILS LOOP
    for (let i = 0; i < ideas.length; i++) {
     const mi = ideas[i];
     const arr = Array.isArray(s.frame.details[i]) ? s.frame.details[i] : [];
