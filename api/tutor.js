@@ -12599,7 +12599,6 @@ Rules:
     JSON.parse(
       resp?.choices?.[0]?.message
         ?.content || "{}"
-    );
 );
 
 const confidence =
