@@ -11142,7 +11142,6 @@ function activateInstructionalContract(contract, state) {
 
 async function getInstructionalResponse(activation) {
   const payload = activation?.aiPayload;
-  console.log("AI PAYLOAD:", payload);
   
   if (!payload) return null;
 
@@ -11750,11 +11749,6 @@ Return only the corrected student-facing response.
         retryResponse,
         communicationLicense
       );
-
-    console.log(
-      "COMMUNICATION RETRY VALIDATION:",
-      retryValidation
-    );
 
     activation.communicationDebug = {
       ...activation.communicationDebug,
@@ -29191,11 +29185,6 @@ if (
       finalRephraseUsed:
         false,
     });
-
-  console.log(
-    "[KAW][GUIDED CONSTRUCTION][IS ABOUT]",
-    guidedConstructionContinuation
-  );
 }
 
     if (
@@ -29482,11 +29471,6 @@ if (
       finalRephraseUsed:
         false,
     });
-
-  console.log(
-    "[KAW][GUIDED CONSTRUCTION][MAIN IDEA]",
-    guidedConstructionContinuation
-  );
 }
   
 if (
@@ -30621,17 +30605,8 @@ if (
     msg
   );
 
-console.log(
-  "OBSERVATION REPORT:",
-  JSON.stringify(
-    observationReport,
-    null,
-    2
-  )
-);
-
-// Store the current governed observation artifact so it
-// remains inspectable during migration and testing.
+// Store the current governed Observation Report so it
+// remains available to downstream instructional layers.
 s.observationReport =
   structuredClone(
     observationReport
@@ -32257,11 +32232,6 @@ if (
       finalRephraseUsed:
         false,
     });
-
-  console.log(
-    "[KAW][GUIDED CONSTRUCTION][ESSENTIAL DETAIL]",
-    guidedConstructionContinuation
-  );
 }
 
    return {
@@ -32463,11 +32433,6 @@ if (
         finalRephraseUsed:
           false,
       });
-
-    console.log(
-      "[KAW][GUIDED CONSTRUCTION][SO WHAT]",
-      guidedConstructionContinuation
-    );
   }
 
   return {
@@ -33969,11 +33934,6 @@ const instructionalResponse =
         instructionalActivation
       )
     : null;
-
-console.log(
-  "AI RESPONSE:",
-  instructionalResponse
-);
 
 // A selected Kaw 2.5 Instructional Contract remains the
 // instructional authority unless Guided Construction has
