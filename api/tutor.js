@@ -7623,15 +7623,12 @@ function buildInteractionInstructionalFinding(
       genuineStruggleEstablished:
         false,
 
-      instructionalContractSelected:
-        false,
+    instructionalContractSelected:
+      false,
 
-      supportLevelDetermined:
-        false,
-
-      progressionAuthority:
-        false,
-    },
+    progressionAuthority:
+      false,
+},
   };
 }
 
