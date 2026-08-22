@@ -25913,14 +25913,9 @@ async function runAllDeterministicSelfTests() {
 }
 
 // ------------------------------------------------------
-// STUDENT OWNERSHIP CHECK
-// Ensures Kaw never replaces student thinking.
-// ------------------------------------------------------
-
-
-// ------------------------------------------------------
-// CONTEXT INTEGRATION
-// Combines assignment, strategy, anchors, and conversation.
+// PARENT ANCHOR STRUCTURAL INTERPRETATION
+// Provides read-only structural context for the current
+// instructional moment.
 // ------------------------------------------------------
 
 function getParentAnchorStage(state) {
@@ -25957,7 +25952,7 @@ function getParentAnchorStage(state) {
  * Difference from getParentAnchorStage(state):
  * - getParentAnchorStage(state) returns the currently interpreted structural stage
  * - getParentAnchorOwnerStage(state) returns the structural owner of the
- *   current pending flow, including interrupt and overlay cases
+ *   current pending flow, including overlay and saved-resume cases
  */
 
 function getParentAnchorOwnerStage(state) {
@@ -26010,8 +26005,9 @@ function getParentAnchorLoopType(state) {
  * Returns a consolidated read-only Parent Anchor structural snapshot.
  *
  * This helper provides normalized Parent Anchor context for
- * downstream evidence, observability, logging, and debugging.
- * It does not change runtime behavior or progression.
+ * downstream evidence, structural interpretation, and
+* development verification.
+* It does not change runtime behavior or progression.
  */
 
 function getParentAnchorContext(state) {
@@ -26209,7 +26205,7 @@ function normalizeInstructionalComparisonText(
 function cleanFrameText(s) {
   let text = cleanText(s);
 
-  // Common typo cleanup for demo / obvious spelling
+  // Light cleanup for known obvious spelling errors
   text = text.replace(/\bmovimng\b/gi, "moving");
 
   // Capitalize first letter
@@ -28228,8 +28224,8 @@ function getIdeaList(state) {
 //
 // Structural stages are the invariant Parent Anchor stages.
 // Pending-state mappings are used to infer confirmation/export stages.
-// Interrupt mappings map temporary correction states back to the
-// structural stage they belong to.
+// Stuck helper flows may use a saved resume stage to recover their
+// underlying structural location.
 // Overlay pending types are non-structural helpers (for example,
 // stuck support or language support) and should not be treated as
 // Parent Anchor stages.
@@ -28251,8 +28247,8 @@ const PARENT_ANCHOR_BRIDGE = {
   // Pending states that indicate the engine is currently inside
   // a structural confirmation/export stage.
   //
-  // These mappings preserve current tutor.js behavior only.
-  // They should not be mistaken for permanent instructional rules.
+  // These mappings reflect current runtime pending-state semantics.
+  // They are structural interpretations, not independent instructional rules.
   confirmationStageByPending: {
     confirmIsAbout: "isAboutConfirm",
 
@@ -28279,14 +28275,14 @@ const PARENT_ANCHOR_BRIDGE = {
     "confirmLanguageSwitch",
 ]),
 
-  // Raw getStage() outputs mapped to Parent Anchor structural stages.
-  //
-  // Detail buckets like details:0 / details:1 collapse to the single
-  // structural stage "detailsLoop".
-  //
-  // Post-completion states are interpreted structurally as "export"
-  // so the Parent Anchor endpoint stays stable even if tutor.js
-  // continues to expose completion/refine behavior around export.
+// Raw getStage() outputs mapped to Parent Anchor structural stages.
+//
+// Detail buckets like details:0 / details:1 collapse to the single
+// structural stage "detailsLoop".
+//
+// Post-completion runtime stages are interpreted structurally
+// as "export" so the Parent Anchor endpoint remains stable
+// across completion and export flows.
  structuralStageByRawStage(rawStage) {
     if (rawStage === "assignmentContext") return "assignmentContext";
     if (rawStage === "keyTopic") return "keyTopic";
@@ -28301,20 +28297,19 @@ const PARENT_ANCHOR_BRIDGE = {
 };
 
 /**
- * Returns the current Parent Anchor structural stage without changing
- * any existing tutor.js progression behavior.
+ * Returns the current Parent Anchor structural stage.
  *
- * This helper is an interpretation layer only.
- * It does NOT advance stages, mutate state, or replace getStage().
+ * This helper is a read-only interpretation layer.
+ * It does not advance stages, mutate state, or replace getStage().
  *
- * It interprets the current tutor.js workflow through the Parent Anchor
+ * It interprets the governed runtime through the Parent Anchor
  * structural stage model: the invariant Framing Routine spine
  * Key Topic -> Is About -> Main Ideas -> Details -> So What.
  *
  * How it works:
  * 1) It checks state.pending?.type first.
  *    - confirmation/export pending states override raw getStage()
- *    - interrupt pending states map back to their owning structural stage
+ *    - stuck helper flows may recover a saved structural location
  *    - overlay pending types do not become structural stages
  *
  * 2) If no pending override applies, it falls back to getStage(state).
@@ -28325,9 +28320,9 @@ const PARENT_ANCHOR_BRIDGE = {
  * 4) Post-completion raw stages like "refine" are interpreted
  *    structurally as "export".
  *
- * Sandbox guardrail:
+ * Architectural guardrail:
  * This helper explains the current engine structurally.
- * It must not become a new progression controller in this phase.
+ * It does not own or replace runtime progression.
  */
 
 // ---------------------
