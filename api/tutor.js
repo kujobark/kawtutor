@@ -28987,9 +28987,6 @@ const activeGuidedConstruction =
     s
   );
 
-let guidedConstructionContinuation =
-  null;
-
 if (
   activeGuidedConstruction?.active ===
     true &&
@@ -28997,8 +28994,7 @@ if (
     ?.frameComponent ===
     "isAbout"
 ) {
-  guidedConstructionContinuation =
-    await continueGuidedConstruction({
+  await continueGuidedConstruction({
       state:
         s,
 
@@ -29273,9 +29269,6 @@ const activeGuidedConstruction =
     s
   );
 
-let guidedConstructionContinuation =
-  null;
-
 if (
   activeGuidedConstruction?.active ===
     true &&
@@ -29283,8 +29276,7 @@ if (
     ?.frameComponent ===
     "mainIdeas"
 ) {
-  guidedConstructionContinuation =
-    await continueGuidedConstruction({
+  await continueGuidedConstruction({
       state:
         s,
 
@@ -32034,9 +32026,6 @@ const activeGuidedConstruction =
     s
   );
 
-let guidedConstructionContinuation =
-  null;
-
 if (
   activeGuidedConstruction?.active ===
     true &&
@@ -32044,8 +32033,7 @@ if (
     ?.frameComponent ===
     "details"
 ) {
-  guidedConstructionContinuation =
-    await continueGuidedConstruction({
+  await continueGuidedConstruction({
       state:
         s,
 
@@ -32235,9 +32223,6 @@ if (
       s
     );
 
-  let guidedConstructionContinuation =
-    null;
-
   if (
     activeGuidedConstruction?.active ===
       true &&
@@ -32245,8 +32230,7 @@ if (
       ?.frameComponent ===
       "soWhat"
   ) {
-    guidedConstructionContinuation =
-      await continueGuidedConstruction({
+    await continueGuidedConstruction({
         state:
           s,
 
