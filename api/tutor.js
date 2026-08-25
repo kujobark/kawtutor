@@ -11401,6 +11401,7 @@ You must follow these rules:
 - Do not make claims about success, progress, correctness, relationships, or quality unless the established Instructional Finding and Communication License permit that claim.
 - When relationship status is undetermined, preserve that uncertainty rather than resolving it yourself.
 - Preserve student ownership at all times.
+- When an Instructional Finding provides both attemptedDetail and displayAttemptedDetail, use displayAttemptedDetail whenever referencing that attempted Essential Detail to the student. attemptedDetail is raw internal evidence and must not be displayed when the corrected display version is available.
 - Follow the Approved Communication Instruction exactly.
 - Ask exactly one concise question.
 - Include a brief student-facing lead-in only when the Approved Communication Instruction permits or requires it.
@@ -32289,6 +32290,11 @@ if (s.pending?.type === "confirmDetails") {
 
         attemptedDetail:
           rawDetail,
+
+        displayAttemptedDetail:
+          correctObviousStudentSpelling(
+            rawDetail
+          ),
       },
     }),
 
@@ -32876,18 +32882,27 @@ const {
 }
 
   if (s.pending?.type === "chooseExportType") {
-    const normalized = msg.toLowerCase().trim();
     const choice =
+      normalized === "3" ||
       normalized.includes("both")
         ? "both"
-        : normalized.includes("frame")
+        : normalized === "1" ||
+          normalized.includes("frame")
           ? "frame"
-          : normalized.includes("transcript")
+          : normalized === "2" ||
+            normalized.includes("transcript")
             ? "transcript"
             : null;
-    s.flags.exportChoice = choice || "both";
-    s.pending = null;
-    return s;
+    
+   if (!choice) {
+  return s;
+}
+
+s.flags.exportChoice =
+  choice;
+
+s.pending = null;
+return s;
   }
 
   // ----------------
