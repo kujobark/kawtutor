@@ -28847,17 +28847,16 @@ assignmentReasoning: {
       : {};
 
   base.frame.keyTopic =
-    cleanFrameText(
+    cleanText(
       frame.keyTopic ||
       ""
-    )
-      .replace(/[.!?]$/, "");
+  );
 
   base.frame.isAbout =
-    cleanFrameText(
+    cleanText(
       frame.isAbout ||
       ""
-    );
+  );
 
   base.frame.parentItems =
     Array.isArray(
@@ -32175,13 +32174,13 @@ if (s.pending?.type === "confirmDetails") {
     ?.contractId ===
     "ED-RNR-001";
 
-const originalAttemptedDetail =
-  priorRelationshipRepairActive
-    ? cleanText(
-        s?.pending
-          ?.instructionalFinding
-          ?.evidence
-          ?.attemptedDetail || ""
+  const originalAttemptedDetail =
+    priorRelationshipRepairActive
+      ? correctObviousStudentSpelling(
+          s?.pending
+            ?.instructionalFinding
+            ?.evidence
+            ?.attemptedDetail || ""
       )
     : "";
     
