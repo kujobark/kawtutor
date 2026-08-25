@@ -33205,6 +33205,9 @@ const componentTestCommandMap = {
   "/run core":
     "evidenceState",
 
+  "/run h1":
+    "stage1FinalQuestion",
+  
   "/run sw1":
     "soWhatValidation",
 
