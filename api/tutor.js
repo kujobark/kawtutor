@@ -26468,12 +26468,60 @@ function normalizeInstructionalComparisonText(
     .replace(/[.!?]+$/g, "");
 }
 
+const OBVIOUS_STUDENT_SPELLING_CORRECTIONS =
+  Object.freeze({
+    movimng:
+      "moving",
+  });
+
+function correctObviousStudentSpelling(s) {
+  const text =
+    cleanText(s);
+
+  return text.replace(
+    /\b[A-Za-z]+\b/g,
+    (word) => {
+      const correction =
+        OBVIOUS_STUDENT_SPELLING_CORRECTIONS[
+          word.toLowerCase()
+        ];
+
+      if (!correction) {
+        return word;
+      }
+
+      if (
+        word ===
+        word.toUpperCase()
+      ) {
+        return correction.toUpperCase();
+      }
+
+      if (
+        word.charAt(0) ===
+        word.charAt(0).toUpperCase()
+      ) {
+        return (
+          correction.charAt(0).toUpperCase() +
+          correction.slice(1)
+        );
+      }
+
+      return correction;
+    }
+  );
+}
+
 function cleanFrameText(s) {
   let text = cleanText(s);
 
-  // Light cleanup for known obvious spelling errors
-  text = text.replace(/\bmovimng\b/gi, "moving");
-
+  // Apply bounded deterministic spelling correction
+  // without changing student meaning or phrasing.
+  text =
+    correctObviousStudentSpelling(
+      text
+  );
+  
   // Capitalize first letter
   text = text.charAt(0).toUpperCase() + text.slice(1);
 
@@ -29431,10 +29479,12 @@ const observedContributionText =
     : "";
 
 const text =
-  interactionObservationPresent &&
-  observedContributionText
-    ? observedContributionText
-    : rawMainIdea;
+  correctObviousStudentSpelling(
+    interactionObservationPresent &&
+    observedContributionText
+      ? observedContributionText
+      : rawMainIdea
+  );
 
 const captureMode =
   options.captureMode || "required";
@@ -32185,10 +32235,13 @@ const originalAttemptedDetail =
       : "";
 
   const text =
-    interactionObservationPresent &&
-    observedContributionText
-      ? observedContributionText
-      : rawDetail;
+    correctObviousStudentSpelling(
+      interactionObservationPresent &&
+      observedContributionText
+        ? observedContributionText
+        : rawDetail
+  );
+    
   const currentMainIdea =
     getIdeaList(s)[index] || "";
 
@@ -32389,10 +32442,12 @@ if (
       : "";
 
   const text =
-    interactionObservationPresent &&
-    observedContributionText
-      ? observedContributionText
-      : rawSoWhat;
+    correctObviousStudentSpelling(
+      interactionObservationPresent &&
+      observedContributionText
+        ? observedContributionText
+        : rawSoWhat
+  );
 
   const soWhatValidation =
     await validateSoWhatResponseGoverned(
