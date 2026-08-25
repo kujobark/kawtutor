@@ -9232,6 +9232,9 @@ const stage1PromptVisualArchitecture =
             },
           ],
 
+          finalQuestionTemplate:
+            "Looking at your Main Idea, what is one specific thing that could help explain or support it?",
+
           requireSingleFinalQuestion:
             true,
         };
@@ -9902,6 +9905,23 @@ if (
       "stage1PromptSingleQuestionRequired"
     );
   }
+}
+
+  const finalQuestionTemplate =
+  cleanText(
+    stage1PromptVisualArchitecture
+      ?.finalQuestionTemplate || ""
+  );
+
+if (
+  finalQuestionTemplate &&
+  !text.endsWith(
+    finalQuestionTemplate
+  )
+) {
+  violations.push(
+    "stage1PromptFinalQuestionRequired"
+  );
 }
 
   
@@ -24402,6 +24422,246 @@ function formatSoWhatSelfTestResults(
 }
 
 // ------------------------------------------------------
+// STAGE 1 FINAL-QUESTION VALIDATION TESTS
+//
+// Verifies that a governed Stage-1 communication response
+// must end with the exact deterministic final question
+// supplied by the Communication License.
+//
+// These tests exercise the validator directly and do not
+// call AI.
+// ------------------------------------------------------
+
+function runStage1FinalQuestionValidationSelfTests() {
+  const finalQuestionTemplate =
+    "Looking at your Main Idea, what is one specific thing that could help explain or support it?";
+
+  const communicationLicense = {
+    permissions: {
+      maximumQuestions:
+        1,
+    },
+
+    prohibitions: {
+      mayClaimUnsupportedProgress:
+        false,
+
+      mayGenerateStudentWork:
+        false,
+    },
+
+    relationshipStatus:
+      "undetermined",
+
+    studentFacingFormat: {
+      stage1PromptVisualArchitecture: {
+        required:
+          true,
+
+        componentIcon:
+          "✍️",
+
+        componentLabel:
+          "Essential Detail",
+
+        leadIn:
+          "I’ll help you build an ✍️ Essential Detail by connecting back to what you already have.",
+
+        parentContextIcon:
+          "💡",
+
+        parentContextLabel:
+          "Main Idea",
+
+        requireParentContext:
+          true,
+
+        requireBridgeLine:
+          true,
+
+        bridgeLine:
+          "Think about one of these:",
+
+        requireVisualSeparation:
+          true,
+
+        thinkingLenses: [
+          {
+            icon:
+              "📌",
+
+            label:
+              "a fact",
+          },
+
+          {
+            icon:
+              "💬",
+
+            label:
+              "an example",
+          },
+
+          {
+            icon:
+              "👀",
+
+            label:
+              "something you noticed or learned",
+          },
+        ],
+
+        finalQuestionTemplate,
+
+        requireSingleFinalQuestion:
+          true,
+      },
+    },
+  };
+
+  const validResponse = [
+    "I’ll help you build an ✍️ Essential Detail by connecting back to what you already have.",
+    "",
+    "💡 Main Idea: Mental health",
+    "",
+    "Think about one of these:",
+    "",
+    "📌 a fact",
+    "💬 an example",
+    "👀 something you noticed or learned",
+    "",
+    finalQuestionTemplate,
+  ].join("\n");
+
+  const alteredResponse =
+    validResponse.replace(
+      finalQuestionTemplate,
+      "What Essential Detail would you like to add?"
+    );
+
+  const validResult =
+    validateInstructionalCommunicationResponse(
+      validResponse,
+      communicationLicense
+    );
+
+  const alteredResult =
+    validateInstructionalCommunicationResponse(
+      alteredResponse,
+      communicationLicense
+    );
+
+  const passed =
+    validResult.valid === true &&
+    alteredResult.valid === false &&
+    alteredResult.violations.includes(
+      "stage1PromptFinalQuestionRequired"
+    );
+
+  return {
+    passed,
+
+    passedCount:
+      passed
+        ? 1
+        : 0,
+
+    failedCount:
+      passed
+        ? 0
+        : 1,
+
+    total:
+      1,
+
+    results: [
+      {
+        name:
+          "Stage 1 - Exact deterministic final question is enforced",
+
+        passed,
+
+        expected: {
+          exactQuestionAccepted:
+            true,
+
+          alteredQuestionRejected:
+            true,
+
+          violation:
+            "stage1PromptFinalQuestionRequired",
+        },
+
+        actual: {
+          exactQuestionAccepted:
+            validResult.valid,
+
+          alteredQuestionRejected:
+            alteredResult.valid === false,
+
+          violations:
+            alteredResult.violations,
+        },
+      },
+    ],
+  };
+}
+
+  function formatStage1FinalQuestionValidationSelfTestResults(
+    testResults
+  ) {
+    const lines = [
+      "🎯 KAW STAGE 1 FINAL-QUESTION VALIDATION",
+      "",
+  ];
+
+  testResults.results.forEach(
+    (result) => {
+      lines.push(
+        `${result.passed ? "✅" : "❌"} ${result.name}`
+      );
+
+      if (!result.passed) {
+        lines.push(
+          `Expected: ${JSON.stringify(
+            result.expected
+          )}`
+        );
+
+        lines.push(
+          `Actual: ${JSON.stringify(
+            result.actual
+          )}`
+        );
+      }
+
+      lines.push("");
+    }
+  );
+
+  lines.push(
+    "────────────────────────"
+  );
+
+  lines.push(
+    `Passed: ${testResults.passedCount}/${testResults.total}`
+  );
+
+  lines.push(
+    `Failed: ${testResults.failedCount}`
+  );
+
+  if (testResults.passed) {
+    lines.push("");
+    lines.push(
+      "🚀 Stage 1 final-question enforcement is operating correctly."
+    );
+  }
+
+  return lines.join("\n");
+}
+
+// ------------------------------------------------------
 // AI COMMUNICATION LICENSING TEST SUITE
 //
 // Runs live AI contextualization through the same
@@ -25178,6 +25438,12 @@ const DETERMINISTIC_SELF_TEST_SUITES = [
     run: runEssentialDetailSelfTests,
     format: formatEssentialDetailSelfTestResults,
   },
+  {
+  id: "stage1FinalQuestion",
+  label: "Stage 1 Final Question Validation",
+  run: runStage1FinalQuestionValidationSelfTests,
+  format: formatStage1FinalQuestionValidationSelfTestResults,
+},
   {
     id: "isAbout",
     label: "Is About Validation",
