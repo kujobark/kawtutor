@@ -31189,6 +31189,778 @@ Report only the student's apparent redirect/navigation meaning.`;
     };
   }
 }
+
+// ======================================================
+// REDIRECT VALIDATION
+// ======================================================
+//
+// Deterministically validates one established redirect
+// interpretation against canonical Kaw runtime state.
+//
+// AI describes the student's apparent request.
+// JavaScript determines whether the requested target can
+// be resolved and whether the existing runtime currently
+// has a supported re-entry pathway for it.
+//
+// This layer does not:
+//
+// • mutate Frame or pending state;
+// • apply navigation;
+// • clear instructional artifacts;
+// • change Build / Strengthen mode;
+// • change Progressive Support or Guided Construction;
+// • generate student-facing communication.
+//
+// ======================================================
+
+function resolveRedirectOrdinalReference(
+  reference
+) {
+  const text =
+    cleanText(reference);
+
+  const match =
+    text.match(
+      /^ordinal([1-5])$/
+    );
+
+  if (!match) {
+    return null;
+  }
+
+  return (
+    Number(match[1]) - 1
+  );
+}
+
+function buildRedirectValidation(
+  state,
+  redirectInterpretation
+) {
+  const interpretation =
+    redirectInterpretation &&
+    typeof redirectInterpretation ===
+      "object"
+      ? redirectInterpretation
+      : null;
+
+  const interpretationStatus =
+    cleanText(
+      interpretation
+        ?.interpretationStatus || ""
+    );
+
+  if (
+    !interpretation ||
+    interpretationStatus ===
+      "noRedirectObserved" ||
+    interpretationStatus ===
+      "interpreterFailure"
+  ) {
+    return {
+      artifactType:
+        "redirectValidation",
+
+      version:
+        "1.0",
+
+      source:
+        "deterministicRedirectValidator",
+
+      validationStatus:
+        "notApplicable",
+
+      navigationAuthorized:
+        false,
+
+      resolvedTarget:
+        null,
+
+      validationEvidence: [
+        interpretationStatus ||
+          "redirectInterpretationUnavailable",
+      ],
+    };
+  }
+
+  const requestedTarget =
+    interpretation
+      ?.requestedTarget &&
+    typeof interpretation
+      .requestedTarget === "object"
+      ? interpretation.requestedTarget
+      : {};
+
+  const component =
+    cleanText(
+      requestedTarget
+        ?.component || ""
+    );
+
+  const mainIdeas =
+    getIdeaList(state)
+      .map(cleanText)
+      .filter(Boolean);
+
+  const details =
+    Array.isArray(
+      state?.frame?.details
+    )
+      ? state.frame.details
+      : [];
+
+  let mainIdeaIndex =
+    resolveRedirectOrdinalReference(
+      requestedTarget
+        ?.mainIdeaReference
+    );
+
+  let detailIndex =
+    resolveRedirectOrdinalReference(
+      requestedTarget
+        ?.detailReference
+    );
+
+  const mainIdeaReference =
+    cleanText(
+      requestedTarget
+        ?.mainIdeaReference || ""
+    );
+
+  const detailReference =
+    cleanText(
+      requestedTarget
+        ?.detailReference || ""
+    );
+
+  // --------------------------------------------------
+  // RELATIVE MAIN IDEA REFERENCES
+  // --------------------------------------------------
+
+  const currentMainIdeaIndex =
+    Number.isInteger(
+      state?.pending?.index
+    )
+      ? state.pending.index
+      : null;
+
+  if (
+    mainIdeaIndex === null &&
+    mainIdeaReference ===
+      "current" &&
+    Number.isInteger(
+      currentMainIdeaIndex
+    )
+  ) {
+    mainIdeaIndex =
+      currentMainIdeaIndex;
+  }
+
+  if (
+    mainIdeaIndex === null &&
+    mainIdeaReference ===
+      "previous" &&
+    Number.isInteger(
+      currentMainIdeaIndex
+    ) &&
+    currentMainIdeaIndex > 0
+  ) {
+    mainIdeaIndex =
+      currentMainIdeaIndex - 1;
+  }
+
+  if (
+    mainIdeaIndex === null &&
+    mainIdeaReference ===
+      "other" &&
+    Number.isInteger(
+      currentMainIdeaIndex
+    )
+  ) {
+    const otherIndexes =
+      mainIdeas
+        .map(
+          (_, index) => index
+        )
+        .filter(
+          (index) =>
+            index !==
+            currentMainIdeaIndex
+        );
+
+    if (
+      otherIndexes.length === 1
+    ) {
+      mainIdeaIndex =
+        otherIndexes[0];
+    } else if (
+      otherIndexes.length > 1
+    ) {
+      return {
+        artifactType:
+          "redirectValidation",
+
+        version:
+          "1.0",
+
+        source:
+          "deterministicRedirectValidator",
+
+        validationStatus:
+          "clarificationRequired",
+
+        navigationAuthorized:
+          false,
+
+        resolvedTarget:
+          null,
+
+        validationEvidence: [
+          "multipleMainIdeaCandidates",
+        ],
+      };
+    }
+  }
+
+  // --------------------------------------------------
+  // CURRENT DETAIL REFERENCE
+  // --------------------------------------------------
+
+  if (
+    detailIndex === null &&
+    detailReference ===
+      "current" &&
+    Number.isInteger(
+      state?.pending?.detailIndex
+    )
+  ) {
+    detailIndex =
+      state.pending.detailIndex;
+  }
+
+  // --------------------------------------------------
+  // COMPONENT-SPECIFIC VALIDATION
+  // --------------------------------------------------
+
+  if (
+    component === "isAbout"
+  ) {
+    if (
+      !cleanText(
+        state?.frame?.isAbout || ""
+      )
+    ) {
+      return {
+        artifactType:
+          "redirectValidation",
+
+        version:
+          "1.0",
+
+        source:
+          "deterministicRedirectValidator",
+
+        validationStatus:
+          "notAuthorized",
+
+        navigationAuthorized:
+          false,
+
+        resolvedTarget:
+          null,
+
+        validationEvidence: [
+          "acceptedIsAboutUnavailable",
+        ],
+      };
+    }
+
+    return {
+      artifactType:
+        "redirectValidation",
+
+      version:
+        "1.0",
+
+      source:
+        "deterministicRedirectValidator",
+
+      validationStatus:
+        "authorized",
+
+      navigationAuthorized:
+        true,
+
+      resolvedTarget: {
+        component:
+          "isAbout",
+
+        mainIdeaIndex:
+          null,
+
+        detailIndex:
+          null,
+      },
+
+      validationEvidence: [
+        "acceptedIsAboutExists",
+        "supportedFreshReentryPathway",
+      ],
+    };
+  }
+
+  if (
+    component === "mainIdeas"
+  ) {
+    if (
+      !Number.isInteger(
+        mainIdeaIndex
+      )
+    ) {
+      return {
+        artifactType:
+          "redirectValidation",
+
+        version:
+          "1.0",
+
+        source:
+          "deterministicRedirectValidator",
+
+        validationStatus:
+          "clarificationRequired",
+
+        navigationAuthorized:
+          false,
+
+        resolvedTarget:
+          null,
+
+        validationEvidence: [
+          "mainIdeaTargetNotUniquelyResolved",
+        ],
+      };
+    }
+
+    if (
+      mainIdeaIndex < 0 ||
+      mainIdeaIndex >=
+        mainIdeas.length
+    ) {
+      return {
+        artifactType:
+          "redirectValidation",
+
+        version:
+          "1.0",
+
+        source:
+          "deterministicRedirectValidator",
+
+        validationStatus:
+          "notAuthorized",
+
+        navigationAuthorized:
+          false,
+
+        resolvedTarget:
+          null,
+
+        validationEvidence: [
+          "requestedMainIdeaDoesNotExist",
+        ],
+      };
+    }
+
+    return {
+      artifactType:
+        "redirectValidation",
+
+      version:
+        "1.0",
+
+      source:
+        "deterministicRedirectValidator",
+
+      validationStatus:
+        "authorized",
+
+      navigationAuthorized:
+        true,
+
+      resolvedTarget: {
+        component:
+          "mainIdeas",
+
+        mainIdeaIndex,
+
+        detailIndex:
+          null,
+      },
+
+      validationEvidence: [
+        "requestedMainIdeaExists",
+        "supportedFreshReentryPathway",
+      ],
+    };
+  }
+
+  if (
+    component === "details"
+  ) {
+    if (
+      !Number.isInteger(
+        mainIdeaIndex
+      )
+    ) {
+      return {
+        artifactType:
+          "redirectValidation",
+
+        version:
+          "1.0",
+
+        source:
+          "deterministicRedirectValidator",
+
+        validationStatus:
+          "clarificationRequired",
+
+        navigationAuthorized:
+          false,
+
+        resolvedTarget:
+          null,
+
+        validationEvidence: [
+          "detailParentMainIdeaNotResolved",
+        ],
+      };
+    }
+
+    if (
+      mainIdeaIndex < 0 ||
+      mainIdeaIndex >=
+        mainIdeas.length
+    ) {
+      return {
+        artifactType:
+          "redirectValidation",
+
+        version:
+          "1.0",
+
+        source:
+          "deterministicRedirectValidator",
+
+        validationStatus:
+          "notAuthorized",
+
+        navigationAuthorized:
+          false,
+
+        resolvedTarget:
+          null,
+
+        validationEvidence: [
+          "detailParentMainIdeaDoesNotExist",
+        ],
+      };
+    }
+
+    const detailBucket =
+      Array.isArray(
+        details?.[mainIdeaIndex]
+      )
+        ? details[mainIdeaIndex]
+            .map(cleanText)
+            .filter(Boolean)
+        : [];
+
+    const requestedOperation =
+      cleanText(
+        interpretation
+          ?.requestedOperation || ""
+      );
+
+    if (
+      requestedOperation ===
+        "addSupportingContent"
+    ) {
+      if (
+        detailBucket.length >= 5
+      ) {
+        return {
+          artifactType:
+            "redirectValidation",
+
+          version:
+            "1.0",
+
+          source:
+            "deterministicRedirectValidator",
+
+          validationStatus:
+            "notAuthorized",
+
+          navigationAuthorized:
+            false,
+
+          resolvedTarget:
+            null,
+
+          validationEvidence: [
+            "detailLimitReached",
+          ],
+        };
+      }
+
+      return {
+        artifactType:
+          "redirectValidation",
+
+        version:
+          "1.0",
+
+        source:
+          "deterministicRedirectValidator",
+
+        validationStatus:
+          "authorized",
+
+        navigationAuthorized:
+          true,
+
+        resolvedTarget: {
+          component:
+            "details",
+
+          mainIdeaIndex,
+
+          detailIndex:
+            detailBucket.length,
+        },
+
+        validationEvidence: [
+          "parentMainIdeaExists",
+          "additionalDetailSlotAvailable",
+        ],
+      };
+    }
+
+    if (
+      !Number.isInteger(
+        detailIndex
+      )
+    ) {
+      return {
+        artifactType:
+          "redirectValidation",
+
+        version:
+          "1.0",
+
+        source:
+          "deterministicRedirectValidator",
+
+        validationStatus:
+          "clarificationRequired",
+
+        navigationAuthorized:
+          false,
+
+        resolvedTarget:
+          null,
+
+        validationEvidence: [
+          "detailTargetNotUniquelyResolved",
+        ],
+      };
+    }
+
+    if (
+      detailIndex < 0 ||
+      detailIndex >=
+        detailBucket.length
+    ) {
+      return {
+        artifactType:
+          "redirectValidation",
+
+        version:
+          "1.0",
+
+        source:
+          "deterministicRedirectValidator",
+
+        validationStatus:
+          "notAuthorized",
+
+        navigationAuthorized:
+          false,
+
+        resolvedTarget:
+          null,
+
+        validationEvidence: [
+          "requestedDetailDoesNotExist",
+        ],
+      };
+    }
+
+    return {
+      artifactType:
+        "redirectValidation",
+
+      version:
+        "1.0",
+
+      source:
+        "deterministicRedirectValidator",
+
+      validationStatus:
+        "authorized",
+
+      navigationAuthorized:
+        true,
+
+      resolvedTarget: {
+        component:
+          "details",
+
+        mainIdeaIndex,
+
+        detailIndex,
+      },
+
+      validationEvidence: [
+        "requestedDetailExists",
+        "supportedFreshReentryPathway",
+      ],
+    };
+  }
+
+  if (
+    component === "soWhat"
+  ) {
+    if (
+      !cleanText(
+        state?.frame?.soWhat || ""
+      )
+    ) {
+      return {
+        artifactType:
+          "redirectValidation",
+
+        version:
+          "1.0",
+
+        source:
+          "deterministicRedirectValidator",
+
+        validationStatus:
+          "notAuthorized",
+
+        navigationAuthorized:
+          false,
+
+        resolvedTarget:
+          null,
+
+        validationEvidence: [
+          "freshSoWhatReentryNotYetSupported",
+        ],
+      };
+    }
+
+    return {
+      artifactType:
+        "redirectValidation",
+
+      version:
+        "1.0",
+
+      source:
+        "deterministicRedirectValidator",
+
+      validationStatus:
+        "authorized",
+
+      navigationAuthorized:
+        true,
+
+      resolvedTarget: {
+        component:
+          "soWhat",
+
+        mainIdeaIndex:
+          null,
+
+        detailIndex:
+          null,
+      },
+
+      validationEvidence: [
+        "acceptedSoWhatExists",
+        "existingSoWhatRevisionAvailable",
+      ],
+    };
+  }
+
+  // Accepted Key Topic revision is one of the Phase-4
+  // compatibility gaps and is not authorized yet.
+  if (
+    component === "keyTopic"
+  ) {
+    return {
+      artifactType:
+        "redirectValidation",
+
+      version:
+        "1.0",
+
+      source:
+        "deterministicRedirectValidator",
+
+      validationStatus:
+        "notAuthorized",
+
+      navigationAuthorized:
+        false,
+
+      resolvedTarget:
+        null,
+
+      validationEvidence: [
+        "freshKeyTopicReentryNotYetSupported",
+      ],
+    };
+  }
+
+  return {
+    artifactType:
+      "redirectValidation",
+
+    version:
+      "1.0",
+
+    source:
+      "deterministicRedirectValidator",
+
+    validationStatus:
+      "clarificationRequired",
+
+    navigationAuthorized:
+      false,
+
+    resolvedTarget:
+      null,
+
+    validationEvidence: [
+      "redirectTargetNotResolved",
+    ],
+  };
+}
   
 // ---------------------
 // STATE UPDATE (SSOT)
