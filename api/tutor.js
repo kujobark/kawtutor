@@ -32677,6 +32677,26 @@ async function updateStateFromStudent(state, message) {
       redirectValidation
     );
 
+    const redirectNavigationCommit =
+    buildRedirectNavigationCommit(
+      s,
+      redirectNavigationPreparation
+    );
+
+  if (
+    redirectNavigationCommit
+      ?.committed === true &&
+    redirectNavigationCommit
+      ?.committedState &&
+    typeof redirectNavigationCommit
+      .committedState === "object"
+  ) {
+    return structuredClone(
+      redirectNavigationCommit
+        .committedState
+    );
+  }
+  
 const endpointResumeObservation =
   await getGuidedConstructionEndpointResumeObservation({
     state:
