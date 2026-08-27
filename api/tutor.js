@@ -33895,33 +33895,12 @@ function buildRedirectValidation(
     };
   }
 
-  const requestedTarget =
-  interpretation
-    ?.requestedTarget &&
-  typeof interpretation
-    .requestedTarget === "object"
-    ? interpretation.requestedTarget
-    : {};
-
-const requestedComponent =
-  cleanText(
-    requestedTarget
-      ?.component || ""
-  );
-
-const explicitTargetPresent =
-  Boolean(
-    requestedComponent &&
-    requestedComponent !==
-      "unspecified"
-  );
 
   if (
   currentPathDispositionValidation
     ?.declineRequested === true &&
   currentPathDispositionValidation
-    ?.declineAuthorized === true &&
-  explicitTargetPresent !== true
+    ?.declineAuthorized === true
 ) {
   return {
     artifactType:
@@ -34011,6 +33990,14 @@ const explicitTargetPresent =
     ],
   };
 }
+
+  const requestedTarget =
+  interpretation
+    ?.requestedTarget &&
+  typeof interpretation
+    .requestedTarget === "object"
+    ? interpretation.requestedTarget
+    : {};
 
   const component =
     cleanText(
