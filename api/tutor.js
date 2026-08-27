@@ -26811,6 +26811,10 @@ results.push({
 const requiredDeclineState =
   createRedirectNavigationTestState();
 
+requiredDeclineState.frame.details[0] = [
+  "Social media can affect self-esteem.",
+];
+
 requiredDeclineState.pending = {
   type:
     "collectAnotherDetail",
