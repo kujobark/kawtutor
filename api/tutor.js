@@ -37006,6 +37006,9 @@ if (
 // These commands do not modify the student's active Frame.
 // ------------------------------------------------------
 const componentTestCommandMap = {
+  "/run redirect":
+  "redirectNavigation",
+  
   "/run ia":
     "isAbout",
 
