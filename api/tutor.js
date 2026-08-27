@@ -32829,13 +32829,54 @@ function buildRedirectCurrentPathDispositionValidation(
       ? state.pending
       : {};
 
+  const pendingType =
+    cleanText(
+      pending?.type || ""
+    );
+
   const captureMode =
     cleanText(
       pending?.captureMode || ""
     );
 
+  const mainIdeaIndex =
+    Number.isInteger(
+      pending?.index
+    )
+      ? pending.index
+      : null;
+
+  const detailBucket =
+    Number.isInteger(
+      mainIdeaIndex
+    ) &&
+    Array.isArray(
+      state?.frame
+        ?.details
+        ?.[mainIdeaIndex]
+    )
+      ? state.frame.details[
+          mainIdeaIndex
+        ]
+      : [];
+
+  const currentDetailCount =
+    detailBucket.length;
+
   const declineAuthorized =
-    captureMode === "optional";
+    captureMode === "optional" ||
+
+    pendingType ===
+      "offerAnotherMainIdea" ||
+
+    pendingType ===
+      "offerAnotherDetail" ||
+
+    (
+      pendingType ===
+        "collectAnotherDetail" &&
+      currentDetailCount >= 2
+    );
 
   return {
     dispositionStatus:
@@ -32848,10 +32889,15 @@ function buildRedirectCurrentPathDispositionValidation(
 
     declineAuthorized,
 
+    pendingType:
+      pendingType || null,
+
+    currentDetailCount,
+
     reason:
       declineAuthorized
-        ? "currentPathIsOptional"
-        : "currentPathIsNotOptional",
+        ? "currentPathIsDeclinable"
+        : "currentPathIsNotDeclinable",
   };
 }
 
