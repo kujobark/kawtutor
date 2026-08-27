@@ -26422,6 +26422,183 @@ function runRedirectNavigationSelfTests() {
     },
   });
 
+  // --------------------------------------------------
+// TEST 7 — OPTIONAL MAIN IDEA DECLINE
+// --------------------------------------------------
+
+const mainIdeaDeclineState =
+  createRedirectNavigationTestState();
+
+mainIdeaDeclineState.pending = {
+  type:
+    "offerAnotherMainIdea",
+};
+
+const mainIdeaDeclineFrame =
+  structuredClone(
+    mainIdeaDeclineState.frame
+  );
+
+const mainIdeaDeclineSnapshot =
+  structuredClone(
+    mainIdeaDeclineState
+  );
+
+const mainIdeaDeclineInterpretation = {
+  artifactType:
+    "redirectInterpretation",
+
+  interpretationStatus:
+    "redirectObserved",
+
+  redirectIntent:
+    "leaveCurrentPath",
+
+  requestedTarget: {
+    component:
+      "unspecified",
+
+    mainIdeaReference:
+      "unspecified",
+
+    detailReference:
+      "unspecified",
+  },
+
+  requestedOperation:
+    "unspecified",
+
+  currentPathDisposition:
+    "decline",
+};
+
+const mainIdeaDeclineValidation =
+  buildRedirectValidation(
+    mainIdeaDeclineState,
+    mainIdeaDeclineInterpretation
+  );
+
+const mainIdeaDeclinePreparation =
+  buildRedirectNavigationPreparation(
+    mainIdeaDeclineState,
+    mainIdeaDeclineInterpretation,
+    mainIdeaDeclineValidation
+  );
+
+const mainIdeaDeclineCommit =
+  buildRedirectNavigationCommit(
+    mainIdeaDeclineState,
+    mainIdeaDeclinePreparation
+  );
+
+const mainIdeaDeclinePassed =
+  mainIdeaDeclineValidation
+    ?.validationStatus ===
+    "authorized" &&
+
+  mainIdeaDeclineValidation
+    ?.resolvedTarget
+    ?.operation ===
+    "declineCurrentPath" &&
+
+  mainIdeaDeclinePreparation
+    ?.preparationStatus ===
+    "prepared" &&
+
+  mainIdeaDeclinePreparation
+    ?.replacementPending
+    ?.type ===
+    "confirmMainIdeas" &&
+
+  mainIdeaDeclineCommit
+    ?.committed === true &&
+
+  mainIdeaDeclineCommit
+    ?.commitStatus ===
+    "committed" &&
+
+  mainIdeaDeclineCommit
+    ?.committedState
+    ?.pending
+    ?.type ===
+    "confirmMainIdeas" &&
+
+  JSON.stringify(
+    mainIdeaDeclineCommit
+      ?.committedState
+      ?.frame
+  ) ===
+  JSON.stringify(
+    mainIdeaDeclineFrame
+  ) &&
+
+  JSON.stringify(
+    mainIdeaDeclineState
+  ) ===
+  JSON.stringify(
+    mainIdeaDeclineSnapshot
+  );
+
+results.push({
+  name:
+    "Redirect - Optional Main Idea decline is authorized and returns to Main Idea confirmation",
+
+  passed:
+    mainIdeaDeclinePassed,
+
+  expected: {
+    validationStatus:
+      "authorized",
+
+    operation:
+      "declineCurrentPath",
+
+    pendingType:
+      "confirmMainIdeas",
+
+    canonicalFramePreserved:
+      true,
+
+    sourceStateUnchanged:
+      true,
+  },
+
+  actual: {
+    validationStatus:
+      mainIdeaDeclineValidation
+        ?.validationStatus || null,
+
+    operation:
+      mainIdeaDeclineValidation
+        ?.resolvedTarget
+        ?.operation || null,
+
+    pendingType:
+      mainIdeaDeclineCommit
+        ?.committedState
+        ?.pending
+        ?.type || null,
+
+    canonicalFramePreserved:
+      JSON.stringify(
+        mainIdeaDeclineCommit
+          ?.committedState
+          ?.frame
+      ) ===
+      JSON.stringify(
+        mainIdeaDeclineFrame
+      ),
+
+    sourceStateUnchanged:
+      JSON.stringify(
+        mainIdeaDeclineState
+      ) ===
+      JSON.stringify(
+        mainIdeaDeclineSnapshot
+      ),
+  },
+});
+
   const passedCount =
     results.filter(
       (result) =>
