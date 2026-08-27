@@ -27181,6 +27181,185 @@ results.push({
   },
 });
 
+// --------------------------------------------------
+// TEST 11 — DECLINE PLUS EXPLICIT TARGET
+// --------------------------------------------------
+
+const declineWithTargetState =
+  createRedirectNavigationTestState();
+
+declineWithTargetState.pending = {
+  type:
+    "offerAnotherDetail",
+
+  index:
+    0,
+};
+
+const declineWithTargetSnapshot =
+  structuredClone(
+    declineWithTargetState
+  );
+
+const declineWithTargetInterpretation = {
+  artifactType:
+    "redirectInterpretation",
+
+  interpretationStatus:
+    "redirectObserved",
+
+  redirectIntent:
+    "revisitTarget",
+
+  requestedTarget: {
+    component:
+      "mainIdeas",
+
+    mainIdeaReference:
+      "ordinal1",
+
+    detailReference:
+      "unspecified",
+  },
+
+  requestedOperation:
+    "workOn",
+
+  currentPathDisposition:
+    "decline",
+};
+
+const declineWithTargetValidation =
+  buildRedirectValidation(
+    declineWithTargetState,
+    declineWithTargetInterpretation
+  );
+
+const declineWithTargetPreparation =
+  buildRedirectNavigationPreparation(
+    declineWithTargetState,
+    declineWithTargetInterpretation,
+    declineWithTargetValidation
+  );
+
+const declineWithTargetCommit =
+  buildRedirectNavigationCommit(
+    declineWithTargetState,
+    declineWithTargetPreparation
+  );
+
+const declineWithTargetPassed =
+  declineWithTargetValidation
+    ?.validationStatus ===
+    "authorized" &&
+
+  declineWithTargetValidation
+    ?.resolvedTarget
+    ?.component ===
+    "mainIdeas" &&
+
+  declineWithTargetValidation
+    ?.resolvedTarget
+    ?.mainIdeaIndex ===
+    0 &&
+
+  declineWithTargetPreparation
+    ?.preparationStatus ===
+    "prepared" &&
+
+  declineWithTargetPreparation
+    ?.replacementPending
+    ?.type ===
+    "reviseMainIdeaAt" &&
+
+  declineWithTargetPreparation
+    ?.replacementPending
+    ?.index ===
+    0 &&
+
+  declineWithTargetCommit
+    ?.committed ===
+    true &&
+
+  declineWithTargetCommit
+    ?.committedState
+    ?.pending
+    ?.type ===
+    "reviseMainIdeaAt" &&
+
+  declineWithTargetCommit
+    ?.committedState
+    ?.pending
+    ?.index ===
+    0 &&
+
+  JSON.stringify(
+    declineWithTargetState
+  ) ===
+  JSON.stringify(
+    declineWithTargetSnapshot
+  );
+
+results.push({
+  name:
+    "Redirect - Explicit target remains authoritative when student also declines current optional path",
+
+  passed:
+    declineWithTargetPassed,
+
+  expected: {
+    validationStatus:
+      "authorized",
+
+    component:
+      "mainIdeas",
+
+    mainIdeaIndex:
+      0,
+
+    pendingType:
+      "reviseMainIdeaAt",
+
+    sourceStateUnchanged:
+      true,
+  },
+
+  actual: {
+    validationStatus:
+      declineWithTargetValidation
+        ?.validationStatus || null,
+
+    operation:
+      declineWithTargetValidation
+        ?.resolvedTarget
+        ?.operation || null,
+
+    component:
+      declineWithTargetValidation
+        ?.resolvedTarget
+        ?.component || null,
+
+    mainIdeaIndex:
+      declineWithTargetValidation
+        ?.resolvedTarget
+        ?.mainIdeaIndex ?? null,
+
+    pendingType:
+      declineWithTargetCommit
+        ?.committedState
+        ?.pending
+        ?.type || null,
+
+    sourceStateUnchanged:
+      JSON.stringify(
+        declineWithTargetState
+      ) ===
+      JSON.stringify(
+        declineWithTargetSnapshot
+      ),
+  },
+});
+
   const passedCount =
     results.filter(
       (result) =>
