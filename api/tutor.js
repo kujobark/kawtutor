@@ -32118,47 +32118,70 @@ function buildRedirectNavigationPreparation(
   // Detail at the resolved coordinates.
   // --------------------------------------------------
 
-  else if (
-    component === "details" &&
+    else if (
+  component === "details" &&
+  Number.isInteger(
+    target?.mainIdeaIndex
+  )
+) {
+  if (
+    requestedOperation ===
+      "addSupportingContent"
+  ) {
+    const existingDetailBucket =
+      Array.isArray(
+        state?.frame
+          ?.details
+          ?.[target.mainIdeaIndex]
+      )
+        ? state.frame.details[
+            target.mainIdeaIndex
+          ]
+        : [];
+
+    const nextDetailIndex =
+      existingDetailBucket.length;
+
+    const nextCaptureMode =
+      nextDetailIndex < 2
+        ? "required"
+        : "optional";
+
+    replacementPending = {
+      type:
+        "collectAnotherDetail",
+
+      index:
+        target.mainIdeaIndex,
+
+      detailIndex:
+        nextDetailIndex,
+
+      captureMode:
+        nextCaptureMode,
+    };
+  } else if (
     Number.isInteger(
-      target?.mainIdeaIndex
+      target?.detailIndex
     )
   ) {
-    if (
-      requestedOperation ===
-        "addSupportingContent"
-    ) {
-      replacementPending = {
-        type:
-          "collectAnotherDetail",
+    replacementPending = {
+      type:
+        "reviseDetailAt",
 
-        index:
-          target.mainIdeaIndex,
+      index:
+        target.mainIdeaIndex,
 
-        captureMode:
-          "optional",
-      };
-    } else if (
-      Number.isInteger(
-        target?.detailIndex
-      )
-    ) {
-      replacementPending = {
-        type:
-          "reviseDetailAt",
+      detailIndex:
+        target.detailIndex,
 
-        index:
-          target.mainIdeaIndex,
-
-        detailIndex:
-          target.detailIndex,
-
-        captureMode:
-          "revision",
-      };
-    }
+      captureMode:
+        "revision",
+    };
   }
+}
 
+    
   // --------------------------------------------------
   // EXISTING SO WHAT REVISION
   // --------------------------------------------------
@@ -32283,6 +32306,319 @@ function buildRedirectNavigationPreparation(
     },
   };
 }
+
+// ======================================================
+// REDIRECT NAVIGATION COMMIT
+// ======================================================
+//
+// Applies one fully prepared and verified redirect as an
+// all-or-nothing state transaction.
+//
+// The live source state is never modified while the
+// replacement is being constructed.
+//
+// Commit sequence:
+//
+// prepare replacement → verify → create candidate state
+// → clear stale location-owned artifacts → verify
+// → return committed candidate
+//
+// Canonical Frame and session-level state remain intact.
+//
+// ======================================================
+
+function buildRedirectNavigationCommit(
+  state,
+  redirectNavigationPreparation
+) {
+  const preparation =
+    redirectNavigationPreparation &&
+    typeof redirectNavigationPreparation ===
+      "object"
+      ? redirectNavigationPreparation
+      : null;
+
+  if (
+    preparation?.preparationStatus !==
+      "prepared" ||
+    preparation?.verified !== true ||
+    !preparation?.replacementPending ||
+    typeof preparation.replacementPending !==
+      "object"
+  ) {
+    return {
+      artifactType:
+        "redirectNavigationCommit",
+
+      version:
+        "1.0",
+
+      source:
+        "deterministicRedirectNavigationCommit",
+
+      commitStatus:
+        "notApplicable",
+
+      committed:
+        false,
+
+      committedState:
+        null,
+    };
+  }
+
+  const replacementPending =
+    structuredClone(
+      preparation.replacementPending
+    );
+
+  // --------------------------------------------------
+  // SAME EXACT RE-ENTRY LOCATION
+  //
+  // Do not destructively rebuild an instructional
+  // location the student is already occupying.
+  // --------------------------------------------------
+
+  const currentPending =
+    state?.pending &&
+    typeof state.pending === "object"
+      ? state.pending
+      : null;
+
+  const samePendingType =
+    cleanText(
+      currentPending?.type || ""
+    ) ===
+    cleanText(
+      replacementPending?.type || ""
+    );
+
+  const sameIndex =
+    (
+      !Number.isInteger(
+        replacementPending?.index
+      ) &&
+      !Number.isInteger(
+        currentPending?.index
+      )
+    ) ||
+    (
+      Number.isInteger(
+        replacementPending?.index
+      ) &&
+      Number.isInteger(
+        currentPending?.index
+      ) &&
+      replacementPending.index ===
+        currentPending.index
+    );
+
+  const sameDetailIndex =
+    (
+      !Number.isInteger(
+        replacementPending?.detailIndex
+      ) &&
+      !Number.isInteger(
+        currentPending?.detailIndex
+      )
+    ) ||
+    (
+      Number.isInteger(
+        replacementPending?.detailIndex
+      ) &&
+      Number.isInteger(
+        currentPending?.detailIndex
+      ) &&
+      replacementPending.detailIndex ===
+        currentPending.detailIndex
+    );
+
+  const replacementCaptureMode =
+    cleanText(
+      replacementPending?.captureMode || ""
+    );
+
+  const currentCaptureMode =
+    cleanText(
+      currentPending?.captureMode || ""
+    );
+
+  const sameCaptureMode =
+    !replacementCaptureMode ||
+    !currentCaptureMode ||
+    replacementCaptureMode ===
+      currentCaptureMode;
+
+  const sameExactLocation =
+    Boolean(
+      currentPending &&
+      samePendingType &&
+      sameIndex &&
+      sameDetailIndex &&
+      sameCaptureMode
+    );
+
+  if (sameExactLocation) {
+    return {
+      artifactType:
+        "redirectNavigationCommit",
+
+      version:
+        "1.0",
+
+      source:
+        "deterministicRedirectNavigationCommit",
+
+      commitStatus:
+        "sameLocation",
+
+      committed:
+        true,
+
+      committedState:
+        structuredClone(state),
+
+      resolvedTarget:
+        preparation?.resolvedTarget
+          ? structuredClone(
+              preparation.resolvedTarget
+            )
+          : null,
+
+      governance: {
+        deterministicCommit:
+          true,
+
+        destructiveResetApplied:
+          false,
+
+        canonicalFramePreserved:
+          true,
+      },
+    };
+  }
+
+  // --------------------------------------------------
+  // BUILD COMPLETE CANDIDATE FIRST
+  //
+  // Nothing in the source state has been cleared yet.
+  // --------------------------------------------------
+
+  const candidateState =
+    structuredClone(state);
+
+  candidateState.pending =
+    structuredClone(
+      replacementPending
+    );
+
+  // --------------------------------------------------
+  // INVALIDATE LOCATION-OWNED ARTIFACTS
+  //
+  // These artifacts describe the previous instructional
+  // location and must be recomputed at the new target.
+  //
+  // Do not clear Frame content, assignment context,
+  // transcript, interactionMode, or other durable
+  // session state.
+  // --------------------------------------------------
+
+  delete candidateState
+    .observationReport;
+
+  delete candidateState
+    .instructionalAssessment;
+
+  delete candidateState
+    .componentInstructionalFinding;
+
+  delete candidateState
+    .instructionalSituation;
+
+  delete candidateState
+    .instructionalContractSelection;
+
+  delete candidateState
+    .progressionAuthorization;
+
+  // --------------------------------------------------
+  // FINAL VERIFICATION
+  // --------------------------------------------------
+
+  const candidateVerified =
+    candidateState?.pending &&
+    typeof candidateState.pending ===
+      "object" &&
+    cleanText(
+      candidateState.pending.type || ""
+    );
+
+  if (!candidateVerified) {
+    return {
+      artifactType:
+        "redirectNavigationCommit",
+
+      version:
+        "1.0",
+
+      source:
+        "deterministicRedirectNavigationCommit",
+
+      commitStatus:
+        "failed",
+
+      committed:
+        false,
+
+      committedState:
+        null,
+
+      reason:
+        "candidateCommitVerificationFailed",
+    };
+  }
+
+  return {
+    artifactType:
+      "redirectNavigationCommit",
+
+    version:
+      "1.0",
+
+    source:
+      "deterministicRedirectNavigationCommit",
+
+    commitStatus:
+      "committed",
+
+    committed:
+      true,
+
+    committedState:
+      candidateState,
+
+    resolvedTarget:
+      preparation?.resolvedTarget
+        ? structuredClone(
+            preparation.resolvedTarget
+          )
+        : null,
+
+    governance: {
+      deterministicCommit:
+        true,
+
+      atomic:
+        true,
+
+      canonicalFramePreserved:
+        true,
+
+      oldLocationArtifactsInvalidated:
+        true,
+    },
+  };
+}
   
 // ---------------------
 // STATE UPDATE (SSOT)
@@ -32327,6 +32663,19 @@ async function updateStateFromStudent(state, message) {
           msg
         )
       : null;
+
+    const redirectValidation =
+    buildRedirectValidation(
+      s,
+      redirectInterpretation
+    );
+
+  const redirectNavigationPreparation =
+    buildRedirectNavigationPreparation(
+      s,
+      redirectInterpretation,
+      redirectValidation
+    );
 
 const endpointResumeObservation =
   await getGuidedConstructionEndpointResumeObservation({
