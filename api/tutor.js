@@ -30668,6 +30668,527 @@ if (!s.frame.soWhat) {
 }
 
 }
+
+// ======================================================
+// REDIRECT INTERPRETATION
+// ======================================================
+//
+// Redirect interpretation is a side-effect-free,
+// pre-instructional language layer.
+//
+// It may observe whether the student's message appears
+// to request a change in instructional location or action.
+//
+// It does not:
+//
+// • validate whether a requested target exists;
+// • authorize navigation;
+// • mutate Frame or pending state;
+// • change Build / Strengthen mode;
+// • change Progressive Support or Guided Construction;
+// • determine instructional strategy;
+// • generate student-facing communication.
+//
+// Deterministic runtime validation will later decide
+// whether an interpreted redirect may be acted upon.
+//
+// ======================================================
+
+function buildRedirectInterpretationEligibility(
+  state,
+  message
+) {
+  const text =
+    cleanText(message);
+
+  if (!text) {
+    return {
+      eligible:
+        false,
+
+      reason:
+        "emptyInput",
+    };
+  }
+
+  const pendingType =
+    cleanText(
+      state?.pending?.type || ""
+    );
+
+  // Language confirmation is already owned by its
+  // dedicated deterministic runtime pathway.
+  if (
+    pendingType ===
+    "confirmLanguageSwitch"
+  ) {
+    return {
+      eligible:
+        false,
+
+      reason:
+        "languageConfirmation",
+    };
+  }
+
+  // Explicit numeric menu selections already have
+  // deterministic meaning in these pending contracts.
+  // Do not ask AI to reinterpret them.
+  const deterministicMenuChoices = {
+    confirmAssignmentUnderstanding:
+      new Set(["1", "2"]),
+
+    assignmentReasoningIntro:
+      new Set(["1", "2"]),
+
+    confirmIsAbout:
+      new Set(["1", "2"]),
+
+    strengthenComponentSelection:
+      new Set(["1", "2", "3", "4"]),
+
+    strengthenComponentComplete:
+      new Set(["1", "2", "3"]),
+
+    chooseMainIdeaToRevise:
+      new Set(["1", "2", "3", "4", "5"]),
+
+    offerAnotherMainIdea:
+      new Set(["1", "2"]),
+
+    offerAnotherDetail:
+      new Set(["1", "2"]),
+
+    confirmMainIdeas:
+      new Set(["1", "2"]),
+
+    confirmDetails:
+      new Set(["1", "2"]),
+
+    chooseDetailToRevise:
+      new Set(["1", "2", "3", "4", "5"]),
+
+    confirmSoWhat:
+      new Set(["1", "2"]),
+
+    offerExport:
+      new Set(["1", "2"]),
+
+    chooseExportType:
+      new Set(["1", "2", "3"]),
+  };
+
+  const allowedChoices =
+    deterministicMenuChoices[
+      pendingType
+    ];
+
+  if (
+    allowedChoices instanceof Set &&
+    allowedChoices.has(text)
+  ) {
+    return {
+      eligible:
+        false,
+
+      reason:
+        "deterministicMenuInput",
+    };
+  }
+
+  return {
+    eligible:
+      true,
+
+    reason:
+      "eligibleForInterpretation",
+  };
+}
+
+async function interpretRedirectIntent(
+  state,
+  message
+) {
+  const text =
+    cleanText(message);
+
+  const system = `You are the bounded Redirect Interpretation Layer for Kaw Companion.
+
+Your responsibility is only to observe whether the student's current message is managing the tutoring interaction by requesting a change in where or how they want to work within their KU Framing Routine Frame.
+
+You may interpret natural student language.
+
+You do not decide whether a requested navigation is allowed.
+
+You do not:
+- validate whether a target exists;
+- authorize navigation;
+- determine progression;
+- choose instructional strategy;
+- choose a Teaching Move or Thinking Move;
+- change Build or Strengthen mode;
+- change Progressive Support;
+- change Guided Construction;
+- create pending state;
+- mutate any runtime state;
+- generate student-facing communication.
+
+Distinguish interaction-management requests from ordinary subject-matter content.
+
+For example:
+- "Go back to my first Main Idea." is interaction management.
+- "Going back to my example, social media affects relationships." is ordinary content.
+
+Describe semantic references only. Do not invent trusted runtime indexes.
+
+If there is no redirect request, return noRedirectObserved.
+
+If the student clearly wants to change direction but the linguistic target is underspecified, return redirectPossiblyObserved.
+
+evidenceText must be an exact excerpt from the student's current message when a redirect is observed or possibly observed. Otherwise return an empty string.
+
+Return only the required JSON object.`;
+
+  const user = `Current instructional context:
+
+Interaction mode:
+${cleanText(
+  state?.interactionMode ||
+  "build"
+)}
+
+Current stage:
+${cleanText(
+  getStage(state) || ""
+)}
+
+Current pending type:
+${cleanText(
+  state?.pending?.type || ""
+)}
+
+Accepted Main Ideas:
+${JSON.stringify(
+  getIdeaList(state),
+  null,
+  2
+)}
+
+Current student message:
+"${text}"
+
+Report only the student's apparent redirect/navigation meaning.`;
+
+  try {
+    const response =
+      await client.chat.completions.create({
+        model:
+          DEFAULT_MODEL,
+
+        reasoning_effort:
+          "none",
+
+        temperature:
+          0,
+
+        response_format: {
+          type:
+            "json_schema",
+
+          json_schema: {
+            name:
+              "kaw_redirect_interpretation",
+
+            strict:
+              true,
+
+            schema: {
+              type:
+                "object",
+
+              additionalProperties:
+                false,
+
+              properties: {
+                interpretationStatus: {
+                  type:
+                    "string",
+
+                  enum: [
+                    "redirectObserved",
+                    "redirectPossiblyObserved",
+                    "noRedirectObserved",
+                  ],
+                },
+
+                redirectIntent: {
+                  type:
+                    "string",
+
+                  enum: [
+                    "revisitTarget",
+                    "switchTarget",
+                    "leaveCurrentPath",
+                    "requestForwardTarget",
+                    "unspecified",
+                  ],
+                },
+
+                requestedTarget: {
+                  type:
+                    "object",
+
+                  additionalProperties:
+                    false,
+
+                  properties: {
+                    component: {
+                      type:
+                        "string",
+
+                      enum: [
+                        "keyTopic",
+                        "isAbout",
+                        "mainIdeas",
+                        "details",
+                        "soWhat",
+                        "unspecified",
+                      ],
+                    },
+
+                    mainIdeaReference: {
+                      type:
+                        "string",
+
+                      enum: [
+                        "ordinal1",
+                        "ordinal2",
+                        "ordinal3",
+                        "ordinal4",
+                        "ordinal5",
+                        "current",
+                        "previous",
+                        "other",
+                        "unspecified",
+                      ],
+                    },
+
+                    detailReference: {
+                      type:
+                        "string",
+
+                      enum: [
+                        "ordinal1",
+                        "ordinal2",
+                        "ordinal3",
+                        "ordinal4",
+                        "ordinal5",
+                        "current",
+                        "previous",
+                        "other",
+                        "unspecified",
+                      ],
+                    },
+                  },
+
+                  required: [
+                    "component",
+                    "mainIdeaReference",
+                    "detailReference",
+                  ],
+                },
+
+                requestedOperation: {
+                  type:
+                    "string",
+
+                  enum: [
+                    "workOn",
+                    "revise",
+                    "strengthen",
+                    "addSupportingContent",
+                    "unspecified",
+                  ],
+                },
+
+                currentPathDisposition: {
+                  type:
+                    "string",
+
+                  enum: [
+                    "continue",
+                    "decline",
+                    "unspecified",
+                  ],
+                },
+
+                evidenceText: {
+                  type:
+                    "string",
+                },
+
+                confidence: {
+                  type:
+                    "number",
+
+                  minimum:
+                    0,
+
+                  maximum:
+                    1,
+                },
+              },
+
+              required: [
+                "interpretationStatus",
+                "redirectIntent",
+                "requestedTarget",
+                "requestedOperation",
+                "currentPathDisposition",
+                "evidenceText",
+                "confidence",
+              ],
+            },
+          },
+        },
+
+        messages: [
+          {
+            role:
+              "system",
+
+            content:
+              system,
+          },
+
+          {
+            role:
+              "user",
+
+            content:
+              user,
+          },
+        ],
+      });
+
+    const parsed =
+      JSON.parse(
+        response?.choices?.[0]
+          ?.message?.content || "{}"
+      );
+
+    const confidence =
+      Number(
+        parsed?.confidence || 0
+      );
+
+    const normalizedConfidence =
+      Number.isFinite(confidence)
+        ? Math.max(
+            0,
+            Math.min(
+              confidence,
+              1
+            )
+          )
+        : 0;
+
+    const evidenceText =
+      cleanText(
+        parsed?.evidenceText || ""
+      );
+
+    const evidenceGrounded =
+      !evidenceText ||
+      text
+        .toLowerCase()
+        .includes(
+          evidenceText.toLowerCase()
+        );
+
+    if (
+      normalizedConfidence < 0.9 ||
+      !evidenceGrounded
+    ) {
+      return {
+        artifactType:
+          "redirectInterpretation",
+
+        interpretationStatus:
+          "interpreterFailure",
+
+        source:
+          "redirectInterpretationUnavailable",
+      };
+    }
+
+    return {
+      artifactType:
+        "redirectInterpretation",
+
+      version:
+        "1.0",
+
+      source:
+        "aiBoundedRedirectInterpretation",
+
+      interpretationStatus:
+        parsed.interpretationStatus,
+
+      redirectIntent:
+        parsed.redirectIntent,
+
+      requestedTarget:
+        structuredClone(
+          parsed.requestedTarget
+        ),
+
+      requestedOperation:
+        parsed.requestedOperation,
+
+      currentPathDisposition:
+        parsed.currentPathDisposition,
+
+      evidenceText,
+
+      confidence:
+        normalizedConfidence,
+
+      governance: {
+        observationalOnly:
+          true,
+
+        controlsNavigation:
+          false,
+
+        controlsProgression:
+          false,
+
+        controlsPendingState:
+          false,
+
+        controlsInstructionalStrategy:
+          false,
+      },
+    };
+  } catch (error) {
+    console.error(
+      "Redirect interpretation error:",
+      error
+    );
+
+    return {
+      artifactType:
+        "redirectInterpretation",
+
+      interpretationStatus:
+        "interpreterFailure",
+
+      source:
+        "redirectInterpretationUnavailable",
+    };
+  }
+}
   
 // ---------------------
 // STATE UPDATE (SSOT)
@@ -30697,6 +31218,21 @@ async function updateStateFromStudent(state, message) {
       clarificationCount: 0,
     };
   }
+
+  const redirectEligibility =
+    buildRedirectInterpretationEligibility(
+      s,
+      msg
+    );
+
+  const redirectInterpretation =
+    redirectEligibility
+      ?.eligible === true
+      ? await interpretRedirectIntent(
+          s,
+          msg
+        )
+      : null;
 
 const endpointResumeObservation =
   await getGuidedConstructionEndpointResumeObservation({
