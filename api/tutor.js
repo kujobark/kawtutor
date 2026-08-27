@@ -32696,6 +32696,47 @@ async function updateStateFromStudent(state, message) {
         .committedState
     );
   }
+
+    const redirectValidationStatus =
+    cleanText(
+      redirectValidation
+        ?.validationStatus || ""
+    );
+
+  if (
+    redirectValidationStatus ===
+      "clarificationRequired" ||
+    redirectValidationStatus ===
+      "notAuthorized"
+  ) {
+    const boundaryState =
+      structuredClone(s);
+
+    boundaryState.redirectNavigationBoundary = {
+      artifactType:
+        "redirectNavigationBoundary",
+
+      version:
+        "1.0",
+
+      status:
+        redirectValidationStatus,
+
+      interpretation:
+        redirectInterpretation
+          ? structuredClone(
+              redirectInterpretation
+            )
+          : null,
+
+      validation:
+        structuredClone(
+          redirectValidation
+        ),
+    };
+
+    return boundaryState;
+  }
   
 const endpointResumeObservation =
   await getGuidedConstructionEndpointResumeObservation({
@@ -36096,13 +36137,82 @@ if (
   );
 }
 
-const nextQ =
+  const redirectNavigationBoundary =
+  state?.redirectNavigationBoundary &&
+  typeof state
+    .redirectNavigationBoundary ===
+    "object"
+    ? state.redirectNavigationBoundary
+    : null;
+
+const normalNextQ =
   additionalSupportResponse ||
   (
     instructionalActivation
       ? instructionalResponse
       : computeNextQuestion(state)
   );
+
+let redirectBoundaryResponse =
+  null;
+
+if (
+  redirectNavigationBoundary
+    ?.status ===
+    "clarificationRequired"
+) {
+  const requestedComponent =
+    cleanText(
+      redirectNavigationBoundary
+        ?.interpretation
+        ?.requestedTarget
+        ?.component || ""
+    );
+
+  const resolvedTarget =
+    redirectNavigationBoundary
+      ?.validation
+      ?.resolvedTarget || null;
+
+  if (
+    requestedComponent ===
+      "details" &&
+    Number.isInteger(
+      resolvedTarget?.mainIdeaIndex
+    )
+  ) {
+    redirectBoundaryResponse =
+      "Which Essential Detail do you want to work on?";
+  } else if (
+    requestedComponent ===
+      "details"
+  ) {
+    redirectBoundaryResponse =
+      "Which Main Idea has the Essential Detail you want to work on?";
+  } else if (
+    requestedComponent ===
+      "mainIdeas"
+  ) {
+    redirectBoundaryResponse =
+      "Which Main Idea do you want to work on?";
+  } else {
+    redirectBoundaryResponse =
+      "Which part of your Frame do you want to work on: Is About, a Main Idea, an Essential Detail, or So What?";
+  }
+}
+
+if (
+  redirectNavigationBoundary
+    ?.status ===
+    "notAuthorized"
+) {
+  redirectBoundaryResponse =
+    `I understand that you want to move to a different part of your Frame, but that part isn't available to work on right now.\n\n${normalNextQ}`;
+}
+
+const nextQ =
+  redirectBoundaryResponse ||
+  normalNextQ;
     
       let reply =
         enforceSingleQuestion(nextQ);
