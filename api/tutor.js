@@ -33839,13 +33839,58 @@ function buildRedirectNavigationPreparation(
   let replacementPending =
     null;
 
+  const resolvedOperation =
+  cleanText(
+    target?.operation || ""
+  );
+
+if (
+  resolvedOperation ===
+    "declineCurrentPath"
+) {
+  const currentPendingType =
+    cleanText(
+      target?.pendingType || ""
+    );
+
+  if (
+    currentPendingType ===
+      "offerAnotherMainIdea"
+  ) {
+    replacementPending = {
+      type:
+        "confirmMainIdeas",
+    };
+  } else if (
+    currentPendingType ===
+      "offerAnotherDetail" ||
+    currentPendingType ===
+      "collectAnotherDetail"
+  ) {
+    if (
+      Number.isInteger(
+        target?.mainIdeaIndex
+      )
+    ) {
+      replacementPending = {
+        type:
+          "confirmDetails",
+
+        index:
+          target.mainIdeaIndex,
+      };
+    }
+  }
+}
+
   // --------------------------------------------------
   // IS ABOUT REVISION
   // --------------------------------------------------
 
-  if (
-    component === "isAbout"
-  ) {
+    if (
+      !replacementPending &&
+      component === "isAbout"
+) {
     replacementPending = {
       type:
         "reviseIsAbout",
@@ -33859,7 +33904,8 @@ function buildRedirectNavigationPreparation(
   // MAIN IDEA REVISION
   // --------------------------------------------------
 
-  else if (
+    else if (
+    !replacementPending &&
     component === "mainIdeas" &&
     Number.isInteger(
       target?.mainIdeaIndex
@@ -33888,9 +33934,10 @@ function buildRedirectNavigationPreparation(
   // --------------------------------------------------
 
     else if (
-  component === "details" &&
-  Number.isInteger(
-    target?.mainIdeaIndex
+      !replacementPending &&
+      component === "details" &&
+      Number.isInteger(
+      target?.mainIdeaIndex
   )
 ) {
   if (
@@ -33950,19 +33997,19 @@ function buildRedirectNavigationPreparation(
   }
 }
 
-    
   // --------------------------------------------------
   // EXISTING SO WHAT REVISION
   // --------------------------------------------------
 
   else if (
+    !replacementPending &&
     component === "soWhat"
   ) {
     replacementPending = {
       type:
         "confirmSoWhat",
-    };
-  }
+  };
+}
 
   if (!replacementPending) {
     return {
@@ -38149,14 +38196,43 @@ if (
     redirectNavigationOutcome
       ?.resolvedTarget || {};
 
+  const operation =
+  cleanText(
+    resolvedTarget?.operation || ""
+  );
+
+const pendingType =
+  cleanText(
+    resolvedTarget?.pendingType || ""
+  );
+  
   const component =
     cleanText(
       resolvedTarget?.component || ""
     );
 
+   if (
+  operation ===
+    "declineCurrentPath"
+) {
   if (
-    component === "isAbout"
+    pendingType ===
+      "offerAnotherMainIdea"
   ) {
+    redirectSuccessAcknowledgment =
+      "That's okay — you can keep the Main Ideas you have.";
+  } else if (
+    pendingType ===
+      "offerAnotherDetail" ||
+    pendingType ===
+      "collectAnotherDetail"
+  ) {
+    redirectSuccessAcknowledgment =
+      "That's okay — you can keep the Essential Details you have for this Main Idea.";
+  }
+} else if (
+  component === "isAbout"
+) {
     redirectSuccessAcknowledgment =
       "Sure — let's work on your Is About.";
   } else if (
