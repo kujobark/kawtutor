@@ -31191,6 +31191,468 @@ Report only the student's apparent redirect/navigation meaning.`;
 }
 
 // ======================================================
+// REDIRECT CLARIFICATION RESOLUTION
+// ======================================================
+//
+// Resolves a student's answer to an already-established
+// redirect clarification question.
+//
+// The original redirect interpretation remains the source
+// of the requested operation and known target context.
+//
+// AI may resolve only the missing semantic reference.
+//
+// AI does not:
+//
+// • authorize navigation;
+// • return trusted runtime indexes;
+// • mutate state;
+// • change instructional strategy;
+// • generate student-facing communication.
+//
+// Deterministic redirect validation remains authoritative.
+//
+// ======================================================
+
+async function interpretRedirectClarificationResolution(
+  state,
+  message,
+  redirectNavigationBoundary
+) {
+  const text =
+    cleanText(message);
+
+  const boundary =
+    redirectNavigationBoundary &&
+    typeof redirectNavigationBoundary ===
+      "object"
+      ? redirectNavigationBoundary
+      : null;
+
+  const priorInterpretation =
+    boundary?.interpretation &&
+    typeof boundary.interpretation ===
+      "object"
+      ? boundary.interpretation
+      : null;
+
+  if (
+    !text ||
+    boundary?.status !==
+      "clarificationRequired" ||
+    !priorInterpretation
+  ) {
+    return {
+      artifactType:
+        "redirectInterpretation",
+
+      interpretationStatus:
+        "interpreterFailure",
+
+      source:
+        "redirectClarificationUnavailable",
+    };
+  }
+
+  const priorTarget =
+    priorInterpretation
+      ?.requestedTarget &&
+    typeof priorInterpretation
+      .requestedTarget ===
+      "object"
+      ? priorInterpretation.requestedTarget
+      : {};
+
+  const system = `You are the bounded Redirect Clarification Resolution Layer for Kaw Companion.
+
+The student previously made a navigation request inside their KU Framing Routine Frame.
+
+Kaw asked one clarification question because the requested target could not be uniquely resolved.
+
+Your only responsibility is to interpret the student's current answer as a possible resolution of that navigation clarification.
+
+Preserve all already-established navigation meaning from the prior request.
+
+You may resolve only semantic target references expressed by the student's current answer.
+
+Use only these semantic references:
+- ordinal1
+- ordinal2
+- ordinal3
+- ordinal4
+- ordinal5
+- current
+- previous
+- other
+- unspecified
+
+Do not return runtime indexes.
+
+Do not:
+- authorize navigation;
+- decide whether a target exists;
+- decide whether the target is allowed;
+- change the requested operation;
+- change instructional mode;
+- determine pedagogy;
+- interpret the response as Frame content;
+- generate student-facing communication.
+
+If the current answer clearly resolves the requested target, return resolutionObserved.
+
+If it still does not uniquely resolve the target, return resolutionUnclear.
+
+evidenceText must be an exact excerpt from the student's current message.
+
+Return only the required JSON object.`;
+
+  const user = `Prior redirect interpretation:
+${JSON.stringify(
+  priorInterpretation,
+  null,
+  2
+)}
+
+Accepted Main Ideas:
+${JSON.stringify(
+  getIdeaList(state),
+  null,
+  2
+)}
+
+Accepted Essential Details:
+${JSON.stringify(
+  Array.isArray(
+    state?.frame?.details
+  )
+    ? state.frame.details
+    : [],
+  null,
+  2
+)}
+
+Student's clarification answer:
+"${text}"
+
+Resolve only the missing navigation target reference.`;
+
+  try {
+    const response =
+      await client.chat.completions.create({
+        model:
+          DEFAULT_MODEL,
+
+        reasoning_effort:
+          "none",
+
+        temperature:
+          0,
+
+        response_format: {
+          type:
+            "json_schema",
+
+          json_schema: {
+            name:
+              "kaw_redirect_clarification_resolution",
+
+            strict:
+              true,
+
+            schema: {
+              type:
+                "object",
+
+              additionalProperties:
+                false,
+
+              properties: {
+                resolutionStatus: {
+                  type:
+                    "string",
+
+                  enum: [
+                    "resolutionObserved",
+                    "resolutionUnclear",
+                  ],
+                },
+
+                mainIdeaReference: {
+                  type:
+                    "string",
+
+                  enum: [
+                    "ordinal1",
+                    "ordinal2",
+                    "ordinal3",
+                    "ordinal4",
+                    "ordinal5",
+                    "current",
+                    "previous",
+                    "other",
+                    "unspecified",
+                  ],
+                },
+
+                detailReference: {
+                  type:
+                    "string",
+
+                  enum: [
+                    "ordinal1",
+                    "ordinal2",
+                    "ordinal3",
+                    "ordinal4",
+                    "ordinal5",
+                    "current",
+                    "previous",
+                    "other",
+                    "unspecified",
+                  ],
+                },
+
+                evidenceText: {
+                  type:
+                    "string",
+                },
+
+                confidence: {
+                  type:
+                    "number",
+
+                  minimum:
+                    0,
+
+                  maximum:
+                    1,
+                },
+              },
+
+              required: [
+                "resolutionStatus",
+                "mainIdeaReference",
+                "detailReference",
+                "evidenceText",
+                "confidence",
+              ],
+            },
+          },
+        },
+
+        messages: [
+          {
+            role:
+              "system",
+
+            content:
+              system,
+          },
+
+          {
+            role:
+              "user",
+
+            content:
+              user,
+          },
+        ],
+      });
+
+    const parsed =
+      JSON.parse(
+        response?.choices?.[0]
+          ?.message?.content || "{}"
+      );
+
+    const confidence =
+      Number(
+        parsed?.confidence || 0
+      );
+
+    const normalizedConfidence =
+      Number.isFinite(confidence)
+        ? Math.max(
+            0,
+            Math.min(
+              confidence,
+              1
+            )
+          )
+        : 0;
+
+    const evidenceText =
+      cleanText(
+        parsed?.evidenceText || ""
+      );
+
+    const evidenceGrounded =
+      Boolean(
+        evidenceText &&
+        text
+          .toLowerCase()
+          .includes(
+            evidenceText
+              .toLowerCase()
+          )
+      );
+
+    if (
+      parsed?.resolutionStatus !==
+        "resolutionObserved" ||
+      normalizedConfidence < 0.9 ||
+      !evidenceGrounded
+    ) {
+      return {
+        artifactType:
+          "redirectInterpretation",
+
+        interpretationStatus:
+          "redirectPossiblyObserved",
+
+        version:
+          "1.0",
+
+        source:
+          "aiBoundedRedirectClarificationResolution",
+
+        redirectIntent:
+          priorInterpretation
+            ?.redirectIntent ||
+          "unspecified",
+
+        requestedTarget: {
+          component:
+            priorTarget
+              ?.component ||
+            "unspecified",
+
+          mainIdeaReference:
+            priorTarget
+              ?.mainIdeaReference ||
+            "unspecified",
+
+          detailReference:
+            priorTarget
+              ?.detailReference ||
+            "unspecified",
+        },
+
+        requestedOperation:
+          priorInterpretation
+            ?.requestedOperation ||
+          "unspecified",
+
+        currentPathDisposition:
+          priorInterpretation
+            ?.currentPathDisposition ||
+          "unspecified",
+
+        evidenceText,
+
+        confidence:
+          normalizedConfidence,
+      };
+    }
+
+    return {
+      artifactType:
+        "redirectInterpretation",
+
+      version:
+        "1.0",
+
+      source:
+        "aiBoundedRedirectClarificationResolution",
+
+      interpretationStatus:
+        "redirectObserved",
+
+      redirectIntent:
+        priorInterpretation
+          ?.redirectIntent ||
+        "unspecified",
+
+      requestedTarget: {
+        component:
+          priorTarget
+            ?.component ||
+          "unspecified",
+
+        mainIdeaReference:
+          cleanText(
+            parsed
+              ?.mainIdeaReference ||
+            "unspecified"
+          ) !== "unspecified"
+            ? parsed.mainIdeaReference
+            : priorTarget
+                ?.mainIdeaReference ||
+              "unspecified",
+
+        detailReference:
+          cleanText(
+            parsed
+              ?.detailReference ||
+            "unspecified"
+          ) !== "unspecified"
+            ? parsed.detailReference
+            : priorTarget
+                ?.detailReference ||
+              "unspecified",
+      },
+
+      requestedOperation:
+        priorInterpretation
+          ?.requestedOperation ||
+        "unspecified",
+
+      currentPathDisposition:
+        priorInterpretation
+          ?.currentPathDisposition ||
+        "unspecified",
+
+      evidenceText,
+
+      confidence:
+        normalizedConfidence,
+
+      governance: {
+        observationalOnly:
+          true,
+
+        controlsNavigation:
+          false,
+
+        controlsProgression:
+          false,
+
+        controlsPendingState:
+          false,
+
+        controlsInstructionalStrategy:
+          false,
+      },
+    };
+  } catch (error) {
+    console.error(
+      "Redirect clarification resolution error:",
+      error
+    );
+
+    return {
+      artifactType:
+        "redirectInterpretation",
+
+      interpretationStatus:
+        "interpreterFailure",
+
+      source:
+        "redirectClarificationUnavailable",
+    };
+  }
+}
+
+// ======================================================
 // REDIRECT VALIDATION
 // ======================================================
 //
@@ -32647,6 +33109,98 @@ async function updateStateFromStudent(state, message) {
       confidence: "low",
       clarificationCount: 0,
     };
+  }
+
+    const activeRedirectNavigationBoundary =
+    s?.redirectNavigationBoundary &&
+    typeof s
+      .redirectNavigationBoundary ===
+      "object"
+      ? s.redirectNavigationBoundary
+      : null;
+
+  if (
+    activeRedirectNavigationBoundary
+      ?.status ===
+      "clarificationRequired"
+  ) {
+    const clarificationInterpretation =
+      await interpretRedirectClarificationResolution(
+        s,
+        msg,
+        activeRedirectNavigationBoundary
+      );
+
+    const clarificationValidation =
+      buildRedirectValidation(
+        s,
+        clarificationInterpretation
+      );
+
+    const clarificationPreparation =
+      buildRedirectNavigationPreparation(
+        s,
+        clarificationInterpretation,
+        clarificationValidation
+      );
+
+    const clarificationCommit =
+      buildRedirectNavigationCommit(
+        s,
+        clarificationPreparation
+      );
+
+    if (
+      clarificationCommit
+        ?.committed === true &&
+      clarificationCommit
+        ?.committedState &&
+      typeof clarificationCommit
+        .committedState ===
+        "object"
+    ) {
+      const resolvedState =
+        structuredClone(
+          clarificationCommit
+            .committedState
+        );
+
+      delete resolvedState
+        .redirectNavigationBoundary;
+
+      return resolvedState;
+    }
+
+    const unresolvedState =
+      structuredClone(s);
+
+    unresolvedState
+      .redirectNavigationBoundary = {
+      artifactType:
+        "redirectNavigationBoundary",
+
+      version:
+        "1.0",
+
+      status:
+        clarificationValidation
+          ?.validationStatus ===
+          "notAuthorized"
+            ? "notAuthorized"
+            : "clarificationRequired",
+
+      interpretation:
+        structuredClone(
+          clarificationInterpretation
+        ),
+
+      validation:
+        structuredClone(
+          clarificationValidation
+        ),
+    };
+
+    return unresolvedState;
   }
 
   const redirectEligibility =
