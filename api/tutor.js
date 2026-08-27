@@ -32796,6 +32796,65 @@ function resolveRedirectOrdinalReference(
   );
 }
 
+function buildRedirectCurrentPathDispositionValidation(
+  state,
+  redirectInterpretation
+) {
+  const disposition =
+    cleanText(
+      redirectInterpretation
+        ?.currentPathDisposition ||
+      "unspecified"
+    );
+
+  if (disposition !== "decline") {
+    return {
+      dispositionStatus:
+        "notApplicable",
+
+      declineRequested:
+        false,
+
+      declineAuthorized:
+        false,
+
+      reason:
+        "declineNotRequested",
+    };
+  }
+
+  const pending =
+    state?.pending &&
+    typeof state.pending === "object"
+      ? state.pending
+      : {};
+
+  const captureMode =
+    cleanText(
+      pending?.captureMode || ""
+    );
+
+  const declineAuthorized =
+    captureMode === "optional";
+
+  return {
+    dispositionStatus:
+      declineAuthorized
+        ? "authorized"
+        : "notAuthorized",
+
+    declineRequested:
+      true,
+
+    declineAuthorized,
+
+    reason:
+      declineAuthorized
+        ? "currentPathIsOptional"
+        : "currentPathIsNotOptional",
+  };
+}
+
 function buildRedirectValidation(
   state,
   redirectInterpretation
@@ -32806,6 +32865,12 @@ function buildRedirectValidation(
       "object"
       ? redirectInterpretation
       : null;
+
+  const currentPathDispositionValidation =
+  buildRedirectCurrentPathDispositionValidation(
+    state,
+    redirectInterpretation
+  );
 
   const interpretationStatus =
     cleanText(
@@ -32845,6 +32910,44 @@ function buildRedirectValidation(
       ],
     };
   }
+
+  if (
+  currentPathDispositionValidation
+    ?.declineRequested === true &&
+  currentPathDispositionValidation
+    ?.declineAuthorized !== true
+) {
+  return {
+    artifactType:
+      "redirectValidation",
+
+    version:
+      "1.0",
+
+    source:
+      "deterministicRedirectValidator",
+
+    validationStatus:
+      "notAuthorized",
+
+    navigationAuthorized:
+      false,
+
+    resolvedTarget:
+      null,
+
+    currentPathDispositionValidation:
+      structuredClone(
+        currentPathDispositionValidation
+      ),
+
+    validationEvidence: [
+      currentPathDispositionValidation
+        ?.reason ||
+      "currentPathDeclineNotAuthorized",
+    ],
+  };
+}
 
   const requestedTarget =
     interpretation
