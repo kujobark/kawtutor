@@ -31961,6 +31961,328 @@ function buildRedirectValidation(
     ],
   };
 }
+
+// ======================================================
+// REDIRECT NAVIGATION PREPARATION
+// ======================================================
+//
+// Converts one deterministically authorized redirect into
+// a candidate existing Kaw re-entry state.
+//
+// This is preparation only.
+//
+// It does not:
+//
+// • mutate the live runtime state;
+// • clear the current pending location;
+// • clear Progressive Support or Guided Construction;
+// • change interactionMode;
+// • save or modify Frame content;
+// • apply navigation;
+// • generate student-facing communication.
+//
+// Navigation may be committed only after this replacement
+// state has been completely prepared and verified.
+//
+// ======================================================
+
+function buildRedirectNavigationPreparation(
+  state,
+  redirectInterpretation,
+  redirectValidation
+) {
+  const validation =
+    redirectValidation &&
+    typeof redirectValidation === "object"
+      ? redirectValidation
+      : null;
+
+  if (
+    validation?.validationStatus !==
+      "authorized" ||
+    validation?.navigationAuthorized !==
+      true
+  ) {
+    return {
+      artifactType:
+        "redirectNavigationPreparation",
+
+      version:
+        "1.0",
+
+      source:
+        "deterministicRedirectNavigationPreparation",
+
+      preparationStatus:
+        "notApplicable",
+
+      replacementPending:
+        null,
+
+      verified:
+        false,
+    };
+  }
+
+  const target =
+    validation?.resolvedTarget &&
+    typeof validation.resolvedTarget ===
+      "object"
+      ? validation.resolvedTarget
+      : null;
+
+  if (!target) {
+    return {
+      artifactType:
+        "redirectNavigationPreparation",
+
+      version:
+        "1.0",
+
+      source:
+        "deterministicRedirectNavigationPreparation",
+
+      preparationStatus:
+        "failed",
+
+      replacementPending:
+        null,
+
+      verified:
+        false,
+
+      reason:
+        "resolvedTargetUnavailable",
+    };
+  }
+
+  const component =
+    cleanText(
+      target?.component || ""
+    );
+
+  const requestedOperation =
+    cleanText(
+      redirectInterpretation
+        ?.requestedOperation || ""
+    );
+
+  let replacementPending =
+    null;
+
+  // --------------------------------------------------
+  // IS ABOUT REVISION
+  // --------------------------------------------------
+
+  if (
+    component === "isAbout"
+  ) {
+    replacementPending = {
+      type:
+        "reviseIsAbout",
+
+      captureMode:
+        "revision",
+    };
+  }
+
+  // --------------------------------------------------
+  // MAIN IDEA REVISION
+  // --------------------------------------------------
+
+  else if (
+    component === "mainIdeas" &&
+    Number.isInteger(
+      target?.mainIdeaIndex
+    )
+  ) {
+    replacementPending = {
+      type:
+        "reviseMainIdeaAt",
+
+      index:
+        target.mainIdeaIndex,
+
+      captureMode:
+        "revision",
+    };
+  }
+
+  // --------------------------------------------------
+  // ESSENTIAL DETAIL
+  //
+  // addSupportingContent enters the existing
+  // collect-another-detail pathway.
+  //
+  // Other authorized Detail requests revise one accepted
+  // Detail at the resolved coordinates.
+  // --------------------------------------------------
+
+  else if (
+    component === "details" &&
+    Number.isInteger(
+      target?.mainIdeaIndex
+    )
+  ) {
+    if (
+      requestedOperation ===
+        "addSupportingContent"
+    ) {
+      replacementPending = {
+        type:
+          "collectAnotherDetail",
+
+        index:
+          target.mainIdeaIndex,
+
+        captureMode:
+          "optional",
+      };
+    } else if (
+      Number.isInteger(
+        target?.detailIndex
+      )
+    ) {
+      replacementPending = {
+        type:
+          "reviseDetailAt",
+
+        index:
+          target.mainIdeaIndex,
+
+        detailIndex:
+          target.detailIndex,
+
+        captureMode:
+          "revision",
+      };
+    }
+  }
+
+  // --------------------------------------------------
+  // EXISTING SO WHAT REVISION
+  // --------------------------------------------------
+
+  else if (
+    component === "soWhat"
+  ) {
+    replacementPending = {
+      type:
+        "confirmSoWhat",
+    };
+  }
+
+  if (!replacementPending) {
+    return {
+      artifactType:
+        "redirectNavigationPreparation",
+
+      version:
+        "1.0",
+
+      source:
+        "deterministicRedirectNavigationPreparation",
+
+      preparationStatus:
+        "failed",
+
+      replacementPending:
+        null,
+
+      verified:
+        false,
+
+      reason:
+        "supportedReplacementPendingUnavailable",
+    };
+  }
+
+  // --------------------------------------------------
+  // VERIFY WITHOUT MUTATING LIVE STATE
+  //
+  // The candidate is evaluated in a cloned state.
+  // Nothing has been cleared or committed.
+  // --------------------------------------------------
+
+  const candidateState =
+    structuredClone(state);
+
+  candidateState.pending =
+    structuredClone(
+      replacementPending
+    );
+
+  const candidatePendingValid =
+    candidateState?.pending &&
+    typeof candidateState.pending ===
+      "object" &&
+    cleanText(
+      candidateState.pending.type || ""
+    );
+
+  if (!candidatePendingValid) {
+    return {
+      artifactType:
+        "redirectNavigationPreparation",
+
+      version:
+        "1.0",
+
+      source:
+        "deterministicRedirectNavigationPreparation",
+
+      preparationStatus:
+        "failed",
+
+      replacementPending:
+        null,
+
+      verified:
+        false,
+
+      reason:
+        "replacementPendingVerificationFailed",
+    };
+  }
+
+  return {
+    artifactType:
+      "redirectNavigationPreparation",
+
+    version:
+      "1.0",
+
+    source:
+      "deterministicRedirectNavigationPreparation",
+
+    preparationStatus:
+      "prepared",
+
+    replacementPending:
+      structuredClone(
+        replacementPending
+      ),
+
+    verified:
+      true,
+
+    resolvedTarget:
+      structuredClone(
+        target
+      ),
+
+    governance: {
+      deterministicPreparation:
+        true,
+
+      mutatesLiveState:
+        false,
+
+      navigationCommitted:
+        false,
+    },
+  };
+}
   
 // ---------------------
 // STATE UPDATE (SSOT)
