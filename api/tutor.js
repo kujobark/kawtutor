@@ -33151,25 +33151,51 @@ async function updateStateFromStudent(state, message) {
       );
 
     if (
+  clarificationCommit
+    ?.committed === true &&
+  clarificationCommit
+    ?.committedState &&
+  typeof clarificationCommit
+    .committedState ===
+    "object"
+) {
+  const resolvedState =
+    structuredClone(
       clarificationCommit
-        ?.committed === true &&
-      clarificationCommit
-        ?.committedState &&
-      typeof clarificationCommit
-        .committedState ===
-        "object"
-    ) {
-      const resolvedState =
-        structuredClone(
-          clarificationCommit
-            .committedState
-        );
+        .committedState
+    );
 
-      delete resolvedState
-        .redirectNavigationBoundary;
+  delete resolvedState
+    .redirectNavigationBoundary;
 
-      return resolvedState;
-    }
+  if (
+    clarificationCommit
+      ?.commitStatus ===
+      "committed"
+  ) {
+    resolvedState.redirectNavigationOutcome = {
+      artifactType:
+        "redirectNavigationOutcome",
+
+      version:
+        "1.0",
+
+      status:
+        "committed",
+
+      resolvedTarget:
+        clarificationCommit
+          ?.resolvedTarget
+          ? structuredClone(
+              clarificationCommit
+                .resolvedTarget
+            )
+          : null,
+    };
+  }
+
+  return resolvedState;
+}
 
     const unresolvedState =
       structuredClone(s);
@@ -33238,18 +33264,47 @@ async function updateStateFromStudent(state, message) {
     );
 
   if (
-    redirectNavigationCommit
-      ?.committed === true &&
-    redirectNavigationCommit
-      ?.committedState &&
-    typeof redirectNavigationCommit
-      .committedState === "object"
-  ) {
-    return structuredClone(
+  redirectNavigationCommit
+    ?.committed === true &&
+  redirectNavigationCommit
+    ?.committedState &&
+  typeof redirectNavigationCommit
+    .committedState === "object"
+) {
+  const committedState =
+    structuredClone(
       redirectNavigationCommit
         .committedState
     );
+
+  if (
+    redirectNavigationCommit
+      ?.commitStatus ===
+      "committed"
+  ) {
+    committedState.redirectNavigationOutcome = {
+      artifactType:
+        "redirectNavigationOutcome",
+
+      version:
+        "1.0",
+
+      status:
+        "committed",
+
+      resolvedTarget:
+        redirectNavigationCommit
+          ?.resolvedTarget
+          ? structuredClone(
+              redirectNavigationCommit
+                .resolvedTarget
+            )
+          : null,
+    };
   }
+
+  return committedState;
+}
 
     const redirectValidationStatus =
     cleanText(
@@ -36764,9 +36819,73 @@ if (
     `I understand that you want to move to a different part of your Frame, but that part isn't available to work on right now.\n\n${normalNextQ}`;
 }
 
+  const redirectNavigationOutcome =
+  state?.redirectNavigationOutcome &&
+  typeof state
+    .redirectNavigationOutcome ===
+    "object"
+    ? state.redirectNavigationOutcome
+    : null;
+
+let redirectSuccessAcknowledgment =
+  null;
+
+if (
+  redirectNavigationOutcome
+    ?.status ===
+    "committed"
+) {
+  const resolvedTarget =
+    redirectNavigationOutcome
+      ?.resolvedTarget || {};
+
+  const component =
+    cleanText(
+      resolvedTarget?.component || ""
+    );
+
+  if (
+    component === "isAbout"
+  ) {
+    redirectSuccessAcknowledgment =
+      "Sure — let's work on your Is About.";
+  } else if (
+    component === "mainIdeas" &&
+    Number.isInteger(
+      resolvedTarget?.mainIdeaIndex
+    )
+  ) {
+    redirectSuccessAcknowledgment =
+      `Sure — let's work on Main Idea ${resolvedTarget.mainIdeaIndex + 1}.`;
+  } else if (
+    component === "details" &&
+    Number.isInteger(
+      resolvedTarget?.mainIdeaIndex
+    ) &&
+    Number.isInteger(
+      resolvedTarget?.detailIndex
+    )
+  ) {
+    redirectSuccessAcknowledgment =
+      `Sure — let's work on Essential Detail ${resolvedTarget.detailIndex + 1} for Main Idea ${resolvedTarget.mainIdeaIndex + 1}.`;
+  } else if (
+    component === "soWhat"
+  ) {
+    redirectSuccessAcknowledgment =
+      "Sure — let's work on your So What.";
+  }
+}
+
 const nextQ =
   redirectBoundaryResponse ||
-  normalNextQ;
+  (
+    redirectSuccessAcknowledgment
+      ? `${redirectSuccessAcknowledgment}\n\n${normalNextQ}`
+      : normalNextQ
+  );
+
+delete state
+  .redirectNavigationOutcome;
     
       let reply =
         enforceSingleQuestion(nextQ);
