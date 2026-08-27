@@ -26957,6 +26957,230 @@ results.push({
   },
 });
 
+// --------------------------------------------------
+// TEST 10 — OPTIONAL DETAIL COLLECTION AFTER 2 DETAILS
+// --------------------------------------------------
+
+const optionalCollectedDetailDeclineState =
+  createRedirectNavigationTestState();
+
+optionalCollectedDetailDeclineState.frame.details[0] = [
+  "Social media can affect self-esteem.",
+  "Online interactions can influence relationships.",
+];
+
+optionalCollectedDetailDeclineState.pending = {
+  type:
+    "collectAnotherDetail",
+
+  index:
+    0,
+
+  detailIndex:
+    2,
+
+  captureMode:
+    "optional",
+};
+
+const optionalCollectedDetailDeclineFrame =
+  structuredClone(
+    optionalCollectedDetailDeclineState.frame
+  );
+
+const optionalCollectedDetailDeclineSnapshot =
+  structuredClone(
+    optionalCollectedDetailDeclineState
+  );
+
+const optionalCollectedDetailDeclineInterpretation = {
+  artifactType:
+    "redirectInterpretation",
+
+  interpretationStatus:
+    "redirectObserved",
+
+  redirectIntent:
+    "leaveCurrentPath",
+
+  requestedTarget: {
+    component:
+      "unspecified",
+
+    mainIdeaReference:
+      "unspecified",
+
+    detailReference:
+      "unspecified",
+  },
+
+  requestedOperation:
+    "unspecified",
+
+  currentPathDisposition:
+    "decline",
+};
+
+const optionalCollectedDetailDeclineValidation =
+  buildRedirectValidation(
+    optionalCollectedDetailDeclineState,
+    optionalCollectedDetailDeclineInterpretation
+  );
+
+const optionalCollectedDetailDeclinePreparation =
+  buildRedirectNavigationPreparation(
+    optionalCollectedDetailDeclineState,
+    optionalCollectedDetailDeclineInterpretation,
+    optionalCollectedDetailDeclineValidation
+  );
+
+const optionalCollectedDetailDeclineCommit =
+  buildRedirectNavigationCommit(
+    optionalCollectedDetailDeclineState,
+    optionalCollectedDetailDeclinePreparation
+  );
+
+const optionalCollectedDetailDeclinePassed =
+  optionalCollectedDetailDeclineValidation
+    ?.validationStatus ===
+    "authorized" &&
+
+  optionalCollectedDetailDeclineValidation
+    ?.currentPathDispositionValidation
+    ?.declineAuthorized ===
+    true &&
+
+  optionalCollectedDetailDeclineValidation
+    ?.resolvedTarget
+    ?.operation ===
+    "declineCurrentPath" &&
+
+  optionalCollectedDetailDeclinePreparation
+    ?.preparationStatus ===
+    "prepared" &&
+
+  optionalCollectedDetailDeclinePreparation
+    ?.replacementPending
+    ?.type ===
+    "confirmDetails" &&
+
+  optionalCollectedDetailDeclinePreparation
+    ?.replacementPending
+    ?.index ===
+    0 &&
+
+  optionalCollectedDetailDeclineCommit
+    ?.committed === true &&
+
+  optionalCollectedDetailDeclineCommit
+    ?.commitStatus ===
+    "committed" &&
+
+  optionalCollectedDetailDeclineCommit
+    ?.committedState
+    ?.pending
+    ?.type ===
+    "confirmDetails" &&
+
+  optionalCollectedDetailDeclineCommit
+    ?.committedState
+    ?.pending
+    ?.index ===
+    0 &&
+
+  JSON.stringify(
+    optionalCollectedDetailDeclineCommit
+      ?.committedState
+      ?.frame
+  ) ===
+  JSON.stringify(
+    optionalCollectedDetailDeclineFrame
+  ) &&
+
+  JSON.stringify(
+    optionalCollectedDetailDeclineState
+  ) ===
+  JSON.stringify(
+    optionalCollectedDetailDeclineSnapshot
+  );
+
+results.push({
+  name:
+    "Redirect - Optional Detail collection after two details may be declined",
+
+  passed:
+    optionalCollectedDetailDeclinePassed,
+
+  expected: {
+    validationStatus:
+      "authorized",
+
+    declineAuthorized:
+      true,
+
+    operation:
+      "declineCurrentPath",
+
+    pendingType:
+      "confirmDetails",
+
+    mainIdeaIndex:
+      0,
+
+    canonicalFramePreserved:
+      true,
+
+    sourceStateUnchanged:
+      true,
+  },
+
+  actual: {
+    validationStatus:
+      optionalCollectedDetailDeclineValidation
+        ?.validationStatus || null,
+
+    declineAuthorized:
+      optionalCollectedDetailDeclineValidation
+        ?.currentPathDispositionValidation
+        ?.declineAuthorized === true,
+
+    operation:
+      optionalCollectedDetailDeclineValidation
+        ?.resolvedTarget
+        ?.operation || null,
+
+    pendingType:
+      optionalCollectedDetailDeclineCommit
+        ?.committedState
+        ?.pending
+        ?.type || null,
+
+    mainIdeaIndex:
+      optionalCollectedDetailDeclineCommit
+        ?.committedState
+        ?.pending
+        ?.index ?? null,
+
+    canonicalFramePreserved:
+      JSON.stringify(
+        optionalCollectedDetailDeclineCommit
+          ?.committedState
+          ?.frame
+      ) ===
+      JSON.stringify(
+        optionalCollectedDetailDeclineFrame
+      ),
+
+    sourceStateUnchanged:
+      JSON.stringify(
+        optionalCollectedDetailDeclineState
+      ) ===
+      JSON.stringify(
+        optionalCollectedDetailDeclineSnapshot
+      ),
+  },
+});
+
   const passedCount =
     results.filter(
       (result) =>
