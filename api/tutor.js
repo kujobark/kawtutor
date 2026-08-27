@@ -33900,7 +33900,7 @@ function buildRedirectValidation(
   currentPathDispositionValidation
     ?.declineRequested === true &&
   currentPathDispositionValidation
-    ?.declineAuthorized === true
+    ?.declineAuthorized !== true
 ) {
   return {
     artifactType:
