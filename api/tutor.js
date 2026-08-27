@@ -26599,7 +26599,7 @@ results.push({
   },
 });
 
-  // --------------------------------------------------
+// --------------------------------------------------
 // TEST 8 — OPTIONAL ESSENTIAL DETAIL DECLINE
 // --------------------------------------------------
 
@@ -26804,6 +26804,154 @@ results.push({
   },
 });
 
+// --------------------------------------------------
+// TEST 9 — REQUIRED PATH DECLINE IS NOT AUTHORIZED
+// --------------------------------------------------
+
+const requiredDeclineState =
+  createRedirectNavigationTestState();
+
+requiredDeclineState.pending = {
+  type:
+    "collectAnotherDetail",
+
+  index:
+    0,
+
+  detailIndex:
+    1,
+
+  captureMode:
+    "required",
+};
+
+const requiredDeclineSnapshot =
+  structuredClone(
+    requiredDeclineState
+  );
+
+const requiredDeclineInterpretation = {
+  artifactType:
+    "redirectInterpretation",
+
+  interpretationStatus:
+    "redirectObserved",
+
+  redirectIntent:
+    "leaveCurrentPath",
+
+  requestedTarget: {
+    component:
+      "unspecified",
+
+    mainIdeaReference:
+      "unspecified",
+
+    detailReference:
+      "unspecified",
+  },
+
+  requestedOperation:
+    "unspecified",
+
+  currentPathDisposition:
+    "decline",
+};
+
+const requiredDeclineValidation =
+  buildRedirectValidation(
+    requiredDeclineState,
+    requiredDeclineInterpretation
+  );
+
+const requiredDeclinePreparation =
+  buildRedirectNavigationPreparation(
+    requiredDeclineState,
+    requiredDeclineInterpretation,
+    requiredDeclineValidation
+  );
+
+const requiredDeclinePassed =
+  requiredDeclineValidation
+    ?.validationStatus ===
+    "notAuthorized" &&
+
+  requiredDeclineValidation
+    ?.navigationAuthorized ===
+    false &&
+
+  requiredDeclineValidation
+    ?.currentPathDispositionValidation
+    ?.declineRequested ===
+    true &&
+
+  requiredDeclineValidation
+    ?.currentPathDispositionValidation
+    ?.declineAuthorized ===
+    false &&
+
+  requiredDeclinePreparation
+    ?.preparationStatus !==
+    "prepared" &&
+
+  JSON.stringify(
+    requiredDeclineState
+  ) ===
+  JSON.stringify(
+    requiredDeclineSnapshot
+  );
+
+results.push({
+  name:
+    "Redirect - Required current path decline is blocked without changing state",
+
+  passed:
+    requiredDeclinePassed,
+
+  expected: {
+    validationStatus:
+      "notAuthorized",
+
+    navigationAuthorized:
+      false,
+
+    declineAuthorized:
+      false,
+
+    preparationStatus:
+      "notApplicable",
+
+    sourceStateUnchanged:
+      true,
+  },
+
+  actual: {
+    validationStatus:
+      requiredDeclineValidation
+        ?.validationStatus || null,
+
+    navigationAuthorized:
+      requiredDeclineValidation
+        ?.navigationAuthorized === true,
+
+    declineAuthorized:
+      requiredDeclineValidation
+        ?.currentPathDispositionValidation
+        ?.declineAuthorized === true,
+
+    preparationStatus:
+      requiredDeclinePreparation
+        ?.preparationStatus || null,
+
+    sourceStateUnchanged:
+      JSON.stringify(
+        requiredDeclineState
+      ) ===
+      JSON.stringify(
+        requiredDeclineSnapshot
+      ),
+  },
+});
 
   const passedCount =
     results.filter(
