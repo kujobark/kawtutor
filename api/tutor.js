@@ -32995,6 +32995,63 @@ function buildRedirectValidation(
   };
 }
 
+  if (
+  currentPathDispositionValidation
+    ?.declineRequested === true &&
+  currentPathDispositionValidation
+    ?.declineAuthorized === true
+) {
+  const currentPending =
+    state?.pending &&
+    typeof state.pending === "object"
+      ? state.pending
+      : {};
+
+  return {
+    artifactType:
+      "redirectValidation",
+
+    version:
+      "1.0",
+
+    source:
+      "deterministicRedirectValidator",
+
+    validationStatus:
+      "authorized",
+
+    navigationAuthorized:
+      true,
+
+    resolvedTarget: {
+      operation:
+        "declineCurrentPath",
+
+      pendingType:
+        cleanText(
+          currentPending?.type || ""
+        ) || null,
+
+      mainIdeaIndex:
+        Number.isInteger(
+          currentPending?.index
+        )
+          ? currentPending.index
+          : null,
+    },
+
+    currentPathDispositionValidation:
+      structuredClone(
+        currentPathDispositionValidation
+      ),
+
+    validationEvidence: [
+      "currentPathDeclineRequested",
+      "currentPathDeclineAuthorized",
+    ],
+  };
+}
+
   const requestedTarget =
     interpretation
       ?.requestedTarget &&
