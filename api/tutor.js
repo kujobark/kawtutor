@@ -26422,7 +26422,7 @@ function runRedirectNavigationSelfTests() {
     },
   });
 
-  // --------------------------------------------------
+// --------------------------------------------------
 // TEST 7 — OPTIONAL MAIN IDEA DECLINE
 // --------------------------------------------------
 
@@ -26598,6 +26598,212 @@ results.push({
       ),
   },
 });
+
+  // --------------------------------------------------
+// TEST 8 — OPTIONAL ESSENTIAL DETAIL DECLINE
+// --------------------------------------------------
+
+const detailDeclineState =
+  createRedirectNavigationTestState();
+
+detailDeclineState.pending = {
+  type:
+    "offerAnotherDetail",
+
+  index:
+    0,
+};
+
+const detailDeclineFrame =
+  structuredClone(
+    detailDeclineState.frame
+  );
+
+const detailDeclineSnapshot =
+  structuredClone(
+    detailDeclineState
+  );
+
+const detailDeclineInterpretation = {
+  artifactType:
+    "redirectInterpretation",
+
+  interpretationStatus:
+    "redirectObserved",
+
+  redirectIntent:
+    "leaveCurrentPath",
+
+  requestedTarget: {
+    component:
+      "unspecified",
+
+    mainIdeaReference:
+      "unspecified",
+
+    detailReference:
+      "unspecified",
+  },
+
+  requestedOperation:
+    "unspecified",
+
+  currentPathDisposition:
+    "decline",
+};
+
+const detailDeclineValidation =
+  buildRedirectValidation(
+    detailDeclineState,
+    detailDeclineInterpretation
+  );
+
+const detailDeclinePreparation =
+  buildRedirectNavigationPreparation(
+    detailDeclineState,
+    detailDeclineInterpretation,
+    detailDeclineValidation
+  );
+
+const detailDeclineCommit =
+  buildRedirectNavigationCommit(
+    detailDeclineState,
+    detailDeclinePreparation
+  );
+
+const detailDeclinePassed =
+  detailDeclineValidation
+    ?.validationStatus ===
+    "authorized" &&
+
+  detailDeclineValidation
+    ?.resolvedTarget
+    ?.operation ===
+    "declineCurrentPath" &&
+
+  detailDeclineValidation
+    ?.resolvedTarget
+    ?.mainIdeaIndex ===
+    0 &&
+
+  detailDeclinePreparation
+    ?.preparationStatus ===
+    "prepared" &&
+
+  detailDeclinePreparation
+    ?.replacementPending
+    ?.type ===
+    "confirmDetails" &&
+
+  detailDeclinePreparation
+    ?.replacementPending
+    ?.index ===
+    0 &&
+
+  detailDeclineCommit
+    ?.committed === true &&
+
+  detailDeclineCommit
+    ?.commitStatus ===
+    "committed" &&
+
+  detailDeclineCommit
+    ?.committedState
+    ?.pending
+    ?.type ===
+    "confirmDetails" &&
+
+  detailDeclineCommit
+    ?.committedState
+    ?.pending
+    ?.index ===
+    0 &&
+
+  JSON.stringify(
+    detailDeclineCommit
+      ?.committedState
+      ?.frame
+  ) ===
+  JSON.stringify(
+    detailDeclineFrame
+  ) &&
+
+  JSON.stringify(
+    detailDeclineState
+  ) ===
+  JSON.stringify(
+    detailDeclineSnapshot
+  );
+
+results.push({
+  name:
+    "Redirect - Optional Essential Detail decline is authorized and returns to Detail confirmation",
+
+  passed:
+    detailDeclinePassed,
+
+  expected: {
+    validationStatus:
+      "authorized",
+
+    operation:
+      "declineCurrentPath",
+
+    pendingType:
+      "confirmDetails",
+
+    mainIdeaIndex:
+      0,
+
+    canonicalFramePreserved:
+      true,
+
+    sourceStateUnchanged:
+      true,
+  },
+
+  actual: {
+    validationStatus:
+      detailDeclineValidation
+        ?.validationStatus || null,
+
+    operation:
+      detailDeclineValidation
+        ?.resolvedTarget
+        ?.operation || null,
+
+    pendingType:
+      detailDeclineCommit
+        ?.committedState
+        ?.pending
+        ?.type || null,
+
+    mainIdeaIndex:
+      detailDeclineCommit
+        ?.committedState
+        ?.pending
+        ?.index ?? null,
+
+    canonicalFramePreserved:
+      JSON.stringify(
+        detailDeclineCommit
+          ?.committedState
+          ?.frame
+      ) ===
+      JSON.stringify(
+        detailDeclineFrame
+      ),
+
+    sourceStateUnchanged:
+      JSON.stringify(
+        detailDeclineState
+      ) ===
+      JSON.stringify(
+        detailDeclineSnapshot
+      ),
+  },
+});
+
 
   const passedCount =
     results.filter(
@@ -27426,211 +27632,6 @@ async function runAllDeterministicSelfTests() {
       result,
     });
   }
-
-  // --------------------------------------------------
-// TEST 8 — OPTIONAL ESSENTIAL DETAIL DECLINE
-// --------------------------------------------------
-
-const detailDeclineState =
-  createRedirectNavigationTestState();
-
-detailDeclineState.pending = {
-  type:
-    "offerAnotherDetail",
-
-  index:
-    0,
-};
-
-const detailDeclineFrame =
-  structuredClone(
-    detailDeclineState.frame
-  );
-
-const detailDeclineSnapshot =
-  structuredClone(
-    detailDeclineState
-  );
-
-const detailDeclineInterpretation = {
-  artifactType:
-    "redirectInterpretation",
-
-  interpretationStatus:
-    "redirectObserved",
-
-  redirectIntent:
-    "leaveCurrentPath",
-
-  requestedTarget: {
-    component:
-      "unspecified",
-
-    mainIdeaReference:
-      "unspecified",
-
-    detailReference:
-      "unspecified",
-  },
-
-  requestedOperation:
-    "unspecified",
-
-  currentPathDisposition:
-    "decline",
-};
-
-const detailDeclineValidation =
-  buildRedirectValidation(
-    detailDeclineState,
-    detailDeclineInterpretation
-  );
-
-const detailDeclinePreparation =
-  buildRedirectNavigationPreparation(
-    detailDeclineState,
-    detailDeclineInterpretation,
-    detailDeclineValidation
-  );
-
-const detailDeclineCommit =
-  buildRedirectNavigationCommit(
-    detailDeclineState,
-    detailDeclinePreparation
-  );
-
-const detailDeclinePassed =
-  detailDeclineValidation
-    ?.validationStatus ===
-    "authorized" &&
-
-  detailDeclineValidation
-    ?.resolvedTarget
-    ?.operation ===
-    "declineCurrentPath" &&
-
-  detailDeclineValidation
-    ?.resolvedTarget
-    ?.mainIdeaIndex ===
-    0 &&
-
-  detailDeclinePreparation
-    ?.preparationStatus ===
-    "prepared" &&
-
-  detailDeclinePreparation
-    ?.replacementPending
-    ?.type ===
-    "confirmDetails" &&
-
-  detailDeclinePreparation
-    ?.replacementPending
-    ?.index ===
-    0 &&
-
-  detailDeclineCommit
-    ?.committed === true &&
-
-  detailDeclineCommit
-    ?.commitStatus ===
-    "committed" &&
-
-  detailDeclineCommit
-    ?.committedState
-    ?.pending
-    ?.type ===
-    "confirmDetails" &&
-
-  detailDeclineCommit
-    ?.committedState
-    ?.pending
-    ?.index ===
-    0 &&
-
-  JSON.stringify(
-    detailDeclineCommit
-      ?.committedState
-      ?.frame
-  ) ===
-  JSON.stringify(
-    detailDeclineFrame
-  ) &&
-
-  JSON.stringify(
-    detailDeclineState
-  ) ===
-  JSON.stringify(
-    detailDeclineSnapshot
-  );
-
-results.push({
-  name:
-    "Redirect - Optional Essential Detail decline is authorized and returns to Detail confirmation",
-
-  passed:
-    detailDeclinePassed,
-
-  expected: {
-    validationStatus:
-      "authorized",
-
-    operation:
-      "declineCurrentPath",
-
-    pendingType:
-      "confirmDetails",
-
-    mainIdeaIndex:
-      0,
-
-    canonicalFramePreserved:
-      true,
-
-    sourceStateUnchanged:
-      true,
-  },
-
-  actual: {
-    validationStatus:
-      detailDeclineValidation
-        ?.validationStatus || null,
-
-    operation:
-      detailDeclineValidation
-        ?.resolvedTarget
-        ?.operation || null,
-
-    pendingType:
-      detailDeclineCommit
-        ?.committedState
-        ?.pending
-        ?.type || null,
-
-    mainIdeaIndex:
-      detailDeclineCommit
-        ?.committedState
-        ?.pending
-        ?.index ?? null,
-
-    canonicalFramePreserved:
-      JSON.stringify(
-        detailDeclineCommit
-          ?.committedState
-          ?.frame
-      ) ===
-      JSON.stringify(
-        detailDeclineFrame
-      ),
-
-    sourceStateUnchanged:
-      JSON.stringify(
-        detailDeclineState
-      ) ===
-      JSON.stringify(
-        detailDeclineSnapshot
-      ),
-  },
-});
 
   const passedCount =
     suiteResults.reduce(
