@@ -26084,6 +26084,344 @@ function runRedirectNavigationSelfTests() {
     },
   });
 
+      // --------------------------------------------------
+  // TEST 5 — SAME LOCATION PRESERVES GUIDED CONSTRUCTION
+  // --------------------------------------------------
+
+  const sameLocationState =
+    createRedirectNavigationTestState();
+
+  sameLocationState.pending = {
+    type:
+      "reviseMainIdeaAt",
+
+    index:
+      0,
+
+    captureMode:
+      "revision",
+
+    progressiveSupportStage:
+      3,
+
+    guidedConstructionStep:
+      2,
+
+    guidedConstructionEvidence: {
+      "1": {
+        step:
+          1,
+
+        evidence:
+          "Mental health",
+      },
+    },
+  };
+
+  sameLocationState
+    .pending
+    .guidedConstructionLocation =
+    buildGuidedConstructionInstructionalLocation(
+      sameLocationState
+    );
+
+  const sameLocationInterpretation = {
+    artifactType:
+      "redirectInterpretation",
+
+    interpretationStatus:
+      "redirectObserved",
+
+    redirectIntent:
+      "revisitTarget",
+
+    requestedTarget: {
+      component:
+        "mainIdeas",
+
+      mainIdeaReference:
+        "ordinal1",
+
+      detailReference:
+        "unspecified",
+    },
+
+    requestedOperation:
+      "workOn",
+
+    currentPathDisposition:
+      "unspecified",
+  };
+
+  const sameLocationValidation =
+    buildRedirectValidation(
+      sameLocationState,
+      sameLocationInterpretation
+    );
+
+  const sameLocationPreparation =
+    buildRedirectNavigationPreparation(
+      sameLocationState,
+      sameLocationInterpretation,
+      sameLocationValidation
+    );
+
+  const sameLocationCommit =
+    buildRedirectNavigationCommit(
+      sameLocationState,
+      sameLocationPreparation
+    );
+
+  const sameLocationPassed =
+    sameLocationCommit
+      ?.committed === true &&
+
+    sameLocationCommit
+      ?.commitStatus ===
+      "sameLocation" &&
+
+    sameLocationCommit
+      ?.committedState
+      ?.pending
+      ?.progressiveSupportStage ===
+      3 &&
+
+    sameLocationCommit
+      ?.committedState
+      ?.pending
+      ?.guidedConstructionStep ===
+      2 &&
+
+    sameLocationCommit
+      ?.committedState
+      ?.pending
+      ?.guidedConstructionEvidence
+      ?.[1]
+      ?.evidence ===
+      "Mental health";
+
+  results.push({
+    name:
+      "Redirect - Same exact location preserves Progressive Support and Guided Construction",
+
+    passed:
+      sameLocationPassed,
+
+    expected: {
+      commitStatus:
+        "sameLocation",
+
+      progressiveSupportStage:
+        3,
+
+      guidedConstructionStep:
+        2,
+
+      guidedEvidencePreserved:
+        true,
+    },
+
+    actual: {
+      commitStatus:
+        sameLocationCommit
+          ?.commitStatus || null,
+
+      progressiveSupportStage:
+        sameLocationCommit
+          ?.committedState
+          ?.pending
+          ?.progressiveSupportStage ?? null,
+
+      guidedConstructionStep:
+        sameLocationCommit
+          ?.committedState
+          ?.pending
+          ?.guidedConstructionStep ?? null,
+
+      guidedEvidencePreserved:
+        sameLocationCommit
+          ?.committedState
+          ?.pending
+          ?.guidedConstructionEvidence
+          ?.[1]
+          ?.evidence ===
+        "Mental health",
+    },
+  });
+
+  // --------------------------------------------------
+  // TEST 6 — LOCATION CHANGE RESETS LOCATION-OWNED STATE
+  // --------------------------------------------------
+
+  const locationChangeState =
+    createRedirectNavigationTestState();
+
+  locationChangeState.pending = {
+    type:
+      "reviseMainIdeaAt",
+
+    index:
+      0,
+
+    captureMode:
+      "revision",
+
+    progressiveSupportStage:
+      3,
+
+    guidedConstructionStep:
+      2,
+
+    guidedConstructionEvidence: {
+      "1": {
+        step:
+          1,
+
+        evidence:
+          "Mental health",
+      },
+    },
+  };
+
+  locationChangeState
+    .pending
+    .guidedConstructionLocation =
+    buildGuidedConstructionInstructionalLocation(
+      locationChangeState
+    );
+
+  const locationChangeInterpretation = {
+    artifactType:
+      "redirectInterpretation",
+
+    interpretationStatus:
+      "redirectObserved",
+
+    redirectIntent:
+      "switchTarget",
+
+    requestedTarget: {
+      component:
+        "mainIdeas",
+
+      mainIdeaReference:
+        "ordinal2",
+
+      detailReference:
+        "unspecified",
+    },
+
+    requestedOperation:
+      "workOn",
+
+    currentPathDisposition:
+      "unspecified",
+  };
+
+  const locationChangeValidation =
+    buildRedirectValidation(
+      locationChangeState,
+      locationChangeInterpretation
+    );
+
+  const locationChangePreparation =
+    buildRedirectNavigationPreparation(
+      locationChangeState,
+      locationChangeInterpretation,
+      locationChangeValidation
+    );
+
+  const locationChangeCommit =
+    buildRedirectNavigationCommit(
+      locationChangeState,
+      locationChangePreparation
+    );
+
+  const locationChangePending =
+    locationChangeCommit
+      ?.committedState
+      ?.pending;
+
+  const locationChangePassed =
+    locationChangeCommit
+      ?.committed === true &&
+
+    locationChangeCommit
+      ?.commitStatus ===
+      "committed" &&
+
+    locationChangePending
+      ?.type ===
+      "reviseMainIdeaAt" &&
+
+    locationChangePending
+      ?.index ===
+      1 &&
+
+    locationChangePending
+      ?.progressiveSupportStage ===
+      undefined &&
+
+    locationChangePending
+      ?.guidedConstructionStep ===
+      undefined &&
+
+    locationChangePending
+      ?.guidedConstructionEvidence ===
+      undefined &&
+
+    locationChangePending
+      ?.guidedConstructionLocation ===
+      undefined;
+
+  results.push({
+    name:
+      "Redirect - Genuine location change clears prior Guided Construction state",
+
+    passed:
+      locationChangePassed,
+
+    expected: {
+      commitStatus:
+        "committed",
+
+      targetIndex:
+        1,
+
+      progressiveSupportCleared:
+        true,
+
+      guidedConstructionCleared:
+        true,
+    },
+
+    actual: {
+      commitStatus:
+        locationChangeCommit
+          ?.commitStatus || null,
+
+      targetIndex:
+        locationChangePending
+          ?.index ?? null,
+
+      progressiveSupportCleared:
+        locationChangePending
+          ?.progressiveSupportStage ===
+        undefined,
+
+      guidedConstructionCleared:
+        locationChangePending
+          ?.guidedConstructionStep ===
+          undefined &&
+        locationChangePending
+          ?.guidedConstructionEvidence ===
+          undefined &&
+        locationChangePending
+          ?.guidedConstructionLocation ===
+          undefined,
+    },
+  });
+
   const passedCount =
     results.filter(
       (result) =>
@@ -26820,344 +27158,6 @@ results.push({
 
       pendingType:
         state?.pending?.type || null,
-    },
-  });
-
-    // --------------------------------------------------
-  // TEST 5 — SAME LOCATION PRESERVES GUIDED CONSTRUCTION
-  // --------------------------------------------------
-
-  const sameLocationState =
-    createRedirectNavigationTestState();
-
-  sameLocationState.pending = {
-    type:
-      "reviseMainIdeaAt",
-
-    index:
-      0,
-
-    captureMode:
-      "revision",
-
-    progressiveSupportStage:
-      3,
-
-    guidedConstructionStep:
-      2,
-
-    guidedConstructionEvidence: {
-      "1": {
-        step:
-          1,
-
-        evidence:
-          "Mental health",
-      },
-    },
-  };
-
-  sameLocationState
-    .pending
-    .guidedConstructionLocation =
-    buildGuidedConstructionInstructionalLocation(
-      sameLocationState
-    );
-
-  const sameLocationInterpretation = {
-    artifactType:
-      "redirectInterpretation",
-
-    interpretationStatus:
-      "redirectObserved",
-
-    redirectIntent:
-      "revisitTarget",
-
-    requestedTarget: {
-      component:
-        "mainIdeas",
-
-      mainIdeaReference:
-        "ordinal1",
-
-      detailReference:
-        "unspecified",
-    },
-
-    requestedOperation:
-      "workOn",
-
-    currentPathDisposition:
-      "unspecified",
-  };
-
-  const sameLocationValidation =
-    buildRedirectValidation(
-      sameLocationState,
-      sameLocationInterpretation
-    );
-
-  const sameLocationPreparation =
-    buildRedirectNavigationPreparation(
-      sameLocationState,
-      sameLocationInterpretation,
-      sameLocationValidation
-    );
-
-  const sameLocationCommit =
-    buildRedirectNavigationCommit(
-      sameLocationState,
-      sameLocationPreparation
-    );
-
-  const sameLocationPassed =
-    sameLocationCommit
-      ?.committed === true &&
-
-    sameLocationCommit
-      ?.commitStatus ===
-      "sameLocation" &&
-
-    sameLocationCommit
-      ?.committedState
-      ?.pending
-      ?.progressiveSupportStage ===
-      3 &&
-
-    sameLocationCommit
-      ?.committedState
-      ?.pending
-      ?.guidedConstructionStep ===
-      2 &&
-
-    sameLocationCommit
-      ?.committedState
-      ?.pending
-      ?.guidedConstructionEvidence
-      ?.[1]
-      ?.evidence ===
-      "Mental health";
-
-  results.push({
-    name:
-      "Redirect - Same exact location preserves Progressive Support and Guided Construction",
-
-    passed:
-      sameLocationPassed,
-
-    expected: {
-      commitStatus:
-        "sameLocation",
-
-      progressiveSupportStage:
-        3,
-
-      guidedConstructionStep:
-        2,
-
-      guidedEvidencePreserved:
-        true,
-    },
-
-    actual: {
-      commitStatus:
-        sameLocationCommit
-          ?.commitStatus || null,
-
-      progressiveSupportStage:
-        sameLocationCommit
-          ?.committedState
-          ?.pending
-          ?.progressiveSupportStage ?? null,
-
-      guidedConstructionStep:
-        sameLocationCommit
-          ?.committedState
-          ?.pending
-          ?.guidedConstructionStep ?? null,
-
-      guidedEvidencePreserved:
-        sameLocationCommit
-          ?.committedState
-          ?.pending
-          ?.guidedConstructionEvidence
-          ?.[1]
-          ?.evidence ===
-        "Mental health",
-    },
-  });
-
-  // --------------------------------------------------
-  // TEST 6 — LOCATION CHANGE RESETS LOCATION-OWNED STATE
-  // --------------------------------------------------
-
-  const locationChangeState =
-    createRedirectNavigationTestState();
-
-  locationChangeState.pending = {
-    type:
-      "reviseMainIdeaAt",
-
-    index:
-      0,
-
-    captureMode:
-      "revision",
-
-    progressiveSupportStage:
-      3,
-
-    guidedConstructionStep:
-      2,
-
-    guidedConstructionEvidence: {
-      "1": {
-        step:
-          1,
-
-        evidence:
-          "Mental health",
-      },
-    },
-  };
-
-  locationChangeState
-    .pending
-    .guidedConstructionLocation =
-    buildGuidedConstructionInstructionalLocation(
-      locationChangeState
-    );
-
-  const locationChangeInterpretation = {
-    artifactType:
-      "redirectInterpretation",
-
-    interpretationStatus:
-      "redirectObserved",
-
-    redirectIntent:
-      "switchTarget",
-
-    requestedTarget: {
-      component:
-        "mainIdeas",
-
-      mainIdeaReference:
-        "ordinal2",
-
-      detailReference:
-        "unspecified",
-    },
-
-    requestedOperation:
-      "workOn",
-
-    currentPathDisposition:
-      "unspecified",
-  };
-
-  const locationChangeValidation =
-    buildRedirectValidation(
-      locationChangeState,
-      locationChangeInterpretation
-    );
-
-  const locationChangePreparation =
-    buildRedirectNavigationPreparation(
-      locationChangeState,
-      locationChangeInterpretation,
-      locationChangeValidation
-    );
-
-  const locationChangeCommit =
-    buildRedirectNavigationCommit(
-      locationChangeState,
-      locationChangePreparation
-    );
-
-  const locationChangePending =
-    locationChangeCommit
-      ?.committedState
-      ?.pending;
-
-  const locationChangePassed =
-    locationChangeCommit
-      ?.committed === true &&
-
-    locationChangeCommit
-      ?.commitStatus ===
-      "committed" &&
-
-    locationChangePending
-      ?.type ===
-      "reviseMainIdeaAt" &&
-
-    locationChangePending
-      ?.index ===
-      1 &&
-
-    locationChangePending
-      ?.progressiveSupportStage ===
-      undefined &&
-
-    locationChangePending
-      ?.guidedConstructionStep ===
-      undefined &&
-
-    locationChangePending
-      ?.guidedConstructionEvidence ===
-      undefined &&
-
-    locationChangePending
-      ?.guidedConstructionLocation ===
-      undefined;
-
-  results.push({
-    name:
-      "Redirect - Genuine location change clears prior Guided Construction state",
-
-    passed:
-      locationChangePassed,
-
-    expected: {
-      commitStatus:
-        "committed",
-
-      targetIndex:
-        1,
-
-      progressiveSupportCleared:
-        true,
-
-      guidedConstructionCleared:
-        true,
-    },
-
-    actual: {
-      commitStatus:
-        locationChangeCommit
-          ?.commitStatus || null,
-
-      targetIndex:
-        locationChangePending
-          ?.index ?? null,
-
-      progressiveSupportCleared:
-        locationChangePending
-          ?.progressiveSupportStage ===
-        undefined,
-
-      guidedConstructionCleared:
-        locationChangePending
-          ?.guidedConstructionStep ===
-          undefined &&
-        locationChangePending
-          ?.guidedConstructionEvidence ===
-          undefined &&
-        locationChangePending
-          ?.guidedConstructionLocation ===
-          undefined,
     },
   });
 
