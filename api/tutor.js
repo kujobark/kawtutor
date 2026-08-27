@@ -33934,11 +33934,24 @@ function buildRedirectValidation(
   };
 }
 
+  const hasExplicitRedirectTarget =
+  cleanText(
+    interpretation
+      ?.requestedTarget
+      ?.component || ""
+  ) !== "" &&
+  cleanText(
+    interpretation
+      ?.requestedTarget
+      ?.component || ""
+  ) !== "unspecified";
+
   if (
   currentPathDispositionValidation
     ?.declineRequested === true &&
   currentPathDispositionValidation
-    ?.declineAuthorized === true
+    ?.declineAuthorized === true &&
+  hasExplicitRedirectTarget !== true
 ) {
   const currentPending =
     state?.pending &&
