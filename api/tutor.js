@@ -35140,6 +35140,15 @@ function buildRedirectNavigationCommit(
       preparation.replacementPending
     );
 
+  const activeGuidedConstruction =
+  getActiveGuidedConstructionContext(
+    state
+  );
+
+const guidedConstructionActive =
+  activeGuidedConstruction?.active ===
+    true;
+  
   // --------------------------------------------------
   // SAME EXACT RE-ENTRY LOCATION
   //
@@ -35217,14 +35226,68 @@ function buildRedirectNavigationCommit(
     replacementCaptureMode ===
       currentCaptureMode;
 
-  const sameExactLocation =
-    Boolean(
-      currentPending &&
-      samePendingType &&
-      sameIndex &&
-      sameDetailIndex &&
-      sameCaptureMode
-    );
+  const redirectGuidedConstructionCandidateState =
+  guidedConstructionActive
+    ? {
+        ...structuredClone(state),
+
+        pending:
+          structuredClone(
+            replacementPending
+          ),
+
+        componentInstructionalFinding:
+          null,
+      }
+    : null;
+
+const redirectGuidedConstructionCandidateLocation =
+  redirectGuidedConstructionCandidateState
+    ? buildGuidedConstructionInstructionalLocation(
+        redirectGuidedConstructionCandidateState
+      )
+    : null;
+
+  const currentGuidedConstructionLocation =
+  guidedConstructionActive
+    ? (
+        currentPending
+          ?.guidedConstructionLocation
+          ?.locationEstablished === true
+          ? structuredClone(
+              currentPending
+                .guidedConstructionLocation
+            )
+          : buildGuidedConstructionInstructionalLocation(
+              state
+            )
+      )
+    : null;
+
+const sameGuidedConstructionLocation =
+  guidedConstructionActive &&
+  currentGuidedConstructionLocation
+    ?.locationEstablished === true &&
+  redirectGuidedConstructionCandidateLocation
+    ?.locationEstablished === true &&
+  isSameGuidedConstructionInstructionalLocation(
+    currentGuidedConstructionLocation,
+    redirectGuidedConstructionCandidateLocation
+  );
+  
+  const sameRawPendingLocation =
+  Boolean(
+    currentPending &&
+    samePendingType &&
+    sameIndex &&
+    sameDetailIndex &&
+    sameCaptureMode
+  );
+
+const sameExactLocation =
+  guidedConstructionActive
+    ? sameGuidedConstructionLocation
+    : sameRawPendingLocation;
 
   if (sameExactLocation) {
     return {
