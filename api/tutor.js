@@ -25413,6 +25413,756 @@ function formatProgressiveSupportSelfTestResults(
   return lines.join("\n");
 }
 
+// ======================================================
+// REDIRECT NAVIGATION DETERMINISTIC SELF-TESTS
+// ======================================================
+//
+// Verifies the deterministic redirect authority chain:
+//
+// interpretation artifact
+// → deterministic validation
+// → navigation preparation
+// → atomic commit
+//
+// These tests do not call AI.
+//
+// They verify runtime authorization, target resolution,
+// canonical Frame preservation, and location-owned
+// artifact invalidation.
+//
+// ======================================================
+
+function createRedirectNavigationTestState() {
+  return {
+    frame: {
+      keyTopic:
+        "Social media",
+
+      isAbout:
+        "How social media affects teenagers",
+
+      parentItems: [
+        "Mental health",
+        "Relationships",
+      ],
+
+      details: [
+        [
+          "Social media can affect self-esteem.",
+          "Comparison can affect confidence.",
+        ],
+        [
+          "Social media changes how teens communicate.",
+          "Online interactions can affect friendships.",
+        ],
+      ],
+
+      soWhat:
+        "Social media can shape both how teenagers feel and how they connect with others.",
+    },
+
+    frameMeta: {
+      assignmentContext: {
+        raw:
+          "Explain how social media affects teenagers.",
+
+        valid:
+          true,
+
+        confirmed:
+          true,
+      },
+    },
+
+    interactionMode:
+      "build",
+
+    pending: {
+      type:
+        "reviseDetailAt",
+
+      index:
+        1,
+
+      detailIndex:
+        0,
+
+      captureMode:
+        "revision",
+    },
+
+    observationReport: {
+      stale:
+        true,
+    },
+
+    instructionalAssessment: {
+      stale:
+        true,
+    },
+
+    componentInstructionalFinding: {
+      stale:
+        true,
+    },
+
+    instructionalSituation: {
+      stale:
+        true,
+    },
+
+    instructionalContractSelection: {
+      stale:
+        true,
+    },
+
+    progressionAuthorization: {
+      stale:
+        true,
+    },
+  };
+}
+
+function runRedirectNavigationSelfTests() {
+  const results = [];
+
+  // --------------------------------------------------
+  // TEST 1 — EXISTING MAIN IDEA AUTHORIZES
+  // --------------------------------------------------
+
+  const mainIdeaState =
+    createRedirectNavigationTestState();
+
+  const mainIdeaSnapshot =
+    structuredClone(
+      mainIdeaState
+    );
+
+  const mainIdeaInterpretation = {
+    artifactType:
+      "redirectInterpretation",
+
+    interpretationStatus:
+      "redirectObserved",
+
+    redirectIntent:
+      "revisitTarget",
+
+    requestedTarget: {
+      component:
+        "mainIdeas",
+
+      mainIdeaReference:
+        "ordinal1",
+
+      detailReference:
+        "unspecified",
+    },
+
+    requestedOperation:
+      "workOn",
+
+    currentPathDisposition:
+      "unspecified",
+  };
+
+  const mainIdeaValidation =
+    buildRedirectValidation(
+      mainIdeaState,
+      mainIdeaInterpretation
+    );
+
+  const mainIdeaPreparation =
+    buildRedirectNavigationPreparation(
+      mainIdeaState,
+      mainIdeaInterpretation,
+      mainIdeaValidation
+    );
+
+  const mainIdeaCommit =
+    buildRedirectNavigationCommit(
+      mainIdeaState,
+      mainIdeaPreparation
+    );
+
+  const mainIdeaPassed =
+    mainIdeaValidation
+      ?.validationStatus ===
+      "authorized" &&
+
+    mainIdeaPreparation
+      ?.preparationStatus ===
+      "prepared" &&
+
+    mainIdeaPreparation
+      ?.verified === true &&
+
+    mainIdeaCommit
+      ?.commitStatus ===
+      "committed" &&
+
+    mainIdeaCommit
+      ?.committed === true &&
+
+    mainIdeaCommit
+      ?.committedState
+      ?.pending
+      ?.type ===
+      "reviseMainIdeaAt" &&
+
+    mainIdeaCommit
+      ?.committedState
+      ?.pending
+      ?.index ===
+      0 &&
+
+    JSON.stringify(
+      mainIdeaState
+    ) ===
+    JSON.stringify(
+      mainIdeaSnapshot
+    );
+
+  results.push({
+    name:
+      "Redirect - Existing Main Idea resolves, prepares, and commits atomically",
+
+    passed:
+      mainIdeaPassed,
+
+    expected: {
+      validationStatus:
+        "authorized",
+
+      preparationStatus:
+        "prepared",
+
+      commitStatus:
+        "committed",
+
+      pendingType:
+        "reviseMainIdeaAt",
+
+      index:
+        0,
+
+      sourceStateUnchanged:
+        true,
+    },
+
+    actual: {
+      validationStatus:
+        mainIdeaValidation
+          ?.validationStatus || null,
+
+      preparationStatus:
+        mainIdeaPreparation
+          ?.preparationStatus || null,
+
+      commitStatus:
+        mainIdeaCommit
+          ?.commitStatus || null,
+
+      pendingType:
+        mainIdeaCommit
+          ?.committedState
+          ?.pending
+          ?.type || null,
+
+      index:
+        mainIdeaCommit
+          ?.committedState
+          ?.pending
+          ?.index ?? null,
+
+      sourceStateUnchanged:
+        JSON.stringify(
+          mainIdeaState
+        ) ===
+        JSON.stringify(
+          mainIdeaSnapshot
+        ),
+    },
+  });
+
+  // --------------------------------------------------
+  // TEST 2 — NONEXISTENT MAIN IDEA IS NOT AUTHORIZED
+  // --------------------------------------------------
+
+  const invalidState =
+    createRedirectNavigationTestState();
+
+  const invalidInterpretation = {
+    artifactType:
+      "redirectInterpretation",
+
+    interpretationStatus:
+      "redirectObserved",
+
+    redirectIntent:
+      "revisitTarget",
+
+    requestedTarget: {
+      component:
+        "mainIdeas",
+
+      mainIdeaReference:
+        "ordinal5",
+
+      detailReference:
+        "unspecified",
+    },
+
+    requestedOperation:
+      "workOn",
+
+    currentPathDisposition:
+      "unspecified",
+  };
+
+  const invalidValidation =
+    buildRedirectValidation(
+      invalidState,
+      invalidInterpretation
+    );
+
+  const invalidPreparation =
+    buildRedirectNavigationPreparation(
+      invalidState,
+      invalidInterpretation,
+      invalidValidation
+    );
+
+  const invalidCommit =
+    buildRedirectNavigationCommit(
+      invalidState,
+      invalidPreparation
+    );
+
+  const invalidPassed =
+    invalidValidation
+      ?.validationStatus ===
+      "notAuthorized" &&
+
+    invalidPreparation
+      ?.preparationStatus ===
+      "notApplicable" &&
+
+    invalidCommit
+      ?.commitStatus ===
+      "notApplicable" &&
+
+    invalidCommit
+      ?.committed !== true;
+
+  results.push({
+    name:
+      "Redirect - Nonexistent Main Idea cannot authorize navigation",
+
+    passed:
+      invalidPassed,
+
+    expected: {
+      validationStatus:
+        "notAuthorized",
+
+      preparationStatus:
+        "notApplicable",
+
+      commitStatus:
+        "notApplicable",
+
+      committed:
+        false,
+    },
+
+    actual: {
+      validationStatus:
+        invalidValidation
+          ?.validationStatus || null,
+
+      preparationStatus:
+        invalidPreparation
+          ?.preparationStatus || null,
+
+      commitStatus:
+        invalidCommit
+          ?.commitStatus || null,
+
+      committed:
+        invalidCommit
+          ?.committed === true,
+    },
+  });
+
+  // --------------------------------------------------
+  // TEST 3 — ADD SUPPORTING DETAIL USES NEXT SLOT
+  // --------------------------------------------------
+
+  const detailState =
+    createRedirectNavigationTestState();
+
+  detailState.frame.details[0] = [
+    "Social media can affect self-esteem.",
+  ];
+
+  const detailInterpretation = {
+    artifactType:
+      "redirectInterpretation",
+
+    interpretationStatus:
+      "redirectObserved",
+
+    redirectIntent:
+      "revisitTarget",
+
+    requestedTarget: {
+      component:
+        "details",
+
+      mainIdeaReference:
+        "ordinal1",
+
+      detailReference:
+        "unspecified",
+    },
+
+    requestedOperation:
+      "addSupportingContent",
+
+    currentPathDisposition:
+      "unspecified",
+  };
+
+  const detailValidation =
+    buildRedirectValidation(
+      detailState,
+      detailInterpretation
+    );
+
+  const detailPreparation =
+    buildRedirectNavigationPreparation(
+      detailState,
+      detailInterpretation,
+      detailValidation
+    );
+
+  const detailPassed =
+    detailValidation
+      ?.validationStatus ===
+      "authorized" &&
+
+    detailPreparation
+      ?.preparationStatus ===
+      "prepared" &&
+
+    detailPreparation
+      ?.replacementPending
+      ?.type ===
+      "collectAnotherDetail" &&
+
+    detailPreparation
+      ?.replacementPending
+      ?.index ===
+      0 &&
+
+    detailPreparation
+      ?.replacementPending
+      ?.detailIndex ===
+      1 &&
+
+    detailPreparation
+      ?.replacementPending
+      ?.captureMode ===
+      "required";
+
+  results.push({
+    name:
+      "Redirect - Add supporting content resolves to the next governed Detail slot",
+
+    passed:
+      detailPassed,
+
+    expected: {
+      validationStatus:
+        "authorized",
+
+      pendingType:
+        "collectAnotherDetail",
+
+      mainIdeaIndex:
+        0,
+
+      detailIndex:
+        1,
+
+      captureMode:
+        "required",
+    },
+
+    actual: {
+      validationStatus:
+        detailValidation
+          ?.validationStatus || null,
+
+      pendingType:
+        detailPreparation
+          ?.replacementPending
+          ?.type || null,
+
+      mainIdeaIndex:
+        detailPreparation
+          ?.replacementPending
+          ?.index ?? null,
+
+      detailIndex:
+        detailPreparation
+          ?.replacementPending
+          ?.detailIndex ?? null,
+
+      captureMode:
+        detailPreparation
+          ?.replacementPending
+          ?.captureMode || null,
+    },
+  });
+
+  // --------------------------------------------------
+  // TEST 4 — COMMIT PRESERVES FRAME, CLEARS OLD LOCATION
+  // --------------------------------------------------
+
+  const preservationState =
+    createRedirectNavigationTestState();
+
+  const preservationFrame =
+    structuredClone(
+      preservationState.frame
+    );
+
+  const preservationInterpretation = {
+    artifactType:
+      "redirectInterpretation",
+
+    interpretationStatus:
+      "redirectObserved",
+
+    redirectIntent:
+      "revisitTarget",
+
+    requestedTarget: {
+      component:
+        "isAbout",
+
+      mainIdeaReference:
+        "unspecified",
+
+      detailReference:
+        "unspecified",
+    },
+
+    requestedOperation:
+      "revise",
+
+    currentPathDisposition:
+      "unspecified",
+  };
+
+  const preservationValidation =
+    buildRedirectValidation(
+      preservationState,
+      preservationInterpretation
+    );
+
+  const preservationPreparation =
+    buildRedirectNavigationPreparation(
+      preservationState,
+      preservationInterpretation,
+      preservationValidation
+    );
+
+  const preservationCommit =
+    buildRedirectNavigationCommit(
+      preservationState,
+      preservationPreparation
+    );
+
+  const committedState =
+    preservationCommit
+      ?.committedState;
+
+  const preservationPassed =
+    preservationCommit
+      ?.committed === true &&
+
+    JSON.stringify(
+      committedState?.frame
+    ) ===
+    JSON.stringify(
+      preservationFrame
+    ) &&
+
+    committedState
+      ?.pending
+      ?.type ===
+      "reviseIsAbout" &&
+
+    committedState
+      ?.observationReport ===
+      undefined &&
+
+    committedState
+      ?.instructionalAssessment ===
+      undefined &&
+
+    committedState
+      ?.componentInstructionalFinding ===
+      undefined &&
+
+    committedState
+      ?.instructionalSituation ===
+      undefined &&
+
+    committedState
+      ?.instructionalContractSelection ===
+      undefined &&
+
+    committedState
+      ?.progressionAuthorization ===
+      undefined;
+
+  results.push({
+    name:
+      "Redirect - Atomic commit preserves canonical Frame and invalidates old location artifacts",
+
+    passed:
+      preservationPassed,
+
+    expected: {
+      canonicalFramePreserved:
+        true,
+
+      pendingType:
+        "reviseIsAbout",
+
+      staleLocationArtifactsCleared:
+        true,
+    },
+
+    actual: {
+      canonicalFramePreserved:
+        JSON.stringify(
+          committedState?.frame
+        ) ===
+        JSON.stringify(
+          preservationFrame
+        ),
+
+      pendingType:
+        committedState
+          ?.pending
+          ?.type || null,
+
+      staleLocationArtifactsCleared:
+        committedState
+          ?.observationReport ===
+          undefined &&
+        committedState
+          ?.instructionalAssessment ===
+          undefined &&
+        committedState
+          ?.componentInstructionalFinding ===
+          undefined &&
+        committedState
+          ?.instructionalSituation ===
+          undefined &&
+        committedState
+          ?.instructionalContractSelection ===
+          undefined &&
+        committedState
+          ?.progressionAuthorization ===
+          undefined,
+    },
+  });
+
+  const passedCount =
+    results.filter(
+      (result) =>
+        result.passed
+    ).length;
+
+  const failedCount =
+    results.length -
+    passedCount;
+
+  return {
+    passed:
+      failedCount === 0,
+
+    passedCount,
+
+    failedCount,
+
+    total:
+      results.length,
+
+    results,
+  };
+}
+
+function formatRedirectNavigationSelfTestResults(
+  testResults
+) {
+  const lines = [
+    "🧭 KAW REDIRECT NAVIGATION SELF-TESTS",
+    "",
+  ];
+
+  testResults.results.forEach(
+    (result) => {
+      lines.push(
+        `${result.passed ? "✅" : "❌"} ${result.name}`
+      );
+
+      if (!result.passed) {
+        lines.push(
+          `Expected: ${JSON.stringify(
+            result.expected
+          )}`
+        );
+
+        lines.push(
+          `Actual: ${JSON.stringify(
+            result.actual
+          )}`
+        );
+      }
+
+      lines.push("");
+    }
+  );
+
+  lines.push(
+    "────────────────────────"
+  );
+
+  lines.push(
+    `Passed: ${testResults.passedCount}/${testResults.total}`
+  );
+
+  lines.push(
+    `Failed: ${testResults.failedCount}`
+  );
+
+  if (testResults.passed) {
+    lines.push("");
+    lines.push(
+      "🚀 Redirect deterministic navigation is operating correctly."
+    );
+  }
+
+  return lines.join("\n");
+}
+
 // ------------------------------------------------------
 // DETERMINISTIC SELF-TEST SUITE REGISTRY
 //
@@ -25421,6 +26171,19 @@ function formatProgressiveSupportSelfTestResults(
 // without combining all tests into one giant function.
 // ------------------------------------------------------
 const DETERMINISTIC_SELF_TEST_SUITES = [
+    {
+    id:
+      "redirectNavigation",
+
+    label:
+      "Redirect Navigation",
+
+    run:
+      runRedirectNavigationSelfTests,
+
+    format:
+      formatRedirectNavigationSelfTestResults,
+  },
   {
     id: "evidenceState",
     label: "Evidence State",
@@ -36886,6 +37649,15 @@ const nextQ =
 
 delete state
   .redirectNavigationOutcome;
+
+if (
+  redirectNavigationBoundary
+    ?.status ===
+    "notAuthorized"
+) {
+  delete state
+    .redirectNavigationBoundary;
+}
     
       let reply =
         enforceSingleQuestion(nextQ);
