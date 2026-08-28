@@ -27754,6 +27754,150 @@ results.push({
   },
 });
 
+// --------------------------------------------------
+// TEST 14 — ORDINARY CONTENT DOES NOT BECOME REDIRECT
+// --------------------------------------------------
+
+const falsePositiveState =
+  createRedirectNavigationTestState();
+
+const falsePositiveSnapshot =
+  structuredClone(
+    falsePositiveState
+  );
+
+const falsePositiveInterpretation = {
+  artifactType:
+    "redirectInterpretation",
+
+  interpretationStatus:
+    "noRedirectObserved",
+
+  redirectIntent:
+    "unspecified",
+
+  requestedTarget: {
+    component:
+      "unspecified",
+
+    mainIdeaReference:
+      "unspecified",
+
+    detailReference:
+      "unspecified",
+  },
+
+  requestedOperation:
+    "unspecified",
+
+  currentPathDisposition:
+    "unspecified",
+
+  evidenceText:
+    "",
+
+  confidence:
+    1,
+};
+
+const falsePositiveValidation =
+  buildRedirectValidation(
+    falsePositiveState,
+    falsePositiveInterpretation
+  );
+
+const falsePositivePreparation =
+  buildRedirectNavigationPreparation(
+    falsePositiveState,
+    falsePositiveInterpretation,
+    falsePositiveValidation
+  );
+
+const falsePositiveCommit =
+  buildRedirectNavigationCommit(
+    falsePositiveState,
+    falsePositivePreparation
+  );
+
+const falsePositivePassed =
+  falsePositiveValidation
+    ?.validationStatus ===
+    "notApplicable" &&
+
+  falsePositiveValidation
+    ?.navigationAuthorized ===
+    false &&
+
+  falsePositivePreparation
+    ?.preparationStatus ===
+    "notApplicable" &&
+
+  falsePositiveCommit
+    ?.commitStatus ===
+    "notApplicable" &&
+
+  falsePositiveCommit
+    ?.committed !== true &&
+
+  JSON.stringify(
+    falsePositiveState
+  ) ===
+  JSON.stringify(
+    falsePositiveSnapshot
+  );
+
+results.push({
+  name:
+    "Redirect - Ordinary content classified as no redirect cannot navigate",
+
+  passed:
+    falsePositivePassed,
+
+  expected: {
+    validationStatus:
+      "notApplicable",
+
+    navigationAuthorized:
+      false,
+
+    preparationStatus:
+      "notApplicable",
+
+    commitStatus:
+      "notApplicable",
+
+    sourceStateUnchanged:
+      true,
+  },
+
+  actual: {
+    validationStatus:
+      falsePositiveValidation
+        ?.validationStatus || null,
+
+    navigationAuthorized:
+      falsePositiveValidation
+        ?.navigationAuthorized ===
+        true,
+
+    preparationStatus:
+      falsePositivePreparation
+        ?.preparationStatus || null,
+
+    commitStatus:
+      falsePositiveCommit
+        ?.commitStatus || null,
+
+    sourceStateUnchanged:
+      JSON.stringify(
+        falsePositiveState
+      ) ===
+      JSON.stringify(
+        falsePositiveSnapshot
+      ),
+  },
+});
+
   const passedCount =
     results.filter(
       (result) =>
