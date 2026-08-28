@@ -25523,7 +25523,7 @@ function createRedirectNavigationTestState() {
   };
 }
 
-function runRedirectNavigationSelfTests() {
+async function runRedirectNavigationSelfTests() {
   const results = [];
 
   // --------------------------------------------------
@@ -27894,6 +27894,88 @@ results.push({
       ) ===
       JSON.stringify(
         falsePositiveSnapshot
+      ),
+  },
+});
+
+  // --------------------------------------------------
+// TEST 15 — AI INTERPRETER DOES NOT FALSE-POSITIVE
+// ORDINARY "GOING BACK" CONTENT
+// --------------------------------------------------
+
+const aiFalsePositiveState =
+  createRedirectNavigationTestState();
+
+const aiFalsePositiveSnapshot =
+  structuredClone(
+    aiFalsePositiveState
+  );
+
+const aiFalsePositiveMessage =
+  "Going back to my example, social media affects relationships.";
+
+const aiFalsePositiveInterpretation =
+  await interpretRedirectIntent(
+    aiFalsePositiveState,
+    aiFalsePositiveMessage
+  );
+
+const aiFalsePositivePassed =
+  aiFalsePositiveInterpretation
+    ?.interpretationStatus ===
+    "noRedirectObserved" &&
+
+  cleanText(
+    aiFalsePositiveInterpretation
+      ?.evidenceText || ""
+  ) === "" &&
+
+  JSON.stringify(
+    aiFalsePositiveState
+  ) ===
+  JSON.stringify(
+    aiFalsePositiveSnapshot
+  );
+
+results.push({
+  name:
+    "Redirect - AI interpreter keeps ordinary going-back content non-navigational",
+
+  passed:
+    aiFalsePositivePassed,
+
+  expected: {
+    interpretationStatus:
+      "noRedirectObserved",
+
+    evidenceText:
+      "",
+
+    sourceStateUnchanged:
+      true,
+  },
+
+  actual: {
+    interpretationStatus:
+      aiFalsePositiveInterpretation
+        ?.interpretationStatus || null,
+
+    evidenceText:
+      cleanText(
+        aiFalsePositiveInterpretation
+          ?.evidenceText || ""
+      ),
+
+    confidence:
+      aiFalsePositiveInterpretation
+        ?.confidence ?? null,
+
+    sourceStateUnchanged:
+      JSON.stringify(
+        aiFalsePositiveState
+      ) ===
+      JSON.stringify(
+        aiFalsePositiveSnapshot
       ),
   },
 });
