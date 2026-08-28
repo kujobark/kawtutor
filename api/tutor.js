@@ -28438,6 +28438,131 @@ results.push({
       ),
   },
 });
+
+  // --------------------------------------------------
+// TEST 19 — CLARIFICATION LIFECYCLE RESOLVES TARGET
+// --------------------------------------------------
+
+const clarificationLifecycleState =
+  createRedirectNavigationTestState();
+
+const originalClarificationFrame =
+  structuredClone(
+    clarificationLifecycleState.frame
+  );
+
+const firstTurnState =
+  await updateStateFromStudent(
+    clarificationLifecycleState,
+    "Go back to one of my Main Ideas."
+  );
+
+const clarificationEstablished =
+  firstTurnState
+    ?.redirectNavigationBoundary
+    ?.status ===
+    "clarificationRequired";
+
+const secondTurnState =
+  await updateStateFromStudent(
+    firstTurnState,
+    "The first one."
+  );
+
+const clarificationResolved =
+  secondTurnState
+    ?.redirectNavigationBoundary ===
+    undefined &&
+
+  secondTurnState
+    ?.redirectNavigationOutcome
+    ?.status ===
+    "committed" &&
+
+  secondTurnState
+    ?.pending
+    ?.type ===
+    "reviseMainIdeaAt" &&
+
+  secondTurnState
+    ?.pending
+    ?.index ===
+    0;
+
+const clarificationAnswerNotSavedAsFrameContent =
+  JSON.stringify(
+    secondTurnState?.frame
+  ) ===
+  JSON.stringify(
+    originalClarificationFrame
+  );
+
+const clarificationLifecyclePassed =
+  clarificationEstablished &&
+  clarificationResolved &&
+  clarificationAnswerNotSavedAsFrameContent;
+
+results.push({
+  name:
+    "Redirect - Clarification answer resolves target without becoming Frame evidence",
+
+  passed:
+    clarificationLifecyclePassed,
+
+  expected: {
+    clarificationEstablished:
+      true,
+
+    clarificationBoundaryCleared:
+      true,
+
+    navigationCommitted:
+      true,
+
+    pendingType:
+      "reviseMainIdeaAt",
+
+    pendingIndex:
+      0,
+
+    frameContentUnchanged:
+      true,
+  },
+
+  actual: {
+    clarificationEstablished,
+
+    clarificationBoundaryCleared:
+      secondTurnState
+        ?.redirectNavigationBoundary ===
+        undefined,
+
+    navigationCommitted:
+      secondTurnState
+        ?.redirectNavigationOutcome
+        ?.status ===
+        "committed",
+
+    pendingType:
+      secondTurnState
+        ?.pending
+        ?.type || null,
+
+    pendingIndex:
+      Number.isInteger(
+        secondTurnState
+          ?.pending
+          ?.index
+      )
+        ? secondTurnState
+            .pending
+            .index
+        : null,
+
+    frameContentUnchanged:
+      clarificationAnswerNotSavedAsFrameContent,
+  },
+});
   
   const passedCount =
     results.filter(
