@@ -29104,7 +29104,7 @@ const liveDifferentLocationSnapshot =
 const liveDifferentLocationInterpretation =
   await interpretRedirectIntent(
     liveDifferentLocationState,
-    "actually let's work on my second main idea instead"
+    "actually let's work on my second main idea"
   );
 
 const liveDifferentLocationValidation =
@@ -30355,98 +30355,148 @@ results.push({
   },
 });
 
-
 // --------------------------------------------------
-// TEST 30 — LIVE PARTIAL NESTED TARGET CLARIFIES DETAIL
+// TEST 30 — NESTED DETAIL RESOLVES WITH UNEVEN BUCKETS
 // --------------------------------------------------
 
-const livePartialNestedState =
+const unevenDetailBucketsState =
   createRedirectNavigationTestState();
 
-const livePartialNestedSnapshot =
+unevenDetailBucketsState.frame.details = [
+  [
+    "MI1 Detail 1",
+    "MI1 Detail 2",
+    "MI1 Detail 3",
+  ],
+
+  [
+    "MI2 Detail 1",
+    "MI2 Detail 2",
+    "MI2 Detail 3",
+    "MI2 Detail 4",
+  ],
+];
+
+const unevenDetailBucketsFrame =
   structuredClone(
-    livePartialNestedState
+    unevenDetailBucketsState.frame
   );
 
-const livePartialNestedInterpretation =
+const unevenDetailBucketsSnapshot =
+  structuredClone(
+    unevenDetailBucketsState
+  );
+
+const unevenDetailBucketsInterpretation =
   await interpretRedirectIntent(
-    livePartialNestedState,
-    "go back to a detail under my second main idea"
+    unevenDetailBucketsState,
+    "go back to the third detail under my second main idea"
   );
 
-const livePartialNestedValidation =
+const unevenDetailBucketsValidation =
   buildRedirectValidation(
-    livePartialNestedState,
-    livePartialNestedInterpretation
+    unevenDetailBucketsState,
+    unevenDetailBucketsInterpretation
   );
 
-const livePartialNestedPreparation =
+const unevenDetailBucketsPreparation =
   buildRedirectNavigationPreparation(
-    livePartialNestedState,
-    livePartialNestedInterpretation,
-    livePartialNestedValidation
+    unevenDetailBucketsState,
+    unevenDetailBucketsInterpretation,
+    unevenDetailBucketsValidation
   );
 
-const livePartialNestedCommit =
+const unevenDetailBucketsCommit =
   buildRedirectNavigationCommit(
-    livePartialNestedState,
-    livePartialNestedPreparation
+    unevenDetailBucketsState,
+    unevenDetailBucketsPreparation
   );
 
-const livePartialNestedPassed =
-  livePartialNestedInterpretation
-    ?.interpretationStatus ===
-    "redirectPossiblyObserved" &&
+const unevenDetailBucketsPending =
+  unevenDetailBucketsCommit
+    ?.committedState
+    ?.pending;
 
-  livePartialNestedInterpretation
+const unevenDetailBucketsPassed =
+  unevenDetailBucketsInterpretation
+    ?.interpretationStatus ===
+    "redirectObserved" &&
+
+  unevenDetailBucketsInterpretation
     ?.requestedTarget
     ?.component ===
     "details" &&
 
-  livePartialNestedInterpretation
+  unevenDetailBucketsInterpretation
     ?.requestedTarget
     ?.mainIdeaReference ===
     "ordinal2" &&
 
-  livePartialNestedInterpretation
+  unevenDetailBucketsInterpretation
     ?.requestedTarget
     ?.detailReference ===
-    "unspecified" &&
+    "ordinal3" &&
 
-  livePartialNestedValidation
+  unevenDetailBucketsValidation
     ?.validationStatus ===
-    "clarificationRequired" &&
+    "authorized" &&
 
-  livePartialNestedValidation
+  unevenDetailBucketsValidation
     ?.resolvedTarget
     ?.mainIdeaIndex ===
     1 &&
 
-  livePartialNestedPreparation
-    ?.preparationStatus ===
-    "notApplicable" &&
+  unevenDetailBucketsValidation
+    ?.resolvedTarget
+    ?.detailIndex ===
+    2 &&
 
-  livePartialNestedCommit
-    ?.committed !==
+  unevenDetailBucketsPreparation
+    ?.preparationStatus ===
+    "prepared" &&
+
+  unevenDetailBucketsCommit
+    ?.committed ===
     true &&
 
+  unevenDetailBucketsPending
+    ?.type ===
+    "reviseDetailAt" &&
+
+  unevenDetailBucketsPending
+    ?.index ===
+    1 &&
+
+  unevenDetailBucketsPending
+    ?.detailIndex ===
+    2 &&
+
   JSON.stringify(
-    livePartialNestedState
+    unevenDetailBucketsCommit
+      ?.committedState
+      ?.frame
   ) ===
   JSON.stringify(
-    livePartialNestedSnapshot
+    unevenDetailBucketsFrame
+  ) &&
+
+  JSON.stringify(
+    unevenDetailBucketsState
+  ) ===
+  JSON.stringify(
+    unevenDetailBucketsSnapshot
   );
 
 results.push({
   name:
-    "Redirect - Live partial nested Detail target preserves resolved Main Idea and requests clarification",
+    "Redirect - Nested Detail resolves correctly across uneven Main Idea buckets",
 
   passed:
-    livePartialNestedPassed,
+    unevenDetailBucketsPassed,
 
   expected: {
     interpretationStatus:
-      "redirectPossiblyObserved",
+      "redirectObserved",
 
     component:
       "details",
@@ -30455,19 +30505,28 @@ results.push({
       "ordinal2",
 
     detailReference:
-      "unspecified",
+      "ordinal3",
 
     validationStatus:
-      "clarificationRequired",
+      "authorized",
 
-    resolvedMainIdeaIndex:
+    mainIdeaIndex:
       1,
 
-    preparationStatus:
-      "notApplicable",
+    detailIndex:
+      2,
 
-    committed:
-      false,
+    pendingType:
+      "reviseDetailAt",
+
+    pendingIndex:
+      1,
+
+    pendingDetailIndex:
+      2,
+
+    framePreserved:
+      true,
 
     sourceStateUnchanged:
       true,
@@ -30475,53 +30534,70 @@ results.push({
 
   actual: {
     interpretationStatus:
-      livePartialNestedInterpretation
+      unevenDetailBucketsInterpretation
         ?.interpretationStatus || null,
 
     component:
-      livePartialNestedInterpretation
+      unevenDetailBucketsInterpretation
         ?.requestedTarget
         ?.component || null,
 
     mainIdeaReference:
-      livePartialNestedInterpretation
+      unevenDetailBucketsInterpretation
         ?.requestedTarget
         ?.mainIdeaReference || null,
 
     detailReference:
-      livePartialNestedInterpretation
+      unevenDetailBucketsInterpretation
         ?.requestedTarget
         ?.detailReference || null,
 
     validationStatus:
-      livePartialNestedValidation
+      unevenDetailBucketsValidation
         ?.validationStatus || null,
 
-    resolvedMainIdeaIndex:
-      livePartialNestedValidation
+    mainIdeaIndex:
+      unevenDetailBucketsValidation
         ?.resolvedTarget
         ?.mainIdeaIndex ?? null,
 
-    preparationStatus:
-      livePartialNestedPreparation
-        ?.preparationStatus || null,
+    detailIndex:
+      unevenDetailBucketsValidation
+        ?.resolvedTarget
+        ?.detailIndex ?? null,
 
-    committed:
-      livePartialNestedCommit
-        ?.committed ===
-        true,
+    pendingType:
+      unevenDetailBucketsPending
+        ?.type || null,
+
+    pendingIndex:
+      unevenDetailBucketsPending
+        ?.index ?? null,
+
+    pendingDetailIndex:
+      unevenDetailBucketsPending
+        ?.detailIndex ?? null,
+
+    framePreserved:
+      JSON.stringify(
+        unevenDetailBucketsCommit
+          ?.committedState
+          ?.frame
+      ) ===
+      JSON.stringify(
+        unevenDetailBucketsFrame
+      ),
 
     sourceStateUnchanged:
       JSON.stringify(
-        livePartialNestedState
+        unevenDetailBucketsState
       ) ===
       JSON.stringify(
-        livePartialNestedSnapshot
+        unevenDetailBucketsSnapshot
       ),
   },
 });
-
-
+  
 // --------------------------------------------------
 // TEST 31 — LIVE EXISTING SO WHAT RE-ENTRY
 // --------------------------------------------------
