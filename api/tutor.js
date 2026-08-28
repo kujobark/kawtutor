@@ -33644,6 +33644,10 @@ If there is no redirect request, return noRedirectObserved.
 
 If the student clearly wants to change direction but the linguistic target is underspecified, return redirectPossiblyObserved.
 
+Confidence reflects how certain you are that the student's message is functioning as an interaction-management redirect request, not how certain you are about the exact target.
+
+A clear redirect request with an underspecified target may still have high confidence. For example, "Go back." clearly requests navigation even though the destination is unspecified, so it should return redirectPossiblyObserved with high confidence rather than lowering confidence because the target requires clarification.
+
 evidenceText must be an exact excerpt from the student's current message when a redirect is observed or possibly observed. Otherwise return an empty string.
 
 Return only the required JSON object.`;
