@@ -31931,6 +31931,54 @@ function cleanText(s) {
   return (s || "").toString().trim().replace(/\s+/g, " ");
 }
 
+// ------------------------------------------------------
+// EXPLICIT REVISION CONTENT NORMALIZATION
+// ------------------------------------------------------
+//
+// Removes only unmistakable conversational framing that
+// introduces student-authored replacement content.
+//
+// The student's actual proposed revision is preserved
+// verbatim apart from ordinary cleanText normalization.
+//
+// This helper does not:
+//
+// • infer what the student meant;
+// • rewrite or improve student work;
+// • generate replacement content;
+// • remove ambiguous conversational language.
+//
+// If no explicit revision wrapper is recognized, the
+// original cleaned text is returned unchanged.
+//
+// ------------------------------------------------------
+
+function extractExplicitRevisionContent(
+  value
+) {
+  const text =
+    cleanText(value);
+
+  if (!text) {
+    return text;
+  }
+
+  const revisionWrapper =
+    /^(?:i\s+want\s+to\s+change\s+it\s+to|i(?:'|’)d\s+like\s+to\s+change\s+it\s+to|i\s+want\s+it\s+to\s+say|i(?:'|’)d\s+like\s+it\s+to\s+say|change\s+it\s+to)\s*:?\s+/i;
+
+  const withoutWrapper =
+    text.replace(
+      revisionWrapper,
+      ""
+    );
+
+  // Never turn a wrapper-only response into empty
+  // component evidence. If no replacement content
+  // remains, preserve the student's original message.
+  return cleanText(withoutWrapper) ||
+    text;
+}
+
 function normalizeInstructionalComparisonText(
   text
 ) {
@@ -41084,25 +41132,30 @@ if (s.pending?.type === "reviseDetailAt") {
 // Conversational or no-evidence responses fail governed
 // validation and preserve the existing Essential Detail.
 
-  const {
-    detailValidation,
-    instructionalFinding,
-    progressionAuthorization,
-    capturedDetail,
-} =
-  await applyEssentialDetailCapture(
-    s,
-    msg,
-    {
-      index:
-        idx,
-
-      detailIndex,
-
-      captureMode:
-        "revision",
-    }
+  const revisionContent =
+    extractExplicitRevisionContent(
+      msg
   );
+
+const {
+  detailValidation,
+  instructionalFinding,
+  progressionAuthorization,
+  capturedDetail,
+} =
+await applyEssentialDetailCapture(
+  s,
+  revisionContent,
+  {
+    index:
+      idx,
+
+    detailIndex,
+
+    captureMode:
+      "revision",
+  }
+);
 
   if (
     !detailValidation.valid ||
