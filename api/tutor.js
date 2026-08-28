@@ -27585,6 +27585,175 @@ results.push({
   },
 });
 
+  // --------------------------------------------------
+// TEST 13 — EXISTING SO WHAT RE-ENTRY IS REVISION-READY
+// --------------------------------------------------
+
+const soWhatReentryState =
+  createRedirectNavigationTestState();
+
+soWhatReentryState.frame.soWhat =
+  "Social media can shape how teenagers feel and connect with others.";
+
+const soWhatReentrySnapshot =
+  structuredClone(
+    soWhatReentryState
+  );
+
+const soWhatReentryInterpretation = {
+  artifactType:
+    "redirectInterpretation",
+
+  interpretationStatus:
+    "redirectObserved",
+
+  redirectIntent:
+    "revisitTarget",
+
+  requestedTarget: {
+    component:
+      "soWhat",
+
+    mainIdeaReference:
+      "unspecified",
+
+    detailReference:
+      "unspecified",
+  },
+
+  requestedOperation:
+    "workOn",
+
+  currentPathDisposition:
+    "continue",
+};
+
+const soWhatReentryValidation =
+  buildRedirectValidation(
+    soWhatReentryState,
+    soWhatReentryInterpretation
+  );
+
+const soWhatReentryPreparation =
+  buildRedirectNavigationPreparation(
+    soWhatReentryState,
+    soWhatReentryInterpretation,
+    soWhatReentryValidation
+  );
+
+const soWhatReentryCommit =
+  buildRedirectNavigationCommit(
+    soWhatReentryState,
+    soWhatReentryPreparation
+  );
+
+const soWhatReentryPending =
+  soWhatReentryCommit
+    ?.committedState
+    ?.pending;
+
+const soWhatReentryPassed =
+  soWhatReentryValidation
+    ?.validationStatus ===
+    "authorized" &&
+
+  soWhatReentryPreparation
+    ?.preparationStatus ===
+    "prepared" &&
+
+  soWhatReentryPreparation
+    ?.replacementPending
+    ?.type ===
+    "confirmSoWhat" &&
+
+  soWhatReentryPreparation
+    ?.replacementPending
+    ?.awaitingRevision ===
+    true &&
+
+  soWhatReentryCommit
+    ?.committed === true &&
+
+  soWhatReentryPending
+    ?.type ===
+    "confirmSoWhat" &&
+
+  soWhatReentryPending
+    ?.awaitingRevision ===
+    true &&
+
+  soWhatReentryCommit
+    ?.committedState
+    ?.frame
+    ?.soWhat ===
+    soWhatReentryState
+      .frame
+      .soWhat &&
+
+  JSON.stringify(
+    soWhatReentryState
+  ) ===
+  JSON.stringify(
+    soWhatReentrySnapshot
+  );
+
+results.push({
+  name:
+    "Redirect - Existing So What re-entry enters governed revision-ready state",
+
+  passed:
+    soWhatReentryPassed,
+
+  expected: {
+    validationStatus:
+      "authorized",
+
+    pendingType:
+      "confirmSoWhat",
+
+    awaitingRevision:
+      true,
+
+    existingSoWhatPreserved:
+      true,
+
+    sourceStateUnchanged:
+      true,
+  },
+
+  actual: {
+    validationStatus:
+      soWhatReentryValidation
+        ?.validationStatus || null,
+
+    pendingType:
+      soWhatReentryPending
+        ?.type || null,
+
+    awaitingRevision:
+      soWhatReentryPending
+        ?.awaitingRevision ===
+        true,
+
+    existingSoWhatPreserved:
+      soWhatReentryCommit
+        ?.committedState
+        ?.frame
+        ?.soWhat ===
+      soWhatReentryState
+        .frame
+        .soWhat,
+
+    sourceStateUnchanged:
+      JSON.stringify(
+        soWhatReentryState
+      ) ===
+      JSON.stringify(
+        soWhatReentrySnapshot
+      ),
+  },
+});
+
   const passedCount =
     results.filter(
       (result) =>
@@ -35182,10 +35351,13 @@ if (
     !replacementPending &&
     component === "soWhat"
   ) {
-    replacementPending = {
+     replacementPending = {
       type:
         "confirmSoWhat",
-  };
+
+    awaitingRevision:
+      true,
+};
 }
 
   if (!replacementPending) {
