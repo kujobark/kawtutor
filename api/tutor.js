@@ -28451,11 +28451,72 @@ const originalClarificationFrame =
     clarificationLifecycleState.frame
   );
 
-const firstTurnState =
-  await updateStateFromStudent(
+const firstTurnInterpretation = {
+  artifactType:
+    "redirectInterpretation",
+
+  interpretationStatus:
+    "redirectPossiblyObserved",
+
+  redirectIntent:
+    "revisitTarget",
+
+  requestedTarget: {
+    component:
+      "mainIdeas",
+
+    mainIdeaReference:
+      "unspecified",
+
+    detailReference:
+      "unspecified",
+  },
+
+  requestedOperation:
+    "workOn",
+
+  currentPathDisposition:
+    "unspecified",
+
+  evidenceText:
+    "Go back to one of my Main Ideas.",
+
+  confidence:
+    1,
+};
+
+const firstTurnValidation =
+  buildRedirectValidation(
     clarificationLifecycleState,
-    "Go back to one of my Main Ideas."
+    firstTurnInterpretation
   );
+
+const firstTurnState =
+  structuredClone(
+    clarificationLifecycleState
+  );
+
+firstTurnState.redirectNavigationBoundary = {
+  artifactType:
+    "redirectNavigationBoundary",
+
+  version:
+    "1.0",
+
+  status:
+    firstTurnValidation
+      ?.validationStatus,
+
+  interpretation:
+    structuredClone(
+      firstTurnInterpretation
+    ),
+
+  validation:
+    structuredClone(
+      firstTurnValidation
+    ),
+};
 
 const clarificationEstablished =
   firstTurnState
