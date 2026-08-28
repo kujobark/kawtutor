@@ -28841,7 +28841,7 @@ results.push({
   },
 });
 
-  // --------------------------------------------------
+// --------------------------------------------------
 // TEST 21 — LIVE SAME-LOCATION REDIRECT PRESERVES GC
 // --------------------------------------------------
 
@@ -29051,6 +29051,488 @@ results.push({
       ) ===
       JSON.stringify(
         liveSameLocationSnapshot
+      ),
+  },
+});
+
+  // --------------------------------------------------
+// TEST 22 — LIVE GENUINE LOCATION CHANGE CLEARS GC
+// --------------------------------------------------
+
+const liveDifferentLocationState =
+  createRedirectNavigationTestState();
+
+liveDifferentLocationState.pending = {
+  type:
+    "reviseMainIdeaAt",
+
+  index:
+    0,
+
+  captureMode:
+    "revision",
+
+  progressiveSupportStage:
+    3,
+
+  guidedConstructionStep:
+    2,
+
+  guidedConstructionEvidence: {
+    "1": {
+      step:
+        1,
+
+      evidence:
+        "Mental health",
+    },
+  },
+};
+
+liveDifferentLocationState
+  .pending
+  .guidedConstructionLocation =
+  buildGuidedConstructionInstructionalLocation(
+    liveDifferentLocationState
+  );
+
+const liveDifferentLocationSnapshot =
+  structuredClone(
+    liveDifferentLocationState
+  );
+
+const liveDifferentLocationInterpretation =
+  await interpretRedirectIntent(
+    liveDifferentLocationState,
+    "actually let's work on my second main idea instead"
+  );
+
+const liveDifferentLocationValidation =
+  buildRedirectValidation(
+    liveDifferentLocationState,
+    liveDifferentLocationInterpretation
+  );
+
+const liveDifferentLocationPreparation =
+  buildRedirectNavigationPreparation(
+    liveDifferentLocationState,
+    liveDifferentLocationInterpretation,
+    liveDifferentLocationValidation
+  );
+
+const liveDifferentLocationCommit =
+  buildRedirectNavigationCommit(
+    liveDifferentLocationState,
+    liveDifferentLocationPreparation
+  );
+
+const liveDifferentLocationPending =
+  liveDifferentLocationCommit
+    ?.committedState
+    ?.pending;
+
+const liveDifferentLocationPassed =
+  liveDifferentLocationInterpretation
+    ?.interpretationStatus ===
+    "redirectObserved" &&
+
+  liveDifferentLocationInterpretation
+    ?.requestedTarget
+    ?.component ===
+    "mainIdeas" &&
+
+  liveDifferentLocationInterpretation
+    ?.requestedTarget
+    ?.mainIdeaReference ===
+    "ordinal2" &&
+
+  liveDifferentLocationValidation
+    ?.validationStatus ===
+    "authorized" &&
+
+  liveDifferentLocationCommit
+    ?.committed === true &&
+
+  liveDifferentLocationCommit
+    ?.commitStatus ===
+    "committed" &&
+
+  liveDifferentLocationPending
+    ?.type ===
+    "reviseMainIdeaAt" &&
+
+  liveDifferentLocationPending
+    ?.index ===
+    1 &&
+
+  liveDifferentLocationPending
+    ?.progressiveSupportStage ===
+    undefined &&
+
+  liveDifferentLocationPending
+    ?.guidedConstructionStep ===
+    undefined &&
+
+  liveDifferentLocationPending
+    ?.guidedConstructionEvidence ===
+    undefined &&
+
+  liveDifferentLocationPending
+    ?.guidedConstructionLocation ===
+    undefined &&
+
+  JSON.stringify(
+    liveDifferentLocationState
+  ) ===
+  JSON.stringify(
+    liveDifferentLocationSnapshot
+  );
+
+results.push({
+  name:
+    "Redirect - Live genuine location change clears prior Guided Construction",
+
+  passed:
+    liveDifferentLocationPassed,
+
+  expected: {
+    interpretationStatus:
+      "redirectObserved",
+
+    mainIdeaReference:
+      "ordinal2",
+
+    validationStatus:
+      "authorized",
+
+    commitStatus:
+      "committed",
+
+    pendingIndex:
+      1,
+
+    guidedConstructionCleared:
+      true,
+
+    sourceStateUnchanged:
+      true,
+  },
+
+  actual: {
+    interpretationStatus:
+      liveDifferentLocationInterpretation
+        ?.interpretationStatus || null,
+
+    mainIdeaReference:
+      liveDifferentLocationInterpretation
+        ?.requestedTarget
+        ?.mainIdeaReference || null,
+
+    validationStatus:
+      liveDifferentLocationValidation
+        ?.validationStatus || null,
+
+    commitStatus:
+      liveDifferentLocationCommit
+        ?.commitStatus || null,
+
+    pendingIndex:
+      liveDifferentLocationPending
+        ?.index ?? null,
+
+    guidedConstructionCleared:
+      liveDifferentLocationPending
+        ?.progressiveSupportStage ===
+        undefined &&
+      liveDifferentLocationPending
+        ?.guidedConstructionStep ===
+        undefined &&
+      liveDifferentLocationPending
+        ?.guidedConstructionEvidence ===
+        undefined &&
+      liveDifferentLocationPending
+        ?.guidedConstructionLocation ===
+        undefined,
+
+    sourceStateUnchanged:
+      JSON.stringify(
+        liveDifferentLocationState
+      ) ===
+      JSON.stringify(
+        liveDifferentLocationSnapshot
+      ),
+  },
+});
+
+
+// --------------------------------------------------
+// TEST 23 — DETERMINISTIC MENU INPUT BYPASSES REDIRECT
+// --------------------------------------------------
+
+const menuBypassState =
+  createRedirectNavigationTestState();
+
+menuBypassState.pending = {
+  type:
+    "confirmDetails",
+
+  index:
+    0,
+};
+
+const menuBypassSnapshot =
+  structuredClone(
+    menuBypassState
+  );
+
+const menuBypassEligibility =
+  buildRedirectInterpretationEligibility(
+    menuBypassState,
+    "1"
+  );
+
+const menuBypassPassed =
+  menuBypassEligibility
+    ?.eligible ===
+    false &&
+
+  menuBypassEligibility
+    ?.reason ===
+    "deterministicMenuInput" &&
+
+  JSON.stringify(
+    menuBypassState
+  ) ===
+  JSON.stringify(
+    menuBypassSnapshot
+  );
+
+results.push({
+  name:
+    "Redirect - Deterministic menu choice bypasses redirect interpretation",
+
+  passed:
+    menuBypassPassed,
+
+  expected: {
+    eligible:
+      false,
+
+    reason:
+      "deterministicMenuInput",
+
+    sourceStateUnchanged:
+      true,
+  },
+
+  actual: {
+    eligible:
+      menuBypassEligibility
+        ?.eligible === true,
+
+    reason:
+      menuBypassEligibility
+        ?.reason || null,
+
+    sourceStateUnchanged:
+      JSON.stringify(
+        menuBypassState
+      ) ===
+      JSON.stringify(
+        menuBypassSnapshot
+      ),
+  },
+});
+
+
+// --------------------------------------------------
+// TEST 24 — LIVE ADD-SUPPORTING-CONTENT LANGUAGE
+// --------------------------------------------------
+
+const liveAddDetailState =
+  createRedirectNavigationTestState();
+
+const liveAddDetailSnapshot =
+  structuredClone(
+    liveAddDetailState
+  );
+
+const existingFirstIdeaDetails =
+  Array.isArray(
+    liveAddDetailState
+      ?.frame
+      ?.details
+      ?.[0]
+  )
+    ? liveAddDetailState
+        .frame
+        .details[0]
+    : [];
+
+const expectedNextDetailIndex =
+  existingFirstIdeaDetails.length;
+
+const expectedNextCaptureMode =
+  expectedNextDetailIndex < 2
+    ? "required"
+    : "optional";
+
+const liveAddDetailInterpretation =
+  await interpretRedirectIntent(
+    liveAddDetailState,
+    "can I add another detail under my first main idea"
+  );
+
+const liveAddDetailValidation =
+  buildRedirectValidation(
+    liveAddDetailState,
+    liveAddDetailInterpretation
+  );
+
+const liveAddDetailPreparation =
+  buildRedirectNavigationPreparation(
+    liveAddDetailState,
+    liveAddDetailInterpretation,
+    liveAddDetailValidation
+  );
+
+const liveAddDetailCommit =
+  buildRedirectNavigationCommit(
+    liveAddDetailState,
+    liveAddDetailPreparation
+  );
+
+const liveAddDetailPending =
+  liveAddDetailCommit
+    ?.committedState
+    ?.pending;
+
+const liveAddDetailPassed =
+  liveAddDetailInterpretation
+    ?.interpretationStatus ===
+    "redirectObserved" &&
+
+  liveAddDetailInterpretation
+    ?.requestedTarget
+    ?.component ===
+    "details" &&
+
+  liveAddDetailInterpretation
+    ?.requestedTarget
+    ?.mainIdeaReference ===
+    "ordinal1" &&
+
+  liveAddDetailInterpretation
+    ?.requestedOperation ===
+    "addSupportingContent" &&
+
+  liveAddDetailValidation
+    ?.validationStatus ===
+    "authorized" &&
+
+  liveAddDetailCommit
+    ?.committed === true &&
+
+  liveAddDetailPending
+    ?.type ===
+    "collectAnotherDetail" &&
+
+  liveAddDetailPending
+    ?.index ===
+    0 &&
+
+  liveAddDetailPending
+    ?.detailIndex ===
+    expectedNextDetailIndex &&
+
+  liveAddDetailPending
+    ?.captureMode ===
+    expectedNextCaptureMode &&
+
+  JSON.stringify(
+    liveAddDetailState
+  ) ===
+  JSON.stringify(
+    liveAddDetailSnapshot
+  );
+
+results.push({
+  name:
+    "Redirect - Live request to add supporting content resolves governed next Detail slot",
+
+  passed:
+    liveAddDetailPassed,
+
+  expected: {
+    interpretationStatus:
+      "redirectObserved",
+
+    component:
+      "details",
+
+    mainIdeaReference:
+      "ordinal1",
+
+    requestedOperation:
+      "addSupportingContent",
+
+    validationStatus:
+      "authorized",
+
+    pendingType:
+      "collectAnotherDetail",
+
+    detailIndex:
+      expectedNextDetailIndex,
+
+    captureMode:
+      expectedNextCaptureMode,
+
+    sourceStateUnchanged:
+      true,
+  },
+
+  actual: {
+    interpretationStatus:
+      liveAddDetailInterpretation
+        ?.interpretationStatus || null,
+
+    component:
+      liveAddDetailInterpretation
+        ?.requestedTarget
+        ?.component || null,
+
+    mainIdeaReference:
+      liveAddDetailInterpretation
+        ?.requestedTarget
+        ?.mainIdeaReference || null,
+
+    requestedOperation:
+      liveAddDetailInterpretation
+        ?.requestedOperation || null,
+
+    validationStatus:
+      liveAddDetailValidation
+        ?.validationStatus || null,
+
+    pendingType:
+      liveAddDetailPending
+        ?.type || null,
+
+    detailIndex:
+      liveAddDetailPending
+        ?.detailIndex ?? null,
+
+    captureMode:
+      liveAddDetailPending
+        ?.captureMode || null,
+
+    sourceStateUnchanged:
+      JSON.stringify(
+        liveAddDetailState
+      ) ===
+      JSON.stringify(
+        liveAddDetailSnapshot
       ),
   },
 });
