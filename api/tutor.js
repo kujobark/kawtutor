@@ -28120,6 +28120,167 @@ results.push({
   },
 });
 
+  // --------------------------------------------------
+// TEST 17 — UNSUPPORTED FORWARD JUMP TO FIRST SO WHAT
+// --------------------------------------------------
+
+const forwardSoWhatState =
+  createRedirectNavigationTestState();
+
+forwardSoWhatState.frame.soWhat =
+  "";
+
+const forwardSoWhatSnapshot =
+  structuredClone(
+    forwardSoWhatState
+  );
+
+const forwardSoWhatInterpretation = {
+  artifactType:
+    "redirectInterpretation",
+
+  interpretationStatus:
+    "redirectObserved",
+
+  redirectIntent:
+    "requestForwardTarget",
+
+  requestedTarget: {
+    component:
+      "soWhat",
+
+    mainIdeaReference:
+      "unspecified",
+
+    detailReference:
+      "unspecified",
+  },
+
+  requestedOperation:
+    "workOn",
+
+  currentPathDisposition:
+    "unspecified",
+
+  evidenceText:
+    "Go to the So What.",
+
+  confidence:
+    1,
+};
+
+const forwardSoWhatValidation =
+  buildRedirectValidation(
+    forwardSoWhatState,
+    forwardSoWhatInterpretation
+  );
+
+const forwardSoWhatPreparation =
+  buildRedirectNavigationPreparation(
+    forwardSoWhatState,
+    forwardSoWhatInterpretation,
+    forwardSoWhatValidation
+  );
+
+const forwardSoWhatCommit =
+  buildRedirectNavigationCommit(
+    forwardSoWhatState,
+    forwardSoWhatPreparation
+  );
+
+const forwardSoWhatPassed =
+  forwardSoWhatValidation
+    ?.validationStatus ===
+    "notAuthorized" &&
+
+  forwardSoWhatValidation
+    ?.navigationAuthorized ===
+    false &&
+
+  Array.isArray(
+    forwardSoWhatValidation
+      ?.validationEvidence
+  ) &&
+
+  forwardSoWhatValidation
+    .validationEvidence
+    .includes(
+      "freshSoWhatReentryNotYetSupported"
+    ) &&
+
+  forwardSoWhatPreparation
+    ?.preparationStatus ===
+    "notApplicable" &&
+
+  forwardSoWhatCommit
+    ?.committed !== true &&
+
+  JSON.stringify(
+    forwardSoWhatState
+  ) ===
+  JSON.stringify(
+    forwardSoWhatSnapshot
+  );
+
+results.push({
+  name:
+    "Redirect - Unsupported forward jump to first So What is blocked",
+
+  passed:
+    forwardSoWhatPassed,
+
+  expected: {
+    validationStatus:
+      "notAuthorized",
+
+    navigationAuthorized:
+      false,
+
+    validationEvidence:
+      "freshSoWhatReentryNotYetSupported",
+
+    preparationStatus:
+      "notApplicable",
+
+    committed:
+      false,
+
+    sourceStateUnchanged:
+      true,
+  },
+
+  actual: {
+    validationStatus:
+      forwardSoWhatValidation
+        ?.validationStatus || null,
+
+    navigationAuthorized:
+      forwardSoWhatValidation
+        ?.navigationAuthorized ===
+        true,
+
+    validationEvidence:
+      forwardSoWhatValidation
+        ?.validationEvidence || null,
+
+    preparationStatus:
+      forwardSoWhatPreparation
+        ?.preparationStatus || null,
+
+    committed:
+      forwardSoWhatCommit
+        ?.committed === true,
+
+    sourceStateUnchanged:
+      JSON.stringify(
+        forwardSoWhatState
+      ) ===
+      JSON.stringify(
+        forwardSoWhatSnapshot
+      ),
+  },
+});
+  
   const passedCount =
     results.filter(
       (result) =>
