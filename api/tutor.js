@@ -29972,6 +29972,748 @@ results.push({
       ),
   },
 });
+
+  // --------------------------------------------------
+// TEST 28 — LIVE OPTIONAL DETAIL DECLINE
+// --------------------------------------------------
+
+const liveOptionalDetailDeclineState =
+  createRedirectNavigationTestState();
+
+liveOptionalDetailDeclineState.pending = {
+  type:
+    "offerAnotherDetail",
+
+  index:
+    0,
+
+  captureMode:
+    "optional",
+};
+
+const liveOptionalDetailDeclineFrame =
+  structuredClone(
+    liveOptionalDetailDeclineState.frame
+  );
+
+const liveOptionalDetailDeclineSnapshot =
+  structuredClone(
+    liveOptionalDetailDeclineState
+  );
+
+const liveOptionalDetailDeclineInterpretation =
+  await interpretRedirectIntent(
+    liveOptionalDetailDeclineState,
+    "no thanks I'm good with the details I have"
+  );
+
+const liveOptionalDetailDeclineValidation =
+  buildRedirectValidation(
+    liveOptionalDetailDeclineState,
+    liveOptionalDetailDeclineInterpretation
+  );
+
+const liveOptionalDetailDeclinePreparation =
+  buildRedirectNavigationPreparation(
+    liveOptionalDetailDeclineState,
+    liveOptionalDetailDeclineInterpretation,
+    liveOptionalDetailDeclineValidation
+  );
+
+const liveOptionalDetailDeclineCommit =
+  buildRedirectNavigationCommit(
+    liveOptionalDetailDeclineState,
+    liveOptionalDetailDeclinePreparation
+  );
+
+const liveOptionalDetailDeclinePassed =
+  liveOptionalDetailDeclineInterpretation
+    ?.interpretationStatus ===
+    "redirectObserved" &&
+
+  liveOptionalDetailDeclineInterpretation
+    ?.currentPathDisposition ===
+    "decline" &&
+
+  liveOptionalDetailDeclineValidation
+    ?.validationStatus ===
+    "authorized" &&
+
+  liveOptionalDetailDeclineValidation
+    ?.resolvedTarget
+    ?.operation ===
+    "declineCurrentPath" &&
+
+  liveOptionalDetailDeclineCommit
+    ?.committed ===
+    true &&
+
+  liveOptionalDetailDeclineCommit
+    ?.committedState
+    ?.pending
+    ?.type ===
+    "confirmDetails" &&
+
+  JSON.stringify(
+    liveOptionalDetailDeclineCommit
+      ?.committedState
+      ?.frame
+  ) ===
+  JSON.stringify(
+    liveOptionalDetailDeclineFrame
+  ) &&
+
+  JSON.stringify(
+    liveOptionalDetailDeclineState
+  ) ===
+  JSON.stringify(
+    liveOptionalDetailDeclineSnapshot
+  );
+
+results.push({
+  name:
+    "Redirect - Live optional Detail decline returns to Detail confirmation",
+
+  passed:
+    liveOptionalDetailDeclinePassed,
+
+  expected: {
+    interpretationStatus:
+      "redirectObserved",
+
+    currentPathDisposition:
+      "decline",
+
+    validationStatus:
+      "authorized",
+
+    operation:
+      "declineCurrentPath",
+
+    pendingType:
+      "confirmDetails",
+
+    framePreserved:
+      true,
+
+    sourceStateUnchanged:
+      true,
+  },
+
+  actual: {
+    interpretationStatus:
+      liveOptionalDetailDeclineInterpretation
+        ?.interpretationStatus || null,
+
+    currentPathDisposition:
+      liveOptionalDetailDeclineInterpretation
+        ?.currentPathDisposition || null,
+
+    validationStatus:
+      liveOptionalDetailDeclineValidation
+        ?.validationStatus || null,
+
+    operation:
+      liveOptionalDetailDeclineValidation
+        ?.resolvedTarget
+        ?.operation || null,
+
+    pendingType:
+      liveOptionalDetailDeclineCommit
+        ?.committedState
+        ?.pending
+        ?.type || null,
+
+    framePreserved:
+      JSON.stringify(
+        liveOptionalDetailDeclineCommit
+          ?.committedState
+          ?.frame
+      ) ===
+      JSON.stringify(
+        liveOptionalDetailDeclineFrame
+      ),
+
+    sourceStateUnchanged:
+      JSON.stringify(
+        liveOptionalDetailDeclineState
+      ) ===
+      JSON.stringify(
+        liveOptionalDetailDeclineSnapshot
+      ),
+  },
+});
+
+
+// --------------------------------------------------
+// TEST 29 — LIVE EXPLICIT TARGET BEATS DECLINE
+// --------------------------------------------------
+
+const liveExplicitTargetState =
+  createRedirectNavigationTestState();
+
+liveExplicitTargetState.pending = {
+  type:
+    "offerAnotherDetail",
+
+  index:
+    1,
+
+  captureMode:
+    "optional",
+};
+
+const liveExplicitTargetFrame =
+  structuredClone(
+    liveExplicitTargetState.frame
+  );
+
+const liveExplicitTargetSnapshot =
+  structuredClone(
+    liveExplicitTargetState
+  );
+
+const liveExplicitTargetInterpretation =
+  await interpretRedirectIntent(
+    liveExplicitTargetState,
+    "I don't want another detail, let's go back to my first main idea instead"
+  );
+
+const liveExplicitTargetValidation =
+  buildRedirectValidation(
+    liveExplicitTargetState,
+    liveExplicitTargetInterpretation
+  );
+
+const liveExplicitTargetPreparation =
+  buildRedirectNavigationPreparation(
+    liveExplicitTargetState,
+    liveExplicitTargetInterpretation,
+    liveExplicitTargetValidation
+  );
+
+const liveExplicitTargetCommit =
+  buildRedirectNavigationCommit(
+    liveExplicitTargetState,
+    liveExplicitTargetPreparation
+  );
+
+const liveExplicitTargetPending =
+  liveExplicitTargetCommit
+    ?.committedState
+    ?.pending;
+
+const liveExplicitTargetPassed =
+  liveExplicitTargetInterpretation
+    ?.interpretationStatus ===
+    "redirectObserved" &&
+
+  liveExplicitTargetInterpretation
+    ?.requestedTarget
+    ?.component ===
+    "mainIdeas" &&
+
+  liveExplicitTargetInterpretation
+    ?.requestedTarget
+    ?.mainIdeaReference ===
+    "ordinal1" &&
+
+  liveExplicitTargetInterpretation
+    ?.currentPathDisposition ===
+    "decline" &&
+
+  liveExplicitTargetValidation
+    ?.validationStatus ===
+    "authorized" &&
+
+  liveExplicitTargetValidation
+    ?.resolvedTarget
+    ?.operation !==
+    "declineCurrentPath" &&
+
+  liveExplicitTargetCommit
+    ?.committed ===
+    true &&
+
+  liveExplicitTargetPending
+    ?.type ===
+    "reviseMainIdeaAt" &&
+
+  liveExplicitTargetPending
+    ?.index ===
+    0 &&
+
+  JSON.stringify(
+    liveExplicitTargetCommit
+      ?.committedState
+      ?.frame
+  ) ===
+  JSON.stringify(
+    liveExplicitTargetFrame
+  ) &&
+
+  JSON.stringify(
+    liveExplicitTargetState
+  ) ===
+  JSON.stringify(
+    liveExplicitTargetSnapshot
+  );
+
+results.push({
+  name:
+    "Redirect - Live explicit target remains authoritative when optional path is declined",
+
+  passed:
+    liveExplicitTargetPassed,
+
+  expected: {
+    interpretationStatus:
+      "redirectObserved",
+
+    component:
+      "mainIdeas",
+
+    mainIdeaReference:
+      "ordinal1",
+
+    currentPathDisposition:
+      "decline",
+
+    validationStatus:
+      "authorized",
+
+    declineOperationUsed:
+      false,
+
+    pendingType:
+      "reviseMainIdeaAt",
+
+    pendingIndex:
+      0,
+
+    framePreserved:
+      true,
+
+    sourceStateUnchanged:
+      true,
+  },
+
+  actual: {
+    interpretationStatus:
+      liveExplicitTargetInterpretation
+        ?.interpretationStatus || null,
+
+    component:
+      liveExplicitTargetInterpretation
+        ?.requestedTarget
+        ?.component || null,
+
+    mainIdeaReference:
+      liveExplicitTargetInterpretation
+        ?.requestedTarget
+        ?.mainIdeaReference || null,
+
+    currentPathDisposition:
+      liveExplicitTargetInterpretation
+        ?.currentPathDisposition || null,
+
+    validationStatus:
+      liveExplicitTargetValidation
+        ?.validationStatus || null,
+
+    declineOperationUsed:
+      liveExplicitTargetValidation
+        ?.resolvedTarget
+        ?.operation ===
+        "declineCurrentPath",
+
+    pendingType:
+      liveExplicitTargetPending
+        ?.type || null,
+
+    pendingIndex:
+      liveExplicitTargetPending
+        ?.index ?? null,
+
+    framePreserved:
+      JSON.stringify(
+        liveExplicitTargetCommit
+          ?.committedState
+          ?.frame
+      ) ===
+      JSON.stringify(
+        liveExplicitTargetFrame
+      ),
+
+    sourceStateUnchanged:
+      JSON.stringify(
+        liveExplicitTargetState
+      ) ===
+      JSON.stringify(
+        liveExplicitTargetSnapshot
+      ),
+  },
+});
+
+
+// --------------------------------------------------
+// TEST 30 — LIVE PARTIAL NESTED TARGET CLARIFIES DETAIL
+// --------------------------------------------------
+
+const livePartialNestedState =
+  createRedirectNavigationTestState();
+
+const livePartialNestedSnapshot =
+  structuredClone(
+    livePartialNestedState
+  );
+
+const livePartialNestedInterpretation =
+  await interpretRedirectIntent(
+    livePartialNestedState,
+    "go back to a detail under my second main idea"
+  );
+
+const livePartialNestedValidation =
+  buildRedirectValidation(
+    livePartialNestedState,
+    livePartialNestedInterpretation
+  );
+
+const livePartialNestedPreparation =
+  buildRedirectNavigationPreparation(
+    livePartialNestedState,
+    livePartialNestedInterpretation,
+    livePartialNestedValidation
+  );
+
+const livePartialNestedCommit =
+  buildRedirectNavigationCommit(
+    livePartialNestedState,
+    livePartialNestedPreparation
+  );
+
+const livePartialNestedPassed =
+  livePartialNestedInterpretation
+    ?.interpretationStatus ===
+    "redirectPossiblyObserved" &&
+
+  livePartialNestedInterpretation
+    ?.requestedTarget
+    ?.component ===
+    "details" &&
+
+  livePartialNestedInterpretation
+    ?.requestedTarget
+    ?.mainIdeaReference ===
+    "ordinal2" &&
+
+  livePartialNestedInterpretation
+    ?.requestedTarget
+    ?.detailReference ===
+    "unspecified" &&
+
+  livePartialNestedValidation
+    ?.validationStatus ===
+    "clarificationRequired" &&
+
+  livePartialNestedValidation
+    ?.resolvedTarget
+    ?.mainIdeaIndex ===
+    1 &&
+
+  livePartialNestedPreparation
+    ?.preparationStatus ===
+    "notApplicable" &&
+
+  livePartialNestedCommit
+    ?.committed !==
+    true &&
+
+  JSON.stringify(
+    livePartialNestedState
+  ) ===
+  JSON.stringify(
+    livePartialNestedSnapshot
+  );
+
+results.push({
+  name:
+    "Redirect - Live partial nested Detail target preserves resolved Main Idea and requests clarification",
+
+  passed:
+    livePartialNestedPassed,
+
+  expected: {
+    interpretationStatus:
+      "redirectPossiblyObserved",
+
+    component:
+      "details",
+
+    mainIdeaReference:
+      "ordinal2",
+
+    detailReference:
+      "unspecified",
+
+    validationStatus:
+      "clarificationRequired",
+
+    resolvedMainIdeaIndex:
+      1,
+
+    preparationStatus:
+      "notApplicable",
+
+    committed:
+      false,
+
+    sourceStateUnchanged:
+      true,
+  },
+
+  actual: {
+    interpretationStatus:
+      livePartialNestedInterpretation
+        ?.interpretationStatus || null,
+
+    component:
+      livePartialNestedInterpretation
+        ?.requestedTarget
+        ?.component || null,
+
+    mainIdeaReference:
+      livePartialNestedInterpretation
+        ?.requestedTarget
+        ?.mainIdeaReference || null,
+
+    detailReference:
+      livePartialNestedInterpretation
+        ?.requestedTarget
+        ?.detailReference || null,
+
+    validationStatus:
+      livePartialNestedValidation
+        ?.validationStatus || null,
+
+    resolvedMainIdeaIndex:
+      livePartialNestedValidation
+        ?.resolvedTarget
+        ?.mainIdeaIndex ?? null,
+
+    preparationStatus:
+      livePartialNestedPreparation
+        ?.preparationStatus || null,
+
+    committed:
+      livePartialNestedCommit
+        ?.committed ===
+        true,
+
+    sourceStateUnchanged:
+      JSON.stringify(
+        livePartialNestedState
+      ) ===
+      JSON.stringify(
+        livePartialNestedSnapshot
+      ),
+  },
+});
+
+
+// --------------------------------------------------
+// TEST 31 — LIVE EXISTING SO WHAT RE-ENTRY
+// --------------------------------------------------
+
+const liveSoWhatReentryState =
+  createRedirectNavigationTestState();
+
+const liveSoWhatReentryFrame =
+  structuredClone(
+    liveSoWhatReentryState.frame
+  );
+
+const liveSoWhatReentrySnapshot =
+  structuredClone(
+    liveSoWhatReentryState
+  );
+
+const liveSoWhatReentryInterpretation =
+  await interpretRedirectIntent(
+    liveSoWhatReentryState,
+    "can we go back and revise my so what"
+  );
+
+const liveSoWhatReentryValidation =
+  buildRedirectValidation(
+    liveSoWhatReentryState,
+    liveSoWhatReentryInterpretation
+  );
+
+const liveSoWhatReentryPreparation =
+  buildRedirectNavigationPreparation(
+    liveSoWhatReentryState,
+    liveSoWhatReentryInterpretation,
+    liveSoWhatReentryValidation
+  );
+
+const liveSoWhatReentryCommit =
+  buildRedirectNavigationCommit(
+    liveSoWhatReentryState,
+    liveSoWhatReentryPreparation
+  );
+
+const liveSoWhatReentryPending =
+  liveSoWhatReentryCommit
+    ?.committedState
+    ?.pending;
+
+const liveSoWhatReentryPassed =
+  liveSoWhatReentryInterpretation
+    ?.interpretationStatus ===
+    "redirectObserved" &&
+
+  liveSoWhatReentryInterpretation
+    ?.requestedTarget
+    ?.component ===
+    "soWhat" &&
+
+  liveSoWhatReentryValidation
+    ?.validationStatus ===
+    "authorized" &&
+
+  liveSoWhatReentryPreparation
+    ?.preparationStatus ===
+    "prepared" &&
+
+  liveSoWhatReentryCommit
+    ?.committed ===
+    true &&
+
+  liveSoWhatReentryPending
+    ?.type ===
+    "confirmSoWhat" &&
+
+  liveSoWhatReentryPending
+    ?.awaitingRevision ===
+    true &&
+
+  liveSoWhatReentryCommit
+    ?.committedState
+    ?.frame
+    ?.soWhat ===
+    liveSoWhatReentryState
+      .frame
+      .soWhat &&
+
+  JSON.stringify(
+    liveSoWhatReentryCommit
+      ?.committedState
+      ?.frame
+  ) ===
+  JSON.stringify(
+    liveSoWhatReentryFrame
+  ) &&
+
+  JSON.stringify(
+    liveSoWhatReentryState
+  ) ===
+  JSON.stringify(
+    liveSoWhatReentrySnapshot
+  );
+
+results.push({
+  name:
+    "Redirect - Live existing So What request enters governed revision-ready state",
+
+  passed:
+    liveSoWhatReentryPassed,
+
+  expected: {
+    interpretationStatus:
+      "redirectObserved",
+
+    component:
+      "soWhat",
+
+    validationStatus:
+      "authorized",
+
+    preparationStatus:
+      "prepared",
+
+    pendingType:
+      "confirmSoWhat",
+
+    awaitingRevision:
+      true,
+
+    existingSoWhatPreserved:
+      true,
+
+    framePreserved:
+      true,
+
+    sourceStateUnchanged:
+      true,
+  },
+
+  actual: {
+    interpretationStatus:
+      liveSoWhatReentryInterpretation
+        ?.interpretationStatus || null,
+
+    component:
+      liveSoWhatReentryInterpretation
+        ?.requestedTarget
+        ?.component || null,
+
+    validationStatus:
+      liveSoWhatReentryValidation
+        ?.validationStatus || null,
+
+    preparationStatus:
+      liveSoWhatReentryPreparation
+        ?.preparationStatus || null,
+
+    pendingType:
+      liveSoWhatReentryPending
+        ?.type || null,
+
+    awaitingRevision:
+      liveSoWhatReentryPending
+        ?.awaitingRevision ===
+        true,
+
+    existingSoWhatPreserved:
+      liveSoWhatReentryCommit
+        ?.committedState
+        ?.frame
+        ?.soWhat ===
+      liveSoWhatReentryState
+        .frame
+        .soWhat,
+
+    framePreserved:
+      JSON.stringify(
+        liveSoWhatReentryCommit
+          ?.committedState
+          ?.frame
+      ) ===
+      JSON.stringify(
+        liveSoWhatReentryFrame
+      ),
+
+    sourceStateUnchanged:
+      JSON.stringify(
+        liveSoWhatReentryState
+      ) ===
+      JSON.stringify(
+        liveSoWhatReentrySnapshot
+      ),
+  },
+});
   
   const passedCount =
     results.filter(
