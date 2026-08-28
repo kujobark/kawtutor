@@ -27360,6 +27360,231 @@ results.push({
   },
 });
 
+// --------------------------------------------------
+// TEST 12 — RAW PENDING MATCH IS NOT ENOUGH FOR ACTIVE GC
+// --------------------------------------------------
+
+const canonicalGcMismatchState =
+  createRedirectNavigationTestState();
+
+canonicalGcMismatchState.pending = {
+  type:
+    "reviseDetailAt",
+
+  index:
+    1,
+
+  detailIndex:
+    0,
+
+  captureMode:
+    "revision",
+
+  progressiveSupportStage:
+    3,
+
+  guidedConstructionStep:
+    2,
+
+  guidedConstructionEvidence: {
+    1: {
+      step:
+        1,
+
+      evidence:
+        "Online interactions can affect friendships.",
+    },
+  },
+
+  guidedConstructionLocation: {
+    locationEstablished:
+      true,
+
+    interactionMode:
+      "strengthen",
+
+    frameComponent:
+      "details",
+
+    rawStage:
+      "details",
+
+    pendingType:
+      "reviseDetailAt",
+
+    captureMode:
+      "revision",
+
+    mainIdeaIndex:
+      null,
+
+    detailMainIdeaIndex:
+      1,
+
+    detailIndex:
+      0,
+  },
+};
+
+const canonicalGcMismatchSnapshot =
+  structuredClone(
+    canonicalGcMismatchState
+  );
+
+const canonicalGcMismatchPreparation = {
+  artifactType:
+    "redirectNavigationPreparation",
+
+  preparationStatus:
+    "prepared",
+
+  verified:
+    true,
+
+  replacementPending: {
+    type:
+      "reviseDetailAt",
+
+    index:
+      1,
+
+    detailIndex:
+      0,
+
+    captureMode:
+      "revision",
+  },
+
+  resolvedTarget: {
+    component:
+      "details",
+
+    mainIdeaIndex:
+      1,
+
+    detailIndex:
+      0,
+
+    operation:
+      "workOn",
+  },
+};
+
+const canonicalGcMismatchCommit =
+  buildRedirectNavigationCommit(
+    canonicalGcMismatchState,
+    canonicalGcMismatchPreparation
+  );
+
+const canonicalGcMismatchPending =
+  canonicalGcMismatchCommit
+    ?.committedState
+    ?.pending;
+
+const canonicalGcMismatchPassed =
+  canonicalGcMismatchCommit
+    ?.committed === true &&
+
+  canonicalGcMismatchCommit
+    ?.commitStatus ===
+    "committed" &&
+
+  canonicalGcMismatchPending
+    ?.type ===
+    "reviseDetailAt" &&
+
+  canonicalGcMismatchPending
+    ?.index ===
+    1 &&
+
+  canonicalGcMismatchPending
+    ?.detailIndex ===
+    0 &&
+
+  canonicalGcMismatchPending
+    ?.progressiveSupportStage ===
+    undefined &&
+
+  canonicalGcMismatchPending
+    ?.guidedConstructionStep ===
+    undefined &&
+
+  canonicalGcMismatchPending
+    ?.guidedConstructionEvidence ===
+    undefined &&
+
+  canonicalGcMismatchPending
+    ?.guidedConstructionLocation ===
+    undefined &&
+
+  JSON.stringify(
+    canonicalGcMismatchState
+  ) ===
+  JSON.stringify(
+    canonicalGcMismatchSnapshot
+  );
+
+results.push({
+  name:
+    "Redirect - Active Guided Construction requires canonical location match, not raw pending match",
+
+  passed:
+    canonicalGcMismatchPassed,
+
+  expected: {
+    commitStatus:
+      "committed",
+
+    rawPendingStillMatches:
+      true,
+
+    guidedConstructionCleared:
+      true,
+
+    sourceStateUnchanged:
+      true,
+  },
+
+  actual: {
+    commitStatus:
+      canonicalGcMismatchCommit
+        ?.commitStatus || null,
+
+    rawPendingStillMatches:
+      canonicalGcMismatchPending
+        ?.type ===
+        "reviseDetailAt" &&
+      canonicalGcMismatchPending
+        ?.index ===
+        1 &&
+      canonicalGcMismatchPending
+        ?.detailIndex ===
+        0,
+
+    guidedConstructionCleared:
+      canonicalGcMismatchPending
+        ?.progressiveSupportStage ===
+        undefined &&
+      canonicalGcMismatchPending
+        ?.guidedConstructionStep ===
+        undefined &&
+      canonicalGcMismatchPending
+        ?.guidedConstructionEvidence ===
+        undefined &&
+      canonicalGcMismatchPending
+        ?.guidedConstructionLocation ===
+        undefined,
+
+    sourceStateUnchanged:
+      JSON.stringify(
+        canonicalGcMismatchState
+      ) ===
+      JSON.stringify(
+        canonicalGcMismatchSnapshot
+      ),
+  },
+});
+
   const passedCount =
     results.filter(
       (result) =>
