@@ -27980,6 +27980,146 @@ results.push({
   },
 });
 
+// --------------------------------------------------
+// TEST 16 — AMBIGUOUS REDIRECT REQUIRES CLARIFICATION
+// --------------------------------------------------
+
+const ambiguousRedirectState =
+  createRedirectNavigationTestState();
+
+const ambiguousRedirectSnapshot =
+  structuredClone(
+    ambiguousRedirectState
+  );
+
+const ambiguousRedirectMessage =
+  "Go back.";
+
+const ambiguousRedirectInterpretation =
+  await interpretRedirectIntent(
+    ambiguousRedirectState,
+    ambiguousRedirectMessage
+  );
+
+const ambiguousRedirectValidation =
+  buildRedirectValidation(
+    ambiguousRedirectState,
+    ambiguousRedirectInterpretation
+  );
+
+const ambiguousRedirectPreparation =
+  buildRedirectNavigationPreparation(
+    ambiguousRedirectState,
+    ambiguousRedirectInterpretation,
+    ambiguousRedirectValidation
+  );
+
+const ambiguousRedirectCommit =
+  buildRedirectNavigationCommit(
+    ambiguousRedirectState,
+    ambiguousRedirectPreparation
+  );
+
+const ambiguousRedirectPassed =
+  ambiguousRedirectInterpretation
+    ?.interpretationStatus ===
+    "redirectPossiblyObserved" &&
+
+  ambiguousRedirectValidation
+    ?.validationStatus ===
+    "clarificationRequired" &&
+
+  ambiguousRedirectValidation
+    ?.navigationAuthorized ===
+    false &&
+
+  ambiguousRedirectPreparation
+    ?.preparationStatus ===
+    "notApplicable" &&
+
+  ambiguousRedirectCommit
+    ?.committed !== true &&
+
+  JSON.stringify(
+    ambiguousRedirectState
+  ) ===
+  JSON.stringify(
+    ambiguousRedirectSnapshot
+  );
+
+results.push({
+  name:
+    "Redirect - Ambiguous go-back request requires clarification and cannot navigate",
+
+  passed:
+    ambiguousRedirectPassed,
+
+  expected: {
+    interpretationStatus:
+      "redirectPossiblyObserved",
+
+    validationStatus:
+      "clarificationRequired",
+
+    navigationAuthorized:
+      false,
+
+    preparationStatus:
+      "notApplicable",
+
+    committed:
+      false,
+
+    sourceStateUnchanged:
+      true,
+  },
+
+  actual: {
+    interpretationStatus:
+      ambiguousRedirectInterpretation
+        ?.interpretationStatus || null,
+
+    requestedTarget:
+      ambiguousRedirectInterpretation
+        ?.requestedTarget || null,
+
+    evidenceText:
+      cleanText(
+        ambiguousRedirectInterpretation
+          ?.evidenceText || ""
+      ),
+
+    confidence:
+      ambiguousRedirectInterpretation
+        ?.confidence ?? null,
+
+    validationStatus:
+      ambiguousRedirectValidation
+        ?.validationStatus || null,
+
+    navigationAuthorized:
+      ambiguousRedirectValidation
+        ?.navigationAuthorized ===
+        true,
+
+    preparationStatus:
+      ambiguousRedirectPreparation
+        ?.preparationStatus || null,
+
+    committed:
+      ambiguousRedirectCommit
+        ?.committed === true,
+
+    sourceStateUnchanged:
+      JSON.stringify(
+        ambiguousRedirectState
+      ) ===
+      JSON.stringify(
+        ambiguousRedirectSnapshot
+      ),
+  },
+});
+
   const passedCount =
     results.filter(
       (result) =>
