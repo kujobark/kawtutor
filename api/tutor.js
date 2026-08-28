@@ -28439,7 +28439,7 @@ results.push({
   },
 });
 
-  // --------------------------------------------------
+// --------------------------------------------------
 // TEST 19 — CLARIFICATION LIFECYCLE RESOLVES TARGET
 // --------------------------------------------------
 
@@ -28561,6 +28561,222 @@ results.push({
 
     frameContentUnchanged:
       clarificationAnswerNotSavedAsFrameContent,
+  },
+});
+
+// --------------------------------------------------
+// TEST 20 — MESSY NATURAL-LANGUAGE NESTED DETAIL
+// --------------------------------------------------
+
+const messyDetailState =
+  createRedirectNavigationTestState();
+
+const messyDetailSnapshot =
+  structuredClone(
+    messyDetailState
+  );
+
+const messyDetailFrame =
+  structuredClone(
+    messyDetailState.frame
+  );
+
+const messyDetailInterpretation =
+  await interpretRedirectIntent(
+    messyDetailState,
+    "wait can we go back and fix the second detail under my first main idea"
+  );
+
+const messyDetailValidation =
+  buildRedirectValidation(
+    messyDetailState,
+    messyDetailInterpretation
+  );
+
+const messyDetailPreparation =
+  buildRedirectNavigationPreparation(
+    messyDetailState,
+    messyDetailInterpretation,
+    messyDetailValidation
+  );
+
+const messyDetailCommit =
+  buildRedirectNavigationCommit(
+    messyDetailState,
+    messyDetailPreparation
+  );
+
+const messyDetailPassed =
+  messyDetailInterpretation
+    ?.interpretationStatus ===
+    "redirectObserved" &&
+
+  messyDetailInterpretation
+    ?.requestedTarget
+    ?.component ===
+    "details" &&
+
+  messyDetailInterpretation
+    ?.requestedTarget
+    ?.mainIdeaReference ===
+    "ordinal1" &&
+
+  messyDetailInterpretation
+    ?.requestedTarget
+    ?.detailReference ===
+    "ordinal2" &&
+
+  messyDetailValidation
+    ?.validationStatus ===
+    "authorized" &&
+
+  messyDetailValidation
+    ?.resolvedTarget
+    ?.mainIdeaIndex ===
+    0 &&
+
+  messyDetailValidation
+    ?.resolvedTarget
+    ?.detailIndex ===
+    1 &&
+
+  messyDetailPreparation
+    ?.preparationStatus ===
+    "prepared" &&
+
+  messyDetailCommit
+    ?.committed === true &&
+
+  messyDetailCommit
+    ?.committedState
+    ?.pending
+    ?.type ===
+    "reviseDetailAt" &&
+
+  messyDetailCommit
+    ?.committedState
+    ?.pending
+    ?.index ===
+    0 &&
+
+  messyDetailCommit
+    ?.committedState
+    ?.pending
+    ?.detailIndex ===
+    1 &&
+
+  JSON.stringify(
+    messyDetailCommit
+      ?.committedState
+      ?.frame
+  ) ===
+  JSON.stringify(
+    messyDetailFrame
+  ) &&
+
+  JSON.stringify(
+    messyDetailState
+  ) ===
+  JSON.stringify(
+    messyDetailSnapshot
+  );
+
+results.push({
+  name:
+    "Redirect - Messy natural-language nested Detail resolves correctly",
+
+  passed:
+    messyDetailPassed,
+
+  expected: {
+    interpretationStatus:
+      "redirectObserved",
+
+    component:
+      "details",
+
+    mainIdeaReference:
+      "ordinal1",
+
+    detailReference:
+      "ordinal2",
+
+    validationStatus:
+      "authorized",
+
+    mainIdeaIndex:
+      0,
+
+    detailIndex:
+      1,
+
+    pendingType:
+      "reviseDetailAt",
+
+    framePreserved:
+      true,
+
+    sourceStateUnchanged:
+      true,
+  },
+
+  actual: {
+    interpretationStatus:
+      messyDetailInterpretation
+        ?.interpretationStatus || null,
+
+    component:
+      messyDetailInterpretation
+        ?.requestedTarget
+        ?.component || null,
+
+    mainIdeaReference:
+      messyDetailInterpretation
+        ?.requestedTarget
+        ?.mainIdeaReference || null,
+
+    detailReference:
+      messyDetailInterpretation
+        ?.requestedTarget
+        ?.detailReference || null,
+
+    validationStatus:
+      messyDetailValidation
+        ?.validationStatus || null,
+
+    mainIdeaIndex:
+      messyDetailValidation
+        ?.resolvedTarget
+        ?.mainIdeaIndex ?? null,
+
+    detailIndex:
+      messyDetailValidation
+        ?.resolvedTarget
+        ?.detailIndex ?? null,
+
+    pendingType:
+      messyDetailCommit
+        ?.committedState
+        ?.pending
+        ?.type || null,
+
+    framePreserved:
+      JSON.stringify(
+        messyDetailCommit
+          ?.committedState
+          ?.frame
+      ) ===
+      JSON.stringify(
+        messyDetailFrame
+      ),
+
+    sourceStateUnchanged:
+      JSON.stringify(
+        messyDetailState
+      ) ===
+      JSON.stringify(
+        messyDetailSnapshot
+      ),
   },
 });
   
