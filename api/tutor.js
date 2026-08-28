@@ -28840,6 +28840,220 @@ results.push({
       ),
   },
 });
+
+  // --------------------------------------------------
+// TEST 21 — LIVE SAME-LOCATION REDIRECT PRESERVES GC
+// --------------------------------------------------
+
+const liveSameLocationState =
+  createRedirectNavigationTestState();
+
+liveSameLocationState.pending = {
+  type:
+    "reviseMainIdeaAt",
+
+  index:
+    0,
+
+  captureMode:
+    "revision",
+
+  progressiveSupportStage:
+    3,
+
+  guidedConstructionStep:
+    2,
+
+  guidedConstructionEvidence: {
+    "1": {
+      step:
+        1,
+
+      evidence:
+        "Mental health",
+    },
+  },
+};
+
+liveSameLocationState
+  .pending
+  .guidedConstructionLocation =
+  buildGuidedConstructionInstructionalLocation(
+    liveSameLocationState
+  );
+
+const liveSameLocationSnapshot =
+  structuredClone(
+    liveSameLocationState
+  );
+
+const liveSameLocationInterpretation =
+  await interpretRedirectIntent(
+    liveSameLocationState,
+    "actually can we go back to my first main idea"
+  );
+
+const liveSameLocationValidation =
+  buildRedirectValidation(
+    liveSameLocationState,
+    liveSameLocationInterpretation
+  );
+
+const liveSameLocationPreparation =
+  buildRedirectNavigationPreparation(
+    liveSameLocationState,
+    liveSameLocationInterpretation,
+    liveSameLocationValidation
+  );
+
+const liveSameLocationCommit =
+  buildRedirectNavigationCommit(
+    liveSameLocationState,
+    liveSameLocationPreparation
+  );
+
+const liveSameLocationPassed =
+  liveSameLocationInterpretation
+    ?.interpretationStatus ===
+    "redirectObserved" &&
+
+  liveSameLocationInterpretation
+    ?.requestedTarget
+    ?.component ===
+    "mainIdeas" &&
+
+  liveSameLocationInterpretation
+    ?.requestedTarget
+    ?.mainIdeaReference ===
+    "ordinal1" &&
+
+  liveSameLocationValidation
+    ?.validationStatus ===
+    "authorized" &&
+
+  liveSameLocationCommit
+    ?.committed === true &&
+
+  liveSameLocationCommit
+    ?.commitStatus ===
+    "sameLocation" &&
+
+  liveSameLocationCommit
+    ?.committedState
+    ?.pending
+    ?.progressiveSupportStage ===
+    3 &&
+
+  liveSameLocationCommit
+    ?.committedState
+    ?.pending
+    ?.guidedConstructionStep ===
+    2 &&
+
+  liveSameLocationCommit
+    ?.committedState
+    ?.pending
+    ?.guidedConstructionEvidence
+    ?.[1]
+    ?.evidence ===
+    "Mental health" &&
+
+  JSON.stringify(
+    liveSameLocationState
+  ) ===
+  JSON.stringify(
+    liveSameLocationSnapshot
+  );
+
+results.push({
+  name:
+    "Redirect - Live same-location request preserves active Guided Construction",
+
+  passed:
+    liveSameLocationPassed,
+
+  expected: {
+    interpretationStatus:
+      "redirectObserved",
+
+    component:
+      "mainIdeas",
+
+    mainIdeaReference:
+      "ordinal1",
+
+    validationStatus:
+      "authorized",
+
+    commitStatus:
+      "sameLocation",
+
+    progressiveSupportStage:
+      3,
+
+    guidedConstructionStep:
+      2,
+
+    guidedEvidencePreserved:
+      true,
+
+    sourceStateUnchanged:
+      true,
+  },
+
+  actual: {
+    interpretationStatus:
+      liveSameLocationInterpretation
+        ?.interpretationStatus || null,
+
+    component:
+      liveSameLocationInterpretation
+        ?.requestedTarget
+        ?.component || null,
+
+    mainIdeaReference:
+      liveSameLocationInterpretation
+        ?.requestedTarget
+        ?.mainIdeaReference || null,
+
+    validationStatus:
+      liveSameLocationValidation
+        ?.validationStatus || null,
+
+    commitStatus:
+      liveSameLocationCommit
+        ?.commitStatus || null,
+
+    progressiveSupportStage:
+      liveSameLocationCommit
+        ?.committedState
+        ?.pending
+        ?.progressiveSupportStage ?? null,
+
+    guidedConstructionStep:
+      liveSameLocationCommit
+        ?.committedState
+        ?.pending
+        ?.guidedConstructionStep ?? null,
+
+    guidedEvidencePreserved:
+      liveSameLocationCommit
+        ?.committedState
+        ?.pending
+        ?.guidedConstructionEvidence
+        ?.[1]
+        ?.evidence ===
+        "Mental health",
+
+    sourceStateUnchanged:
+      JSON.stringify(
+        liveSameLocationState
+      ) ===
+      JSON.stringify(
+        liveSameLocationSnapshot
+      ),
+  },
+});
   
   const passedCount =
     results.filter(
