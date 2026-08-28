@@ -35365,14 +35365,28 @@ function buildRedirectNavigationCommit(
       preparation.replacementPending
     );
 
-  const activeGuidedConstruction =
-  getActiveGuidedConstructionContext(
-    state
+  const currentGuidedConstructionStep =
+  Number(
+    state?.pending
+      ?.guidedConstructionStep
   );
 
 const guidedConstructionActive =
-  activeGuidedConstruction?.active ===
-    true;
+  Number(
+    state?.pending
+      ?.progressiveSupportStage
+  ) === 3 &&
+
+  Number.isInteger(
+    currentGuidedConstructionStep
+  ) &&
+
+  currentGuidedConstructionStep >= 1 &&
+  currentGuidedConstructionStep <= 3 &&
+
+  state?.pending
+    ?.guidedConstructionLocation
+    ?.locationEstablished === true;
   
   // --------------------------------------------------
   // SAME EXACT RE-ENTRY LOCATION
