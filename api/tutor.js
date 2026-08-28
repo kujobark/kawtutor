@@ -28120,7 +28120,7 @@ results.push({
   },
 });
 
-  // --------------------------------------------------
+// --------------------------------------------------
 // TEST 17 — UNSUPPORTED FORWARD JUMP TO FIRST SO WHAT
 // --------------------------------------------------
 
@@ -28277,6 +28277,164 @@ results.push({
       ) ===
       JSON.stringify(
         forwardSoWhatSnapshot
+      ),
+  },
+});
+
+// --------------------------------------------------
+// TEST 18 — KEY TOPIC RE-ENTRY REMAINS BLOCKED
+// --------------------------------------------------
+
+const keyTopicRedirectState =
+  createRedirectNavigationTestState();
+
+const keyTopicRedirectSnapshot =
+  structuredClone(
+    keyTopicRedirectState
+  );
+
+const keyTopicRedirectInterpretation = {
+  artifactType:
+    "redirectInterpretation",
+
+  interpretationStatus:
+    "redirectObserved",
+
+  redirectIntent:
+    "revisitTarget",
+
+  requestedTarget: {
+    component:
+      "keyTopic",
+
+    mainIdeaReference:
+      "unspecified",
+
+    detailReference:
+      "unspecified",
+  },
+
+  requestedOperation:
+    "revise",
+
+  currentPathDisposition:
+    "unspecified",
+
+  evidenceText:
+    "Go back to my Key Topic.",
+
+  confidence:
+    1,
+};
+
+const keyTopicRedirectValidation =
+  buildRedirectValidation(
+    keyTopicRedirectState,
+    keyTopicRedirectInterpretation
+  );
+
+const keyTopicRedirectPreparation =
+  buildRedirectNavigationPreparation(
+    keyTopicRedirectState,
+    keyTopicRedirectInterpretation,
+    keyTopicRedirectValidation
+  );
+
+const keyTopicRedirectCommit =
+  buildRedirectNavigationCommit(
+    keyTopicRedirectState,
+    keyTopicRedirectPreparation
+  );
+
+const keyTopicRedirectPassed =
+  keyTopicRedirectValidation
+    ?.validationStatus ===
+    "notAuthorized" &&
+
+  keyTopicRedirectValidation
+    ?.navigationAuthorized ===
+    false &&
+
+  Array.isArray(
+    keyTopicRedirectValidation
+      ?.validationEvidence
+  ) &&
+
+  keyTopicRedirectValidation
+    .validationEvidence
+    .includes(
+      "freshKeyTopicReentryNotYetSupported"
+    ) &&
+
+  keyTopicRedirectPreparation
+    ?.preparationStatus ===
+    "notApplicable" &&
+
+  keyTopicRedirectCommit
+    ?.committed !== true &&
+
+  JSON.stringify(
+    keyTopicRedirectState
+  ) ===
+  JSON.stringify(
+    keyTopicRedirectSnapshot
+  );
+
+results.push({
+  name:
+    "Redirect - Key Topic re-entry remains blocked",
+
+  passed:
+    keyTopicRedirectPassed,
+
+  expected: {
+    validationStatus:
+      "notAuthorized",
+
+    navigationAuthorized:
+      false,
+
+    validationEvidence:
+      "freshKeyTopicReentryNotYetSupported",
+
+    preparationStatus:
+      "notApplicable",
+
+    committed:
+      false,
+
+    sourceStateUnchanged:
+      true,
+  },
+
+  actual: {
+    validationStatus:
+      keyTopicRedirectValidation
+        ?.validationStatus || null,
+
+    navigationAuthorized:
+      keyTopicRedirectValidation
+        ?.navigationAuthorized ===
+        true,
+
+    validationEvidence:
+      keyTopicRedirectValidation
+        ?.validationEvidence || null,
+
+    preparationStatus:
+      keyTopicRedirectPreparation
+        ?.preparationStatus || null,
+
+    committed:
+      keyTopicRedirectCommit
+        ?.committed === true,
+
+    sourceStateUnchanged:
+      JSON.stringify(
+        keyTopicRedirectState
+      ) ===
+      JSON.stringify(
+        keyTopicRedirectSnapshot
       ),
   },
 });
