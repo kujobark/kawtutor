@@ -29344,7 +29344,6 @@ results.push({
   },
 });
 
-
 // --------------------------------------------------
 // TEST 24 — LIVE ADD-SUPPORTING-CONTENT LANGUAGE
 // --------------------------------------------------
@@ -29533,6 +29532,443 @@ results.push({
       ) ===
       JSON.stringify(
         liveAddDetailSnapshot
+      ),
+  },
+});
+
+  // --------------------------------------------------
+// TEST 25 — LIVE NOT-AUTHORIZED REDIRECT STAYS BOUNDED
+// --------------------------------------------------
+
+const liveBlockedRedirectState =
+  createRedirectNavigationTestState();
+
+liveBlockedRedirectState.frame.soWhat =
+  "";
+
+const liveBlockedRedirectSnapshot =
+  structuredClone(
+    liveBlockedRedirectState
+  );
+
+const liveBlockedRedirectInterpretation =
+  await interpretRedirectIntent(
+    liveBlockedRedirectState,
+    "skip ahead to the so what"
+  );
+
+const liveBlockedRedirectValidation =
+  buildRedirectValidation(
+    liveBlockedRedirectState,
+    liveBlockedRedirectInterpretation
+  );
+
+const liveBlockedRedirectPreparation =
+  buildRedirectNavigationPreparation(
+    liveBlockedRedirectState,
+    liveBlockedRedirectInterpretation,
+    liveBlockedRedirectValidation
+  );
+
+const liveBlockedRedirectCommit =
+  buildRedirectNavigationCommit(
+    liveBlockedRedirectState,
+    liveBlockedRedirectPreparation
+  );
+
+const liveBlockedRedirectPassed =
+  liveBlockedRedirectInterpretation
+    ?.interpretationStatus ===
+    "redirectObserved" &&
+
+  liveBlockedRedirectInterpretation
+    ?.requestedTarget
+    ?.component ===
+    "soWhat" &&
+
+  liveBlockedRedirectValidation
+    ?.validationStatus ===
+    "notAuthorized" &&
+
+  liveBlockedRedirectValidation
+    ?.navigationAuthorized ===
+    false &&
+
+  liveBlockedRedirectPreparation
+    ?.preparationStatus ===
+    "notApplicable" &&
+
+  liveBlockedRedirectCommit
+    ?.committed !==
+    true &&
+
+  JSON.stringify(
+    liveBlockedRedirectState
+  ) ===
+  JSON.stringify(
+    liveBlockedRedirectSnapshot
+  );
+
+results.push({
+  name:
+    "Redirect - Live unsupported target remains bounded and does not mutate state",
+
+  passed:
+    liveBlockedRedirectPassed,
+
+  expected: {
+    interpretationStatus:
+      "redirectObserved",
+
+    component:
+      "soWhat",
+
+    validationStatus:
+      "notAuthorized",
+
+    navigationAuthorized:
+      false,
+
+    preparationStatus:
+      "notApplicable",
+
+    committed:
+      false,
+
+    sourceStateUnchanged:
+      true,
+  },
+
+  actual: {
+    interpretationStatus:
+      liveBlockedRedirectInterpretation
+        ?.interpretationStatus || null,
+
+    component:
+      liveBlockedRedirectInterpretation
+        ?.requestedTarget
+        ?.component || null,
+
+    validationStatus:
+      liveBlockedRedirectValidation
+        ?.validationStatus || null,
+
+    navigationAuthorized:
+      liveBlockedRedirectValidation
+        ?.navigationAuthorized ===
+        true,
+
+    preparationStatus:
+      liveBlockedRedirectPreparation
+        ?.preparationStatus || null,
+
+    committed:
+      liveBlockedRedirectCommit
+        ?.committed === true,
+
+    sourceStateUnchanged:
+      JSON.stringify(
+        liveBlockedRedirectState
+      ) ===
+      JSON.stringify(
+        liveBlockedRedirectSnapshot
+      ),
+  },
+});
+
+
+// --------------------------------------------------
+// TEST 26 — UNRESOLVED CLARIFICATION STAYS BOUNDED
+// --------------------------------------------------
+
+const unresolvedClarificationState =
+  createRedirectNavigationTestState();
+
+const unresolvedClarificationFrame =
+  structuredClone(
+    unresolvedClarificationState.frame
+  );
+
+const unresolvedPriorInterpretation = {
+  artifactType:
+    "redirectInterpretation",
+
+  interpretationStatus:
+    "redirectPossiblyObserved",
+
+  redirectIntent:
+    "revisitTarget",
+
+  requestedTarget: {
+    component:
+      "mainIdeas",
+
+    mainIdeaReference:
+      "unspecified",
+
+    detailReference:
+      "unspecified",
+  },
+
+  requestedOperation:
+    "workOn",
+
+  currentPathDisposition:
+    "unspecified",
+
+  evidenceText:
+    "Go back to one of my Main Ideas.",
+
+  confidence:
+    1,
+};
+
+const unresolvedPriorValidation =
+  buildRedirectValidation(
+    unresolvedClarificationState,
+    unresolvedPriorInterpretation
+  );
+
+unresolvedClarificationState
+  .redirectNavigationBoundary = {
+  artifactType:
+    "redirectNavigationBoundary",
+
+  version:
+    "1.0",
+
+  status:
+    "clarificationRequired",
+
+  interpretation:
+    structuredClone(
+      unresolvedPriorInterpretation
+    ),
+
+  validation:
+    structuredClone(
+      unresolvedPriorValidation
+    ),
+};
+
+const unresolvedClarificationResult =
+  await updateStateFromStudent(
+    unresolvedClarificationState,
+    "I'm not sure."
+  );
+
+const unresolvedClarificationPassed =
+  unresolvedClarificationResult
+    ?.redirectNavigationBoundary
+    ?.status ===
+    "clarificationRequired" &&
+
+  unresolvedClarificationResult
+    ?.redirectNavigationOutcome ===
+    undefined &&
+
+  JSON.stringify(
+    unresolvedClarificationResult
+      ?.frame
+  ) ===
+  JSON.stringify(
+    unresolvedClarificationFrame
+  );
+
+results.push({
+  name:
+    "Redirect - Unresolved clarification remains bounded without becoming Frame evidence",
+
+  passed:
+    unresolvedClarificationPassed,
+
+  expected: {
+    boundaryStatus:
+      "clarificationRequired",
+
+    navigationOutcome:
+      false,
+
+    frameContentUnchanged:
+      true,
+  },
+
+  actual: {
+    boundaryStatus:
+      unresolvedClarificationResult
+        ?.redirectNavigationBoundary
+        ?.status || null,
+
+    navigationOutcome:
+      unresolvedClarificationResult
+        ?.redirectNavigationOutcome !==
+        undefined,
+
+    frameContentUnchanged:
+      JSON.stringify(
+        unresolvedClarificationResult
+          ?.frame
+      ) ===
+      JSON.stringify(
+        unresolvedClarificationFrame
+      ),
+  },
+});
+
+
+// --------------------------------------------------
+// TEST 27 — BUILD/STRENGTHEN GATEWAY STILL WINS
+// --------------------------------------------------
+
+const workflowGatewayState =
+  createRedirectNavigationTestState();
+
+workflowGatewayState.frame = {
+  keyTopic:
+    "",
+
+  isAbout:
+    "",
+
+  parentItems:
+    [],
+
+  details:
+    [],
+
+  soWhat:
+    "",
+};
+
+workflowGatewayState.frameMeta = {
+  assignmentContext: {
+    raw:
+      "Explain how social media affects teenagers.",
+
+    understanding:
+      "Explain how social media affects teenagers.",
+
+    studentSummary:
+      "Explain how social media affects teenagers.",
+
+    valid:
+      true,
+
+    confirmed:
+      true,
+
+    assignmentContextStatus:
+      "established",
+
+    assignmentDemandStatus:
+      "established",
+
+    summaryReadinessStatus:
+      "ready",
+  },
+};
+
+workflowGatewayState.pending = {
+  type:
+    "assignmentReasoningIntro",
+};
+
+workflowGatewayState.interactionMode =
+  "build";
+
+const workflowGatewaySnapshot =
+  structuredClone(
+    workflowGatewayState.frame
+  );
+
+const workflowGatewayEligibility =
+  buildRedirectInterpretationEligibility(
+    workflowGatewayState,
+    "2"
+  );
+
+const workflowGatewayResult =
+  await updateStateFromStudent(
+    workflowGatewayState,
+    "2"
+  );
+
+const workflowGatewayPassed =
+  workflowGatewayEligibility
+    ?.eligible ===
+    false &&
+
+  workflowGatewayEligibility
+    ?.reason ===
+    "deterministicMenuInput" &&
+
+  workflowGatewayResult
+    ?.interactionMode ===
+    "strengthen" &&
+
+  workflowGatewayResult
+    ?.pending
+    ?.type ===
+    "strengthenComponentSelection" &&
+
+  JSON.stringify(
+    workflowGatewayResult
+      ?.frame
+  ) ===
+  JSON.stringify(
+    workflowGatewaySnapshot
+  );
+
+results.push({
+  name:
+    "Redirect - Build Strengthen gateway remains authoritative",
+
+  passed:
+    workflowGatewayPassed,
+
+  expected: {
+    redirectEligible:
+      false,
+
+    eligibilityReason:
+      "deterministicMenuInput",
+
+    interactionMode:
+      "strengthen",
+
+    pendingType:
+      "strengthenComponentSelection",
+
+    frameContentUnchanged:
+      true,
+  },
+
+  actual: {
+    redirectEligible:
+      workflowGatewayEligibility
+        ?.eligible ===
+        true,
+
+    eligibilityReason:
+      workflowGatewayEligibility
+        ?.reason || null,
+
+    interactionMode:
+      workflowGatewayResult
+        ?.interactionMode || null,
+
+    pendingType:
+      workflowGatewayResult
+        ?.pending
+        ?.type || null,
+
+    frameContentUnchanged:
+      JSON.stringify(
+        workflowGatewayResult
+          ?.frame
+      ) ===
+      JSON.stringify(
+        workflowGatewaySnapshot
       ),
   },
 });
