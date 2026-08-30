@@ -7760,14 +7760,9 @@ function getInstructionalSituationEvidenceHistory(
       : null;
 
   const rawStage =
-    cleanText(
-      instructionalLocation?.rawStage || ""
-    );
-
-  const currentFrameComponent =
-    cleanText(
-      getBaseStage(rawStage) || ""
-    );
+  cleanText(
+    instructionalLocation?.rawStage || ""
+  );
 
   const priorFinding =
     pending?.instructionalFinding &&
@@ -7777,10 +7772,34 @@ function getInstructionalSituationEvidenceHistory(
       ? pending.instructionalFinding
       : null;
 
+// --------------------------------------------------
+// ACTIVE INSTRUCTIONAL COMPONENT
+//
+// During ordinary linear progression, getStage() remains
+// the authoritative structural progression signal.
+//
+// During nonlinear revisit/revision, however, the active
+// pending instructional finding represents the student's
+// actual instructional component and must take precedence
+// for support-history continuity.
+//
+// This does not change Frame progression.
+// It only identifies the active component for determining
+// whether prior governed support occurred at the same
+// instructional component.
+// --------------------------------------------------
+
+  const currentFrameComponent =
+    cleanText(
+      priorFinding?.frameComponent ||
+      getBaseStage(rawStage) ||
+      ""
+  );
+
   const priorFrameComponent =
     cleanText(
       priorFinding?.frameComponent || ""
-    );
+  );
 
   const sameInstructionalComponent =
     Boolean(
