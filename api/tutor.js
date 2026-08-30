@@ -37642,6 +37642,107 @@ function buildRedirectValidation(
       state.pending.detailIndex;
   }
 
+// --------------------------------------------------
+// OTHER DETAIL REFERENCE
+//
+// "Other" may resolve deterministically only when:
+//
+// • the student is currently located at one Detail;
+// • the parent Main Idea is the current Main Idea;
+// • exactly one other accepted Detail exists beneath
+//   that same Main Idea.
+//
+// Otherwise the existing clarification pathway remains
+// authoritative.
+// --------------------------------------------------
+
+if (
+  mainIdeaIndex === null &&
+  component === "details" &&
+  mainIdeaReference ===
+    "unspecified" &&
+  detailReference ===
+    "other" &&
+  Number.isInteger(
+    currentMainIdeaIndex
+  )
+) {
+  mainIdeaIndex =
+    currentMainIdeaIndex;
+}
+
+if (
+  detailIndex === null &&
+  detailReference ===
+    "other" &&
+  Number.isInteger(
+    mainIdeaIndex
+  ) &&
+  mainIdeaIndex ===
+    currentMainIdeaIndex &&
+  Number.isInteger(
+    state?.pending?.detailIndex
+  )
+) {
+  const currentDetailIndex =
+    state.pending.detailIndex;
+
+  const currentDetailBucket =
+    Array.isArray(
+      details?.[mainIdeaIndex]
+    )
+      ? details[mainIdeaIndex]
+      : [];
+
+  const otherDetailIndexes =
+    currentDetailBucket
+      .map(
+        (detail, index) =>
+          cleanText(detail)
+            ? index
+            : null
+      )
+      .filter(
+        (index) =>
+          Number.isInteger(index) &&
+          index !==
+            currentDetailIndex
+      );
+
+  if (
+    otherDetailIndexes.length === 1
+  ) {
+    detailIndex =
+      otherDetailIndexes[0];
+  } else if (
+    otherDetailIndexes.length > 1
+  ) {
+    return {
+      artifactType:
+        "redirectValidation",
+
+      version:
+        "1.0",
+
+      source:
+        "deterministicRedirectValidator",
+
+      validationStatus:
+        "clarificationRequired",
+
+      navigationAuthorized:
+        false,
+
+      resolvedTarget:
+        null,
+
+      validationEvidence: [
+        "multipleDetailCandidates",
+      ],
+    };
+  }
+}
+
   // --------------------------------------------------
   // COMPONENT-SPECIFIC VALIDATION
   // --------------------------------------------------
